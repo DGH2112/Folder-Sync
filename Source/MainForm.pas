@@ -245,7 +245,7 @@ begin
       WriteInteger('Setup', 'Left', Left);
       WriteInteger('Setup', 'Height', Height);
       WriteInteger('Setup', 'Width', Width);
-      EraseSection('Folder');
+      EraseSection('Folders');
       For i := 0 To FFolders.Count - 1 Do
         WriteString('Folders', FFolders.Names[i],
           FFolders.Values[FFolders.Names[i]]);
