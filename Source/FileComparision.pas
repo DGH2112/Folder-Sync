@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    02 Oct 2004
+  @Date    06 Oct 2004
   @Author  David Hoyle
 
 **)
@@ -72,7 +72,7 @@ Type
     FFiles : TObjectList;
     FProgressProc: TProgressProc;
     FExclusions : TStringList;
-    FTotalSize : Integer;
+    FTotalSize : Int64;
     function GetDate(iIndex: Integer): Integer;
     function GetFileName(iIndex: Integer): String;
     function GetSize(iIndex: Integer): Integer;
@@ -148,9 +148,9 @@ Type
       A property to get the total size of the file list.
       @precon  None.
       @postcon Returns an integer representing the total size.
-      @return  an Integer
+      @return  an Int64
     **)
-    Property TotalSize : Integer Read FTotalSize;
+    Property TotalSize : Int64 Read FTotalSize;
   End;
 
   (** A class to compare to list of folder file. **)
