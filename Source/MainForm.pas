@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    19 Oct 2004
+  @Date    20 Oct 2004
   @Author  David Hoyle
 
 **)
@@ -80,6 +80,7 @@ type
     SelectAll1: TMenuItem;
     N7: TMenuItem;
     SelectAll2: TMenuItem;
+    appEvents: TApplicationEvents;
     procedure actFileExitExecute(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -92,6 +93,7 @@ type
     procedure actEditDoNothingExecute(Sender: TObject);
     procedure actFileProcessFilesExecute(Sender: TObject);
     procedure actEditSelectAllExecute(Sender: TObject);
+    procedure appEventsException(Sender: TObject; E: Exception);
   private
     { Private declarations }
     FFolders : TStringList;
@@ -113,9 +115,13 @@ type
     procedure SetFileOperation(FileOp: TFileOp);
     procedure DeleteFiles;
     procedure CopyFiles;
+    Function CheckFolders : Boolean;
   public
     { Public declarations }
   end;
+
+  (** This is a custon exception for folders not found or created. **)
+  TFolderNotFoundException = Class(Exception);
 
 Const
   (** Constant to represent the Left File Name position in the list view **)
@@ -339,6 +345,7 @@ Var
   fileCompColl : TCompareFoldersCollection;
 
 begin
+  If Not CheckFolders Then Exit;
   fileCompColl := TCompareFoldersCollection.Create(FFolders,
     Progress, FExclusions, FTolerance);
   Try
@@ -1016,6 +1023,60 @@ begin
         Items.EndUpdate;
       End;
     End;
+end;
+
+(**
+
+  This method checks that all the folders exist and provides an option to create
+  them if they don't. If it can not find a directory and can not create the
+  directory the function returns false else success is indicated by returning
+  True.
+
+  @precon  None.
+  @postcon Check the existence of the directories in the folders string list.
+           Returns true if they exist or are created else returns false.
+
+  @return  a Boolean
+
+**)
+function TfrmMainForm.CheckFolders: Boolean;
+
+Const
+  strMsg = 'Could not find or create the folder "%s".';
+
+Var
+  i : Integer;
+
+begin
+  For i := 0 To FFolders.Count - 1 Do
+    Begin
+      If Not DirectoryExists(FFolders.Names[i]) Then
+        If Not ForceDirectories(FFolders.Names[i]) Then
+          Raise TFolderNotFoundException.CreateFmt(strMsg, [FFolders.Names[i]]);
+      If Not DirectoryExists(FFolders.Values[FFolders.Names[i]]) Then
+        If Not ForceDirectories(FFolders.Values[FFolders.Names[i]]) Then
+          Raise TFolderNotFoundException.CreateFmt(strMsg,
+            [FFolders.Values[FFolders.Names[i]]]);
+    End;
+  Result := True;
+end;
+
+(**
+
+  This is an application on exception event handler. It displays a dialogue box
+  containing the message of the exception.
+
+  @precon  None.
+  @postcon Displays the exception message.
+
+  @param   Sender as a TObject
+  @param   E      as an Exception
+
+**)
+procedure TfrmMainForm.appEventsException(Sender: TObject;
+  E: Exception);
+begin
+  MessageDlg('Exception: ' + E.Message, mtError, [mbOK], 0);
 end;
 
 end.
