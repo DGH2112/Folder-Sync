@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    20 Oct 2004
+  @Date    22 Oct 2004
   @Author  David Hoyle
 
 **)
@@ -1043,8 +1043,35 @@ end;
 **)
 function TfrmMainForm.CheckFolders: Boolean;
 
-Const
-  strMsg = 'Could not find or create the folder "%s".';
+  (**
+
+    This is a local method to check and confirm the creation of a folder. It
+    raises an exception if the folder could not be created.
+
+    @precon  None.
+    @postcon Checks and confirms the creation of a folder. It raises an
+             exception if the folder could not be created.
+
+    @param   strFolder as a String
+
+  **)
+  Procedure CheckAndCreateFolder(strFolder : String);
+
+  Const
+    strExcepMsg = 'Could not create the folder "%s".';
+    strCreateMsg = 'The folder "%s" does not exist. Would you like to create ' +
+      'this folder?';
+
+  Begin
+    If Not DirectoryExists(strFolder) Then
+      Case MessageDlg(Format(strCreateMsg, [strFolder]), mtConfirmation,
+        [mbYes, mbNo, mbCancel], 0) Of
+        mrYes:
+          If Not ForceDirectories(strFolder) Then
+            Raise TFolderNotFoundException.CreateFmt(strExcepMsg, [strFolder]);
+        mrCancel: Abort;
+      End;
+  End;
 
 Var
   i : Integer;
@@ -1052,13 +1079,8 @@ Var
 begin
   For i := 0 To FFolders.Count - 1 Do
     Begin
-      If Not DirectoryExists(FFolders.Names[i]) Then
-        If Not ForceDirectories(FFolders.Names[i]) Then
-          Raise TFolderNotFoundException.CreateFmt(strMsg, [FFolders.Names[i]]);
-      If Not DirectoryExists(FFolders.Values[FFolders.Names[i]]) Then
-        If Not ForceDirectories(FFolders.Values[FFolders.Names[i]]) Then
-          Raise TFolderNotFoundException.CreateFmt(strMsg,
-            [FFolders.Values[FFolders.Names[i]]]);
+      CheckAndCreateFolder(FFolders.Names[i]);
+      CheckAndCreateFolder(FFolders.Values[FFolders.Names[i]]);
     End;
   Result := True;
 end;
