@@ -33,9 +33,6 @@ type
     { Public declarations }
   end;
 
-var
-  frmAbout: TfrmAbout;
-
 implementation
 
 {$R *.DFM}
