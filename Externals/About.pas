@@ -18,8 +18,8 @@ type
     LicensedToLabel: TLabel;
     WinLabel: TLabel;
     BuildLabel: TLabel;
-    Spectrum1: TDGHSpectrum;
     lblBy: TLabel;
+    DGHSpectrum1: TDGHSpectrum;
     procedure AboutTimerTimer(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
