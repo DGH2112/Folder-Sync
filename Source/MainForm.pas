@@ -236,6 +236,7 @@ begin
       End;
       FExclusions := ReadString('Setup', 'Exclusions', '');
       FTolerance := ReadInteger('Setup', 'Tolerance', 0);
+      Free;
     End;
 end;
 
@@ -265,6 +266,7 @@ begin
           FFolders.Values[FFolders.Names[i]]);
       WriteString('Setup', 'Exclusions', FExclusions);
       WriteInteger('Setup', 'Tolerance', FTolerance);
+      Free;
     End;
 end;
 
