@@ -1,12 +1,11 @@
 (**
+  
+  This module represents a form for displaying progress.
 
-  This module defines a class to represent a progress dialogue for use
-  throughout this application.
-
-  @Date    08 Apr 2004
   @Version 1.0
+  @Date    02 Oct 2004
   @Author  David Hoyle
-
+  
 **)
 unit ProgressForm;
 
@@ -14,20 +13,18 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  DGHProgress, ExtCtrls, StdCtrls;
+  ExtCtrls, StdCtrls;
 
 type
-  (** The class to define the progress form **)
+  (** A class to represents a form for displaying progress. **)
   TfrmProgress = class(TForm)
-    lblPath: TLabel;
-    lblCount: TLabel;
-    lblFile: TLabel;
+    pnlInfo: TPanel;
+    lblInfo: TLabel;
   private
     { Private declarations }
   public
     { Public declarations }
-    Procedure Progress(boolShow : Boolean; strPath, strFile : String;
-      iCount : Integer);
+    Procedure Progress(iCount : Integer; strPath, strFileName : String);
   end;
 
 implementation
@@ -38,25 +35,25 @@ implementation
 
 (**
 
-  This method updates the form interface with the progress passed.
+  This is the forms progress method that update the progress within the
+  dialogue.
 
   @precon  None.
-  @postcon Updates the form interface with the progress passed.
+  @postcon Update the dialogues progress.
 
-  @param   boolShow as a Boolean
-  @param   strPath  as a String
-  @param   strFile  as a String
-  @param   iCount   as an Integer
+  @param   iCount      as an Integer
+  @param   strPath     as a String
+  @param   strFileName as a String
 
 **)
-procedure TfrmProgress.Progress(boolShow: Boolean; strPath,
-  strFile: String; iCount: Integer);
+procedure TfrmProgress.Progress(iCount : Integer; strPath, strFileName: String);
+
+Const
+  strMask = 'Scanning file (%d):'#13'%s'#13'%s';
+
 begin
-  If boolShow <> Visible Then Visible := boolShow;
-  If strPath <> lblPath.Caption Then lblPath.Caption := strPath;
-  If strFile <> lblFile.Caption Then lblFile.Caption := strFile;
-  lblCount.Caption := Format('%1.0n', [iCount + 0.1]);
-  Application.ProcessMessages;
+  lblInfo.Caption := Format(strMask, [iCount, strPath, strFileName]);
+  If iCount Mod 100 = 0 Then Application.ProcessMessages;
 end;
 
 end.
