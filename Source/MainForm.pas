@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    06 Oct 2004
+  @Date    19 Oct 2004
   @Author  David Hoyle
 
 **)
@@ -73,6 +73,13 @@ type
     actFileProcessFiles: TAction;
     N5: TMenuItem;
     ProcessFiles1: TMenuItem;
+    actEditSelectAll: TAction;
+    ToolButton1: TToolButton;
+    ToolButton4: TToolButton;
+    N6: TMenuItem;
+    SelectAll1: TMenuItem;
+    N7: TMenuItem;
+    SelectAll2: TMenuItem;
     procedure actFileExitExecute(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -84,6 +91,7 @@ type
     procedure actEditDeleteExecute(Sender: TObject);
     procedure actEditDoNothingExecute(Sender: TObject);
     procedure actFileProcessFilesExecute(Sender: TObject);
+    procedure actEditSelectAllExecute(Sender: TObject);
   private
     { Private declarations }
     FFolders : TStringList;
@@ -111,21 +119,21 @@ type
 
 Const
   (** Constant to represent the Left File Name position in the list view **)
-  iLFileCol = 0;
+  iLDisplayCol = 0;
   (** Constant to represent the Left File Size position in the list view **)
   iLSizeCol = 1;
   (** Constant to represent the Left File Date position in the list view **)
   iLDateCol = 2;
   (** Constant to represent the Right File Name position in the list view **)
-  iRFileCol = 3;
+  iRDisplayCol = 3;
   (** Constant to represent the Right File Size position in the list view **)
   iRSizeCol = 4;
   (** Constant to represent the Right File Date position in the list view **)
   iRDateCol = 5;
   (** Constant to represent the Left Folder position in the list view **)
-  iLPathCol = 6;
+  iLFullFileNameCol = 6;
   (** Constant to represent the Right Folder position in the list view **)
-  iRPathCol = 7;
+  iRFullFileNameCol = 7;
 
 var
   (** A global variable used by Delphis auto create form process. **)
@@ -184,8 +192,8 @@ begin
         Column[0].Width Div 2;
       If i > 0 Then
         Begin
-          Column[iLFileCol + 1].Width := i;
-          Column[iRFileCol + 1].Width := i;
+          Column[iLDisplayCol + 1].Width := i;
+          Column[iRDisplayCol + 1].Width := i;
         End;
     End;
   stbrStatusBar.Panels[0].Width := stbrStatusBar.ClientWidth Div 2;
@@ -540,10 +548,39 @@ End;
 Procedure TfrmMainForm.InsertListItem(strLPath, strLFileName, strRPath,
   strRFileName : String; iLSize, iRSize, iLDateTime, iRDateTime : Integer);
 
+  (**
+
+    This method returns the drive letter or UNC location for the path provided.
+
+    @precon  The passed string should be a vaild DOS/Windows or UNC path.
+    @postcon Returns the UNC start location or DOS drive letter for the path.
+
+    @param   strPath as a String
+    @param   strFileName as a String
+    @return  a String
+
+  **)
+  Function GetDisplayName(strPath, strFileName : String) : String;
+
+  Begin
+    If strFileName = '' Then Exit;
+    If Pos(':', strPath) > 0 Then
+      Result := Copy(strPath, 1, Pos(':', strPath)) + '\...' + strFileName
+    Else
+      If Copy(strPath, 1, 2) = '\\' Then
+        Begin
+          Delete(strPath, 1, 2);
+          Result := '\\' + Copy(strPath, 1, Pos('\', strPath)) + '...'
+            + strFileName;
+        End Else
+          Result := '?:\...' + strFileName;
+  End;
+
 Const
   strSize = '%1.0n';
 Var
   Item : TListItem;
+  strFileName : String;
 
 Begin
   Item := lvFileList.Items.Add;
@@ -551,7 +588,7 @@ Begin
   // Action
   Item.Caption := '';
   // Left File
-  Item.SubItems.Add(strLFileName);
+  Item.SubItems.Add(GetDisplayName(strLPath, strLFileName));
   If iLSize > -1 Then
     Item.SubItems.Add(Format(strSize, [iLSize + 0.1]))
   Else
@@ -562,7 +599,7 @@ Begin
   Else
     Item.SubItems.Add('');
   // Right File
-  Item.SubItems.Add(strRFileName);
+  Item.SubItems.Add(GetDisplayName(strRPath, strRFileName));
   If iRSize > -1 Then
     Item.SubItems.Add(Format(strSize, [iRSize + 0.1]))
   Else
@@ -573,8 +610,10 @@ Begin
   Else
     Item.SubItems.Add('');
   // Lefta nd Right Paths
-  Item.SubItems.Add(strLPath);
-  Item.SubItems.Add(strRPath);
+  strFileName := strLFileName;
+  If strFileName = '' Then strFileName := strRFileName;
+  Item.SubItems.Add(strLPath + strFileName);
+  Item.SubItems.Add(strRPath + strFileName);
   // Operation Status
   If iLDateTime < iRDateTime Then
     Item.StateIndex := Integer(foRightToLeft)
@@ -584,23 +623,23 @@ Begin
   If strLFileName <> '' Then
     Begin
       If strLFileName <> '' Then
-        Item.SubItemImages[iLFileCol] := GetImageIndex(strLPath + strLFileName)
+        Item.SubItemImages[iLDisplayCol] := GetImageIndex(strLPath + strFileName)
       Else
-        Item.SubItemImages[iLFileCol] := -1;
+        Item.SubItemImages[iLDisplayCol] := -1;
       If strRFileName <> '' Then
-        Item.SubItemImages[iRFileCol] := GetImageIndex(strLPath + strLFileName)
+        Item.SubItemImages[iRDisplayCol] := GetImageIndex(strLPath + strFileName)
       Else
-        Item.SubItemImages[iRFileCol] := -1;
+        Item.SubItemImages[iRDisplayCol] := -1;
     End Else
     Begin
       If strLFileName <> '' Then
-        Item.SubItemImages[iLFileCol] := GetImageIndex(strRPath + strRFileName)
+        Item.SubItemImages[iLDisplayCol] := GetImageIndex(strRPath + strFileName)
       Else
-        Item.SubItemImages[iLFileCol] := -1;
+        Item.SubItemImages[iLDisplayCol] := -1;
       If strRFileName <> '' Then
-        Item.SubItemImages[iRFileCol] := GetImageIndex(strRPath + strRFileName)
+        Item.SubItemImages[iRDisplayCol] := GetImageIndex(strRPath + strFileName)
       Else
-        Item.SubItemImages[iRFileCol] := -1;
+        Item.SubItemImages[iRDisplayCol] := -1;
     End;
 End;
 
@@ -790,8 +829,8 @@ Begin
       If Items[i].Selected Then
         Begin
           Case FileOp Of
-            foLeftToRight: If Items[i].SubItems[iLFileCol] = '' Then Continue;
-            foRightToLeft: If Items[i].SubItems[iRFileCol] = '' Then Continue;
+            foLeftToRight: If Items[i].SubItems[iLDisplayCol] = '' Then Continue;
+            foRightToLeft: If Items[i].SubItems[iRDisplayCol] = '' Then Continue;
           End;
           lvFileList.Items[i].StateIndex := Integer(FileOp);
         End;
@@ -865,10 +904,10 @@ Begin
       Begin
         If TFileOp(StateIndex) = foDelete Then
           Begin
-            If SubItems[iRFileCol] <> '' Then
-              strFileList := strFileList + SubItems[iRPathCol] + SubItems[iRFileCol] + #0;
-            If SubItems[iLFileCol] <> '' Then
-              strFileList := strFileList + SubItems[iLPathCol] + SubItems[iLFileCol] + #0;
+            If SubItems[iRDisplayCol] <> '' Then
+              strFileList := strFileList + SubItems[iRFullFileNameCol] + #0;
+            If SubItems[iLDisplayCol] <> '' Then
+              strFileList := strFileList + SubItems[iLFullFileNameCol] + #0;
           End;
       End;
   If strFileList <> '' Then
@@ -927,17 +966,13 @@ Begin
       Case TFileOp(Items[i].StateIndex) Of
         foLeftToRight:
           Begin
-            strSrcFileList := strSrcFileList + Items[i].SubItems[iLPathCol] +
-              Items[i].SubItems[iLFileCol] + #0;
-            strDestFileList := strDestFileList + Items[i].SubItems[iRPathCol] +
-              Items[i].SubItems[iLFileCol] + #0;
+            strSrcFileList := strSrcFileList + Items[i].SubItems[iLFullFileNameCol] + #0;
+            strDestFileList := strDestFileList + Items[i].SubItems[iRFullFileNameCol] + #0;
           End;
         foRightToLeft:
           Begin
-            strSrcFileList := strSrcFileList + Items[i].SubItems[iRPathCol] +
-              Items[i].SubItems[iRFileCol] + #0;
-            strDestFileList := strDestFileList + Items[i].SubItems[iLPathCol] +
-              Items[i].SubItems[iRFileCol] + #0;
+            strSrcFileList := strSrcFileList + Items[i].SubItems[iRFullFileNameCol] + #0;
+            strDestFileList := strDestFileList + Items[i].SubItems[iLFullFileNameCol] + #0;
           End;
       End;
   If (strSrcFileList <> '') And (strDestFileList <> '') Then
@@ -954,5 +989,33 @@ Begin
       SHFileOperation(recFileOp);
     End;
 End;
+
+(**
+
+  This is an on execute event handler for the Select All action.
+
+  @precon  None.
+  @postcon Selects all the items in the list.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmMainForm.actEditSelectAllExecute(Sender: TObject);
+
+Var
+  i : Integer;
+
+begin
+  With lvFileList Do
+    Begin
+      Items.BeginUpdate;
+      Try
+        For i := 0 To Items.Count - 1 Do
+          Items[i].Selected := True;
+      Finally
+        Items.EndUpdate;
+      End;
+    End;
+end;
 
 end.
