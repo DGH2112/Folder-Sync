@@ -1,11 +1,21 @@
+(**
+  
+  The main delphi module for the Folder Synchronisation application.
+
+  @Author  David Hoyle
+  @Date    02 Oct 2004
+  @Version 1.0
+  
+**)
 program FldrSync;
 
 uses
   Forms,
   MainForm in 'MainForm.pas' {frmMainForm},
-  ProgressForm in 'ProgressForm.pas' {frmProgress},
   FileComparision in 'FileComparision.pas',
-  OptionsForm in 'OptionsForm.pas' {frmOptions};
+  OptionsForm in 'OptionsForm.pas' {frmOptions},
+  ProgressForm in 'ProgressForm.pas' {frmProgress},
+  FolderPathsForm in 'FolderPathsForm.pas' {frmFolderPaths};
 
 {$R *.RES}
 
