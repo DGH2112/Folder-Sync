@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    06 Oct 2004
+  @Date    20 Oct 2004
   @Author  David Hoyle
 
 **)
@@ -633,14 +633,9 @@ end;
 constructor TCompareFolders.Create(strLeftFldr, strRightFldr: String;
   ProgressProc: TProgressProc; strExclusions : String; iTolerance : Integer);
 
-Const
-  strMsg = 'The directory "%s" does not exist.';
-
 begin
-  If Not DirectoryExists(strLeftFldr) Then
-    Raise Exception.CreateFmt(strMsg, [strLeftFldr]);
-  If Not DirectoryExists(strRightFldr) Then
-    Raise Exception.CreateFmt(strMsg, [strRightFldr]);
+  If Not DirectoryExists(strLeftFldr) Then Exit;
+  If Not DirectoryExists(strRightFldr) Then Exit;
   FLeftFldr := TFileList.Create(strLeftFldr, ProgressProc, strExclusions);
   FRightFldr := TFileList.Create(strRightFldr, ProgressProc, strExclusions);
   FProgressProc := ProgressProc;
