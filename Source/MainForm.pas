@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    02 Oct 2004
+  @Date    06 Oct 2004
   @Author  David Hoyle
 
 **)
@@ -377,15 +377,24 @@ Procedure TfrmMainForm.FixUpPanes(fileCompColl : TCompareFoldersCollection);
 
 Var
   iRight, iLeft : Integer;
+  dblLSize, dblRSize, dblLCount, dblRCount : Double;
   iCollection : Integer;
 
 Begin
+  dblLSize := 0;
+  dblRSize := 0;
+  dblLCount := 0;
+  dblRCount := 0;
   lvFileList.Items.BeginUpdate;
   Try
     lvFileList.Items.Clear;
     For iCollection := 0 To fileCompColl.Count - 1 Do
       With fileCompColl.CompareFolders[iCollection] Do
         Begin
+          dblLSize := dblLSize + LeftFldr.TotalSize;
+          dblRSize := dblRSize + RightFldr.TotalSize;
+          dblLCount := dblLCount + LeftFldr.Count;
+          dblRCount := dblRCount + RightFldr.Count;
           iRight := -1;
           iLeft := -1;
           FindNextNonSame(LeftFldr, iLeft);
@@ -474,6 +483,8 @@ Begin
   Finally
     lvFileList.Items.EndUpdate;
   End;
+  stbrStatusBar.Panels[0].Text := Format(strStatus, [dblLCount, dblLSize]);
+  stbrStatusBar.Panels[1].Text := Format(strStatus, [dblRCount, dblRSize]);
 End;
 
 (**
