@@ -491,42 +491,43 @@ Var
   iFirst, iLast, iMid : Integer;
 
 begin
-  Try
-    iRes := FindFirst(strFolderPath + '\*.*', faAnyFile, rec);
-    While iRes = 0 Do
-      Begin
-        If rec.Attr And faDirectory = 0 Then
-          Begin
-            strFileName := strFolderPath + '\' + rec.Name;
-            If Not InExclusions(strFileName) Then
-              Begin
-                strFCName := Copy(strFileName, Length(FFolderPath) + 1,
-                  Length(strFileName));
-                iFirst := 0;
-                iLast := Count - 1;
-                While iLast >= iFirst Do
-                  Begin
-                    iMid := (iFirst + iLast) Div 2;
-                    If AnsiCompareFileName(strFCName, Files[iMid].FileName) = 0 Then
-                      Break;
-                    If AnsiCompareFileName(strFCName, Files[iMid].FileName) < 0 Then
-                      iLast := iMid - 1
-                    Else
-                      iFirst := iMid + 1;
-                  End;
-                FFiles.Insert(iFirst, TFileRecord.Create(strFCName, rec.Size, rec.Time,
-                  stNewer));
-                Inc(FTotalSize, rec.Size);
-                DoProgress(True, FFolderPath, Files[iFirst].FileName, Count);
-              End;
-          End Else
-            If (rec.Name <> '.') And (rec.Name <> '..') Then
-              RecurseFolder(strFolderPath + '\' + rec.Name);
-        iRes := FindNext(rec);
-      End;
-  Finally
-    FindClose(rec);
-  End;
+  If Not InExclusions(strFolderPath) Then
+    Try
+      iRes := FindFirst(strFolderPath + '\*.*', faAnyFile, rec);
+      While iRes = 0 Do
+        Begin
+          If rec.Attr And faDirectory = 0 Then
+            Begin
+              strFileName := strFolderPath + '\' + rec.Name;
+              If Not InExclusions(strFileName) Then
+                Begin
+                  strFCName := Copy(strFileName, Length(FFolderPath) + 1,
+                    Length(strFileName));
+                  iFirst := 0;
+                  iLast := Count - 1;
+                  While iLast >= iFirst Do
+                    Begin
+                      iMid := (iFirst + iLast) Div 2;
+                      If AnsiCompareFileName(strFCName, Files[iMid].FileName) = 0 Then
+                        Break;
+                      If AnsiCompareFileName(strFCName, Files[iMid].FileName) < 0 Then
+                        iLast := iMid - 1
+                      Else
+                        iFirst := iMid + 1;
+                    End;
+                  FFiles.Insert(iFirst, TFileRecord.Create(strFCName, rec.Size, rec.Time,
+                    stNewer));
+                  Inc(FTotalSize, rec.Size);
+                  DoProgress(True, FFolderPath, Files[iFirst].FileName, Count);
+                End;
+            End Else
+              If (rec.Name <> '.') And (rec.Name <> '..') Then
+                RecurseFolder(strFolderPath + '\' + rec.Name);
+          iRes := FindNext(rec);
+        End;
+    Finally
+      FindClose(rec);
+    End;
 end;
 
 (**
