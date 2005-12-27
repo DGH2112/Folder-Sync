@@ -1,12 +1,24 @@
+(**
+  
+  This module represents a form for displaying the applications About
+  information.
+
+  @Author  David Hoyle
+  @Version 1.0
+  @Date    20 Oct 2004
+  
+**)
 unit About;
 
 interface
 
 uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, ExtCtrls, StdCtrls, IniFiles, DGHSpectrum;
+  Forms, Dialogs, ExtCtrls, StdCtrls, DGHSpectrum;
 
 type
+  (** This is a class to represent the About form which displays the
+      applications information. **)
   TfrmAbout = class(TForm)
     MainPanel: TPanel;
     TitleLabel: TLabel;
@@ -31,6 +43,7 @@ type
     procedure VersionInformation;
   public
     { Public declarations }
+    class procedure ShowAbout;
   end;
 
 implementation
@@ -38,14 +51,23 @@ implementation
 {$R *.DFM}
 
 Uses
-  Functs;
+  Registry;
 
-{ -------------------------------------------------------------------------
+Var
+  (** This is a private variable for an instance of the form used to implement
+      this forms as a singleton class. **)
+  frm : TfrmAbout;
 
-   TTimer event. This disables the timer and closes the about form.
+(**
 
-  -------------------------------------------------------------------------- }
+  This is an on timer event handler for the timer control.
 
+  @precon  None.
+  @postcon Disabled the timer and Closes the form and destroys its instance.
+
+  @param   Sender as a TObject
+
+**)
 procedure TfrmAbout.AboutTimerTimer(Sender: TObject);
 
 begin
@@ -53,84 +75,52 @@ begin
   Close;
 end;
 
-{ -------------------------------------------------------------------------
+(**
 
-   Form KeyPress event. If a key is pressed close the about form.
+  This is an on click event handler for all controls on the form.
 
-  -------------------------------------------------------------------------- }
+  @precon  None.
+  @postcon Closes the form and destroy the instance when an item is clicked.
 
+  @param   Sender as a TObject
+  @param   Key    as a Char as a reference
+
+**)
 procedure TfrmAbout.FormKeyPress(Sender: TObject; var Key: Char);
 
 begin
   Close;
 end;
 
-{ -------------------------------------------------------------------------
+(**
 
-   Form Close event. Make sure the the timer is disabled on closing.
+  This is a form on close event handler.
 
-  -------------------------------------------------------------------------- }
+  @precon  None.
+  @postcon Makes sure that then timer is disbled and the form is freed from
+           memory when the form is closed.
 
+  @param   Sender as a TObject
+  @param   Action as a TCloseAction as a reference
+
+**)
 procedure TfrmAbout.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   AboutTimer.Enabled := False;
+  Action := caFree;
+  frm := Nil;
 end;
 
-{ -------------------------------------------------------------------------
+(**
 
-   This routine encrypts a string of text.
+  This is a method which obtains information about the application from is
+  version information with the applications resources.
 
-   TransposeUp(
-     Str    // Text to encrypt as a string
-   );       // Returns encrypted text as a string
+  @precon  None.
+  @postcon Extracts and display the applications version number present within
+           the EXE file.
 
-  -------------------------------------------------------------------------- }
-
-Function TransposeUp(Str : String) : String;
-
-Var
-  sTempStr : String;
-  iIndex : Integer;
-
-Begin
-  sTempStr := Str;
-  For iIndex := 1 To Length(Str) Do
-    sTempStr[iIndex] := Char(Byte(sTempStr[iIndex]) + (Length(Str) - iIndex + 1));
-  Result := sTempStr;
-End;
-
-{ -------------------------------------------------------------------------
-
-   This routine decrypts a string of text.
-
-   TransposeUp(
-     Str    // Text to decrypt as a string
-   );       // Returns decrypted text as a string
-
-  -------------------------------------------------------------------------- }
-
-Function TransposeDown(Str : String) : String;
-
-Var
-  sTempStr : String;
-  iIndex : Integer;
-
-Begin
-  sTempStr := Str;
-  For iIndex := 1 To Length(Str) Do
-    sTempStr[iIndex] := Char(Byte(sTempStr[iIndex]) - (Length(Str) - iIndex + 1));
-  Result := sTempStr;
-End;
-
-{ -------------------------------------------------------------------------
-
-   This routine gets the build number of the application and displays it.
-
-   BuildNumber(
-   );
-
-  -------------------------------------------------------------------------- }
-
+**)
 Procedure TfrmAbout.BuildNumber;
 
 Var
@@ -164,15 +154,15 @@ Begin
 
 End;
 
-{ -------------------------------------------------------------------------
+(**
 
-   This routine gets the current windows version number and displays it.
+  This is a method which gets and displays the OS version information on the
+  dialogue.
 
-   VersionInformation(
-   );
+  @precon  None.
+  @postcon Displays the OS version number within the dialogue.
 
-  -------------------------------------------------------------------------- }
-
+**)
 Procedure TfrmAbout.VersionInformation;
 
 Var
@@ -201,35 +191,35 @@ Begin
     End;
 End;
 
-{ -------------------------------------------------------------------------
+(**
 
-   Form Create event. Tries to get the users name and company from the INI
-   file. If not found it prompts for the information and then stores it.
+  This is an on form create event handler for the About form.
 
-  -------------------------------------------------------------------------- }
+  @precon  None.
+  @postcon Tries to get the users name and company from the registry. If not
+           found it prompts for the information and then stores it.
 
+  @param   Sender as a TObject
+
+**)
 procedure TfrmAbout.FormCreate(Sender: TObject);
 
-Type
-  TCharArray = Array[0..MAXCHAR] Of Char;
-  PVSFixedFileInfo = ^TVSFIXEDFILEINFO;
+Const
+  strRootKey = 'Software\Season''s Fall\';
 
 Var
   strName : String;
   strCompany : String;
-  strIniFileName : String;
-  IniFile : TIniFile;
+  Reg : TRegIniFile;
 
 begin
-  strIniFileName := ChangeFileExt(ExpandFileName(Application.EXEName), '.INI');
-  IniFile := TIniFile.Create(strIniFileName);
+  Reg := TRegIniFile.Create(strRootKey);
   Try
-    strName := TransposeDown(IniFile.Readstring('License', 'Name', ''));
-    strCompany := TransposeDown(IniFile.Readstring('License', 'Company', ''));
+    strName := Reg.Readstring('License', 'Name', '');
+    strCompany := Reg.Readstring('License', 'Company', '');
     TitleLabel.Caption := Application.Title;
     ClientCompanyLabel.Caption := strCompany;
     ClientNameLabel.Caption := strName;
-    AboutTimer.Enabled := True;
     BuildNumber;
     VersionInformation;
     If strName + strCompany = '' Then
@@ -240,22 +230,27 @@ begin
         If Not InputQuery(Application.Title + ' License Registration',
           'Please enter your Company:', strCompany) Then
           Exit;
-        IniFile.WriteString('License', 'Name', TransposeUp(strName));
-        IniFile.WriteString('License', 'Company', TransposeUp(strCompany));
+        Reg.WriteString('License', 'Name', strName);
+        Reg.WriteString('License', 'Company', strCompany);
         ClientCompanyLabel.Caption := strCompany;
         ClientNameLabel.Caption := strName;
       End;
   Finally
-    IniFile.Free;
+    Reg.Free;
   End;
+  AboutTimer.Enabled := True;
 end;
 
-{ -------------------------------------------------------------------------
+(**
 
-   Form OnShow event. Starts the timer, and displays the available memory.
+  This is a form on show event handler for the About form.
 
-  -------------------------------------------------------------------------- }
+  @precon  None.
+  @postcon Displays the authors name and copyright + the current memory useage.
 
+  @param   Sender as a TObject
+
+**)
 procedure TfrmAbout.FormShow(Sender: TObject);
 
 Var
@@ -269,4 +264,23 @@ begin
   PhysMemLabel.Caption := FormatFloat('Memory Available #,###" KB"', MS.dwTotalPhys /1024);
 end;
 
+(**
+
+  This is a class method for invoking and a single instance of this about
+  dialogue.
+
+  @precon  None.
+  @postcon Displays a single instance of this about dialogue.
+
+**)
+Class Procedure TfrmAbout.ShowAbout();
+
+Begin
+  If frm = Nil Then
+    frm := TfrmAbout.Create(Application);
+  frm.Show;
+End;
+
 end.
+
+
