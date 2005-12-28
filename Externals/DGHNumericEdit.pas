@@ -52,7 +52,7 @@ procedure Register;
 implementation
 
 Uses
-  DGHLibrary50;
+  DGHLibrary;
 
 { -------------------------------------------------------------------------
 
