@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    20 Oct 2004
+  @Date    30 Dec 2005
   @Author  David Hoyle
 
 **)
@@ -13,7 +13,7 @@ Unit FileComparision;
 Interface
 
 Uses
-  SysUtils, Classes, Contnrs;
+  SysUtils, Classes, Contnrs, Windows;
 
 Type
   (** A type to define the status of a file **)
