@@ -1,12 +1,12 @@
 (**
-  
+
   This module represents a form for displaying the applications About
   information.
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    20 Oct 2004
-  
+  @Date    30 Dec 2005
+
 **)
 unit About;
 
@@ -39,7 +39,7 @@ type
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
-    Procedure BuildNumber;
+    Procedure BuildNumber(var iMajor, iMinor, iBugFix, iBuild : Integer);
     procedure VersionInformation;
   public
     { Public declarations }
@@ -120,8 +120,13 @@ end;
   @postcon Extracts and display the applications version number present within
            the EXE file.
 
+  @param   iMajor  as an Integer
+  @param   iMinor  as an Integer
+  @param   iBugFix as an Integer
+  @param   iBuild  as an Integer
+
 **)
-Procedure TfrmAbout.BuildNumber;
+Procedure TfrmAbout.BuildNumber(var iMajor, iMinor, iBugFix, iBuild : Integer);
 
 Var
   VerInfoSize: DWORD;
@@ -138,13 +143,15 @@ Begin
       GetMem(VerInfo, VerInfoSize);
       GetFileVersionInfo(PChar(ParamStr(0)), 0, VerInfoSize, VerInfo);
       VerQueryValue(VerInfo, '\', Pointer(VerValue), VerValueSize);
-      with VerValue^ do
-      begin
-        BuildLabel.Caption := 'Build ' + IntToStr(dwFileVersionMS shr 16) +
-          '.' + IntToStr(dwFileVersionMS and $FFFF) +
-          '.' + IntToStr(dwFileVersionLS shr 16) +
-          '.' + IntToStr(dwFileVersionLS and $FFFF);
-      end;
+      With VerValue^ Do
+        Begin
+          iMajor := dwFileVersionMS shr 16;
+          iMinor := dwFileVersionMS and $FFFF;
+          iBugFix := dwFileVersionLS shr 16;
+          iBuild := dwFileVersionLS and $FFFF;
+        End;
+      BuildLabel.Caption := Format('Build %d.%d.%d.%d', [iMajor, iMinor,
+        iBugfix, iBuild]);
       FreeMem(VerInfo, VerInfoSize);
     End Else
     Begin
@@ -206,21 +213,28 @@ procedure TfrmAbout.FormCreate(Sender: TObject);
 
 Const
   strRootKey = 'Software\Season''s Fall\';
+  strBugfixes = ' abcedfghijklmnopqrstuvwxyz';
 
 Var
   strName : String;
   strCompany : String;
   Reg : TRegIniFile;
+  iMajor, iMinor, iBugfix, iBuild : Integer;
 
 begin
   Reg := TRegIniFile.Create(strRootKey);
   Try
     strName := Reg.Readstring('License', 'Name', '');
     strCompany := Reg.Readstring('License', 'Company', '');
-    TitleLabel.Caption := Application.Title;
+    iMajor := 0;
+    iMinor := 0;
+    iBugfix := 0;
+    iBuild := 0;
+    BuildNumber(iMajor, iMinor, iBugfix, iBuild);
+    TitleLabel.Caption := Format('%s %d.%d%s', [Application.Title, iMajor,
+      iMinor, strBugfixes[iBugfix + 1]]);
     ClientCompanyLabel.Caption := strCompany;
     ClientNameLabel.Caption := strName;
-    BuildNumber;
     VersionInformation;
     If strName + strCompany = '' Then
       Begin
