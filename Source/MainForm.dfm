@@ -1,9 +1,9 @@
 object frmMainForm: TfrmMainForm
   Left = 429
   Top = 289
-  Width = 761
-  Height = 572
   Caption = 'Folder Sync'
+  ClientHeight = 538
+  ClientWidth = 753
   Color = clBtnFace
   Constraints.MinHeight = 480
   Constraints.MinWidth = 640
@@ -42,16 +42,19 @@ object frmMainForm: TfrmMainForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
+  DesignSize = (
+    753
+    538)
   PixelsPerInch = 96
   TextHeight = 13
   object tbrToolBar: TToolBar
     Left = 0
     Top = 0
     Width = 753
+    Height = 30
     AutoSize = True
     BorderWidth = 2
     Caption = 'tbrToolBar'
-    Flat = True
     Images = ilActionImages
     TabOrder = 0
     object tbtnFileExit: TToolButton
@@ -129,7 +132,7 @@ object frmMainForm: TfrmMainForm
   end
   object stbrStatusBar: TStatusBar
     Left = 0
-    Top = 499
+    Top = 519
     Width = 753
     Height = 19
     Panels = <
@@ -139,13 +142,13 @@ object frmMainForm: TfrmMainForm
       item
         Width = 50
       end>
-    SimplePanel = False
+    ExplicitTop = 499
   end
   object lvFileList: TListView
     Left = 4
     Top = 32
     Width = 747
-    Height = 466
+    Height = 485
     Anchors = [akLeft, akTop, akRight, akBottom]
     Columns = <
       item
@@ -209,6 +212,7 @@ object frmMainForm: TfrmMainForm
     StateImages = ilActionImages
     TabOrder = 2
     ViewStyle = vsReport
+    ExplicitHeight = 466
   end
   object mmMainMenu: TMainMenu
     Images = ilActionImages
@@ -219,13 +223,13 @@ object frmMainForm: TfrmMainForm
       object mmiFileCompare: TMenuItem
         Action = actFileCompare
       end
-      object N5: TMenuItem
+      object mmiFileSep1: TMenuItem
         Caption = '-'
       end
-      object ProcessFiles1: TMenuItem
+      object mmiFileProcessFiles: TMenuItem
         Action = actFileProcessFiles
       end
-      object mmiSep1: TMenuItem
+      object mmiFileSep2: TMenuItem
         Caption = '-'
       end
       object mmiFileExit: TMenuItem
@@ -234,28 +238,28 @@ object frmMainForm: TfrmMainForm
     end
     object mmiEdit: TMenuItem
       Caption = '&Edit'
-      object CopyLefttoRight1: TMenuItem
+      object mmiEditCopyLefttoRight: TMenuItem
         Action = actEditCopyLeftToRight
       end
-      object CopyRighttoLeft1: TMenuItem
+      object mmiEditCopyRighttoLeft: TMenuItem
         Action = actEditCopyRightToLeft
       end
-      object N1: TMenuItem
+      object mmiEditSep1: TMenuItem
         Caption = '-'
       end
-      object DeleteBoth1: TMenuItem
+      object mmiEditDeleteBoth: TMenuItem
         Action = actEditDelete
       end
-      object N2: TMenuItem
+      object mmiEditSep2: TMenuItem
         Caption = '-'
       end
-      object DoNothing1: TMenuItem
+      object mmiEditDoNothing: TMenuItem
         Action = actEditDoNothing
       end
-      object N6: TMenuItem
+      object mmiEditSep3: TMenuItem
         Caption = '-'
       end
-      object SelectAll1: TMenuItem
+      object mmiEditSelectAll: TMenuItem
         Action = actEditSelectAll
       end
     end
@@ -886,33 +890,39 @@ object frmMainForm: TfrmMainForm
       ShortCut = 16449
       OnExecute = actEditSelectAllExecute
     end
+    object actHelpAbout: TAction
+      Category = 'Help'
+      Caption = '&About'
+      Hint = 'About|About this application...'
+      OnExecute = actHelpAboutExecute
+    end
   end
   object pmFiles: TPopupMenu
     Images = ilActionImages
     Left = 124
     Top = 76
-    object CopyLefttoRight2: TMenuItem
+    object mmiCopyLefttoRight: TMenuItem
       Action = actEditCopyLeftToRight
     end
-    object CopyRighttoLeft2: TMenuItem
+    object mmiCopyRighttoLeft: TMenuItem
       Action = actEditCopyRightToLeft
     end
-    object N3: TMenuItem
+    object mmiSep1: TMenuItem
       Caption = '-'
     end
-    object DeleteBoth2: TMenuItem
+    object mmiDeleteBoth: TMenuItem
       Action = actEditDelete
     end
-    object N4: TMenuItem
+    object mmiSep2: TMenuItem
       Caption = '-'
     end
-    object DoNothing2: TMenuItem
+    object mmiDoNothing: TMenuItem
       Action = actEditDoNothing
     end
-    object N7: TMenuItem
+    object mmiSep3: TMenuItem
       Caption = '-'
     end
-    object SelectAll2: TMenuItem
+    object mmiSelectAll: TMenuItem
       Action = actEditSelectAll
     end
   end

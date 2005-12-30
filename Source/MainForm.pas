@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    22 Oct 2004
+  @Date    30 Dec 2005
   @Author  David Hoyle
 
 **)
@@ -33,7 +33,7 @@ type
     actFileExit: TAction;
     mmiFile: TMenuItem;
     mmiFileExit: TMenuItem;
-    mmiSep1: TMenuItem;
+    mmiFileSep2: TMenuItem;
     mmiHelp: TMenuItem;
     mmiHelpAbout: TMenuItem;
     ToolButton5: TToolButton;
@@ -56,31 +56,33 @@ type
     lvFileList: TListView;
     actEditDelete: TAction;
     actEditDoNothing: TAction;
-    CopyLefttoRight1: TMenuItem;
-    CopyRighttoLeft1: TMenuItem;
-    N1: TMenuItem;
-    DeleteBoth1: TMenuItem;
-    N2: TMenuItem;
-    DoNothing1: TMenuItem;
-    CopyLefttoRight2: TMenuItem;
-    CopyRighttoLeft2: TMenuItem;
-    N3: TMenuItem;
-    DeleteBoth2: TMenuItem;
-    N4: TMenuItem;
-    DoNothing2: TMenuItem;
+    mmiEditCopyLefttoRight: TMenuItem;
+    mmiEditCopyRighttoLeft: TMenuItem;
+    mmiEditSep1: TMenuItem;
+    mmiEditDeleteBoth: TMenuItem;
+    mmiEditSep2: TMenuItem;
+    mmiEditDoNothing: TMenuItem;
+    mmiCopyLefttoRight: TMenuItem;
+    mmiCopyRighttoLeft: TMenuItem;
+    mmiSep1: TMenuItem;
+    mmiDeleteBoth: TMenuItem;
+    mmiSep2: TMenuItem;
+    mmiDoNothing: TMenuItem;
     ToolButton6: TToolButton;
     ToolButton7: TToolButton;
     actFileProcessFiles: TAction;
-    N5: TMenuItem;
-    ProcessFiles1: TMenuItem;
+    mmiFileSep1: TMenuItem;
+    mmiFileProcessFiles: TMenuItem;
     actEditSelectAll: TAction;
     ToolButton1: TToolButton;
     ToolButton4: TToolButton;
-    N6: TMenuItem;
-    SelectAll1: TMenuItem;
-    N7: TMenuItem;
-    SelectAll2: TMenuItem;
+    mmiEditSep3: TMenuItem;
+    mmiEditSelectAll: TMenuItem;
+    mmiSep3: TMenuItem;
+    mmiSelectAll: TMenuItem;
     appEvents: TApplicationEvents;
+    actHelpAbout: TAction;
+    procedure actHelpAboutExecute(Sender: TObject);
     procedure actFileExitExecute(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -148,7 +150,7 @@ var
 implementation
 
 Uses
-  FileCtrl, ShellAPI, OptionsForm;
+  FileCtrl, ShellAPI, OptionsForm, About;
 
 Const
   (** This is the registry root key for storing the applications persistence
@@ -284,6 +286,7 @@ end;
 procedure TfrmMainForm.FormCreate(Sender: TObject);
 
 begin
+  TfrmAbout.ShowAbout;
   FFolders := TStringList.Create;
   frmProgress := TfrmProgress.Create(Self);
   LoadSettings();
@@ -951,6 +954,21 @@ begin
   DeleteFiles;
   CopyFiles;
   actFileCompareExecute(Self);
+end;
+
+(**
+
+  This is an on execute event hanlder for the Help About action.
+
+  @precon  None.
+  @postcon Displays the about dialogue.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmMainForm.actHelpAboutExecute(Sender: TObject);
+begin
+  TfrmAbout.ShowAbout;
 end;
 
 (**
