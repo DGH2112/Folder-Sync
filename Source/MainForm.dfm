@@ -62,11 +62,11 @@ object frmMainForm: TfrmMainForm
       Top = 0
       Action = actFileExit
     end
-    object ToolButton5: TToolButton
+    object tbtnSep1: TToolButton
       Left = 23
       Top = 0
       Width = 8
-      Caption = 'ToolButton5'
+      Caption = 'tbtnSep1'
       ImageIndex = 5
       Style = tbsSeparator
     end
@@ -75,11 +75,11 @@ object frmMainForm: TfrmMainForm
       Top = 0
       Action = actFileCompare
     end
-    object ToolButton3: TToolButton
+    object tbtnSep2: TToolButton
       Left = 54
       Top = 0
       Width = 8
-      Caption = 'ToolButton3'
+      Caption = 'tbtnSep2'
       ImageIndex = 4
       Style = tbsSeparator
     end
@@ -88,15 +88,15 @@ object frmMainForm: TfrmMainForm
       Top = 0
       Action = actFileProcessFiles
     end
-    object ToolButton2: TToolButton
+    object tbtnSep3: TToolButton
       Left = 85
       Top = 0
       Width = 8
-      Caption = 'ToolButton2'
+      Caption = 'tbtnSep3'
       ImageIndex = 3
       Style = tbsSeparator
     end
-    object ToolButton7: TToolButton
+    object tbtnEditDoNothing: TToolButton
       Left = 93
       Top = 0
       Action = actEditDoNothing
@@ -111,20 +111,20 @@ object frmMainForm: TfrmMainForm
       Top = 0
       Action = actEditCopyRightToLeft
     end
-    object ToolButton6: TToolButton
+    object tbtnEditDelete: TToolButton
       Left = 162
       Top = 0
       Action = actEditDelete
     end
-    object ToolButton4: TToolButton
+    object tbtnSep4: TToolButton
       Left = 185
       Top = 0
       Width = 8
-      Caption = 'ToolButton4'
+      Caption = 'tbtnSep4'
       ImageIndex = 9
       Style = tbsSeparator
     end
-    object ToolButton1: TToolButton
+    object tbtnEditSelectAll: TToolButton
       Left = 193
       Top = 0
       Action = actEditSelectAll
@@ -142,7 +142,6 @@ object frmMainForm: TfrmMainForm
       item
         Width = 50
       end>
-    ExplicitTop = 499
   end
   object lvFileList: TListView
     Left = 4
@@ -212,7 +211,6 @@ object frmMainForm: TfrmMainForm
     StateImages = ilActionImages
     TabOrder = 2
     ViewStyle = vsReport
-    ExplicitHeight = 466
   end
   object mmMainMenu: TMainMenu
     Images = ilActionImages
@@ -272,8 +270,7 @@ object frmMainForm: TfrmMainForm
     object mmiHelp: TMenuItem
       Caption = '&Help'
       object mmiHelpAbout: TMenuItem
-        Caption = '&About'
-        Hint = 'About|About the application...'
+        Action = actHelpAbout
       end
     end
   end
