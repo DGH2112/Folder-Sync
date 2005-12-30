@@ -526,7 +526,7 @@ begin
           iRes := FindNext(rec);
         End;
     Finally
-      FindClose(rec);
+      SysUtils.FindClose(rec);
     End;
 end;
 
