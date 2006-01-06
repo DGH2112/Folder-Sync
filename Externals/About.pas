@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    30 Dec 2005
+  @Date    06 Jan 2006
 
 **)
 unit About;
@@ -276,6 +276,7 @@ begin
   AboutTimer.Enabled := True;
   GlobalMemoryStatus(MS);
   PhysMemLabel.Caption := FormatFloat('Memory Available #,###" KB"', MS.dwTotalPhys /1024);
+  Application.ProcessMessages;
 end;
 
 (**
