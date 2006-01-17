@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    06 Jan 2006
+  @Date    17 Jan 2006
 
 **)
 unit About;
@@ -269,10 +269,12 @@ procedure TfrmAbout.FormShow(Sender: TObject);
 
 Var
   MS : TMemoryStatus;
+  dtDate: TDateTime;
 
 begin
+  FileAge(ParamStr(0), dtDate);
   lblBy.Caption := 'Written by David Hoyle - Copyright ' +
-    FormatDateTime('mmmm yyyy', FileDateToDateTime(FileAge(ParamStr(0))));
+    FormatDateTime('mmmm yyyy', dtDate);
   AboutTimer.Enabled := True;
   GlobalMemoryStatus(MS);
   PhysMemLabel.Caption := FormatFloat('Memory Available #,###" KB"', MS.dwTotalPhys /1024);
