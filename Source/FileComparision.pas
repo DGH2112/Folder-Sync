@@ -503,7 +503,7 @@ begin
             Begin
               If rec.Attr And faDirectory = 0 Then
                 Begin
-                  strFileName := strFolderPath + '\' + rec.Name;
+                  strFileName := strFolderPath + rec.Name;
                   If Not InExclusions(strFileName) Then
                     Begin
                       strFCName := Copy(strFileName, Length(FFolderPath) + 1,
