@@ -1,9 +1,9 @@
 (**
-  
+
   A class to define a form for editing the Folder Paths.
 
   @Version 1.0
-  @date    02 Oct 2004
+  @date    17 Jan 2006
   @Author  David Hoyle.
 
 **)
@@ -54,7 +54,7 @@ Uses
 
   @param   strLeftFolder  as a String as a reference
   @param   strRightFolder as a String as a reference
-  @return  a Boolean       
+  @return  a Boolean
 
 **)
 Class function TfrmFolderPaths.Execute(var strLeftFolder,
@@ -94,7 +94,7 @@ Var
 
 begin
   If SelectDirectory('Left Folder', '', strFolder) Then
-    edtLeftFolder.Text := strFolder;
+    edtLeftFolder.Text := strFolder + '\';
 end;
 
 (**
@@ -114,7 +114,7 @@ Var
 
 begin
   If SelectDirectory('Right Folder', '', strFolder) Then
-    edtRightFolder.Text := strFolder;
+    edtRightFolder.Text := strFolder + '\';
 end;
 
 end.
