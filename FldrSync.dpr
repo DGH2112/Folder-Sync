@@ -9,6 +9,23 @@
 **)
 program FldrSync;
 
+{%TogetherDiagram 'ModelSupport_FldrSync\default.txaPackage'}
+{%TogetherDiagram 'ModelSupport_FldrSync\MainForm\default.txaPackage'}
+{%TogetherDiagram 'ModelSupport_FldrSync\About\default.txaPackage'}
+{%TogetherDiagram 'ModelSupport_FldrSync\FileComparision\default.txaPackage'}
+{%TogetherDiagram 'ModelSupport_FldrSync\ProgressForm\default.txaPackage'}
+{%TogetherDiagram 'ModelSupport_FldrSync\FolderPathsForm\default.txaPackage'}
+{%TogetherDiagram 'ModelSupport_FldrSync\FldrSync\default.txaPackage'}
+{%TogetherDiagram 'ModelSupport_FldrSync\OptionsForm\default.txaPackage'}
+{%TogetherDiagram 'ModelSupport_FldrSync\default.txvpck'}
+{%TogetherDiagram 'ModelSupport_FldrSync\FolderPathsForm\default.txvpck'}
+{%TogetherDiagram 'ModelSupport_FldrSync\MainForm\default.txvpck'}
+{%TogetherDiagram 'ModelSupport_FldrSync\FldrSync\default.txvpck'}
+{%TogetherDiagram 'ModelSupport_FldrSync\FileComparision\default.txvpck'}
+{%TogetherDiagram 'ModelSupport_FldrSync\About\default.txvpck'}
+{%TogetherDiagram 'ModelSupport_FldrSync\ProgressForm\default.txvpck'}
+{%TogetherDiagram 'ModelSupport_FldrSync\OptionsForm\default.txvpck'}
+
 uses
   Forms,
   MainForm in 'Source\MainForm.pas' {frmMainForm},
