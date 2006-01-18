@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    30 Dec 2005
+  @Date    18 Jan 2006
   @Author  David Hoyle
 
 **)
@@ -411,6 +411,8 @@ Begin
     For iCollection := 0 To fileCompColl.Count - 1 Do
       With fileCompColl.CompareFolders[iCollection] Do
         Begin
+          If LeftFldr = Nil Then Continue;
+          If RightFldr = Nil Then Continue;
           dblLSize := dblLSize + LeftFldr.TotalSize;
           dblRSize := dblRSize + RightFldr.TotalSize;
           dblLCount := dblLCount + LeftFldr.Count;
@@ -1080,13 +1082,17 @@ function TfrmMainForm.CheckFolders: Boolean;
     strCreateMsg = 'The folder "%s" does not exist. Would you like to create ' +
       'this folder?';
 
+  Var
+    strPath : String;
+
   Begin
-    If Not DirectoryExists(strFolder) Then
-      Case MessageDlg(Format(strCreateMsg, [strFolder]), mtConfirmation,
+    strPath := ExtractFilePath(strFolder);
+    If Not DirectoryExists(strPath) Then
+      Case MessageDlg(Format(strCreateMsg, [strPath]), mtConfirmation,
         [mbYes, mbNo, mbCancel], 0) Of
         mrYes:
-          If Not ForceDirectories(strFolder) Then
-            Raise TFolderNotFoundException.CreateFmt(strExcepMsg, [strFolder]);
+          If Not ForceDirectories(strPath) Then
+            Raise TFolderNotFoundException.CreateFmt(strExcepMsg, [strPath]);
         mrCancel: Abort;
       End;
   End;
