@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    30 Dec 2005
+  @Date    18 Jan 2006
   @Author  David Hoyle
 
 **)
@@ -69,6 +69,7 @@ Type
   TFileList = Class
   Private
     FFolderPath : String;
+    FFileFilter : String;
     FFiles : TObjectList;
     FProgressProc: TProgressProc;
     FExclusions : TStringList;
@@ -94,7 +95,7 @@ Type
     **)
     Property Files[iIndex : Integer] : TFileRecord Read GetFileRecord;
   Public
-    Constructor Create(strFolderPath : String;
+    Constructor Create(strFolderPath, strFileFilter : String;
       ProgressProc : TProgressProc; strExclusions : String); Virtual;
     Destructor Destroy; Override;
     Function Find(strFileName : String) : Integer; Virtual;
@@ -163,9 +164,9 @@ Type
   Protected
     Procedure CompareFolders;
   Public
-    Constructor Create(strLeftFldr, strRightFldr : String;
-      ProgressProc : TProgressProc; strExclusions : String;
-      iTolerance : Integer); Virtual;
+    Constructor Create(strLeftFldr, strLeftFilter, strRightFldr,
+      strRightFilter : String; ProgressProc : TProgressProc;
+      strExclusions : String; iTolerance : Integer); Virtual;
     Destructor Destroy; Override;
     (**
       A property to reference the Left Folder file list.
@@ -271,24 +272,26 @@ end;
            for files.
 
   @param   strFolderPath as a String
+  @param   strFileFilter as a String
   @param   ProgressProc  as a TProgressProc
   @param   strExclusions as a String
 
 **)
-constructor TFileList.Create(strFolderPath: String;
+constructor TFileList.Create(strFolderPath, strFileFilter: String;
   ProgressProc : TProgressProc; strExclusions : String);
 begin
   inherited Create;
   FTotalSize := 0;
   FFiles := TObjectList.Create(True);
   FFolderPath := strFolderPath;
+  FFileFilter := strFileFilter;
+  If FFileFilter = '' Then
+    FFileFilter := '*.*';
   FProgressProc := ProgressProc;
   FExclusions := TStringList.Create;
   FExclusions.Text := LowerCase(strExclusions);
   DoProgress(True, '', '', 0);
-  If Length(strFolderPath) = 0 Then Exit;
-  If strFolderPath[Length(strFolderPath)] In ['\', '/'] Then
-    Delete(strFolderPath, Length(strFolderPath), 1);
+  If Length(FolderPath) = 0 Then Exit;
   RecurseFolder(FFolderPath);
 end;
 
@@ -492,41 +495,55 @@ Var
 
 begin
   If Not InExclusions(strFolderPath) Then
-    Try
-      iRes := FindFirst(strFolderPath + '\*.*', faAnyFile, rec);
-      While iRes = 0 Do
-        Begin
-          If rec.Attr And faDirectory = 0 Then
+    Begin
+      // Search for files
+      iRes := FindFirst(strFolderPath + FFileFilter, faAnyFile, rec);
+        Try
+          While iRes = 0 Do
             Begin
-              strFileName := strFolderPath + '\' + rec.Name;
-              If Not InExclusions(strFileName) Then
+              If rec.Attr And faDirectory = 0 Then
                 Begin
-                  strFCName := Copy(strFileName, Length(FFolderPath) + 1,
-                    Length(strFileName));
-                  iFirst := 0;
-                  iLast := Count - 1;
-                  While iLast >= iFirst Do
+                  strFileName := strFolderPath + '\' + rec.Name;
+                  If Not InExclusions(strFileName) Then
                     Begin
-                      iMid := (iFirst + iLast) Div 2;
-                      If AnsiCompareFileName(strFCName, Files[iMid].FileName) = 0 Then
-                        Break;
-                      If AnsiCompareFileName(strFCName, Files[iMid].FileName) < 0 Then
-                        iLast := iMid - 1
-                      Else
-                        iFirst := iMid + 1;
+                      strFCName := Copy(strFileName, Length(FFolderPath) + 1,
+                        Length(strFileName));
+                      iFirst := 0;
+                      iLast := Count - 1;
+                      While iLast >= iFirst Do
+                        Begin
+                          iMid := (iFirst + iLast) Div 2;
+                          If AnsiCompareFileName(strFCName, Files[iMid].FileName) = 0 Then
+                            Break;
+                          If AnsiCompareFileName(strFCName, Files[iMid].FileName) < 0 Then
+                            iLast := iMid - 1
+                          Else
+                            iFirst := iMid + 1;
+                        End;
+                      FFiles.Insert(iFirst, TFileRecord.Create(strFCName, rec.Size, rec.Time,
+                        stNewer));
+                      Inc(FTotalSize, rec.Size);
+                      DoProgress(True, FFolderPath, Files[iFirst].FileName, Count);
                     End;
-                  FFiles.Insert(iFirst, TFileRecord.Create(strFCName, rec.Size, rec.Time,
-                    stNewer));
-                  Inc(FTotalSize, rec.Size);
-                  DoProgress(True, FFolderPath, Files[iFirst].FileName, Count);
                 End;
-            End Else
-              If (rec.Name <> '.') And (rec.Name <> '..') Then
-                RecurseFolder(strFolderPath + '\' + rec.Name);
-          iRes := FindNext(rec);
+              iRes := FindNext(rec);
+            End;
+        Finally
+          SysUtils.FindClose(rec);
         End;
-    Finally
-      SysUtils.FindClose(rec);
+        // Search directories
+        iRes := FindFirst(strFolderPath + '*.*', faAnyFile, rec);
+        Try
+          While iRes = 0 Do
+            Begin
+              If rec.Attr And faDirectory <> 0 Then
+                If (rec.Name <> '.') And (rec.Name <> '..') Then
+                  RecurseFolder(strFolderPath + rec.Name + '\');
+              iRes := FindNext(rec);
+            End;
+        Finally
+          SysUtils.FindClose(rec);
+        End;
     End;
 end;
 
@@ -625,20 +642,25 @@ end;
   @postcon Creates an instance of TFileList for ther left and right folder.
 
   @param   strLeftFldr  as a String
+  @param   strLeftFilter as a String
   @param   strRightFldr as a String
+  @param   strRightFilter as a String
   @param   ProgressProc as a TProgressProc
   @param   strExclusions as a String
   @param   iTolerance as an Integer
 
 **)
-constructor TCompareFolders.Create(strLeftFldr, strRightFldr: String;
-  ProgressProc: TProgressProc; strExclusions : String; iTolerance : Integer);
+constructor TCompareFolders.Create(strLeftFldr, strLeftFilter, strRightFldr,
+  strRightFilter: String; ProgressProc: TProgressProc;
+  strExclusions : String; iTolerance : Integer);
 
 begin
   If Not DirectoryExists(strLeftFldr) Then Exit;
   If Not DirectoryExists(strRightFldr) Then Exit;
-  FLeftFldr := TFileList.Create(strLeftFldr, ProgressProc, strExclusions);
-  FRightFldr := TFileList.Create(strRightFldr, ProgressProc, strExclusions);
+  FLeftFldr := TFileList.Create(strLeftFldr, strLeftFilter, ProgressProc,
+    strExclusions);
+  FRightFldr := TFileList.Create(strRightFldr, strRightFilter, ProgressProc,
+    strExclusions);
   FProgressProc := ProgressProc;
   FTolerance := iTolerance;
   CompareFolders;
@@ -685,8 +707,10 @@ begin
   For i := 0 To slFolders.Count - 1 Do
     FCompareFolders.Add(
       TCompareFolders.Create(
-        slFolders.Names[i],
-        slFolders.Values[slFolders.Names[i]],
+        ExtractFilePath(slFolders.Names[i]),
+        ExtractFileName(slFolders.Names[i]),
+        ExtractFilePath(slFolders.Values[slFolders.Names[i]]),
+        ExtractFileName(slFolders.Values[slFolders.Names[i]]),
         ProgressProc,
         strExclusions,
         iTolerance
