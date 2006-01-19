@@ -50,7 +50,7 @@
 			<Compiler Name="DefaultNamespace"></Compiler>
 			<Compiler Name="SymbolDeprecated">True</Compiler>
 			<Compiler Name="SymbolLibrary">True</Compiler>
-			<Compiler Name="SymbolPlatform">True</Compiler>
+			<Compiler Name="SymbolPlatform">False</Compiler>
 			<Compiler Name="SymbolExperimental">True</Compiler>
 			<Compiler Name="UnitLibrary">True</Compiler>
 			<Compiler Name="UnitPlatform">True</Compiler>
@@ -149,7 +149,7 @@
 			<VersionInfo Name="AutoIncBuild">False</VersionInfo>
 			<VersionInfo Name="MajorVer">1</VersionInfo>
 			<VersionInfo Name="MinorVer">0</VersionInfo>
-			<VersionInfo Name="Release">3</VersionInfo>
+			<VersionInfo Name="Release">4</VersionInfo>
 			<VersionInfo Name="Build">13</VersionInfo>
 			<VersionInfo Name="Debug">True</VersionInfo>
 			<VersionInfo Name="PreRelease">False</VersionInfo>
@@ -162,7 +162,7 @@
 		<VersionInfoKeys>
 			<VersionInfoKeys Name="CompanyName">Season's Fall Music Limited (c) 1989</VersionInfoKeys>
 			<VersionInfoKeys Name="FileDescription">Folder Sync</VersionInfoKeys>
-			<VersionInfoKeys Name="FileVersion">1.0.3.13</VersionInfoKeys>
+			<VersionInfoKeys Name="FileVersion">1.0.4.13</VersionInfoKeys>
 			<VersionInfoKeys Name="InternalName">Folder Sync</VersionInfoKeys>
 			<VersionInfoKeys Name="LegalCopyright">Season's Fall Music Limited (c) 1989</VersionInfoKeys>
 			<VersionInfoKeys Name="LegalTrademarks">Season's Fall Music Limited (c) 1989</VersionInfoKeys>
