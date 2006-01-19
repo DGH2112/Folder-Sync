@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    18 Jan 2006
+  @Date    19 Jan 2006
   @Author  David Hoyle
 
 **)
@@ -69,11 +69,11 @@ Type
   TFileList = Class
   Private
     FFolderPath : String;
-    FFileFilter : String;
     FFiles : TObjectList;
     FProgressProc: TProgressProc;
     FExclusions : TStringList;
     FTotalSize : Int64;
+    FFileFilters : TStringList;
     function GetDate(iIndex: Integer): Integer;
     function GetFileName(iIndex: Integer): String;
     function GetSize(iIndex: Integer): Integer;
@@ -218,7 +218,7 @@ Type
 Implementation
 
 Uses
-  FileCtrl;
+  FileCtrl, DGHLibrary;
 
 { TFileRecord }
 
@@ -279,14 +279,23 @@ end;
 **)
 constructor TFileList.Create(strFolderPath, strFileFilter: String;
   ProgressProc : TProgressProc; strExclusions : String);
+
+Var
+  iFilter : Integer;
+
 begin
   inherited Create;
   FTotalSize := 0;
   FFiles := TObjectList.Create(True);
+  FFileFilters := TStringList.Create;
   FFolderPath := strFolderPath;
-  FFileFilter := strFileFilter;
-  If FFileFilter = '' Then
-    FFileFilter := '*.*';
+  If strFileFilter = '' Then
+    FFileFilters.Add('*.*')
+  Else
+    Begin
+      For iFilter := 1 To CharCount(';', strFileFilter) + 1 Do
+        FFileFilters.Add(GetField(strFileFilter, ';', iFilter));
+    End;
   FProgressProc := ProgressProc;
   FExclusions := TStringList.Create;
   FExclusions.Text := LowerCase(strExclusions);
@@ -307,6 +316,7 @@ end;
 destructor TFileList.Destroy;
 begin
   DoProgress(False, '', '', 0);
+  FFileFilters.Free;
   FFiles.Free;
   FExclusions.Free;
   inherited;
@@ -492,58 +502,62 @@ Var
   iRes : Integer;
   strFileName, strFCName : String;
   iFirst, iLast, iMid : Integer;
+  iFilter: Integer;
 
 begin
   If Not InExclusions(strFolderPath) Then
     Begin
       // Search for files
-      iRes := FindFirst(strFolderPath + FFileFilter, faAnyFile, rec);
-        Try
-          While iRes = 0 Do
-            Begin
-              If rec.Attr And faDirectory = 0 Then
+      For iFilter := 0 To FFileFilters.Count - 1 Do
+        Begin
+          iRes := FindFirst(strFolderPath + FFileFilters[iFilter], faAnyFile, rec);
+            Try
+              While iRes = 0 Do
                 Begin
-                  strFileName := strFolderPath + rec.Name;
-                  If Not InExclusions(strFileName) Then
+                  If rec.Attr And faDirectory = 0 Then
                     Begin
-                      strFCName := Copy(strFileName, Length(FFolderPath) + 1,
-                        Length(strFileName));
-                      iFirst := 0;
-                      iLast := Count - 1;
-                      While iLast >= iFirst Do
+                      strFileName := strFolderPath + rec.Name;
+                      If Not InExclusions(strFileName) Then
                         Begin
-                          iMid := (iFirst + iLast) Div 2;
-                          If AnsiCompareFileName(strFCName, Files[iMid].FileName) = 0 Then
-                            Break;
-                          If AnsiCompareFileName(strFCName, Files[iMid].FileName) < 0 Then
-                            iLast := iMid - 1
-                          Else
-                            iFirst := iMid + 1;
+                          strFCName := Copy(strFileName, Length(FFolderPath) + 1,
+                            Length(strFileName));
+                          iFirst := 0;
+                          iLast := Count - 1;
+                          While iLast >= iFirst Do
+                            Begin
+                              iMid := (iFirst + iLast) Div 2;
+                              If AnsiCompareFileName(strFCName, Files[iMid].FileName) = 0 Then
+                                Break;
+                              If AnsiCompareFileName(strFCName, Files[iMid].FileName) < 0 Then
+                                iLast := iMid - 1
+                              Else
+                                iFirst := iMid + 1;
+                            End;
+                          FFiles.Insert(iFirst, TFileRecord.Create(strFCName, rec.Size, rec.Time,
+                            stNewer));
+                          Inc(FTotalSize, rec.Size);
+                          DoProgress(True, FFolderPath, Files[iFirst].FileName, Count);
                         End;
-                      FFiles.Insert(iFirst, TFileRecord.Create(strFCName, rec.Size, rec.Time,
-                        stNewer));
-                      Inc(FTotalSize, rec.Size);
-                      DoProgress(True, FFolderPath, Files[iFirst].FileName, Count);
                     End;
+                  iRes := FindNext(rec);
                 End;
-              iRes := FindNext(rec);
+            Finally
+              SysUtils.FindClose(rec);
             End;
-        Finally
-          SysUtils.FindClose(rec);
-        End;
-        // Search directories
-        iRes := FindFirst(strFolderPath + '*.*', faAnyFile, rec);
-        Try
-          While iRes = 0 Do
-            Begin
-              If rec.Attr And faDirectory <> 0 Then
-                If (rec.Name <> '.') And (rec.Name <> '..') Then
-                  RecurseFolder(strFolderPath + rec.Name + '\');
-              iRes := FindNext(rec);
-            End;
-        Finally
-          SysUtils.FindClose(rec);
-        End;
+          End;
+      // Search directories
+      iRes := FindFirst(strFolderPath + '*.*', faAnyFile, rec);
+      Try
+        While iRes = 0 Do
+          Begin
+            If rec.Attr And faDirectory <> 0 Then
+              If (rec.Name <> '.') And (rec.Name <> '..') Then
+                RecurseFolder(strFolderPath + rec.Name + '\');
+            iRes := FindNext(rec);
+          End;
+      Finally
+        SysUtils.FindClose(rec);
+      End;
     End;
 end;
 
