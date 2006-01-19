@@ -1,11 +1,13 @@
 object frmFolderPaths: TfrmFolderPaths
-  Left = 415
-  Top = 386
-  BorderStyle = bsDialog
+  Left = 499
+  Top = 388
   Caption = 'Folder Paths'
-  ClientHeight = 124
-  ClientWidth = 632
+  ClientHeight = 126
+  ClientWidth = 574
   Color = clBtnFace
+  Constraints.MaxHeight = 160
+  Constraints.MinHeight = 160
+  Constraints.MinWidth = 300
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -13,6 +15,9 @@ object frmFolderPaths: TfrmFolderPaths
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  DesignSize = (
+    574
+    126)
   PixelsPerInch = 96
   TextHeight = 13
   object lblLeftFolder: TLabel
@@ -32,51 +37,65 @@ object frmFolderPaths: TfrmFolderPaths
     FocusControl = edtRightFolder
   end
   object edtLeftFolder: TEdit
-    Left = 4
-    Top = 24
-    Width = 581
+    Left = 5
+    Top = 25
+    Width = 524
     Height = 21
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
+    OnChange = FolderPathChange
+    ExplicitWidth = 563
   end
   object edtRightFolder: TEdit
-    Left = 4
-    Top = 68
-    Width = 581
+    Left = 5
+    Top = 69
+    Width = 524
     Height = 21
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
+    OnChange = FolderPathChange
+    ExplicitWidth = 563
   end
   object btnBrowseLeft: TButton
-    Left = 592
+    Left = 535
     Top = 20
     Width = 33
     Height = 25
+    Anchors = [akTop, akRight]
     Caption = '...'
     TabOrder = 2
     OnClick = btnBrowseLeftClick
+    ExplicitLeft = 592
   end
   object btnBrowseRight: TButton
-    Left = 592
+    Left = 535
     Top = 64
     Width = 33
     Height = 25
+    Anchors = [akTop, akRight]
     Caption = '...'
     TabOrder = 3
     OnClick = btnBrowseRightClick
+    ExplicitLeft = 592
   end
   object BitBtn1: TBitBtn
-    Left = 468
+    Left = 411
     Top = 96
     Width = 75
     Height = 25
+    Anchors = [akTop, akRight]
     TabOrder = 4
     Kind = bkOK
+    ExplicitLeft = 468
   end
   object BitBtn2: TBitBtn
-    Left = 552
+    Left = 495
     Top = 96
     Width = 75
     Height = 25
+    Anchors = [akTop, akRight]
     TabOrder = 5
     Kind = bkCancel
+    ExplicitLeft = 552
   end
 end
