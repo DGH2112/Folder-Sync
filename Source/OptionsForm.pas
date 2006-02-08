@@ -1,8 +1,8 @@
 (**
-  
+
   This module defines the options dialogue.
 
-  @date    02 Oct 2004
+  @date    08 Feb 2006
   @Version 1.0
   @Author  David Hoyle
   
@@ -31,6 +31,7 @@ type
     btnAdd: TBitBtn;
     btnEdit: TBitBtn;
     btnDelete: TBitBtn;
+    procedure lvFoldersResize(Sender: TObject);
     procedure btnAddClick(Sender: TObject);
     procedure btnEditClick(Sender: TObject);
     procedure btnDeleteClick(Sender: TObject);
@@ -183,6 +184,27 @@ end;
 procedure TfrmOptions.lvFoldersDblClick(Sender: TObject);
 begin
   btnEditClick(Self);
+end;
+
+(**
+
+  This is an on Resize event handler for the list view.
+
+  @precon  None.
+  @postcon Resizes the list views columns to match the size of the window.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmOptions.lvFoldersResize(Sender: TObject);
+
+Var
+  i : Integer;
+
+begin
+  i := lvFolders.ClientWidth - 22;
+  lvFolders.Column[0].Width := i Div 2;
+  lvFolders.Column[1].Width := i Div 2;
 end;
 
 end.
