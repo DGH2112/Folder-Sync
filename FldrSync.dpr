@@ -25,6 +25,8 @@ program FldrSync;
 {%TogetherDiagram 'ModelSupport_FldrSync\About\default.txvpck'}
 {%TogetherDiagram 'ModelSupport_FldrSync\ProgressForm\default.txvpck'}
 {%TogetherDiagram 'ModelSupport_FldrSync\OptionsForm\default.txvpck'}
+{%TogetherDiagram 'ModelSupport_FldrSync\Use Case Diagram1.txvuse'}
+{%TogetherDiagram 'ModelSupport_FldrSync\Sequence Diagram1.txvint'}
 
 uses
   Forms,
