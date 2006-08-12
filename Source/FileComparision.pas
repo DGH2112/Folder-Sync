@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    19 Jan 2006
+  @Date    12 Aug 2006
   @Author  David Hoyle
 
 **)
@@ -24,13 +24,14 @@ Type
   Private
     FFileName : String;
     FSize : Integer;
+    FAttributes : Integer;
     FDateTime : Integer;
     FStatus : TStatus;
   Protected
     Procedure SetStatus(Status : TStatus);
   Public
-    Constructor Create(strName : String; iSize : Integer; dtDateTime : Integer;
-      Status : TStatus); Virtual;
+    Constructor Create(strName : String; iSize, iAttributes : Integer;
+      dtDateTime : Integer; Status : TStatus); Virtual;
     (**
       A property to return the filename of the file in this class.
       @precon  None.
@@ -45,6 +46,13 @@ Type
       @return  an Integer
     **)
     Property Size : Integer Read FSize;
+    (**
+      A property to return the attributes of the file in this class.
+      @precon  None.
+      @postcon Returns the attrbutes of the file in the file record.
+      @return  an Integer
+    **)
+    Property Attributes : Integer Read FAttributes;
     (**
       A property to return the date and time of the file in this class.
       @precon  None.
@@ -218,7 +226,9 @@ Type
 Implementation
 
 Uses
+{$WARN UNIT_PLATFORM OFF}
   FileCtrl, DGHLibrary;
+{$WARN UNIT_PLATFORM ON}
 
 { TFileRecord }
 
@@ -230,17 +240,19 @@ Uses
   @postcon Initialises the file record with a filename, size, date and time and
            a status.
 
-  @param   strName    as a String
-  @param   iSize      as an Integer
-  @param   dtDateTime as an Integer
-  @param   Status     as a TStatus
+  @param   strName     as a String
+  @param   iSize       as an Integer
+  @param   iAttributes as an Integer
+  @param   dtDateTime  as an Integer
+  @param   Status      as a TStatus
 
 **)
-constructor TFileRecord.Create(strName : String; iSize : Integer; dtDateTime : Integer;
-  Status : TStatus);
+constructor TFileRecord.Create(strName : String; iSize, iAttributes : Integer;
+  dtDateTime : Integer; Status : TStatus);
 begin
   FFileName := strName;
   FSize := iSize;
+  FAttributes := iAttributes;
   FDateTime := dtDateTime;
   FStatus := Status;
 end;
@@ -533,8 +545,9 @@ begin
                               Else
                                 iFirst := iMid + 1;
                             End;
-                          FFiles.Insert(iFirst, TFileRecord.Create(strFCName, rec.Size, rec.Time,
-                            stNewer));
+                          FFiles.Insert(iFirst,
+                            TFileRecord.Create(strFCName, rec.Size, rec.Attr,
+                            rec.Time, stNewer));
                           Inc(FTotalSize, rec.Size);
                           DoProgress(True, FFolderPath, Files[iFirst].FileName, Count);
                         End;
