@@ -162,6 +162,10 @@ object frmMainForm: TfrmMainForm
         Width = 100
       end
       item
+        Caption = 'Attr'
+        Width = 40
+      end
+      item
         Alignment = taRightJustify
         Caption = 'Size'
         MaxWidth = 75
@@ -179,6 +183,10 @@ object frmMainForm: TfrmMainForm
         Caption = 'Filename'
         MinWidth = 50
         Width = 100
+      end
+      item
+        Caption = 'Attr'
+        Width = 40
       end
       item
         Alignment = taRightJustify
@@ -211,6 +219,7 @@ object frmMainForm: TfrmMainForm
     StateImages = ilActionImages
     TabOrder = 2
     ViewStyle = vsReport
+    OnCustomDrawItem = lvFileListCustomDrawItem
   end
   object mmMainMenu: TMainMenu
     Images = ilActionImages

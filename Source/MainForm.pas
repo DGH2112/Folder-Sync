@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    18 Jan 2006
+  @Date    12 Aug 2006
   @Author  David Hoyle
 
 **)
@@ -96,6 +96,8 @@ type
     procedure actFileProcessFilesExecute(Sender: TObject);
     procedure actEditSelectAllExecute(Sender: TObject);
     procedure appEventsException(Sender: TObject; E: Exception);
+    procedure lvFileListCustomDrawItem(Sender: TCustomListView; Item: TListItem;
+      State: TCustomDrawState; var DefaultDraw: Boolean);
   private
     { Private declarations }
     FFolders : TStringList;
@@ -112,7 +114,8 @@ type
     function GetRegInfo(Reg: TRegistry; strKey, strName: String): String;
     procedure FixUpPanes(fileCompColl : TCompareFoldersCollection);
     procedure InsertListItem(strLPath, strLFileName, strRPath,
-      strRFileName: String; iLSize, iRSize, iLDateTime, iRDateTime: Integer);
+      strRFileName: String; iLSize, iRSize, iLAttr, iRAttr, iLDateTime,
+      iRDateTime: Integer);
     procedure FindNextNonSame(Lst: TFileList; var iIndex: Integer);
     procedure SetFileOperation(FileOp: TFileOp);
     procedure DeleteFiles;
@@ -127,21 +130,25 @@ type
 
 Const
   (** Constant to represent the Left File Name position in the list view **)
-  iLDisplayCol = 0;
+  iLDisplayCol = 1;
+  (** Constant to represent the Left File Attributes position in the list view **)
+  iLAttrCol = 2;
   (** Constant to represent the Left File Size position in the list view **)
-  iLSizeCol = 1;
+  iLSizeCol = 3;
   (** Constant to represent the Left File Date position in the list view **)
-  iLDateCol = 2;
+  iLDateCol = 4;
   (** Constant to represent the Right File Name position in the list view **)
-  iRDisplayCol = 3;
+  iRDisplayCol = 5;
+  (** Constant to represent the Right File Attributes position in the list view **)
+  iRAttrCol = 6;
   (** Constant to represent the Right File Size position in the list view **)
-  iRSizeCol = 4;
+  iRSizeCol = 7;
   (** Constant to represent the Right File Date position in the list view **)
-  iRDateCol = 5;
+  iRDateCol = 8;
   (** Constant to represent the Left Folder position in the list view **)
-  iLFullFileNameCol = 6;
+  iLFullFileNameCol = 9;
   (** Constant to represent the Right Folder position in the list view **)
-  iRFullFileNameCol = 7;
+  iRFullFileNameCol = 10;
 
 var
   (** A global variable used by Delphis auto create form process. **)
@@ -150,7 +157,9 @@ var
 implementation
 
 Uses
+{$WARN UNIT_PLATFORM OFF}
   FileCtrl, ShellAPI, OptionsForm, About;
+{$WARN UNIT_PLATFORM ON}
 
 Const
   (** This is the registry root key for storing the applications persistence
@@ -196,12 +205,12 @@ Var
 begin
   With lvFileList Do
     Begin
-      i := Width Div 2 - Column[iLSizeCol + 1].Width - Column[iLDateCol + 1].Width - 11 -
-        Column[0].Width Div 2;
+      i := Width Div 2 - Column[0].Width Div 2 - Column[iLAttrCol].Width -
+        Column[iLSizeCol].Width - Column[iLDateCol].Width - 11;
       If i > 0 Then
         Begin
-          Column[iLDisplayCol + 1].Width := i;
-          Column[iRDisplayCol + 1].Width := i;
+          Column[iLDisplayCol].Width := i;
+          Column[iRDisplayCol].Width := i;
         End;
     End;
   stbrStatusBar.Panels[0].Width := stbrStatusBar.ClientWidth Div 2;
@@ -240,6 +249,27 @@ begin
       FTolerance := ReadInteger('Setup', 'Tolerance', 0);
       Free;
     End;
+end;
+
+(**
+
+  This is an CustomDrawItem event for the list view.
+
+  @precon  None.
+  @postcon Draw readonly items in the list with a light red background.
+
+  @param   Sender      as a TCustomListView
+  @param   Item        as a TListItem
+  @param   State       as a TCustomDrawState
+  @param   DefaultDraw as a Boolean as a reference
+
+**)
+procedure TfrmMainForm.lvFileListCustomDrawItem(Sender: TCustomListView;
+  Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
+begin
+  If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0 ) Or
+    (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
+    lvFileList.Canvas.Brush.Color := $BBBBFF;
 end;
 
 (**
@@ -437,6 +467,8 @@ Begin
                         RightFldr.FileName[iRight],
                         LeftFldr.Size[iLeft],
                         RightFldr.Size[iRight],
+                        LeftFldr.Attributes[iLeft],
+                        RightFldr.Attributes[iRight],
                         LeftFldr.DateTime[iLeft],
                         RightFldr.DateTime[iRight]
                       );
@@ -451,6 +483,8 @@ Begin
                         RightFldr.FolderPath,
                         '',
                         LeftFldr.Size[iLeft],
+                        -1,
+                        LeftFldr.Attributes[iLeft],
                         -1,
                         LeftFldr.DateTime[iLeft],
                         -1
@@ -467,6 +501,8 @@ Begin
                         -1,
                         RightFldr.Size[iRight],
                         -1,
+                        RightFldr.Attributes[iRight],
+                        -1,
                         RightFldr.DateTime[iRight]
                       );
                       FindNextNonSame(RightFldr, iRight);
@@ -480,6 +516,8 @@ Begin
                     RightFldr.FolderPath,
                     '',
                     LeftFldr.Size[iLeft],
+                    -1,
+                    LeftFldr.Attributes[iLeft],
                     -1,
                     LeftFldr.DateTime[iLeft],
                     -1
@@ -495,6 +533,8 @@ Begin
                     RightFldr.FileName[iRight],
                     -1,
                     RightFldr.Size[iRight],
+                    -1,
+                    RightFldr.Attributes[iRight],
                     -1,
                     RightFldr.DateTime[iRight]
                   );
@@ -555,12 +595,15 @@ End;
   @param   strRFileName as a String
   @param   iLSize       as an Integer
   @param   iRSize       as an Integer
+  @param   iLAttr       as an Integer
+  @param   iRAttr       as an Integer
   @param   iLDateTime   as an Integer
   @param   iRDateTime   as an Integer
 
 **)
 Procedure TfrmMainForm.InsertListItem(strLPath, strLFileName, strRPath,
-  strRFileName : String; iLSize, iRSize, iLDateTime, iRDateTime : Integer);
+  strRFileName : String; iLSize, iRSize, iLAttr, iRAttr, iLDateTime,
+  iRDateTime : Integer);
 
   (**
 
@@ -590,6 +633,31 @@ Procedure TfrmMainForm.InsertListItem(strLPath, strLFileName, strRPath,
           Result := '?:\...' + strFileName;
   End;
 
+  (**
+
+    This method returns a string representation of a files attrivutes [RASH].
+
+    @precon  None.
+    @postcon Returns a string representation of a files attrivutes [RASH].
+
+    @param   iAttr as an Integer
+    @return  a String
+
+  **)
+  Function GetAttributeString(iAttr : Integer) : String;
+
+  Begin
+    Result := '....';
+    If iAttr And faReadOnly > 0 Then
+      Result[1] := 'R';
+    If iAttr And faArchive > 0 Then
+      Result[2] := 'A';
+    If iAttr And faSysFile > 0 Then
+      Result[3] := 'S';
+    If iAttr And faHidden > 0 Then
+      Result[4] := 'H';
+  End;
+
 Const
   strSize = '%1.0n';
 Var
@@ -603,6 +671,10 @@ Begin
   Item.Caption := '';
   // Left File
   Item.SubItems.Add(GetDisplayName(strLPath, strLFileName));
+  If iLAttr > -1 Then
+    Item.SubItems.Add(GetAttributeString(iLAttr))
+  Else
+    Item.SubItems.Add('');
   If iLSize > -1 Then
     Item.SubItems.Add(Format(strSize, [iLSize + 0.1]))
   Else
@@ -614,6 +686,10 @@ Begin
     Item.SubItems.Add('');
   // Right File
   Item.SubItems.Add(GetDisplayName(strRPath, strRFileName));
+  If iRAttr > -1 Then
+    Item.SubItems.Add(GetAttributeString(iRAttr))
+  Else
+    Item.SubItems.Add('');
   If iRSize > -1 Then
     Item.SubItems.Add(Format(strSize, [iRSize + 0.1]))
   Else
@@ -623,7 +699,7 @@ Begin
       FileDateToDateTime(iRDateTime)))
   Else
     Item.SubItems.Add('');
-  // Lefta nd Right Paths
+  // Left and Right Paths
   strFileName := strLFileName;
   If strFileName = '' Then strFileName := strRFileName;
   Item.SubItems.Add(strLPath + strFileName);
@@ -633,27 +709,30 @@ Begin
     Item.StateIndex := Integer(foRightToLeft)
   Else
     Item.StateIndex := Integer(foLeftToRight);
+  If ((iLAttr > -1) And (iLAttr And faReadOnly > 0)) Or
+    ((iRAttr > -1) And (iRAttr And faReadOnly > 0)) Then
+    Item.StateIndex := Integer(foNothing);
   // Image Indexes
   If strLFileName <> '' Then
     Begin
       If strLFileName <> '' Then
-        Item.SubItemImages[iLDisplayCol] := GetImageIndex(strLPath + strFileName)
+        Item.SubItemImages[iLDisplayCol - 1] := GetImageIndex(strLPath + strFileName)
       Else
-        Item.SubItemImages[iLDisplayCol] := -1;
+        Item.SubItemImages[iLDisplayCol - 1] := -1;
       If strRFileName <> '' Then
-        Item.SubItemImages[iRDisplayCol] := GetImageIndex(strLPath + strFileName)
+        Item.SubItemImages[iRDisplayCol - 1] := GetImageIndex(strLPath + strFileName)
       Else
-        Item.SubItemImages[iRDisplayCol] := -1;
+        Item.SubItemImages[iRDisplayCol - 1] := -1;
     End Else
     Begin
       If strLFileName <> '' Then
-        Item.SubItemImages[iLDisplayCol] := GetImageIndex(strRPath + strFileName)
+        Item.SubItemImages[iLDisplayCol - 1] := GetImageIndex(strRPath + strFileName)
       Else
-        Item.SubItemImages[iLDisplayCol] := -1;
+        Item.SubItemImages[iLDisplayCol - 1] := -1;
       If strRFileName <> '' Then
-        Item.SubItemImages[iRDisplayCol] := GetImageIndex(strRPath + strFileName)
+        Item.SubItemImages[iRDisplayCol - 1] := GetImageIndex(strRPath + strFileName)
       Else
-        Item.SubItemImages[iRDisplayCol] := -1;
+        Item.SubItemImages[iRDisplayCol - 1] := -1;
     End;
 End;
 
@@ -843,8 +922,8 @@ Begin
       If Items[i].Selected Then
         Begin
           Case FileOp Of
-            foLeftToRight: If Items[i].SubItems[iLDisplayCol] = '' Then Continue;
-            foRightToLeft: If Items[i].SubItems[iRDisplayCol] = '' Then Continue;
+            foLeftToRight: If Items[i].SubItems[iLDisplayCol - 1] = '' Then Continue;
+            foRightToLeft: If Items[i].SubItems[iRDisplayCol - 1] = '' Then Continue;
           End;
           lvFileList.Items[i].StateIndex := Integer(FileOp);
         End;
@@ -918,10 +997,10 @@ Begin
       Begin
         If TFileOp(StateIndex) = foDelete Then
           Begin
-            If SubItems[iRDisplayCol] <> '' Then
-              strFileList := strFileList + SubItems[iRFullFileNameCol] + #0;
-            If SubItems[iLDisplayCol] <> '' Then
-              strFileList := strFileList + SubItems[iLFullFileNameCol] + #0;
+            If SubItems[iRDisplayCol - 1] <> '' Then
+              strFileList := strFileList + SubItems[iRFullFileNameCol - 1] + #0;
+            If SubItems[iLDisplayCol - 1] <> '' Then
+              strFileList := strFileList + SubItems[iLFullFileNameCol - 1] + #0;
           End;
       End;
   If strFileList <> '' Then
@@ -995,13 +1074,13 @@ Begin
       Case TFileOp(Items[i].StateIndex) Of
         foLeftToRight:
           Begin
-            strSrcFileList := strSrcFileList + Items[i].SubItems[iLFullFileNameCol] + #0;
-            strDestFileList := strDestFileList + Items[i].SubItems[iRFullFileNameCol] + #0;
+            strSrcFileList := strSrcFileList + Items[i].SubItems[iLFullFileNameCol - 1] + #0;
+            strDestFileList := strDestFileList + Items[i].SubItems[iRFullFileNameCol - 1] + #0;
           End;
         foRightToLeft:
           Begin
-            strSrcFileList := strSrcFileList + Items[i].SubItems[iRFullFileNameCol] + #0;
-            strDestFileList := strDestFileList + Items[i].SubItems[iLFullFileNameCol] + #0;
+            strSrcFileList := strSrcFileList + Items[i].SubItems[iRFullFileNameCol - 1] + #0;
+            strDestFileList := strDestFileList + Items[i].SubItems[iLFullFileNameCol - 1] + #0;
           End;
       End;
   If (strSrcFileList <> '') And (strDestFileList <> '') Then
