@@ -85,6 +85,7 @@ Type
     function GetDate(iIndex: Integer): Integer;
     function GetFileName(iIndex: Integer): String;
     function GetSize(iIndex: Integer): Integer;
+    function GetAttributes(iIndex: Integer): Integer;
     function GetStatus(iIndex: Integer): TStatus;
     procedure SetStatus(iIndex: Integer; const Value: TStatus);
     function InExclusions(strFileName: String): Boolean;
@@ -137,6 +138,14 @@ Type
       @return  an Integer
     **)
     Property Size[iIndex : Integer] : Integer Read GetSize;
+    (**
+      A property to return the attributes of the indexed filename.
+      @precon  iIndex must be from 0 to FCount - 1
+      @postcon Returns the attributes of the indexed filename.
+      @param   iIndex as       an Integer
+      @return  an Integer
+    **)
+    Property Attributes[iIndex : Integer] : Integer Read GetAttributes;
     (**
       A property to return the date and time of the indexed filename.
       @precon  iIndex must be from 0 to FCount - 1
@@ -390,6 +399,24 @@ begin
       Else
         iFirst := iMid + 1;
     End;
+end;
+
+(**
+
+  This is a getter method for the Attributes property.
+
+  @precon  None.
+  @postcon Returns the attributes for the indexed file.
+
+  @param   iIndex as an Integer
+  @return  an Integer
+
+**)
+function TFileList.GetAttributes(iIndex: Integer): Integer;
+begin
+  If (iIndex < 0) Or (iIndex > Count - 1) Then
+    Raise Exception.Create('TFileList index error.');
+  Result := Files[iIndex].Attributes;
 end;
 
 (**
