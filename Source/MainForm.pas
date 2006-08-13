@@ -270,6 +270,10 @@ begin
   If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0 ) Or
     (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
     lvFileList.Canvas.Brush.Color := $BBBBFF;
+  If TFileOp(Item.StateIndex) = foNothing Then
+    lvFileList.Canvas.Font.Color := clGray;
+  If TFileOp(Item.StateIndex) = foDelete Then
+    lvFileList.Canvas.Font.Style := lvFileList.Canvas.Font.Style + [fsStrikeout];
 end;
 
 (**
@@ -460,49 +464,29 @@ Begin
                 Begin
                   If AnsiCompareFileName(LeftFldr.FileName[iLeft], RightFldr.Filename[iRight]) = 0 Then
                     Begin
-                      InsertListItem(
-                        LeftFldr.FolderPath,
-                        LeftFldr.FileName[iLeft],
-                        RightFldr.FolderPath,
-                        RightFldr.FileName[iRight],
-                        LeftFldr.Size[iLeft],
-                        RightFldr.Size[iRight],
-                        LeftFldr.Attributes[iLeft],
-                        RightFldr.Attributes[iRight],
-                        LeftFldr.DateTime[iLeft],
-                        RightFldr.DateTime[iRight]
+                      InsertListItem(LeftFldr.FolderPath, LeftFldr.FileName[iLeft],
+                        RightFldr.FolderPath, RightFldr.FileName[iRight],
+                        LeftFldr.Size[iLeft], RightFldr.Size[iRight],
+                        LeftFldr.Attributes[iLeft], RightFldr.Attributes[iRight],
+                        LeftFldr.DateTime[iLeft], RightFldr.DateTime[iRight]
                       );
                       FindNextNonSame(LeftFldr, iLeft);
                       FindNextNonSame(RightFldr, iRight);
                     End Else
                   If AnsiCompareFileName(LeftFldr.FileName[iLeft], RightFldr.Filename[iRight]) < 0 Then
                     Begin
-                      InsertListItem(
-                        LeftFldr.FolderPath,
-                        LeftFldr.FileName[iLeft],
-                        RightFldr.FolderPath,
-                        '',
-                        LeftFldr.Size[iLeft],
-                        -1,
-                        LeftFldr.Attributes[iLeft],
-                        -1,
-                        LeftFldr.DateTime[iLeft],
+                      InsertListItem(LeftFldr.FolderPath, LeftFldr.FileName[iLeft],
+                        RightFldr.FolderPath, '', LeftFldr.Size[iLeft], -1,
+                        LeftFldr.Attributes[iLeft], -1, LeftFldr.DateTime[iLeft],
                         -1
                       );
                       FindNextNonSame(LeftFldr, iLeft);
                     End Else
                   If AnsiCompareFileName(LeftFldr.FileName[iLeft], RightFldr.Filename[iRight]) > 0 Then
                     Begin
-                      InsertListItem(
-                        LeftFldr.FolderPath,
-                        '',
-                        RightFldr.FolderPath,
-                        RightFldr.FileName[iRight],
-                        -1,
-                        RightFldr.Size[iRight],
-                        -1,
-                        RightFldr.Attributes[iRight],
-                        -1,
+                      InsertListItem(LeftFldr.FolderPath, '', RightFldr.FolderPath,
+                        RightFldr.FileName[iRight], -1, RightFldr.Size[iRight],
+                        -1, RightFldr.Attributes[iRight], -1,
                         RightFldr.DateTime[iRight]
                       );
                       FindNextNonSame(RightFldr, iRight);
@@ -510,33 +494,18 @@ Begin
                 End Else
               If (LeftFldr.Count > iLeft) Then
                 Begin
-                  InsertListItem(
-                    LeftFldr.FolderPath,
-                    LeftFldr.FileName[iLeft],
-                    RightFldr.FolderPath,
-                    '',
-                    LeftFldr.Size[iLeft],
-                    -1,
-                    LeftFldr.Attributes[iLeft],
-                    -1,
-                    LeftFldr.DateTime[iLeft],
+                  InsertListItem(LeftFldr.FolderPath, LeftFldr.FileName[iLeft],
+                    RightFldr.FolderPath, '', LeftFldr.Size[iLeft], -1,
+                    LeftFldr.Attributes[iLeft], -1, LeftFldr.DateTime[iLeft],
                     -1
                   );
                   FindNextNonSame(LeftFldr, iLeft);
                 End Else
               If (RightFldr.Count > iRight) Then
                 Begin
-                  InsertListItem(
-                    LeftFldr.FolderPath,
-                    '',
-                    RightFldr.FolderPath,
-                    RightFldr.FileName[iRight],
-                    -1,
-                    RightFldr.Size[iRight],
-                    -1,
-                    RightFldr.Attributes[iRight],
-                    -1,
-                    RightFldr.DateTime[iRight]
+                  InsertListItem(LeftFldr.FolderPath, '', RightFldr.FolderPath,
+                    RightFldr.FileName[iRight], -1, RightFldr.Size[iRight],
+                    -1, RightFldr.Attributes[iRight], -1, RightFldr.DateTime[iRight]
                   );
                   FindNextNonSame(RightFldr, iRight);
                 End;
@@ -836,7 +805,7 @@ End;
   @param   Reg     as a TRegistry
   @param   strKey  as a String
   @param   strName as a String
-  @return  a String 
+  @return  a String
 
 **)
 Function TfrmMainForm.GetRegInfo(Reg : TRegistry; strKey, strName : String) : String;
