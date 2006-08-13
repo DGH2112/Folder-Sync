@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    12 Aug 2006
+  @Date    13 Aug 2006
   @Author  David Hoyle
 
 **)
@@ -706,12 +706,18 @@ Begin
   Item.SubItems.Add(strRPath + strFileName);
   // Operation Status
   If iLDateTime < iRDateTime Then
-    Item.StateIndex := Integer(foRightToLeft)
-  Else
-    Item.StateIndex := Integer(foLeftToRight);
-  If ((iLAttr > -1) And (iLAttr And faReadOnly > 0)) Or
-    ((iRAttr > -1) And (iRAttr And faReadOnly > 0)) Then
-    Item.StateIndex := Integer(foNothing);
+    Begin
+      If iLAttr And faReadOnly = 0 Then
+        Item.StateIndex := Integer(foRightToLeft)
+      Else
+        Item.StateIndex := Integer(foNothing);
+    End Else
+    Begin
+      If iRAttr And faReadOnly = 0 Then
+        Item.StateIndex := Integer(foLeftToRight)
+      Else
+        Item.StateIndex := Integer(foNothing);
+    End;
   // Image Indexes
   If strLFileName <> '' Then
     Begin
