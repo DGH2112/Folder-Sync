@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    13 Aug 2006
+  @Date    16 Aug 2006
   @Author  David Hoyle
 
 **)
@@ -676,13 +676,13 @@ Begin
   // Operation Status
   If iLDateTime < iRDateTime Then
     Begin
-      If iLAttr And faReadOnly = 0 Then
+      If (iLAttr = -1) Or (iLAttr And faReadOnly = 0) Then
         Item.StateIndex := Integer(foRightToLeft)
       Else
         Item.StateIndex := Integer(foNothing);
     End Else
     Begin
-      If iRAttr And faReadOnly = 0 Then
+      If (iRAttr = -1) Or (iRAttr And faReadOnly = 0) Then
         Item.StateIndex := Integer(foLeftToRight)
       Else
         Item.StateIndex := Integer(foNothing);
