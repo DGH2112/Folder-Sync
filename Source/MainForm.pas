@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    16 Aug 2006
+  @Date    07 Oct 2006
   @Author  David Hoyle
 
 **)
@@ -121,6 +121,10 @@ type
     procedure DeleteFiles;
     procedure CopyFiles;
     Function CheckFolders : Boolean;
+    Procedure OperationStatus(iLAttr, iLDateTime, iRAttr, iRDateTime: Integer;
+      Var Item: TListItem);
+    procedure ImageIndexes(strLPath, strLFileName, strFileName, strRPath,
+      strRFileName: String; Item: TListItem);
   public
     { Public declarations }
   end;
@@ -673,42 +677,8 @@ Begin
   If strFileName = '' Then strFileName := strRFileName;
   Item.SubItems.Add(strLPath + strFileName);
   Item.SubItems.Add(strRPath + strFileName);
-  // Operation Status
-  If iLDateTime < iRDateTime Then
-    Begin
-      If (iLAttr = -1) Or (iLAttr And faReadOnly = 0) Then
-        Item.StateIndex := Integer(foRightToLeft)
-      Else
-        Item.StateIndex := Integer(foNothing);
-    End Else
-    Begin
-      If (iRAttr = -1) Or (iRAttr And faReadOnly = 0) Then
-        Item.StateIndex := Integer(foLeftToRight)
-      Else
-        Item.StateIndex := Integer(foNothing);
-    End;
-  // Image Indexes
-  If strLFileName <> '' Then
-    Begin
-      If strLFileName <> '' Then
-        Item.SubItemImages[iLDisplayCol - 1] := GetImageIndex(strLPath + strFileName)
-      Else
-        Item.SubItemImages[iLDisplayCol - 1] := -1;
-      If strRFileName <> '' Then
-        Item.SubItemImages[iRDisplayCol - 1] := GetImageIndex(strLPath + strFileName)
-      Else
-        Item.SubItemImages[iRDisplayCol - 1] := -1;
-    End Else
-    Begin
-      If strLFileName <> '' Then
-        Item.SubItemImages[iLDisplayCol - 1] := GetImageIndex(strRPath + strFileName)
-      Else
-        Item.SubItemImages[iLDisplayCol - 1] := -1;
-      If strRFileName <> '' Then
-        Item.SubItemImages[iRDisplayCol - 1] := GetImageIndex(strRPath + strFileName)
-      Else
-        Item.SubItemImages[iRDisplayCol - 1] := -1;
-    End;
+  OperationStatus(iLAttr, iLDateTime, iRAttr, iRDateTime, Item);
+  ImageIndexes(strLPath, strLFileName, strFileName, strRPath, strRFileName, Item);
 End;
 
 (**
@@ -1161,6 +1131,91 @@ begin
       CheckAndCreateFolder(FFolders.Values[FFolders.Names[i]]);
     End;
   Result := True;
+end;
+
+(**
+
+  This method updates the operational status of the files based on their date
+  and time and also whether they are reasd only or not.
+
+  @precon  None.
+  @postcon Updates the operational status of the files based on their date and
+           time and also whether they are reasd only or not.
+
+  @param   iLAttr     as an Integer
+  @param   iLDateTime as an Integer
+  @param   iRAttr     as an Integer
+  @param   iRDateTime as an Integer
+  @param   Item       as a TListItem as a reference
+
+**)
+procedure TfrmMainForm.OperationStatus(iLAttr, iLDateTime, iRAttr,
+  iRDateTime: Integer; var Item: TListItem);
+
+begin
+  if iLDateTime < iRDateTime then
+  begin
+    if (iLAttr = -1) or (iLAttr and faReadOnly = 0) then
+      Item.StateIndex := Integer(foRightToLeft)
+    else if iRAttr and faReadOnly = 0 then
+      Item.StateIndex := Integer(foNothing)
+    else
+      Item.StateIndex := Integer(foRightToLeft);
+  end
+  else
+  begin
+    if (iRAttr = -1) or (iRAttr and faReadOnly = 0) then
+      Item.StateIndex := Integer(foLeftToRight)
+    else if iLAttr and faReadOnly = 0 then
+      Item.StateIndex := Integer(foNothing)
+    else
+      Item.StateIndex := Integer(foLeftToRight);
+  end;
+end;
+
+(**
+
+  This method updates the status images of the list view based on the filename
+  / extension of the file.
+
+  @precon  None.
+  @postcon Updates the status images of the list view based on the filename
+           / extension of the file.
+
+  @param   strLPath     as a String
+  @param   strLFileName as a String
+  @param   strFileName  as a String
+  @param   strRPath     as a String
+  @param   strRFileName as a String
+  @param   Item         as a TListItem
+
+**)
+procedure TfrmMainForm.ImageIndexes(strLPath, strLFileName, strFileName,
+  strRPath, strRFileName: String; Item: TListItem);
+
+begin
+  if strLFileName <> '' then
+  begin
+    if strLFileName <> '' then
+      Item.SubItemImages[iLDisplayCol - 1] := GetImageIndex(strLPath + strFileName)
+    else
+      Item.SubItemImages[iLDisplayCol - 1] := -1;
+    if strRFileName <> '' then
+      Item.SubItemImages[iRDisplayCol - 1] := GetImageIndex(strLPath + strFileName)
+    else
+      Item.SubItemImages[iRDisplayCol - 1] := -1;
+  end
+  else
+  begin
+    if strLFileName <> '' then
+      Item.SubItemImages[iLDisplayCol - 1] := GetImageIndex(strRPath + strFileName)
+    else
+      Item.SubItemImages[iLDisplayCol - 1] := -1;
+    if strRFileName <> '' then
+      Item.SubItemImages[iRDisplayCol - 1] := GetImageIndex(strRPath + strFileName)
+    else
+      Item.SubItemImages[iRDisplayCol - 1] := -1;
+  end;
 end;
 
 (**
