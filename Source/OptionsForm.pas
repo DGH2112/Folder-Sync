@@ -2,10 +2,10 @@
 
   This module defines the options dialogue.
 
-  @date    08 Feb 2006
+  @Date    07 Oct 2006
   @Version 1.0
   @Author  David Hoyle
-  
+
 **)
 unit OptionsForm;
 
@@ -36,8 +36,28 @@ type
     procedure btnEditClick(Sender: TObject);
     procedure btnDeleteClick(Sender: TObject);
     procedure lvFoldersDblClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
+    FRightWidth: Integer;
+    FLeftWidth: Integer;
+    procedure SetLeftWidth(const Value: Integer);
+    procedure SetRightWidth(const Value: Integer);
+    Procedure AddFolders(strLeft, strRight : String);
+    (**
+      This property holds the maximum width of the Right Folder Text.
+      @precon  None.
+      @postcon Gets or sets the maximum width of the Right Folder Text.
+      @return  a Integer
+    **)
+    Property RightWidth : Integer Read FRightWidth Write SetRightWidth;
+    (**
+      This property holds the maximum width of the Left Folder Text.
+      @precon  None.
+      @postcon Gets or sets the maximum width of the Left Folder Text.
+      @return  a Integer
+    **)
+    Property LeftWidth : Integer Read FLeftWidth Write SetLeftWidth;
   public
     { Public declarations }
     Class Function Execute(var slFolders : TStringList; var strExclusions :String;
@@ -71,18 +91,13 @@ class function TfrmOptions.Execute(var slFolders : TStringList;
 
 Var
   i : Integer;
-  Item : TListItem;
 
 begin
   Result := False;
   With TfrmOptions.Create(Nil) Do
     Try
       For i := 0 to slFolders.Count - 1 Do
-        Begin
-          Item := lvFolders.Items.Add;
-          Item.Caption := slFolders.Names[i];
-          Item.SubItems.Add(slFolders.Values[slFolders.Names[i]]);
-        End;
+        AddFolders(slFolders.Names[i], slFolders.Values[slFolders.Names[i]]);
       edtExclusions.Text := strExclusions;
       udTolerance.Position := iTolerance;
       If ShowModal = mrOK Then
@@ -102,6 +117,50 @@ end;
 
 (**
 
+  This is an on create event handler for the form.
+
+  @precon  None.
+  @postcon Initialises the Right and Left width properties for the form
+           resizing.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmOptions.FormCreate(Sender: TObject);
+begin
+  FRightWidth := 1;
+  FLeftWidth := 1;
+end;
+
+(**
+
+  This method adds folder paths to the list view and updates the width
+  properties for calculating the resize width of the list view.
+
+  @precon  None.
+  @postcon Adds folder paths to the list view and updates the width properties
+           for calculating the resize width of the list view.
+
+  @param   strLeft  as a String
+  @param   strRight as a String
+
+**)
+procedure TfrmOptions.AddFolders(strLeft, strRight: String);
+
+Var
+  Item : TListItem;
+
+begin
+  Item := lvFolders.Items.Add;
+  Item.Caption := strLeft;
+  LeftWidth := Length(strLeft);
+  Item.SubItems.Add(strRight);
+  RightWidth := Length(strRight);
+  lvFoldersResize(Self);
+end;
+
+(**
+
   This is an on click event handler for the Add button.
 
   @precon  None.
@@ -115,15 +174,10 @@ procedure TfrmOptions.btnAddClick(Sender: TObject);
 
 Var
   strLeft, strRight : String;
-  Item : TListItem;
 
 begin
   If TfrmFolderPaths.Execute(strLeft, strRight) Then
-    Begin
-      Item := lvFolders.Items.Add;
-      Item.Caption := strLeft;
-      Item.SubItems.Add(strRight);
-    End;
+    AddFolders(strLeft, strRight);
 end;
 
 (**
@@ -150,6 +204,7 @@ begin
         Begin
           lvFolders.Selected.Caption := strLeft;
           lvFolders.Selected.SubItems[0] := strRight;
+          lvFoldersResize(Sender);
         End;
     End;
 end;
@@ -203,8 +258,40 @@ Var
 
 begin
   i := lvFolders.ClientWidth - 22;
-  lvFolders.Column[0].Width := i Div 2;
-  lvFolders.Column[1].Width := i Div 2;
+  lvFolders.Column[0].Width := Trunc(i * Int(LeftWidth) / Int(LeftWidth + RightWidth));
+  lvFolders.Column[1].Width := Trunc(i * Int(RightWidth) / Int(LeftWidth + RightWidth));
+end;
+
+(**
+
+  This is a setter method for the LeftWidth property.
+
+  @precon  None.
+  @postcon Sets the LeftWidth porperty.
+
+  @param   Value as an Integer constant
+
+**)
+procedure TfrmOptions.SetLeftWidth(const Value: Integer);
+begin
+  If Value > FLeftWidth Then
+    FLeftWidth := Value;
+end;
+
+(**
+
+  This is a setter method for the RightWidth property.
+
+  @precon  None.
+  @postcon Sets the RightWidth property.
+
+  @param   Value as an Integer constant
+
+**)
+procedure TfrmOptions.SetRightWidth(const Value: Integer);
+begin
+  If Value > FRightWidth Then
+    FRightWidth := Value;
 end;
 
 end.
