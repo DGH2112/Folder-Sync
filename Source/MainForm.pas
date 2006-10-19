@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    07 Oct 2006
+  @Date    19 Oct 2006
   @Author  David Hoyle
 
 **)
@@ -125,8 +125,6 @@ type
       Var Item: TListItem);
     procedure ImageIndexes(strLPath, strLFileName, strFileName, strRPath,
       strRFileName: String; Item: TListItem);
-  public
-    { Public declarations }
   end;
 
   (** This is a custon exception for folders not found or created. **)
@@ -161,9 +159,7 @@ var
 implementation
 
 Uses
-{$WARN UNIT_PLATFORM OFF}
   FileCtrl, ShellAPI, OptionsForm, About;
-{$WARN UNIT_PLATFORM ON}
 
 Const
   (** This is the registry root key for storing the applications persistence
@@ -270,14 +266,80 @@ end;
 **)
 procedure TfrmMainForm.lvFileListCustomDrawItem(Sender: TCustomListView;
   Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
+
+var
+  i: Integer;
+  R : TRect;
+  Buffer : Array[0..2048] Of Char;
+  Ops : Integer;
+
+  (**
+
+    This function returns display rectangle for the given indexed sub item.
+
+    @precon  iIndex must be a valid SubItem index..
+    @postcon Returns display rectangle for the given indexed sub item.
+
+    @param   iIndex as an Integer
+    @return  a TRect 
+
+  **)
+  Function GetSubItemRect(iIndex : Integer) : TRect;
+
+  Var
+    j : Integer;
+
+  Begin
+    Result := Item.DisplayRect(drBounds);
+    For j := 0 To iIndex Do
+      Begin
+        Inc(Result.Left, Sender.Column[j].Width);
+        Result.Right := Result.Left + Sender.Column[j + 1].Width;
+      End;
+    Inc(Result.Top, 2);   // Padding / Margin
+    Inc(Result.Bottom, 2);// Padding / Margin
+    Inc(Result.Left, 6);  // Padding / Margin
+    Dec(Result.Right, 6); // Padding / Margin
+  End;
+
 begin
+  DefaultDraw := False;
   If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0 ) Or
     (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
-    lvFileList.Canvas.Brush.Color := $BBBBFF;
+    Sender.Canvas.Brush.Color := $BBBBFF;
   If TFileOp(Item.StateIndex) = foNothing Then
-    lvFileList.Canvas.Font.Color := clGray;
+    Sender.Canvas.Font.Color := clGray;
   If TFileOp(Item.StateIndex) = foDelete Then
-    lvFileList.Canvas.Font.Style := lvFileList.Canvas.Font.Style + [fsStrikeout];
+    Sender.Canvas.Font.Style := Sender.Canvas.Font.Style + [fsStrikeout];
+  If Item.Selected Then
+    Begin
+      Sender.Canvas.Brush.Color := clHighlight;
+      Sender.Canvas.Font.Color := clHighlightText;
+    End;
+  Sender.Canvas.FillRect(Item.DisplayRect(drBounds));
+  R := Item.DisplayRect(drBounds);
+  ilActionImages.Draw(Sender.Canvas, R.Left + 2, R.Top, Item.StateIndex, True);
+  For i := 0 To iRDateCol - 1 Do
+    Begin
+      Case i of
+        0, 4 : Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS;
+        2, 3, 6, 7: Ops := DT_RIGHT;
+      Else
+        Ops := DT_LEFT;
+      End;
+      R := GetSubItemRect(i);
+      If Item.SubItemImages[i] > -1 Then
+        If i In [0, 4] Then
+          Begin
+            Dec(R.Left, 3);
+            ilFileTypeIcons.Draw(Sender.Canvas, R.Left, R.Top,
+              Item.SubItemImages[i], True);
+            Inc(R.Left, 16 + 3);
+          End;
+      StrPCopy(Buffer, Item.SubItems[i]);
+      DrawText(Sender.Canvas.Handle, Buffer, Length(Item.SubItems[i]), R, Ops);
+      R.Left := R.Right;
+    End;
 end;
 
 (**
@@ -288,6 +350,7 @@ end;
   @postcon Save the applications settings to the registry.
 
 **)
+
 procedure TfrmMainForm.SaveSettings;
 
 Var
@@ -580,34 +643,6 @@ Procedure TfrmMainForm.InsertListItem(strLPath, strLFileName, strRPath,
 
   (**
 
-    This method returns the drive letter or UNC location for the path provided.
-
-    @precon  The passed string should be a vaild DOS/Windows or UNC path.
-    @postcon Returns the UNC start location or DOS drive letter for the path.
-
-    @param   strPath as a String
-    @param   strFileName as a String
-    @return  a String
-
-  **)
-  Function GetDisplayName(strPath, strFileName : String) : String;
-
-  Begin
-    If strFileName = '' Then Exit;
-    If Pos(':', strPath) > 0 Then
-      Result := Copy(strPath, 1, Pos(':', strPath)) + '\...' + strFileName
-    Else
-      If Copy(strPath, 1, 2) = '\\' Then
-        Begin
-          Delete(strPath, 1, 2);
-          Result := '\\' + Copy(strPath, 1, Pos('\', strPath)) + '...'
-            + strFileName;
-        End Else
-          Result := '?:\...' + strFileName;
-  End;
-
-  (**
-
     This method returns a string representation of a files attrivutes [RASH].
 
     @precon  None.
@@ -643,7 +678,10 @@ Begin
   // Action
   Item.Caption := '';
   // Left File
-  Item.SubItems.Add(GetDisplayName(strLPath, strLFileName));
+  If strLFileName <> '' Then
+    Item.SubItems.Add(strLPath + strLFileName)
+  Else
+    Item.SubItems.Add('');
   If iLAttr > -1 Then
     Item.SubItems.Add(GetAttributeString(iLAttr))
   Else
@@ -658,7 +696,10 @@ Begin
   Else
     Item.SubItems.Add('');
   // Right File
-  Item.SubItems.Add(GetDisplayName(strRPath, strRFileName));
+  If strRFileName <> '' Then
+    Item.SubItems.Add(strRPath + strRFileName)
+  Else
+    Item.SubItems.Add('');
   If iRAttr > -1 Then
     Item.SubItems.Add(GetAttributeString(iRAttr))
   Else
@@ -672,7 +713,6 @@ Begin
       FileDateToDateTime(iRDateTime)))
   Else
     Item.SubItems.Add('');
-  // Left and Right Paths
   strFileName := strLFileName;
   If strFileName = '' Then strFileName := strRFileName;
   Item.SubItems.Add(strLPath + strFileName);

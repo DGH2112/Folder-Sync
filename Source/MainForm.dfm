@@ -144,8 +144,8 @@ object frmMainForm: TfrmMainForm
       end>
   end
   object lvFileList: TListView
-    Left = 4
-    Top = 32
+    Left = 8
+    Top = 28
     Width = 747
     Height = 485
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -202,11 +202,13 @@ object frmMainForm: TfrmMainForm
         MinWidth = 150
         Width = 150
       end>
+    ColumnClick = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
+    GridLines = True
     HideSelection = False
     MultiSelect = True
     ReadOnly = True
@@ -214,7 +216,7 @@ object frmMainForm: TfrmMainForm
     ParentFont = False
     ParentShowHint = False
     PopupMenu = pmFiles
-    ShowHint = True
+    ShowHint = False
     SmallImages = ilFileTypeIcons
     StateImages = ilActionImages
     TabOrder = 2
@@ -939,6 +941,6 @@ object frmMainForm: TfrmMainForm
   object appEvents: TApplicationEvents
     OnException = appEventsException
     Left = 120
-    Top = 196
+    Top = 201
   end
 end
