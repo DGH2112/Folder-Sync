@@ -2,8 +2,8 @@ object frmMainForm: TfrmMainForm
   Left = 429
   Top = 289
   Caption = 'Folder Sync'
-  ClientHeight = 538
-  ClientWidth = 753
+  ClientHeight = 543
+  ClientWidth = 770
   Color = clBtnFace
   Constraints.MinHeight = 480
   Constraints.MinWidth = 640
@@ -43,20 +43,21 @@ object frmMainForm: TfrmMainForm
   OnDestroy = FormDestroy
   OnResize = FormResize
   DesignSize = (
-    753
-    538)
+    770
+    543)
   PixelsPerInch = 96
   TextHeight = 13
   object tbrToolBar: TToolBar
     Left = 0
     Top = 0
-    Width = 753
+    Width = 770
     Height = 30
     AutoSize = True
     BorderWidth = 2
     Caption = 'tbrToolBar'
     Images = ilActionImages
     TabOrder = 0
+    ExplicitWidth = 753
     object tbtnFileExit: TToolButton
       Left = 0
       Top = 0
@@ -132,8 +133,8 @@ object frmMainForm: TfrmMainForm
   end
   object stbrStatusBar: TStatusBar
     Left = 0
-    Top = 519
-    Width = 753
+    Top = 524
+    Width = 770
     Height = 19
     Panels = <
       item
@@ -142,12 +143,14 @@ object frmMainForm: TfrmMainForm
       item
         Width = 50
       end>
+    ExplicitTop = 519
+    ExplicitWidth = 753
   end
   object lvFileList: TListView
     Left = 8
-    Top = 28
-    Width = 747
-    Height = 485
+    Top = 36
+    Width = 754
+    Height = 482
     Anchors = [akLeft, akTop, akRight, akBottom]
     Columns = <
       item
@@ -222,6 +225,8 @@ object frmMainForm: TfrmMainForm
     TabOrder = 2
     ViewStyle = vsReport
     OnCustomDrawItem = lvFileListCustomDrawItem
+    ExplicitWidth = 737
+    ExplicitHeight = 477
   end
   object mmMainMenu: TMainMenu
     Images = ilActionImages
