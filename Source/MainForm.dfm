@@ -57,7 +57,6 @@ object frmMainForm: TfrmMainForm
     Caption = 'tbrToolBar'
     Images = ilActionImages
     TabOrder = 0
-    ExplicitWidth = 753
     object tbtnFileExit: TToolButton
       Left = 0
       Top = 0
@@ -143,8 +142,6 @@ object frmMainForm: TfrmMainForm
       item
         Width = 50
       end>
-    ExplicitTop = 519
-    ExplicitWidth = 753
   end
   object lvFileList: TListView
     Left = 8
@@ -225,8 +222,6 @@ object frmMainForm: TfrmMainForm
     TabOrder = 2
     ViewStyle = vsReport
     OnCustomDrawItem = lvFileListCustomDrawItem
-    ExplicitWidth = 737
-    ExplicitHeight = 477
   end
   object mmMainMenu: TMainMenu
     Images = ilActionImages

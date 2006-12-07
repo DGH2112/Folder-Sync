@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    19 Oct 2006
+  @Date    07 Dec 2006
   @Author  David Hoyle
 
 **)
@@ -745,7 +745,7 @@ Var
   strWinSys : String;
   iIcon : Word;
   szIconFile : Array[0..MAX_PATH + 1] Of Char;
-  Icon : TIcon;
+  objIcon : TIcon;
   iLIcon, iSIcon : HICON;
 
 Begin
@@ -792,12 +792,12 @@ Begin
         StrCopy(szIconFile, PChar(strFileName));
         iSIcon := ExtractAssociatedIcon(Handle, szIconFile, iIcon);
       End;
-    Icon := TIcon.Create;
+    objIcon := TIcon.Create;
     Try
-      Icon.Handle := iSIcon;
-      Result := ilFileTypeIcons.AddIcon(Icon);
+      objIcon.Handle := iSIcon;
+      Result := ilFileTypeIcons.AddIcon(objIcon);
     Finally
-      Icon.Free;
+      objIcon.Free;
     End;
   Finally
     Reg.Free;
@@ -865,7 +865,7 @@ end;
 **)
 procedure TfrmMainForm.actToolsOptionsExecute(Sender: TObject);
 begin
-  If TfrmOptions.Execute(FFolders, FExclusions, FTolerance) Then
+  If TfrmOptions.Execute(FFolders, FExclusions, FTolerance, strRootKey) Then
     actFileCompareExecute(Self);
 end;
 
