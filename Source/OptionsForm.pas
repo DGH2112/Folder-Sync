@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    07 Oct 2006
+  @Date    07 Dec 2006
   @Version 1.0
   @Author  David Hoyle
 
@@ -37,10 +37,12 @@ type
     procedure btnDeleteClick(Sender: TObject);
     procedure lvFoldersDblClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     FRightWidth: Integer;
     FLeftWidth: Integer;
+    FRootKey : String;
     procedure SetLeftWidth(const Value: Integer);
     procedure SetRightWidth(const Value: Integer);
     Procedure AddFolders(strLeft, strRight : String);
@@ -61,12 +63,14 @@ type
   public
     { Public declarations }
     Class Function Execute(var slFolders : TStringList; var strExclusions :String;
-      var iTolerance : Integer) : Boolean;
+      var iTolerance : Integer; strRootKey : String) : Boolean;
+    Constructor CreateWithRootKey(AOwner : TComponent; strRootKey : String); Virtual;
   end;
 
 implementation
 
-uses FolderPathsForm;
+uses
+  FolderPathsForm, Registry;
 
 {$R *.DFM}
 
@@ -83,18 +87,19 @@ uses FolderPathsForm;
   @param   slFolders     as a TStringList as a reference
   @param   strExclusions as a String as a reference
   @param   iTolerance    as an Integer as a reference
+  @param   strRootKey    as a String
   @return  a Boolean
 
 **)
 class function TfrmOptions.Execute(var slFolders : TStringList;
-  var strExclusions: String; var iTolerance: Integer): Boolean;
+  var strExclusions: String; var iTolerance: Integer; strRootKey : String): Boolean;
 
 Var
   i : Integer;
 
 begin
   Result := False;
-  With TfrmOptions.Create(Nil) Do
+  With TfrmOptions.CreateWithRootKey(Nil, strRootKey) Do
     Try
       For i := 0 to slFolders.Count - 1 Do
         AddFolders(slFolders.Names[i], slFolders.Values[slFolders.Names[i]]);
@@ -121,7 +126,7 @@ end;
 
   @precon  None.
   @postcon Initialises the Right and Left width properties for the form
-           resizing.
+           resizing. Also loads the forms size and position from the registry.
 
   @param   Sender as a TObject
 
@@ -130,6 +135,38 @@ procedure TfrmOptions.FormCreate(Sender: TObject);
 begin
   FRightWidth := 1;
   FLeftWidth := 1;
+  With TRegIniFile.Create(FRootKey) Do
+    Try
+      Top := ReadInteger('Options', 'Top', Top);
+      Left := ReadInteger('Options', 'Left', Left);
+      Height := ReadInteger('Options', 'Height', Height);
+      Width := ReadInteger('Options', 'Width', Width);
+    Finally
+      Free;
+    End;
+end;
+
+(**
+
+  This method is the forms on Destroy event handler.
+
+  @precon  None.
+  @postcon Saves the forms position and size to the registry.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmOptions.FormDestroy(Sender: TObject);
+begin
+  With TRegIniFile.Create(FRootKey) Do
+    Try
+      WriteInteger('Options', 'Top', Top);
+      WriteInteger('Options', 'Left', Left);
+      WriteInteger('Options', 'Height', Height);
+      WriteInteger('Options', 'Width', Width);
+    Finally
+      Free;
+    End;
 end;
 
 (**
@@ -176,7 +213,7 @@ Var
   strLeft, strRight : String;
 
 begin
-  If TfrmFolderPaths.Execute(strLeft, strRight) Then
+  If TfrmFolderPaths.Execute(strLeft, strRight, FRootKey) Then
     AddFolders(strLeft, strRight);
 end;
 
@@ -200,13 +237,31 @@ begin
     Begin
       strLeft := lvFolders.Selected.Caption;
       strRight := lvFolders.Selected.SubItems[0];
-      If TfrmFolderPaths.Execute(strLeft, strRight) Then
+      If TfrmFolderPaths.Execute(strLeft, strRight, FRootKey) Then
         Begin
           lvFolders.Selected.Caption := strLeft;
           lvFolders.Selected.SubItems[0] := strRight;
           lvFoldersResize(Sender);
         End;
     End;
+end;
+
+(**
+
+  This is the constructor method for the TfrmOptions class.
+
+  @precon  None.
+  @postcon Sets the FRootKey variable for loading an saving settings to the
+           registry.
+
+  @param   AOwner     as a TComponent
+  @param   strRootKey as a String
+
+**)
+constructor TfrmOptions.CreateWithRootKey(AOwner: TComponent; strRootKey: String);
+begin
+  Inherited Create(AOwner);
+  FRootKey := strRootKey;
 end;
 
 (**

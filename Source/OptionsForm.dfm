@@ -15,6 +15,7 @@ object frmOptions: TfrmOptions
   OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   DesignSize = (
     632
     446)
@@ -44,7 +45,6 @@ object frmOptions: TfrmOptions
     ReadOnly = True
     TabOrder = 0
     Text = '0'
-    ExplicitTop = 413
   end
   object udTolerance: TUpDown
     Left = 177
@@ -55,7 +55,6 @@ object frmOptions: TfrmOptions
     Associate = edtTimeDiff
     Max = 60
     TabOrder = 1
-    ExplicitTop = 413
   end
   object btnOK: TBitBtn
     Left = 473
@@ -65,8 +64,6 @@ object frmOptions: TfrmOptions
     Anchors = [akRight, akBottom]
     TabOrder = 2
     Kind = bkOK
-    ExplicitLeft = 511
-    ExplicitTop = 413
   end
   object btnCancel: TBitBtn
     Left = 553
@@ -76,8 +73,6 @@ object frmOptions: TfrmOptions
     Anchors = [akRight, akBottom]
     TabOrder = 3
     Kind = bkCancel
-    ExplicitLeft = 591
-    ExplicitTop = 413
   end
   object PageControl1: TPageControl
     Left = 8
@@ -87,12 +82,8 @@ object frmOptions: TfrmOptions
     ActivePage = pgFolderList
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 4
-    ExplicitWidth = 656
-    ExplicitHeight = 402
     object pgFolderList: TTabSheet
       Caption = 'Folder List'
-      ExplicitWidth = 648
-      ExplicitHeight = 374
       DesignSize = (
         610
         379)
@@ -117,8 +108,6 @@ object frmOptions: TfrmOptions
         ViewStyle = vsReport
         OnDblClick = lvFoldersDblClick
         OnResize = lvFoldersResize
-        ExplicitWidth = 640
-        ExplicitHeight = 334
       end
       object btnAdd: TBitBtn
         Left = 365
@@ -129,8 +118,6 @@ object frmOptions: TfrmOptions
         Caption = '&Add'
         TabOrder = 1
         OnClick = btnAddClick
-        ExplicitLeft = 403
-        ExplicitTop = 345
       end
       object btnEdit: TBitBtn
         Left = 449
@@ -141,8 +128,6 @@ object frmOptions: TfrmOptions
         Caption = '&Edit'
         TabOrder = 2
         OnClick = btnEditClick
-        ExplicitLeft = 487
-        ExplicitTop = 345
       end
       object btnDelete: TBitBtn
         Left = 533
@@ -153,15 +138,11 @@ object frmOptions: TfrmOptions
         Caption = '&Delete'
         TabOrder = 3
         OnClick = btnDeleteClick
-        ExplicitLeft = 571
-        ExplicitTop = 345
       end
     end
     object pgExclusions: TTabSheet
       Caption = '&Exclusions'
       ImageIndex = 1
-      ExplicitWidth = 648
-      ExplicitHeight = 374
       DesignSize = (
         610
         379)
@@ -174,8 +155,6 @@ object frmOptions: TfrmOptions
         ScrollBars = ssBoth
         TabOrder = 0
         WordWrap = False
-        ExplicitWidth = 629
-        ExplicitHeight = 365
       end
     end
   end
