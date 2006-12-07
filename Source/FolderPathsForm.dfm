@@ -15,6 +15,8 @@ object frmFolderPaths: TfrmFolderPaths
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   DesignSize = (
     574
     126)
@@ -44,7 +46,6 @@ object frmFolderPaths: TfrmFolderPaths
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
     OnChange = FolderPathChange
-    ExplicitWidth = 563
   end
   object edtRightFolder: TEdit
     Left = 5
@@ -54,7 +55,6 @@ object frmFolderPaths: TfrmFolderPaths
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
     OnChange = FolderPathChange
-    ExplicitWidth = 563
   end
   object btnBrowseLeft: TButton
     Left = 535
@@ -65,7 +65,6 @@ object frmFolderPaths: TfrmFolderPaths
     Caption = '...'
     TabOrder = 2
     OnClick = btnBrowseLeftClick
-    ExplicitLeft = 592
   end
   object btnBrowseRight: TButton
     Left = 535
@@ -76,7 +75,6 @@ object frmFolderPaths: TfrmFolderPaths
     Caption = '...'
     TabOrder = 3
     OnClick = btnBrowseRightClick
-    ExplicitLeft = 592
   end
   object BitBtn1: TBitBtn
     Left = 411
@@ -86,7 +84,6 @@ object frmFolderPaths: TfrmFolderPaths
     Anchors = [akTop, akRight]
     TabOrder = 4
     Kind = bkOK
-    ExplicitLeft = 468
   end
   object BitBtn2: TBitBtn
     Left = 495
@@ -96,6 +93,5 @@ object frmFolderPaths: TfrmFolderPaths
     Anchors = [akTop, akRight]
     TabOrder = 5
     Kind = bkCancel
-    ExplicitLeft = 552
   end
 end
