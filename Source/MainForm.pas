@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    07 Dec 2006
+  @Date    09 Dec 2006
   @Author  David Hoyle
 
 **)
@@ -269,7 +269,7 @@ procedure TfrmMainForm.lvFileListCustomDrawItem(Sender: TCustomListView;
 
 var
   i: Integer;
-  R : TRect;
+  R, ItemR : TRect;
   Buffer : Array[0..2048] Of Char;
   Ops : Integer;
 
@@ -281,7 +281,7 @@ var
     @postcon Returns display rectangle for the given indexed sub item.
 
     @param   iIndex as an Integer
-    @return  a TRect 
+    @return  a TRect
 
   **)
   Function GetSubItemRect(iIndex : Integer) : TRect;
@@ -304,24 +304,40 @@ var
 
 begin
   DefaultDraw := False;
-  If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0 ) Or
-    (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
-    Sender.Canvas.Brush.Color := $BBBBFF;
+  // Set Left Background
+  Sender.Canvas.Brush.Color := clWindow;
+  If Item.Selected Then
+    Sender.Canvas.Brush.Color := clHighlight
+  Else
+    If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
+      Sender.Canvas.Brush.Color := $BBBBFF;
+  R := GetSubItemRect(iLDateCol - 1);
+  ItemR := Item.DisplayRect(drBounds);
+  ItemR.Right := R.Right + 6;
+  Sender.Canvas.FillRect(ItemR);
+  // Set Right Background
+  Sender.Canvas.Brush.Color := clWindow;
+  If Item.Selected Then
+    Sender.Canvas.Brush.Color := clHighlight
+  Else
+    If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
+      Sender.Canvas.Brush.Color := $BBBBFF;
+  R := GetSubItemRect(iRDisplayCol - 1);
+  ItemR := Item.DisplayRect(drBounds);
+  ItemR.Left := R.Left - 6;
+  Sender.Canvas.FillRect(ItemR);
+  // Set Text Attributes
   If TFileOp(Item.StateIndex) = foNothing Then
     Sender.Canvas.Font.Color := clGray;
   If TFileOp(Item.StateIndex) = foDelete Then
     Sender.Canvas.Font.Style := Sender.Canvas.Font.Style + [fsStrikeout];
   If Item.Selected Then
-    Begin
-      Sender.Canvas.Brush.Color := clHighlight;
-      Sender.Canvas.Font.Color := clHighlightText;
-    End;
-  Sender.Canvas.FillRect(Item.DisplayRect(drBounds));
+    Sender.Canvas.Font.Color := clHighlightText;
   R := Item.DisplayRect(drBounds);
   ilActionImages.Draw(Sender.Canvas, R.Left + 2, R.Top, Item.StateIndex, True);
   For i := 0 To iRDateCol - 1 Do
     Begin
-      Case i of
+      Case i Of
         0, 4 : Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS;
         2, 3, 6, 7: Ops := DT_RIGHT;
       Else
@@ -337,6 +353,20 @@ begin
             Inc(R.Left, 16 + 3);
           End;
       StrPCopy(Buffer, Item.SubItems[i]);
+      Sender.Canvas.Brush.Color := clWindow;
+      If Item.Selected Then
+        Sender.Canvas.Brush.Color := clHighlight
+      Else
+        If i In [iLDisplayCol - 1..iLDateCol - 1] Then
+          Begin
+            If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
+              Sender.Canvas.Brush.Color := $BBBBFF
+          End Else
+          Begin
+            If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
+              Sender.Canvas.Brush.Color := $BBBBFF
+          End;
+      Sender.Canvas.Refresh;
       DrawText(Sender.Canvas.Handle, Buffer, Length(Item.SubItems[i]), R, Ops);
       R.Left := R.Right;
     End;
