@@ -21,48 +21,13 @@ object frmOptions: TfrmOptions
     446)
   PixelsPerInch = 96
   TextHeight = 13
-  object lblTimeDiff: TLabel
-    Left = 8
-    Top = 422
-    Width = 117
-    Height = 13
-    Anchors = [akLeft, akBottom]
-    Caption = '&Time Different Tolerance'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ParentFont = False
-    ExplicitTop = 420
-  end
-  object edtTimeDiff: TEdit
-    Left = 140
-    Top = 418
-    Width = 37
-    Height = 21
-    Anchors = [akLeft, akBottom]
-    ReadOnly = True
-    TabOrder = 0
-    Text = '0'
-  end
-  object udTolerance: TUpDown
-    Left = 177
-    Top = 418
-    Width = 16
-    Height = 21
-    Anchors = [akLeft, akBottom]
-    Associate = edtTimeDiff
-    Max = 60
-    TabOrder = 1
-  end
   object btnOK: TBitBtn
     Left = 473
     Top = 418
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
-    TabOrder = 2
+    TabOrder = 0
     Kind = bkOK
   end
   object btnCancel: TBitBtn
@@ -71,7 +36,7 @@ object frmOptions: TfrmOptions
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
-    TabOrder = 3
+    TabOrder = 1
     Kind = bkCancel
   end
   object PageControl1: TPageControl
@@ -81,9 +46,13 @@ object frmOptions: TfrmOptions
     Height = 407
     ActivePage = pgFolderList
     Anchors = [akLeft, akTop, akRight, akBottom]
-    TabOrder = 4
+    TabOrder = 2
     object pgFolderList: TTabSheet
       Caption = 'Folder List'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         610
         379)
@@ -143,6 +112,10 @@ object frmOptions: TfrmOptions
     object pgExclusions: TTabSheet
       Caption = '&Exclusions'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         610
         379)

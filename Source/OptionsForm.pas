@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    07 Dec 2006
+  @Date    16 Apr 2007
   @Version 1.0
   @Author  David Hoyle
 
@@ -18,9 +18,6 @@ uses
 type
   (** This is a class to represent **)
   TfrmOptions = class(TForm)
-    lblTimeDiff: TLabel;
-    edtTimeDiff: TEdit;
-    udTolerance: TUpDown;
     btnOK: TBitBtn;
     btnCancel: TBitBtn;
     PageControl1: TPageControl;
@@ -63,7 +60,7 @@ type
   public
     { Public declarations }
     Class Function Execute(var slFolders : TStringList; var strExclusions :String;
-      var iTolerance : Integer; strRootKey : String) : Boolean;
+      strRootKey : String) : Boolean;
     Constructor CreateWithRootKey(AOwner : TComponent; strRootKey : String); Virtual;
   end;
 
@@ -86,13 +83,12 @@ uses
 
   @param   slFolders     as a TStringList as a reference
   @param   strExclusions as a String as a reference
-  @param   iTolerance    as an Integer as a reference
   @param   strRootKey    as a String
   @return  a Boolean
 
 **)
 class function TfrmOptions.Execute(var slFolders : TStringList;
-  var strExclusions: String; var iTolerance: Integer; strRootKey : String): Boolean;
+  var strExclusions: String; strRootKey : String): Boolean;
 
 Var
   i : Integer;
@@ -104,7 +100,6 @@ begin
       For i := 0 to slFolders.Count - 1 Do
         AddFolders(slFolders.Names[i], slFolders.Values[slFolders.Names[i]]);
       edtExclusions.Text := strExclusions;
-      udTolerance.Position := iTolerance;
       If ShowModal = mrOK Then
         Begin
           slFolders.Clear;
@@ -112,7 +107,6 @@ begin
             slFolders.Add(lvFolders.Items[i].Caption + '=' +
               lvFolders.Items[i].SubItems[0]);
           strExclusions := edtExclusions.Text;
-          iTolerance := udTolerance.Position;
           Result := True;
         End;
     Finally
