@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    09 Dec 2006
+  @Date    19 Apr 2007
   @Author  David Hoyle
 
 **)
@@ -20,7 +20,7 @@ uses
 type
   (** A list of enumerate values for the different types of file operation that
       can be undertaken. **)
-  TFileOp = (foNothing, foLeftToRight, foRightToLeft, foDelete);
+  TFileOp = (foNothing, foLeftToRight, foRightToLeft, foDelete, foSizeDiff);
 
   (** This is the class that actually describes for the form interface. **)
   TfrmMainForm = class(TForm)
@@ -102,7 +102,6 @@ type
     { Private declarations }
     FFolders : TStringList;
     FExclusions : String;
-    FTolerance : Integer;
     FIconFiles : TStringList;
     frmProgress : TfrmProgress;
     Procedure LoadSettings();
@@ -113,18 +112,17 @@ type
     function GetImageIndex(strFileName: String): Integer;
     function GetRegInfo(Reg: TRegistry; strKey, strName: String): String;
     procedure FixUpPanes(fileCompColl : TCompareFoldersCollection);
-    procedure InsertListItem(strLPath, strLFileName, strRPath,
-      strRFileName: String; iLSize, iRSize, iLAttr, iRAttr, iLDateTime,
-      iRDateTime: Integer);
+    procedure InsertListItem(strLPath, strRPath : String; LeftFile,
+      RightFile : TFileRecord);
     procedure FindNextNonSame(Lst: TFileList; var iIndex: Integer);
     procedure SetFileOperation(FileOp: TFileOp);
     procedure DeleteFiles;
     procedure CopyFiles;
     Function CheckFolders : Boolean;
-    Procedure OperationStatus(iLAttr, iLDateTime, iRAttr, iRDateTime: Integer;
+    Procedure OperationStatus(LeftFile, RightFile : TFileRecord;
       Var Item: TListItem);
-    procedure ImageIndexes(strLPath, strLFileName, strFileName, strRPath,
-      strRFileName: String; Item: TListItem);
+    procedure ImageIndexes(strLPath, strRPath : String; LeftFile,
+      RightFile : TFileRecord; Item: TListItem);
   end;
 
   (** This is a custon exception for folders not found or created. **)
@@ -246,7 +244,6 @@ begin
         sl.Free;
       End;
       FExclusions := ReadString('Setup', 'Exclusions', '');
-      FTolerance := ReadInteger('Setup', 'Tolerance', 0);
       Free;
     End;
 end;
@@ -398,7 +395,6 @@ begin
         WriteString('Folders', FFolders.Names[i],
           FFolders.Values[FFolders.Names[i]]);
       WriteString('Setup', 'Exclusions', FExclusions);
-      WriteInteger('Setup', 'Tolerance', FTolerance);
       Free;
     End;
 end;
@@ -483,7 +479,7 @@ Var
 begin
   If Not CheckFolders Then Exit;
   fileCompColl := TCompareFoldersCollection.Create(FFolders,
-    Progress, FExclusions, FTolerance);
+    Progress, FExclusions);
   Try
     FixUpPanes(fileCompColl);
   Finally
@@ -559,51 +555,39 @@ Begin
                 'Please wait...', Max(iLeft, iRight));
               If (LeftFldr.Count > iLeft) And (RightFldr.Count > iRight) Then
                 Begin
-                  If AnsiCompareFileName(LeftFldr.FileName[iLeft], RightFldr.Filename[iRight]) = 0 Then
+                  If AnsiCompareFileName(LeftFldr[iLeft].FileName,
+                    RightFldr[iRight].Filename) = 0 Then
                     Begin
-                      InsertListItem(LeftFldr.FolderPath, LeftFldr.FileName[iLeft],
-                        RightFldr.FolderPath, RightFldr.FileName[iRight],
-                        LeftFldr.Size[iLeft], RightFldr.Size[iRight],
-                        LeftFldr.Attributes[iLeft], RightFldr.Attributes[iRight],
-                        LeftFldr.DateTime[iLeft], RightFldr.DateTime[iRight]
-                      );
+                      InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
+                        LeftFldr[iLeft], RightFldr[iRight]);
                       FindNextNonSame(LeftFldr, iLeft);
                       FindNextNonSame(RightFldr, iRight);
                     End Else
-                  If AnsiCompareFileName(LeftFldr.FileName[iLeft], RightFldr.Filename[iRight]) < 0 Then
+                  If AnsiCompareFileName(LeftFldr[iLeft].FileName,
+                    RightFldr[iRight].Filename) < 0 Then
                     Begin
-                      InsertListItem(LeftFldr.FolderPath, LeftFldr.FileName[iLeft],
-                        RightFldr.FolderPath, '', LeftFldr.Size[iLeft], -1,
-                        LeftFldr.Attributes[iLeft], -1, LeftFldr.DateTime[iLeft],
-                        -1
-                      );
+                      InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
+                        LeftFldr[iLeft], Nil);
                       FindNextNonSame(LeftFldr, iLeft);
                     End Else
-                  If AnsiCompareFileName(LeftFldr.FileName[iLeft], RightFldr.Filename[iRight]) > 0 Then
+                  If AnsiCompareFileName(LeftFldr[iLeft].FileName,
+                    RightFldr[iRight].Filename) > 0 Then
                     Begin
-                      InsertListItem(LeftFldr.FolderPath, '', RightFldr.FolderPath,
-                        RightFldr.FileName[iRight], -1, RightFldr.Size[iRight],
-                        -1, RightFldr.Attributes[iRight], -1,
-                        RightFldr.DateTime[iRight]
-                      );
+                      InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
+                        Nil, RightFldr[iRight]);
                       FindNextNonSame(RightFldr, iRight);
                     End;
                 End Else
               If (LeftFldr.Count > iLeft) Then
                 Begin
-                  InsertListItem(LeftFldr.FolderPath, LeftFldr.FileName[iLeft],
-                    RightFldr.FolderPath, '', LeftFldr.Size[iLeft], -1,
-                    LeftFldr.Attributes[iLeft], -1, LeftFldr.DateTime[iLeft],
-                    -1
-                  );
+                  InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
+                    LeftFldr[iLeft], Nil);
                   FindNextNonSame(LeftFldr, iLeft);
                 End Else
               If (RightFldr.Count > iRight) Then
                 Begin
-                  InsertListItem(LeftFldr.FolderPath, '', RightFldr.FolderPath,
-                    RightFldr.FileName[iRight], -1, RightFldr.Size[iRight],
-                    -1, RightFldr.Attributes[iRight], -1, RightFldr.DateTime[iRight]
-                  );
+                  InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
+                    Nil, RightFldr[iRight]);
                   FindNextNonSame(RightFldr, iRight);
                 End;
             End;
@@ -639,7 +623,7 @@ Begin
   For i := iIndex To Lst.Count Do
     If i < Lst.Count Then
       Begin
-        If Lst.Status[i] <> stSame Then
+        If Lst[i].Status <> stSame Then
           Begin
             iIndex := i;
             Break;
@@ -656,20 +640,13 @@ End;
   @postcon Adds a pair of filenames with sizes and dates to the list view.
 
   @param   strLPath     as a String
-  @param   strLFileName as a String
   @param   strRPath     as a String
-  @param   strRFileName as a String
-  @param   iLSize       as an Integer
-  @param   iRSize       as an Integer
-  @param   iLAttr       as an Integer
-  @param   iRAttr       as an Integer
-  @param   iLDateTime   as an Integer
-  @param   iRDateTime   as an Integer
+  @param   LeftFile     as a TFileRecord
+  @param   RightFile    as a TFileRecord
 
 **)
-Procedure TfrmMainForm.InsertListItem(strLPath, strLFileName, strRPath,
-  strRFileName : String; iLSize, iRSize, iLAttr, iRAttr, iLDateTime,
-  iRDateTime : Integer);
+Procedure TfrmMainForm.InsertListItem(strLPath, strRPath : String; LeftFile,
+  RightFile : TFileRecord);
 
   (**
 
@@ -708,47 +685,41 @@ Begin
   // Action
   Item.Caption := '';
   // Left File
-  If strLFileName <> '' Then
-    Item.SubItems.Add(strLPath + strLFileName)
-  Else
-    Item.SubItems.Add('');
-  If iLAttr > -1 Then
-    Item.SubItems.Add(GetAttributeString(iLAttr))
-  Else
-    Item.SubItems.Add('');
-  If iLSize > -1 Then
-    Item.SubItems.Add(Format(strSize, [iLSize + 0.1]))
-  Else
-    Item.SubItems.Add('');
-  If iLDateTime > -1 Then
-    Item.SubItems.Add(FormatDateTime('ddd dd/mmm/yyyy hh:mm:ss',
-      FileDateToDateTime(iLDateTime)))
-  Else
-    Item.SubItems.Add('');
+  If LeftFile <> Nil Then
+    Begin
+      Item.SubItems.Add(strLPath + LeftFile.FileName);
+      Item.SubItems.Add(GetAttributeString(LeftFile.Attributes));
+      Item.SubItems.Add(Format(strSize, [LeftFile.Size + 0.1]));
+      Item.SubItems.Add(FormatDateTime('ddd dd/mmm/yyyy hh:mm:ss',
+        FileDateToDateTime(LeftFile.DateTime)));
+      strFileName := LeftFile.FileName;
+    End Else
+    Begin
+      Item.SubItems.Add('');
+      Item.SubItems.Add('');
+      Item.SubItems.Add('');
+      Item.SubItems.Add('');
+    End;
   // Right File
-  If strRFileName <> '' Then
-    Item.SubItems.Add(strRPath + strRFileName)
-  Else
-    Item.SubItems.Add('');
-  If iRAttr > -1 Then
-    Item.SubItems.Add(GetAttributeString(iRAttr))
-  Else
-    Item.SubItems.Add('');
-  If iRSize > -1 Then
-    Item.SubItems.Add(Format(strSize, [iRSize + 0.1]))
-  Else
-    Item.SubItems.Add('');
-  If iRDateTime > -1 Then
-    Item.SubItems.Add(FormatDateTime('ddd dd/mmm/yyyy hh:mm:ss',
-      FileDateToDateTime(iRDateTime)))
-  Else
-    Item.SubItems.Add('');
-  strFileName := strLFileName;
-  If strFileName = '' Then strFileName := strRFileName;
+  If RightFile <> Nil Then
+    Begin
+      Item.SubItems.Add(strRPath + RightFile.FileName);
+      Item.SubItems.Add(GetAttributeString(RightFile.Attributes));
+      Item.SubItems.Add(Format(strSize, [RightFile.Size + 0.1]));
+      Item.SubItems.Add(FormatDateTime('ddd dd/mmm/yyyy hh:mm:ss',
+        FileDateToDateTime(RightFile.DateTime)));
+      strFileName := RightFile.FileName;
+    End Else
+    Begin
+      Item.SubItems.Add('');
+      Item.SubItems.Add('');
+      Item.SubItems.Add('');
+      Item.SubItems.Add('');
+    End;
   Item.SubItems.Add(strLPath + strFileName);
   Item.SubItems.Add(strRPath + strFileName);
-  OperationStatus(iLAttr, iLDateTime, iRAttr, iRDateTime, Item);
-  ImageIndexes(strLPath, strLFileName, strFileName, strRPath, strRFileName, Item);
+  OperationStatus(LeftFile, RightFile, Item);
+  ImageIndexes(strLPath, strRPath, LeftFile, RightFile, Item);
 End;
 
 (**
@@ -760,7 +731,7 @@ End;
   @postcon Retrieves from the system the icon for the specified file, places
            it in a list and returns the index of the index in the list
   @param   strFileName as a String
-  @return  an Integer    
+  @return  an Integer
 
 **)
 Function TfrmMainForm.GetImageIndex(strFileName : String) : Integer;
@@ -895,7 +866,7 @@ end;
 **)
 procedure TfrmMainForm.actToolsOptionsExecute(Sender: TObject);
 begin
-  If TfrmOptions.Execute(FFolders, FExclusions, FTolerance, strRootKey) Then
+  If TfrmOptions.Execute(FFolders, FExclusions, strRootKey) Then
     actFileCompareExecute(Self);
 end;
 
@@ -1212,35 +1183,39 @@ end;
   @postcon Updates the operational status of the files based on their date and
            time and also whether they are reasd only or not.
 
-  @param   iLAttr     as an Integer
-  @param   iLDateTime as an Integer
-  @param   iRAttr     as an Integer
-  @param   iRDateTime as an Integer
+  @param   LeftFile   as a TFileRecord
+  @param   RightFile  as a TFileRecord
   @param   Item       as a TListItem as a reference
 
 **)
-procedure TfrmMainForm.OperationStatus(iLAttr, iLDateTime, iRAttr,
-  iRDateTime: Integer; var Item: TListItem);
+procedure TfrmMainForm.OperationStatus(LeftFile, RightFile : TFileRecord;
+  var Item: TListItem);
 
 begin
-  if iLDateTime < iRDateTime then
-  begin
-    if (iLAttr = -1) or (iLAttr and faReadOnly = 0) then
-      Item.StateIndex := Integer(foRightToLeft)
-    else if iRAttr and faReadOnly = 0 then
-      Item.StateIndex := Integer(foNothing)
-    else
-      Item.StateIndex := Integer(foRightToLeft);
-  end
-  else
-  begin
-    if (iRAttr = -1) or (iRAttr and faReadOnly = 0) then
-      Item.StateIndex := Integer(foLeftToRight)
-    else if iLAttr and faReadOnly = 0 then
-      Item.StateIndex := Integer(foNothing)
-    else
-      Item.StateIndex := Integer(foLeftToRight);
-  end;
+  If RightFile <> Nil Then
+    Case RightFile.Status Of
+      stNewer    : Item.StateIndex := Integer(foRightToLeft);
+      stOlder    : Item.StateIndex := Integer(foLeftToRight);
+      stSame     : Item.StateIndex := Integer(foNothing);
+      stDiffSize : Item.StateIndex := Integer(foNothing);
+    End
+  Else
+    Case LeftFile.Status Of
+      stNewer    : Item.StateIndex := Integer(foLeftToRight);
+      stOlder    : Item.StateIndex := Integer(foRightToLeft);
+      stSame     : Item.StateIndex := Integer(foNothing);
+      stDiffSize : Item.StateIndex := Integer(foNothing);
+    End;
+  Case Item.StateIndex Of
+    Integer(foLeftToRight):
+      If (Pos('R', Item.SubItems[iLAttrCol - 1]) = 0) And
+        (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
+        Item.StateIndex := Integer(foNothing);
+    Integer(foRightToLeft):
+      If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) And
+        (Pos('R', Item.SubItems[iRAttrCol - 1]) = 0) Then
+        Item.StateIndex := Integer(foNothing);
+  End;
 end;
 
 (**
@@ -1253,36 +1228,39 @@ end;
            / extension of the file.
 
   @param   strLPath     as a String
-  @param   strLFileName as a String
-  @param   strFileName  as a String
   @param   strRPath     as a String
-  @param   strRFileName as a String
+  @param   LeftFile     as a TFileRecord
+  @param   RightFile    as a TFileRecord
   @param   Item         as a TListItem
 
 **)
-procedure TfrmMainForm.ImageIndexes(strLPath, strLFileName, strFileName,
-  strRPath, strRFileName: String; Item: TListItem);
+procedure TfrmMainForm.ImageIndexes(strLPath, strRPath : String; LeftFile,
+  RightFile : TFileRecord; Item: TListItem);
 
 begin
-  if strLFileName <> '' then
+  if LeftFile <> Nil then
   begin
-    if strLFileName <> '' then
-      Item.SubItemImages[iLDisplayCol - 1] := GetImageIndex(strLPath + strFileName)
+    if LeftFile <> Nil then
+      Item.SubItemImages[iLDisplayCol - 1] := GetImageIndex(strLPath +
+        LeftFile.FileName)
     else
       Item.SubItemImages[iLDisplayCol - 1] := -1;
-    if strRFileName <> '' then
-      Item.SubItemImages[iRDisplayCol - 1] := GetImageIndex(strLPath + strFileName)
+    if RightFile <> Nil then
+      Item.SubItemImages[iRDisplayCol - 1] := GetImageIndex(strLPath +
+        RightFile.FileName)
     else
       Item.SubItemImages[iRDisplayCol - 1] := -1;
   end
   else
   begin
-    if strLFileName <> '' then
-      Item.SubItemImages[iLDisplayCol - 1] := GetImageIndex(strRPath + strFileName)
+    if LeftFile <> Nil then
+      Item.SubItemImages[iLDisplayCol - 1] := GetImageIndex(strRPath +
+        LeftFile.FileName)
     else
       Item.SubItemImages[iLDisplayCol - 1] := -1;
-    if strRFileName <> '' then
-      Item.SubItemImages[iRDisplayCol - 1] := GetImageIndex(strRPath + strFileName)
+    if RightFile <> Nil then
+      Item.SubItemImages[iRDisplayCol - 1] := GetImageIndex(strRPath +
+        RightFile.FileName)
     else
       Item.SubItemImages[iRDisplayCol - 1] := -1;
   end;
