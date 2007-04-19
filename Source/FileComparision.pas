@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    12 Aug 2006
+  @Date    19 Apr 2007
   @Author  David Hoyle
 
 **)
@@ -17,7 +17,11 @@ Uses
 
 Type
   (** A type to define the status of a file **)
-  TStatus = (stNewer, stOlder, stSame);
+  TStatus = (stNewer, stOlder, stSame, stDiffSize);
+
+  (** A type to define whether the CheckDifference method should check for
+      Older or Newer differences. **)  
+  TCheckDifference = (cdNewer, cdOlder);
 
   (** A record to describe a single file. **)
   TFileRecord = Class
@@ -82,15 +86,9 @@ Type
     FExclusions : TStringList;
     FTotalSize : Int64;
     FFileFilters : TStringList;
-    function GetDate(iIndex: Integer): Integer;
-    function GetFileName(iIndex: Integer): String;
-    function GetSize(iIndex: Integer): Integer;
-    function GetAttributes(iIndex: Integer): Integer;
-    function GetStatus(iIndex: Integer): TStatus;
-    procedure SetStatus(iIndex: Integer; const Value: TStatus);
     function InExclusions(strFileName: String): Boolean;
     function GetCount: Integer;
-    function GetFileRecord(iIndex: Integer): TFileRecord;
+    function GetFiles(iIndex: Integer): TFileRecord;
   Protected
     Procedure RecurseFolder(strFolderPath : String); Virtual;
     Procedure DoProgress(boolShow : Boolean; strPath, strFile : String;
@@ -102,7 +100,6 @@ Type
       @param   iIndex as       an Integer
       @return  a TFileRecord
     **)
-    Property Files[iIndex : Integer] : TFileRecord Read GetFileRecord;
   Public
     Constructor Create(strFolderPath, strFileFilter : String;
       ProgressProc : TProgressProc; strExclusions : String); Virtual;
@@ -127,41 +124,9 @@ Type
       @precon  iIndex must be from 0 to FCount - 1
       @postcon Returns the relative path of the indexed filename.
       @param   iIndex as       an Integer
-      @return  a String
+      @return  a TFileRecord
     **)
-    Property FileName[iIndex : Integer] : String Read GetFileName;
-    (**
-      A property to return the size of the indexed filename.
-      @precon  iIndex must be from 0 to FCount - 1
-      @postcon Returns the size of the indexed filename.
-      @param   iIndex as       an Integer
-      @return  an Integer
-    **)
-    Property Size[iIndex : Integer] : Integer Read GetSize;
-    (**
-      A property to return the attributes of the indexed filename.
-      @precon  iIndex must be from 0 to FCount - 1
-      @postcon Returns the attributes of the indexed filename.
-      @param   iIndex as       an Integer
-      @return  an Integer
-    **)
-    Property Attributes[iIndex : Integer] : Integer Read GetAttributes;
-    (**
-      A property to return the date and time of the indexed filename.
-      @precon  iIndex must be from 0 to FCount - 1
-      @postcon Returns the date and time of the indexed filename.
-      @param   iIndex as       an Integer
-      @return  a Integer
-    **)
-    Property DateTime[iIndex : Integer] : Integer Read GetDate;
-    (**
-      A property to get and set the status of a file.
-      @precon  iIndex must be from 0 to FCount - 1
-      @postcon Gets or Sets the status of the indexed filename.
-      @param   iIndex as       an Integer
-      @return  a TStatus
-    **)
-    Property Status[iIndex : Integer] : TStatus Read GetStatus Write SetStatus;
+    Property Files[iIndex : Integer] : TFileRecord Read GetFiles; Default;
     (**
       A property to get the total size of the file list.
       @precon  None.
@@ -177,13 +142,14 @@ Type
     FLeftFldr : TFileList;
     FRightFldr : TFileList;
     FProgressProc : TProgressProc;
-    FTolerance : Integer;
   Protected
     Procedure CompareFolders;
   Public
     Constructor Create(strLeftFldr, strLeftFilter, strRightFldr,
       strRightFilter : String; ProgressProc : TProgressProc;
-      strExclusions : String; iTolerance : Integer); Virtual;
+      strExclusions : String); Virtual;
+    function CheckDifference(iTimeDifference, iSizeDifference : Integer;
+      Check : TCheckDifference): Boolean;
     Destructor Destroy; Override;
     (**
       A property to reference the Left Folder file list.
@@ -211,7 +177,7 @@ Type
   Protected
   Public
     Constructor Create(slFolders : TStringList; ProgressProc : TProgressProc;
-      strExclusions : String; iTolerance : Integer); Virtual;
+      strExclusions : String); Virtual;
     Destructor Destroy; Override;
     (**
       This property returns an indexed CompareFolders class.
@@ -403,24 +369,6 @@ end;
 
 (**
 
-  This is a getter method for the Attributes property.
-
-  @precon  None.
-  @postcon Returns the attributes for the indexed file.
-
-  @param   iIndex as an Integer
-  @return  an Integer
-
-**)
-function TFileList.GetAttributes(iIndex: Integer): Integer;
-begin
-  If (iIndex < 0) Or (iIndex > Count - 1) Then
-    Raise Exception.Create('TFileList index error.');
-  Result := Files[iIndex].Attributes;
-end;
-
-(**
-
   This is a getter method for the Count property.
 
   @precon  None.
@@ -436,42 +384,6 @@ end;
 
 (**
 
-  This is a getter method for the Date property.
-
-  @precon  iIndex must between 0 and FCount - 1
-  @postcon Returns the date of the indexed filename
-
-  @param   iIndex as an Integer
-  @return  an Integer
-
-**)
-function TFileList.GetDate(iIndex: Integer): Integer;
-begin
-  If (iIndex < 0) Or (iIndex > Count - 1) Then
-    Raise Exception.Create('TFileList index error.');
-  Result := Files[iIndex].DateTime;
-end;
-
-(**
-
-  This is a getter method for the FileName property.
-
-  @precon  iIndex must between 0 and FCount - 1
-  @postcon Returns the filename of the indexed filename
-
-  @param   iIndex as an Integer
-  @return  a String
-
-**)
-function TFileList.GetFileName(iIndex: Integer): String;
-begin
-  If (iIndex < 0) Or (iIndex > Count - 1) Then
-    Raise Exception.Create('TFileList index error.');
-  Result := Files[iIndex].FileName;
-end;
-
-(**
-
   This is a getter method for the FileRecord property.
 
   @precon  iIndex must be a valid index between 0 and Count -1.
@@ -481,45 +393,9 @@ end;
   @return  a TFileRecord
 
 **)
-function TFileList.GetFileRecord(iIndex: Integer): TFileRecord;
+function TFileList.GetFiles(iIndex: Integer): TFileRecord;
 begin
   Result := FFiles.Items[iIndex] As TFileRecord;
-end;
-
-(**
-
-  This is a getter method for the Size property.
-
-  @precon  iIndex must between 0 and FCount - 1
-  @postcon Returns the size of the indexed filename
-
-  @param   iIndex as an Integer
-  @return  an Integer
-
-**)
-function TFileList.GetSize(iIndex: Integer): Integer;
-begin
-  If (iIndex < 0) Or (iIndex > Count - 1) Then
-    Raise Exception.Create('TFileList index error.');
-  Result := Files[iIndex].Size;
-end;
-
-(**
-
-  This is a getter method for the Status property.
-
-  @precon  iIndex must be between 0 and FCount - 1
-  @postcon Gets the status of the indexed filename.
-
-  @param   iIndex as an Integer
-  @return  a TStatus
-
-**)
-function TFileList.GetStatus(iIndex: Integer): TStatus;
-begin
-  If (iIndex < 0) Or (iIndex > Count - 1) Then
-    Raise Exception.Create('TFileList index error.');
-  Result := Files[iIndex].Status;
 end;
 
 (**
@@ -626,25 +502,35 @@ Begin
     Result := Result Or (Pos(FExclusions[i], strFileName) > 0);
 End;
 
+{ TCompareFolders }
+
 (**
 
-  This is a setter method for the Status property.
+  This function checks the different between the file dates accounting for day
+  light saving (i.e. exactly 1 hour on files of the same size).
 
-  @precon  iIndex must be between 0 and FCount - 1
-  @postcon Sets the status of the indexed filename.
+  @precon  None.
+  @postcon Checks the different between the file dates accounting for day
+           light saving (i.e. exactly 1 hour on files of the same size).
+           Returns true if different.
 
-  @param   iIndex as an Integer
-  @param   Value  as a TStatus constant
+  @param   iTimeDifference as an Integer
+  @param   iSizeDifference as an Integer
+  @param   Check           as a TCheckDifference
+  @return  a Boolean
 
 **)
-procedure TFileList.SetStatus(iIndex: Integer; const Value: TStatus);
-begin
-  If (iIndex < 0) Or (iIndex > Count - 1) Then
-    Raise Exception.Create('TFileList index error.');
-  Files[iIndex].Status := Value;
-end;
+Function TCompareFolders.CheckDifference(iTimeDifference, iSizeDifference : Integer;
+  Check : TCheckDifference) : Boolean;
 
-{ TCompareFolders }
+Const
+  Direction : Array[cdNewer..cdOlder] Of Integer = (1, -1);
+
+Begin
+  Result := (Direction[Check] * iTimeDifference > 0);
+  Result := Result And Not ((iTimeDifference = Direction[Check] * 2048){ And (iSizeDifference = 0)});
+  Result := Result And Not ((iTimeDifference = Direction[Check] * 18432){ And (iSizeDifference = 0)});
+End;
 
 (**
 
@@ -660,29 +546,38 @@ procedure TCompareFolders.CompareFolders;
 
 Var
   iLeft, iRight : Integer;
+  iTimeDifference : Integer;
+  iSizeDifference : Integer;
 
 begin
   For iLeft := 0 To LeftFldr.Count - 1 Do
     Begin
       If Assigned(FProgressProc) Then
         FProgressProc(Self, True, 'Comparing Folders... Please wait...',
-          LeftFldr.FileName[iLeft], iLeft);
-      iRight := RightFldr.Find(LeftFldr.FileName[iLeft]);
+          LeftFldr[iLeft].FileName, iLeft);
+      iRight := RightFldr.Find(LeftFldr[iLeft].FileName);
       If iRight > -1 Then
         Begin
-          If LeftFldr.DateTime[iLeft] - RightFldr.DateTime[iRight] > FTolerance Then
+          iTimeDifference := LeftFldr[iLeft].DateTime - RightFldr[iRight].DateTime;
+          iSizeDifference := LeftFldr[iLeft].Size - RightFldr[iRight].Size;
+          If CheckDifference(iTimeDifference, iSizeDifference, cdNewer) Then
             Begin
-              LeftFldr.Status[iLeft] := stNewer;
-              RightFldr.Status[iRight] := stOlder;
+              LeftFldr[iLeft].Status := stNewer;
+              RightFldr[iRight].Status := stOlder;
             End Else
-          If LeftFldr.DateTime[iLeft] < RightFldr.DateTime[iRight] Then
+          If CheckDifference(iTimeDifference, iSizeDifference, cdOlder) Then
             Begin
-              LeftFldr.Status[iLeft] := stOlder;
-              RightFldr.Status[iRight] := stNewer;
+              LeftFldr[iLeft].Status := stOlder;
+              RightFldr[iRight].Status := stNewer;
+            End Else
+          If iSizeDifference = 0 Then
+            Begin
+              LeftFldr[iLeft].Status := stSame;
+              RightFldr[iRight].Status := stSame;
             End Else
             Begin
-              LeftFldr.Status[iLeft] := stSame;
-              RightFldr.Status[iRight] := stSame;
+              LeftFldr[iLeft].Status := stDiffSize;
+              RightFldr[iRight].Status := stDiffSize;
             End;
         End;
     End;
@@ -701,12 +596,11 @@ end;
   @param   strRightFilter as a String
   @param   ProgressProc as a TProgressProc
   @param   strExclusions as a String
-  @param   iTolerance as an Integer
 
 **)
 constructor TCompareFolders.Create(strLeftFldr, strLeftFilter, strRightFldr,
   strRightFilter: String; ProgressProc: TProgressProc;
-  strExclusions : String; iTolerance : Integer);
+  strExclusions : String);
 
 begin
   If Not DirectoryExists(strLeftFldr) Then Exit;
@@ -716,7 +610,6 @@ begin
   FRightFldr := TFileList.Create(strRightFldr, strRightFilter, ProgressProc,
     strExclusions);
   FProgressProc := ProgressProc;
-  FTolerance := iTolerance;
   CompareFolders;
 end;
 
@@ -747,11 +640,10 @@ end;
   @param   slFolders     as a TStringList
   @param   ProgressProc  as a TProgressProc
   @param   strExclusions as a String
-  @param   iTolerance    as an Integer
 
 **)
 constructor TCompareFoldersCollection.Create(slFolders: TStringList;
-  ProgressProc : TProgressProc; strExclusions : String; iTolerance : Integer);
+  ProgressProc : TProgressProc; strExclusions : String);
 
 Var
   i : Integer;
@@ -766,8 +658,7 @@ begin
         ExtractFilePath(slFolders.Values[slFolders.Names[i]]),
         ExtractFileName(slFolders.Values[slFolders.Names[i]]),
         ProgressProc,
-        strExclusions,
-        iTolerance
+        strExclusions
       )
     );
 end;
