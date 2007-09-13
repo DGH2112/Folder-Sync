@@ -27,6 +27,7 @@ type
     FAlignment : TAlignment;
     FDecimalPlaces : Integer;
     FValue : Double;
+    FEnterAsTab : Boolean;
     procedure SetDecimalPlaces(const Value: Integer);
     function GetValue: Double;
     procedure SetValue(const Value: Double);
@@ -34,6 +35,7 @@ type
     { Protected declarations }
     Procedure SetAlignment(Value : TAlignment);
     Procedure DoExit; Override;
+    Procedure KeyPress(var Key: Char); Override;
   public
     { Public declarations }
     Constructor Create(AOwner : TComponent); Override;
@@ -45,6 +47,7 @@ type
     Property Alignment : TAlignment Read FAlignment Write SetAlignment;
     Property DecimalPlaces : Integer read FDecimalPlaces
       write SetDecimalPlaces Default 3;
+    Property EnterAsTab : Boolean Read FEnterAsTab Write FEnterAsTab Default False;
   end;
 
 procedure Register;
@@ -180,6 +183,18 @@ begin
     End;
   End;
   Result := FValue;
+end;
+
+procedure TNumericEdit.KeyPress(var Key : Char);
+begin
+  If FEnterAsTab Then
+    If Key = #13 Then
+      Begin
+        Key := #0;
+        keybd_event(VK_TAB, MapVirtualKey(VK_TAB, 0), 0, 0);
+        keybd_event(VK_TAB, MapVirtualKey(VK_TAB, 0), KEYEVENTF_KEYUP, 0);
+      End;
+  inherited;
 end;
 
 { -------------------------------------------------------------------------
