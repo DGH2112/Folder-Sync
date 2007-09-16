@@ -250,11 +250,8 @@ end;
 
 procedure TNumericEdit.SetValue(const Value: Double);
 begin
-  If FValue <> Value Then
-    Begin
-      FValue := Value;
-      Text := Format('%*.*f', [1, FDecimalPlaces, Value]);
-    End;
+  FValue := Value;
+  Text := Format('%*.*f', [1, FDecimalPlaces, Value]);
 end;
 
 end.
