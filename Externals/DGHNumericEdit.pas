@@ -7,7 +7,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    06 Oct 2007
+  @Date    07 Oct 2007
 
 **)
 unit DGHNumericEdit;
@@ -100,7 +100,7 @@ Uses
 **)
 procedure Register;
 begin
-  RegisterComponents('DGH Controls', [TNumericEdit]);
+  RegisterComponents('DGH Controls', [TDGHEdit, TNumericEdit]);
 end;
 
 (**
