@@ -7,7 +7,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    07 Oct 2007
+  @Date    25 Nov 2007
 
 **)
 unit DGHNumericEdit;
@@ -228,7 +228,7 @@ begin
     On E: Exception Do
       Begin
         Self.SetFocus;
-        Raise Exception.Create(E.Message);
+        MessageDlg(E.Message, mtError, [mbOK], 0);
       End;
   End;
 end;
