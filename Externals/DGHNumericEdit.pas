@@ -7,7 +7,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    25 Nov 2007
+  @Date    29 Dec 2007
 
 **)
 unit DGHNumericEdit;
@@ -244,24 +244,22 @@ end;
 
 **)
 function TNumericEdit.GetValue: Double;
+
+Var
+  iErrorCode : Integer;
+
 begin
-  (*
-    Check the text to be a number, if not then evaluate it - ensures that
-    FValue is always correct.
-  *)
-  Try
-    FValue := StrToFloat(Text)
-  Except
+  Val(Text, FValue, iErrorCode);
+  If iErrorCode > 0 Then
     Try
       FValue := EvaluateEquation(Text);
     Except
       On E: Exception Do
         Begin
           Self.SetFocus;
-          Raise Exception.Create(E.Message);
+          MessageDlg(E.Message, mtError, [mbOK], 0);
         End;
     End;
-  End;
   Result := FValue;
 end;
 
