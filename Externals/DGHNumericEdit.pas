@@ -52,6 +52,7 @@ type
     { Private declarations }
     FDecimalPlaces : Integer;
     FValue : Double;
+    FRaisedError: Boolean;
     procedure SetDecimalPlaces(const Value: Integer);
     function GetValue: Double;
     procedure SetValue(const Value: Double);
@@ -69,6 +70,13 @@ type
       @return  a Double
     **)
     Property Value : Double Read GetValue Write SetValue;
+    (**
+      This property returns true if the last expression raised an error.
+      @precon  None.
+      @postcon Returns true if the last expression raised an error.
+      @return  a Boolean
+    **)
+    Property RaisedError : Boolean Read FRaisedError;
   published
     { Published declarations }
     (**
@@ -191,6 +199,7 @@ begin
   Inherited Create(AOwner);
   FDecimalPlaces := 3;
   FValue := 0;
+  FRaisedError := False;
 end;
 
 (**
@@ -222,6 +231,7 @@ end;
 **)
 procedure TNumericEdit.EvaluateInput;
 begin
+  FRaisedError := False;
   Try
     Value := EvaluateEquation(Text);
   Except
@@ -229,6 +239,7 @@ begin
       Begin
         Self.SetFocus;
         MessageDlg(E.Message, mtError, [mbOK], 0);
+        FRaisedError := True;
       End;
   End;
 end;
@@ -249,6 +260,7 @@ Var
   iErrorCode : Integer;
 
 begin
+  FRaisedError := False;
   Val(Text, FValue, iErrorCode);
   If iErrorCode > 0 Then
     Try
@@ -258,6 +270,7 @@ begin
         Begin
           Self.SetFocus;
           MessageDlg(E.Message, mtError, [mbOK], 0);
+          FRaisedError := True;
         End;
     End;
   Result := FValue;
