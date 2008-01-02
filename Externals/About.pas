@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    17 Jan 2006
+  @Date    02 Jan 2008
 
 **)
 unit About;
@@ -43,7 +43,7 @@ type
     procedure VersionInformation;
   public
     { Public declarations }
-    class procedure ShowAbout;
+    class procedure ShowAbout(strAppINIFile : String);
   end;
 
 implementation
@@ -51,12 +51,14 @@ implementation
 {$R *.DFM}
 
 Uses
-  Registry;
+  IniFiles;
 
 Var
   (** This is a private variable for an instance of the form used to implement
       this forms as a singleton class. **)
   frm : TfrmAbout;
+  (** A private variable to hold the Apps INI File. **)
+  strRootKey : String;
 
 (**
 
@@ -212,17 +214,16 @@ End;
 procedure TfrmAbout.FormCreate(Sender: TObject);
 
 Const
-  strRootKey = 'Software\Season''s Fall\';
   strBugfixes = ' abcedfghijklmnopqrstuvwxyz';
 
 Var
   strName : String;
   strCompany : String;
-  Reg : TRegIniFile;
+  Reg : TIniFile;
   iMajor, iMinor, iBugfix, iBuild : Integer;
 
 begin
-  Reg := TRegIniFile.Create(strRootKey);
+  Reg := TIniFile.Create(strRootKey);
   Try
     strName := Reg.Readstring('License', 'Name', '');
     strCompany := Reg.Readstring('License', 'Company', '');
@@ -289,10 +290,13 @@ end;
   @precon  None.
   @postcon Displays a single instance of this about dialogue.
 
+  @param   strAppINIFile as a String
+
 **)
-Class Procedure TfrmAbout.ShowAbout();
+Class Procedure TfrmAbout.ShowAbout(strAppINIFile : String);
 
 Begin
+  strRootKey := strAppINIFile;
   If frm = Nil Then
     frm := TfrmAbout.Create(Application);
   frm.Show;
