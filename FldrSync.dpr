@@ -3,9 +3,9 @@
   The main delphi module for the Folder Synchronisation application.
 
   @Author  David Hoyle
-  @Date    07 Dec 2006
+  @Date    03 Jan 2008
   @Version 1.0
-  
+
 **)
 program FldrSync;
 
@@ -29,13 +29,17 @@ program FldrSync;
 {%TogetherDiagram 'ModelSupport_FldrSync\Sequence Diagram1.txvint'}
 
 uses
+  ExceptionLog,
   Forms,
   MainForm in 'Source\MainForm.pas' {frmMainForm},
   FileComparision in 'Source\FileComparision.pas',
   OptionsForm in 'Source\OptionsForm.pas' {frmOptions},
   ProgressForm in 'Source\ProgressForm.pas' {frmProgress},
   FolderPathsForm in 'Source\FolderPathsForm.pas' {frmFolderPaths},
-  About in '..\..\LIBRARY\About.pas' {frmAbout};
+  About in '..\..\LIBRARY\About.pas' {frmAbout},
+  dghlibrary in '..\..\LIBRARY\dghlibrary.pas',
+  checkforupdates in '..\..\LIBRARY\checkforupdates.pas',
+  CheckForUpdatesForm in '..\..\LIBRARY\CheckForUpdatesForm.pas' {frmCheckForUpdates};
 
 {$R *.RES}
 
