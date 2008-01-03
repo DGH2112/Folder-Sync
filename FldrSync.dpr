@@ -39,7 +39,8 @@ uses
   About in '..\..\LIBRARY\About.pas' {frmAbout},
   dghlibrary in '..\..\LIBRARY\dghlibrary.pas',
   checkforupdates in '..\..\LIBRARY\checkforupdates.pas',
-  CheckForUpdatesForm in '..\..\LIBRARY\CheckForUpdatesForm.pas' {frmCheckForUpdates};
+  CheckForUpdatesForm in '..\..\LIBRARY\CheckForUpdatesForm.pas' {frmCheckForUpdates},
+  DGHSpectrum in '..\..\Components\Source\DGHSpectrum.pas';
 
 {$R *.RES}
 
