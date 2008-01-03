@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    19 Apr 2007
+  @Date    03 Jan 2008
   @Author  David Hoyle
 
 **)
@@ -15,7 +15,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   Menus, ActnList, ImgList, ComCtrls, ExtCtrls, ToolWin, StdCtrls, Buttons,
-  AppEvnts, Registry, FileComparision, ProgressForm;
+  AppEvnts, IniFiles, Registry, FileComparision, ProgressForm;
 
 type
   (** A list of enumerate values for the different types of file operation that
@@ -52,7 +52,6 @@ type
     actEditCopyLeftToRight: TAction;
     tbtnRightToLeft: TToolButton;
     tbtnLefttoRight: TToolButton;
-    ilFileTypeIcons: TImageList;
     lvFileList: TListView;
     actEditDelete: TAction;
     actEditDoNothing: TAction;
@@ -82,6 +81,10 @@ type
     mmiSelectAll: TMenuItem;
     appEvents: TApplicationEvents;
     actHelpAbout: TAction;
+    actHelpCheckForUpdates: TAction;
+    N1: TMenuItem;
+    CheckforUpdates1: TMenuItem;
+    ilFileTypeIcons: TImageList;
     procedure actHelpAboutExecute(Sender: TObject);
     procedure actFileExitExecute(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -98,6 +101,7 @@ type
     procedure appEventsException(Sender: TObject; E: Exception);
     procedure lvFileListCustomDrawItem(Sender: TCustomListView; Item: TListItem;
       State: TCustomDrawState; var DefaultDraw: Boolean);
+    procedure actHelpCheckForUpdatesExecute(Sender: TObject);
   private
     { Private declarations }
     FFolders : TStringList;
@@ -123,10 +127,18 @@ type
       Var Item: TListItem);
     procedure ImageIndexes(strLPath, strRPath : String; LeftFile,
       RightFile : TFileRecord; Item: TListItem);
+    procedure BuildRootKey;
   end;
 
   (** This is a custon exception for folders not found or created. **)
   TFolderNotFoundException = Class(Exception);
+
+ResourceString
+  (** A resource string for the Update URLs **)
+  strUpdateURLs = 'http://www.hoyld.freeserve.co.uk/HoylD.xml|' +
+    'C:\Documents and Settings\HoylD\My Documents\Web Page\HoylD.xml';
+  (** A resource string for the Update Software ID **)
+  strSoftwareID = 'FldrSync';
 
 Const
   (** Constant to represent the Left File Name position in the list view **)
@@ -157,15 +169,16 @@ var
 implementation
 
 Uses
-  FileCtrl, ShellAPI, OptionsForm, About;
+  FileCtrl, ShellAPI, OptionsForm, About, CheckForUpdates;
 
 Const
-  (** This is the registry root key for storing the applications persistence
-      data **)
-  strRootKey : String = 'Software\Season''s Fall\Folder Sync\';
   (** This is a mask for displaying the number of files and total size of
       files. **)
   strStatus = '%1.0n File(s), %1.0n Byte(s)';
+
+Var
+  (** A variable to hold the loading and saving settings file name. **)
+  strRootKey : String;
 
 
 {$R *.DFM}
@@ -183,6 +196,37 @@ Const
 procedure TfrmMainForm.actFileExitExecute(Sender: TObject);
 begin
   Close();
+end;
+
+(**
+
+  This method builds the root key INI filename for the loading and saving of
+  settings.
+
+  @precon  None.
+  @postcon Builds the root key INI filename for the loading and saving of
+           settings.
+
+**)
+procedure TfrmMainForm.BuildRootKey;
+
+var
+  i: Cardinal;
+  strUserName: string;
+  strComputerName: string;
+
+begin
+  i := 1024;
+  SetLength(strUserName, i);
+  GetUserName(@strUserName[1], i);
+  Win32Check(LongBool(i));
+  SetLength(strUserName, i - 1);
+  i := 1024;
+  SetLength(strComputerName, i);
+  GetComputerName(@strComputerName[1], i);
+  Win32Check(LongBool(i));
+  SetLength(strComputerName, i);
+  strRootKey := ExtractFilePath(ParamStr(0)) + Format('FldrSync Settings for %s on %s.INI', [strUserName, strComputerName]);
 end;
 
 (**
@@ -229,7 +273,7 @@ Var
   i : Integer;
 
 begin
-  With TRegIniFile.Create(strRootKey) Do
+  With TIniFile.Create(strRootKey) Do
     Begin
       Top := ReadInteger('Setup', 'Top', 100);
       Left := ReadInteger('Setup', 'Left', 100);
@@ -335,7 +379,7 @@ begin
   For i := 0 To iRDateCol - 1 Do
     Begin
       Case i Of
-        0, 4 : Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS;
+        0, 4 : Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS Or DT_NOPREFIX;
         2, 3, 6, 7: Ops := DT_RIGHT;
       Else
         Ops := DT_LEFT;
@@ -384,7 +428,7 @@ Var
   i : Integer;
 
 begin
-  With TRegIniFile.Create(strRootKey) Do
+  With TIniFile.Create(strRootKey) Do
     Begin
       WriteInteger('Setup', 'Top', Top);
       WriteInteger('Setup', 'Left', Left);
@@ -413,7 +457,10 @@ end;
 procedure TfrmMainForm.FormCreate(Sender: TObject);
 
 begin
-  TfrmAbout.ShowAbout;
+  BuildRootKey;
+  actHelpCheckForUpdatesExecute(Nil);
+  TfrmAbout.ShowAbout(strRootKey);
+  Application.ProcessMessages;
   FFolders := TStringList.Create;
   frmProgress := TfrmProgress.Create(Self);
   LoadSettings();
@@ -1035,7 +1082,23 @@ end;
 **)
 procedure TfrmMainForm.actHelpAboutExecute(Sender: TObject);
 begin
-  TfrmAbout.ShowAbout;
+  TfrmAbout.ShowAbout(strRootKey);
+end;
+
+(**
+
+  This is an on execute event handler for the Chekc for updates action.
+
+  @precon  None.
+  @postcon Checks for updates on the Internet.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmMainForm.actHelpCheckForUpdatesExecute(Sender: TObject);
+begin
+  TCheckForUpdates.Execute(strUpdateURLs, strSoftwareID, strRootKey,
+    Sender = actHelpCheckForUpdates);   
 end;
 
 (**
