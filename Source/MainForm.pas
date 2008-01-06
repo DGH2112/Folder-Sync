@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    03 Jan 2008
+  @Date    06 Jan 2008
   @Author  David Hoyle
 
 **)
@@ -287,7 +287,8 @@ begin
       Finally
         sl.Free;
       End;
-      FExclusions := ReadString('Setup', 'Exclusions', '');
+      FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|',
+        #13#10, [rfReplaceAll]);
       Free;
     End;
 end;
@@ -438,7 +439,8 @@ begin
       For i := 0 To FFolders.Count - 1 Do
         WriteString('Folders', FFolders.Names[i],
           FFolders.Values[FFolders.Names[i]]);
-      WriteString('Setup', 'Exclusions', FExclusions);
+      WriteString('Setup', 'Exclusions',
+        StringReplace(FExclusions, #13#10, '|', [rfReplaceAll]));
       Free;
     End;
 end;
