@@ -3,7 +3,7 @@
   A class to define a form for editing the Folder Paths.
 
   @Version 1.0
-  @date    07 Dec 2006
+  @date    06 Jan 2008
   @Author  David Hoyle.
 
 **)
@@ -24,8 +24,8 @@ type
     edtRightFolder: TEdit;
     btnBrowseLeft: TButton;
     btnBrowseRight: TButton;
-    BitBtn1: TBitBtn;
-    BitBtn2: TBitBtn;
+    btnOK: TBitBtn;
+    btnCancel: TBitBtn;
     procedure FolderPathChange(Sender: TObject);
     procedure btnBrowseLeftClick(Sender: TObject);
     procedure btnBrowseRightClick(Sender: TObject);

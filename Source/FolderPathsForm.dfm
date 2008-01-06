@@ -53,7 +53,7 @@ object frmFolderPaths: TfrmFolderPaths
     Width = 524
     Height = 21
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 1
+    TabOrder = 2
     OnChange = FolderPathChange
   end
   object btnBrowseLeft: TButton
@@ -63,7 +63,7 @@ object frmFolderPaths: TfrmFolderPaths
     Height = 25
     Anchors = [akTop, akRight]
     Caption = '...'
-    TabOrder = 2
+    TabOrder = 1
     OnClick = btnBrowseLeftClick
   end
   object btnBrowseRight: TButton
@@ -76,7 +76,7 @@ object frmFolderPaths: TfrmFolderPaths
     TabOrder = 3
     OnClick = btnBrowseRightClick
   end
-  object BitBtn1: TBitBtn
+  object btnOK: TBitBtn
     Left = 411
     Top = 96
     Width = 75
@@ -85,7 +85,7 @@ object frmFolderPaths: TfrmFolderPaths
     TabOrder = 4
     Kind = bkOK
   end
-  object BitBtn2: TBitBtn
+  object btnCancel: TBitBtn
     Left = 495
     Top = 96
     Width = 75
