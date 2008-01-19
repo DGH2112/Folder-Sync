@@ -7,7 +7,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    29 Dec 2007
+  @Date    19 Jan 2008
 
 **)
 unit DGHNumericEdit;
@@ -238,7 +238,7 @@ begin
     On E: Exception Do
       Begin
         Self.SetFocus;
-        MessageDlg(E.Message, mtError, [mbOK], 0);
+        MessageDlg(E.Message, mtError, [mbOK, mbHelp], HelpContext);
         FRaisedError := True;
       End;
   End;
@@ -269,7 +269,7 @@ begin
       On E: Exception Do
         Begin
           Self.SetFocus;
-          MessageDlg(E.Message, mtError, [mbOK], 0);
+          MessageDlg(E.Message, mtError, [mbOK, mbHelp], HelpContext);
           FRaisedError := True;
         End;
     End;
