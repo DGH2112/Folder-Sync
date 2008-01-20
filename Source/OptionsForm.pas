@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    16 Apr 2007
+  @Date    20 Jan 2008
   @Version 1.0
   @Author  David Hoyle
 
@@ -67,7 +67,7 @@ type
 implementation
 
 uses
-  FolderPathsForm, Registry;
+  FolderPathsForm, IniFiles;
 
 {$R *.DFM}
 
@@ -129,7 +129,7 @@ procedure TfrmOptions.FormCreate(Sender: TObject);
 begin
   FRightWidth := 1;
   FLeftWidth := 1;
-  With TRegIniFile.Create(FRootKey) Do
+  With TIniFile.Create(FRootKey) Do
     Try
       Top := ReadInteger('Options', 'Top', Top);
       Left := ReadInteger('Options', 'Left', Left);
@@ -152,7 +152,7 @@ end;
 **)
 procedure TfrmOptions.FormDestroy(Sender: TObject);
 begin
-  With TRegIniFile.Create(FRootKey) Do
+  With TIniFile.Create(FRootKey) Do
     Try
       WriteInteger('Options', 'Top', Top);
       WriteInteger('Options', 'Left', Left);

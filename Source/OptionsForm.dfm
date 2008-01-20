@@ -49,10 +49,6 @@ object frmOptions: TfrmOptions
     TabOrder = 2
     object pgFolderList: TTabSheet
       Caption = 'Folder List'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         610
         379)
