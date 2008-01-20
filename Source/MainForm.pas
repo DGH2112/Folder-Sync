@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    06 Jan 2008
+  @Date    20 Jan 2008
   @Author  David Hoyle
 
 **)
@@ -460,9 +460,8 @@ procedure TfrmMainForm.FormCreate(Sender: TObject);
 
 begin
   BuildRootKey;
-  actHelpCheckForUpdatesExecute(Nil);
   TfrmAbout.ShowAbout(strRootKey);
-  Application.ProcessMessages;
+  actHelpCheckForUpdatesExecute(Nil);
   FFolders := TStringList.Create;
   frmProgress := TfrmProgress.Create(Self);
   LoadSettings();
