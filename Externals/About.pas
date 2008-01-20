@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    02 Jan 2008
+  @Date    20 Jan 2008
 
 **)
 unit About;
@@ -300,6 +300,7 @@ Begin
   If frm = Nil Then
     frm := TfrmAbout.Create(Application);
   frm.Show;
+  Application.ProcessMessages;
 End;
 
 end.
