@@ -7,7 +7,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    19 Jan 2008
+  @Date    29 Jan 2008
 
 **)
 unit DGHNumericEdit;
@@ -214,9 +214,8 @@ end;
 **)
 procedure TNumericEdit.DoExit;
 begin
-  inherited;
-  If Not Assigned(OnExit) Then
-    EvaluateInput;
+  EvaluateInput;
+  Inherited;
 end;
 
 (**
