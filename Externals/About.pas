@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    20 Jan 2008
+  @Date    24 Feb 2008
 
 **)
 unit About;
@@ -39,6 +39,7 @@ type
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
+    FModuleFileName : String;
     Procedure BuildNumber(var iMajor, iMinor, iBugFix, iBuild : Integer);
     procedure VersionInformation;
   public
@@ -139,11 +140,11 @@ Var
 
 Begin
   { Build Number }
-  VerInfoSize := GetFileVersionInfoSize(PChar(ParamStr(0)), Dummy);
+  VerInfoSize := GetFileVersionInfoSize(PChar(FModuleFileName), Dummy);
   If VerInfoSize <> 0 Then
     Begin
       GetMem(VerInfo, VerInfoSize);
-      GetFileVersionInfo(PChar(ParamStr(0)), 0, VerInfoSize, VerInfo);
+      GetFileVersionInfo(PChar(FModuleFileName), 0, VerInfoSize, VerInfo);
       VerQueryValue(VerInfo, '\', Pointer(VerValue), VerValueSize);
       With VerValue^ Do
         Begin
@@ -160,7 +161,6 @@ Begin
       MessageDlg('This executable does not contain any version information.', mtWarning, [mbOK], 0);
       BuildLabel.Caption := '';
     End;
-
 End;
 
 (**
@@ -221,8 +221,11 @@ Var
   strCompany : String;
   Reg : TIniFile;
   iMajor, iMinor, iBugfix, iBuild : Integer;
+  Buffer : Array[0..MAX_PATH] Of Char;
 
 begin
+  GetModuleFilename(hInstance, Buffer, MAX_PATH);
+  FModuleFileName := StrPas(Buffer);
   Reg := TIniFile.Create(strRootKey);
   Try
     strName := Reg.Readstring('License', 'Name', '');
@@ -273,7 +276,7 @@ Var
   dtDate: TDateTime;
 
 begin
-  FileAge(ParamStr(0), dtDate);
+  FileAge(FModuleFileName, dtDate);
   lblBy.Caption := 'Written by David Hoyle - Copyright ' +
     FormatDateTime('mmmm yyyy', dtDate);
   AboutTimer.Enabled := True;
