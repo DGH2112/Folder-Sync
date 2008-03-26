@@ -3,7 +3,7 @@
   A class to define a form for editing the Folder Paths.
 
   @Version 1.0
-  @date    06 Jan 2008
+  @date    26 Mar 2008
   @Author  David Hoyle.
 
 **)
@@ -44,7 +44,7 @@ type
 implementation
 
 Uses
-  FileCtrl, Registry;
+  FileCtrl, IniFiles;
 
 {$R *.DFM}
 
@@ -127,7 +127,7 @@ end;
 **)
 procedure TfrmFolderPaths.FormCreate(Sender: TObject);
 begin
-  With TRegIniFile.Create(FRootKey) Do
+  With TIniFile.Create(FRootKey) Do
     Try
       Top := ReadInteger('FolderPathForm', 'Top', Top);
       Left := ReadInteger('FolderPathForm', 'Left', Left);
@@ -150,7 +150,7 @@ End;
 **)
 procedure TfrmFolderPaths.FormDestroy(Sender: TObject);
 begin
-  With TRegIniFile.Create(FRootKey) Do
+  With TIniFile.Create(FRootKey) Do
     Try
       WriteInteger('FolderPathForm', 'Top', Top);
       WriteInteger('FolderPathForm', 'Left', Left);
