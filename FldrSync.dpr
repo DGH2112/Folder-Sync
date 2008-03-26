@@ -3,7 +3,7 @@
   The main delphi module for the Folder Synchronisation application.
 
   @Author  David Hoyle
-  @Date    12 Jan 2008
+  @Date    26 Mar 2008
   @Version 1.0
 
 **)
@@ -40,7 +40,8 @@ uses
   dghlibrary in '..\..\LIBRARY\dghlibrary.pas',
   checkforupdates in '..\..\LIBRARY\checkforupdates.pas',
   CheckForUpdatesForm in '..\..\LIBRARY\CheckForUpdatesForm.pas' {frmCheckForUpdates},
-  DGHSpectrum in '..\..\Components\Source\DGHSpectrum.pas';
+  DGHSpectrum in '..\..\Components\Source\DGHSpectrum.pas',
+  MSXML2_TLB in '..\..\LIBRARY\MSXML2_TLB.pas';
 
 {$R *.RES}
 
