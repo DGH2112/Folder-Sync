@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    20 Jan 2008
+  @Date    11 May 2008
   @Author  David Hoyle
 
 **)
@@ -108,6 +108,7 @@ type
     FExclusions : String;
     FIconFiles : TStringList;
     frmProgress : TfrmProgress;
+    FRootKey : String;
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure ApplicationHint(Sender  : TObject);
@@ -127,7 +128,6 @@ type
       Var Item: TListItem);
     procedure ImageIndexes(strLPath, strRPath : String; LeftFile,
       RightFile : TFileRecord; Item: TListItem);
-    procedure BuildRootKey;
   end;
 
   (** This is a custon exception for folders not found or created. **)
@@ -169,17 +169,12 @@ var
 implementation
 
 Uses
-  FileCtrl, ShellAPI, OptionsForm, About, CheckForUpdates;
+  FileCtrl, ShellAPI, OptionsForm, About, CheckForUpdates, DGHLibrary;
 
 Const
   (** This is a mask for displaying the number of files and total size of
       files. **)
   strStatus = '%1.0n File(s), %1.0n Byte(s)';
-
-Var
-  (** A variable to hold the loading and saving settings file name. **)
-  strRootKey : String;
-
 
 {$R *.DFM}
 
@@ -196,37 +191,6 @@ Var
 procedure TfrmMainForm.actFileExitExecute(Sender: TObject);
 begin
   Close();
-end;
-
-(**
-
-  This method builds the root key INI filename for the loading and saving of
-  settings.
-
-  @precon  None.
-  @postcon Builds the root key INI filename for the loading and saving of
-           settings.
-
-**)
-procedure TfrmMainForm.BuildRootKey;
-
-var
-  i: Cardinal;
-  strUserName: string;
-  strComputerName: string;
-
-begin
-  i := 1024;
-  SetLength(strUserName, i);
-  GetUserName(@strUserName[1], i);
-  Win32Check(LongBool(i));
-  SetLength(strUserName, i - 1);
-  i := 1024;
-  SetLength(strComputerName, i);
-  GetComputerName(@strComputerName[1], i);
-  Win32Check(LongBool(i));
-  SetLength(strComputerName, i);
-  strRootKey := ExtractFilePath(ParamStr(0)) + Format('FldrSync Settings for %s on %s.INI', [strUserName, strComputerName]);
 end;
 
 (**
@@ -273,7 +237,7 @@ Var
   i : Integer;
 
 begin
-  With TIniFile.Create(strRootKey) Do
+  With TIniFile.Create(FRootKey) Do
     Begin
       Top := ReadInteger('Setup', 'Top', 100);
       Left := ReadInteger('Setup', 'Left', 100);
@@ -429,7 +393,7 @@ Var
   i : Integer;
 
 begin
-  With TIniFile.Create(strRootKey) Do
+  With TIniFile.Create(FRootKey) Do
     Begin
       WriteInteger('Setup', 'Top', Top);
       WriteInteger('Setup', 'Left', Left);
@@ -459,8 +423,8 @@ end;
 procedure TfrmMainForm.FormCreate(Sender: TObject);
 
 begin
-  BuildRootKey;
-  TfrmAbout.ShowAbout(strRootKey);
+  FRootKey := BuildRootKey;
+  TfrmAbout.ShowAbout(FRootKey);
   actHelpCheckForUpdatesExecute(Nil);
   FFolders := TStringList.Create;
   frmProgress := TfrmProgress.Create(Self);
@@ -914,7 +878,7 @@ end;
 **)
 procedure TfrmMainForm.actToolsOptionsExecute(Sender: TObject);
 begin
-  If TfrmOptions.Execute(FFolders, FExclusions, strRootKey) Then
+  If TfrmOptions.Execute(FFolders, FExclusions, FRootKey) Then
     actFileCompareExecute(Self);
 end;
 
@@ -1083,7 +1047,7 @@ end;
 **)
 procedure TfrmMainForm.actHelpAboutExecute(Sender: TObject);
 begin
-  TfrmAbout.ShowAbout(strRootKey);
+  TfrmAbout.ShowAbout(FRootKey);
 end;
 
 (**
@@ -1098,8 +1062,7 @@ end;
 **)
 procedure TfrmMainForm.actHelpCheckForUpdatesExecute(Sender: TObject);
 begin
-  TCheckForUpdates.Execute(strUpdateURLs, strSoftwareID, strRootKey,
-    Sender = actHelpCheckForUpdates);   
+  TCheckForUpdates.Execute(strSoftwareID, FRootKey, Sender = actHelpCheckForUpdates);
 end;
 
 (**
