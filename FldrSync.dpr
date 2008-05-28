@@ -3,7 +3,7 @@
   The main delphi module for the Folder Synchronisation application.
 
   @Author  David Hoyle
-  @Date    26 Mar 2008
+  @Date    28 May 2008
   @Version 1.0
 
 **)
