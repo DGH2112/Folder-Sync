@@ -109,6 +109,7 @@ type
     FIconFiles : TStringList;
     frmProgress : TfrmProgress;
     FRootKey : String;
+    FParams : TStringList;
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure ApplicationHint(Sender  : TObject);
@@ -128,6 +129,7 @@ type
       Var Item: TListItem);
     procedure ImageIndexes(strLPath, strRPath : String; LeftFile,
       RightFile : TFileRecord; Item: TListItem);
+    Procedure ExceptionProc(strExceptionMsg : String);
   end;
 
   (** This is a custon exception for folders not found or created. **)
@@ -423,7 +425,8 @@ end;
 procedure TfrmMainForm.FormCreate(Sender: TObject);
 
 begin
-  FRootKey := BuildRootKey;
+  FParams := TStringList.Create;
+  FRootKey := BuildRootKey(FParams, ExceptionProc);
   TfrmAbout.ShowAbout(FRootKey);
   actHelpCheckForUpdatesExecute(Nil);
   FFolders := TStringList.Create;
@@ -452,6 +455,7 @@ begin
   FIconFiles.Free;
   frmProgress.Free;
   FFolders.Free;
+  FParams.Free;
 end;
 
 (**
@@ -1015,6 +1019,21 @@ Begin
     End;
 End;
 
+
+(**
+
+  This is an exception handling message for the BuildRootKey method.
+
+  @precon  None.
+  @postcon Displays the exception message in a dialogue.
+
+  @param   strExceptionMsg as a String
+
+**)
+procedure TfrmMainForm.ExceptionProc(strExceptionMsg: String);
+begin
+  MessageDlg(strExceptionMsg, mtError, [mbOK], 0);
+end;
 
 (**
 
