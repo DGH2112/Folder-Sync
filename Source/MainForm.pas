@@ -90,6 +90,7 @@ type
     tbtnCompareFiles: TToolButton;
     N2: TMenuItem;
     Compare1: TMenuItem;
+    Compare2: TMenuItem;
     procedure actHelpAboutExecute(Sender: TObject);
     procedure actFileExitExecute(Sender: TObject);
     procedure FormResize(Sender: TObject);
