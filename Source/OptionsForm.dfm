@@ -58,6 +58,7 @@ object frmOptions: TfrmOptions
         Width = 602
         Height = 339
         Anchors = [akLeft, akTop, akRight, akBottom]
+        Checkboxes = True
         Columns = <
           item
             Caption = 'Left Folder'

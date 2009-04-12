@@ -48,7 +48,7 @@ type
     FRootKey : String;
     procedure SetLeftWidth(const Value: Integer);
     procedure SetRightWidth(const Value: Integer);
-    Procedure AddFolders(strLeft, strRight : String);
+    Procedure AddFolders(strLeft, strRight : String; boolEnabled : Boolean);
     (**
       This property holds the maximum width of the Right Folder Text.
       @precon  None.
@@ -85,7 +85,7 @@ uses
   .
 
   @precon  None.
-  @postcon Returns true with the updated options in the var variables else
+  @postcon Returns true with the updated options in the var variables else 
            returns false if the dialogue is cancelled.
 
   @param   slFolders     as a TStringList as a reference
@@ -106,15 +106,16 @@ begin
   With TfrmOptions.CreateWithRootKey(Nil, strRootKey) Do
     Try
       For i := 0 to slFolders.Count - 1 Do
-        AddFolders(slFolders.Names[i], slFolders.Values[slFolders.Names[i]]);
+        AddFolders(slFolders.Names[i], slFolders.ValueFromIndex[i],
+          Boolean(slFolders.Objects[i]));
       edtExclusions.Text := strExclusions;
       edtCompareEXE.Text := strCompareEXE;
       If ShowModal = mrOK Then
         Begin
           slFolders.Clear;
           For i := 0 To lvFolders.Items.Count - 1 Do
-            slFolders.Add(lvFolders.Items[i].Caption + '=' +
-              lvFolders.Items[i].SubItems[0]);
+            slFolders.AddObject(lvFolders.Items[i].Caption + '=' +
+              lvFolders.Items[i].SubItems[0], TObject(lvFolders.Items[i].Checked));
           strExclusions := edtExclusions.Text;
           strCompareEXE := edtCompareEXE.Text;
           Result := True;
@@ -182,11 +183,12 @@ end;
   @postcon Adds folder paths to the list view and updates the width properties
            for calculating the resize width of the list view.
 
-  @param   strLeft  as a String
-  @param   strRight as a String
+  @param   strLeft     as a String
+  @param   strRight    as a String
+  @param   boolEnabled as a Boolean
 
 **)
-procedure TfrmOptions.AddFolders(strLeft, strRight: String);
+procedure TfrmOptions.AddFolders(strLeft, strRight: String; boolEnabled : Boolean);
 
 Var
   Item : TListItem;
@@ -194,6 +196,7 @@ Var
 begin
   Item := lvFolders.Items.Add;
   Item.Caption := strLeft;
+  Item.Checked := boolEnabled;
   LeftWidth := Length(strLeft);
   Item.SubItems.Add(strRight);
   RightWidth := Length(strRight);
@@ -218,7 +221,7 @@ Var
 
 begin
   If TfrmFolderPaths.Execute(strLeft, strRight, FRootKey) Then
-    AddFolders(strLeft, strRight);
+    AddFolders(strLeft, strRight, True);
 end;
 
 (**
