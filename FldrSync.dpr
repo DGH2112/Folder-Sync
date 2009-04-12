@@ -41,7 +41,8 @@ uses
   checkforupdates in '..\..\LIBRARY\checkforupdates.pas',
   CheckForUpdatesForm in '..\..\LIBRARY\CheckForUpdatesForm.pas' {frmCheckForUpdates},
   DGHSpectrum in '..\..\Components\Source\DGHSpectrum.pas',
-  MSXML2_TLB in '..\..\LIBRARY\MSXML2_TLB.pas';
+  MSXML2_TLB in '..\..\LIBRARY\MSXML2_TLB.pas',
+  DGHEllipsisLabel in '..\..\components\source\DGHEllipsisLabel.pas';
 
 {$R *.RES}
 
