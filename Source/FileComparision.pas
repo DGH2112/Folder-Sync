@@ -75,7 +75,7 @@ Type
 
   (** A event method for feeding back progress. **)
   TProgressProc = Procedure(Sender : TObject; boolShow : Boolean;
-    strPath, strFile : String; iCount : Integer) Of Object;
+    strMessage : String; iCount : Integer; strFile : String) Of Object;
 
   (** This class defines a list of files from a single directory. **)
   TFileList = Class
@@ -91,8 +91,8 @@ Type
     function GetFiles(iIndex: Integer): TFileRecord;
   Protected
     Procedure RecurseFolder(strFolderPath : String); Virtual;
-    Procedure DoProgress(boolShow : Boolean; strPath, strFile : String;
-      iCount : Integer);
+    Procedure DoProgress(boolShow : Boolean; strMessage : String; iCount : Integer;
+      strFile : String);
     (**
       Provides a indexable type access to the FileRecords.
       @precon  iIndex must be a valid index in the list.
@@ -286,7 +286,7 @@ begin
   FProgressProc := ProgressProc;
   FExclusions := TStringList.Create;
   FExclusions.Text := LowerCase(strExclusions);
-  DoProgress(True, '', '', 0);
+  DoProgress(True, '', 0, '');
   If Length(FolderPath) = 0 Then Exit;
   RecurseFolder(FFolderPath);
 end;
@@ -302,7 +302,7 @@ end;
 **)
 destructor TFileList.Destroy;
 begin
-  DoProgress(False, '', '', 0);
+  DoProgress(False, '', 0, '');
   FFileFilters.Free;
   FFiles.Free;
   FExclusions.Free;
@@ -311,23 +311,23 @@ end;
 
 (**
 
-  This method updates the progress event method hooked with the current
-  progress.
+  This method updates the progress event method hooked with the current progress
+  .
 
   @precon  None.
   @postcon Fires the progress event if the event handler is hooked.
 
-  @param   boolShow as a Boolean
-  @param   strPath as a String
-  @param   strFile  as a String
-  @param   iCount as an Integer
+  @param   boolShow   as a Boolean
+  @param   strMessage as a String
+  @param   iCount     as an Integer
+  @param   strFile    as a String
 
 **)
-procedure TFileList.DoProgress(boolShow: Boolean; strPath, strFile: String;
-  iCount : Integer);
+procedure TFileList.DoProgress(boolShow: Boolean; strMessage : String;
+  iCount  : Integer; strFile: String);
 begin
   If Assigned(FProgressProc) Then
-    FProgressProc(Self, boolShow, strPath, strFile, iCount);
+    FProgressProc(Self, boolShow, strMessage, iCount, strFile);
 end;
 
 (**
@@ -452,7 +452,7 @@ begin
                             TFileRecord.Create(strFCName, rec.Size, rec.Attr,
                             rec.Time, stNewer));
                           Inc(FTotalSize, rec.Size);
-                          DoProgress(True, FFolderPath, Files[iFirst].FileName, Count);
+                          DoProgress(True, 'Searching for files', Count, FFolderPath + Files[iFirst].FileName);
                         End;
                     End;
                   iRes := FindNext(rec);
@@ -553,8 +553,8 @@ begin
   For iLeft := 0 To LeftFldr.Count - 1 Do
     Begin
       If Assigned(FProgressProc) Then
-        FProgressProc(Self, True, 'Comparing Folders... Please wait...',
-          LeftFldr[iLeft].FileName, iLeft);
+        FProgressProc(Self, True, 'Comparing Folders',
+          iLeft, LeftFldr[iLeft].FileName); //: @bug Does this show paths?
       iRight := RightFldr.Find(LeftFldr[iLeft].FileName);
       If iRight > -1 Then
         Begin
