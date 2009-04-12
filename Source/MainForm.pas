@@ -123,7 +123,7 @@ type
     Procedure SaveSettings();
     Procedure ApplicationHint(Sender  : TObject);
     Procedure Progress(Sender : TObject; boolShow : Boolean;
-      strPath, strFile : String; iCount : Integer);
+      strMessage : String; iCount: Integer; strFile: String);
     function GetImageIndex(strFileName: String): Integer;
     function GetRegInfo(Reg: TRegistry; strKey, strName: String): String;
     procedure FixUpPanes(fileCompColl : TCompareFoldersCollection);
@@ -588,8 +588,8 @@ Begin
           While (iLeft < LeftFldr.Count) Or (iRight < RightFldr.Count) Do
             Begin
               Progress(Self, True,
-                Format('Updating Collection %d''s List...', [iCollection + 1]),
-                'Please wait...', Max(iLeft, iRight));
+                Format('Updating Collection %d''s List', [iCollection + 1]),
+                Max(iLeft, iRight), 'Please wait...');
               If (LeftFldr.Count > iLeft) And (RightFldr.Count > iRight) Then
                 Begin
                   If AnsiCompareFileName(LeftFldr[iLeft].FileName,
@@ -872,23 +872,23 @@ End;
   This is an event handler for the progress of the searching and comparisons.
 
   @precon  None.
-  @postcon Either show the progress dialogue with information or hides the
+  @postcon Either show the progress dialogue with information or hides the 
            dialogue.
 
-  @param   Sender   as a TObject
-  @param   boolShow as a Boolean
-  @param   strPath  as a String
-  @param   strFile  as a String
-  @param   iCount   as an Integer
+  @param   Sender     as a TObject
+  @param   boolShow   as a Boolean
+  @param   strMessage as a String
+  @param   iCount     as an Integer
+  @param   strFile    as a String
 
 **)
 procedure TfrmMainForm.Progress(Sender: TObject; boolShow: Boolean;
-  strPath, strFile: String; iCount: Integer);
+  strMessage : String; iCount: Integer; strFile: String);
 
 begin
   If frmProgress.Visible <> boolShow Then
     frmProgress.Visible := boolShow;
-  frmProgress.Progress(iCount, strPath, strFile);
+  frmProgress.Progress(strMessage, iCount, strFile);
 end;
 
 (**
