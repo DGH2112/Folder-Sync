@@ -3,7 +3,7 @@
   This module represents a form for displaying progress.
 
   @Version 1.0
-  @Date    02 Oct 2004
+  @Date    12 Apr 2009
   @Author  David Hoyle
   
 **)
@@ -13,13 +13,15 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ExtCtrls, StdCtrls;
+  ExtCtrls, StdCtrls, DGHEllipsisLabel;
 
 type
   (** A class to represents a form for displaying progress. **)
   TfrmProgress = class(TForm)
     pnlInfo: TPanel;
-    lblInfo: TLabel;
+    lblMessage: TDGHEllipsisLabel;
+    lblFileName: TDGHEllipsisLabel;
+    lblPath: TDGHEllipsisLabel;
   private
     { Private declarations }
   public
@@ -48,12 +50,12 @@ implementation
 **)
 procedure TfrmProgress.Progress(iCount : Integer; strPath, strFileName: String);
 
-Const
-  strMask = 'Scanning file (%d):'#13'%s'#13'%s';
-
 begin
-  lblInfo.Caption := Format(strMask, [iCount, strPath, strFileName]);
-  If iCount Mod 100 = 0 Then Application.ProcessMessages;
+  lblMessage.Caption := Format('Scanning file (%d):', [iCount]);
+  lblPath.Caption := Format('%s:', [strPath]);
+  lblFileName.Caption := Format('%s', [strFileName]);
+  If iCount Mod 100 = 0 Then
+    Application.ProcessMessages;
 end;
 
 end.
