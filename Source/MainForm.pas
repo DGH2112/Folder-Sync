@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    11 May 2008
+  @Date    12 Apr 2009
   @Author  David Hoyle
 
 **)
@@ -85,6 +85,11 @@ type
     N1: TMenuItem;
     CheckforUpdates1: TMenuItem;
     ilFileTypeIcons: TImageList;
+    actToolsCompare: TAction;
+    tbtnSep5: TToolButton;
+    tbtnCompareFiles: TToolButton;
+    N2: TMenuItem;
+    Compare1: TMenuItem;
     procedure actHelpAboutExecute(Sender: TObject);
     procedure actFileExitExecute(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -102,6 +107,8 @@ type
     procedure lvFileListCustomDrawItem(Sender: TCustomListView; Item: TListItem;
       State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure actHelpCheckForUpdatesExecute(Sender: TObject);
+    procedure actToolsCompareExecute(Sender: TObject);
+    procedure actToolsCompareUpdate(Sender: TObject);
   private
     { Private declarations }
     FFolders : TStringList;
@@ -110,6 +117,7 @@ type
     frmProgress : TfrmProgress;
     FRootKey : String;
     FParams : TStringList;
+    FCompareEXE : String;
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure ApplicationHint(Sender  : TObject);
@@ -245,6 +253,7 @@ begin
       Left := ReadInteger('Setup', 'Left', 100);
       Height := ReadInteger('Setup', 'Height', 300);
       Width := ReadInteger('Setup', 'Width', 450);
+      FCompareEXE := ReadString('Setup', 'CompareEXE', '');
       sl := TStringList.Create;
       Try
         ReadSection('Folders', sl);
@@ -401,6 +410,7 @@ begin
       WriteInteger('Setup', 'Left', Left);
       WriteInteger('Setup', 'Height', Height);
       WriteInteger('Setup', 'Width', Width);
+      WriteString('Setup', 'CompareEXE', FCompareEXE);
       EraseSection('Folders');
       For i := 0 To FFolders.Count - 1 Do
         WriteString('Folders', FFolders.Names[i],
@@ -872,6 +882,54 @@ end;
 
 (**
 
+  This is an on execute event handler for the Tools Compare action.
+
+  @precon  None.
+  @postcon Opens the 2 selected files in the comparison tool.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmMainForm.actToolsCompareExecute(Sender: TObject);
+
+Var
+  S: TListItem;
+
+begin
+  S := lvFileList.Selected;
+  ShellExecute(Application.Handle, 'Open', PChar(FCompareEXE),
+    PChar(Format('"%s" "%s"', [S.SubItems[iLDisplayCol - 1],
+      S.SubItems[iRDisplayCol - 1]])),
+    PChar(ExtractFilePath(FCompareEXE)), SW_SHOWNORMAL)
+end;
+
+(**
+
+  This is an on update event handler for the Tools Compare action.
+
+  @precon  None.
+  @postcon Enables the option only if the EXE exists and the 2 files to compare
+           also exist.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmMainForm.actToolsCompareUpdate(Sender: TObject);
+
+Var
+  S: TListItem;
+
+begin
+  S := lvFileList.Selected;
+  (Sender As TAction).Enabled :=
+    (S <> Nil) And
+    FileExists(FCompareEXE) And
+    FileExists(S.SubItems[iLDisplayCol - 1]) And
+    FileExists(S.SubItems[iRDisplayCol - 1]);
+end;
+
+(**
+
   This is an on execute event handler for the Tools Options action.
 
   @precon  None.
@@ -882,7 +940,7 @@ end;
 **)
 procedure TfrmMainForm.actToolsOptionsExecute(Sender: TObject);
 begin
-  If TfrmOptions.Execute(FFolders, FExclusions, FRootKey) Then
+  If TfrmOptions.Execute(FFolders, FExclusions, FCompareEXE, FRootKey) Then
     actFileCompareExecute(Self);
 end;
 
