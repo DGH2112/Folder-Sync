@@ -43,9 +43,6 @@ object frmMainForm: TfrmMainForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
-  DesignSize = (
-    770
-    581)
   PixelsPerInch = 96
   TextHeight = 13
   object tbrToolBar: TToolBar
@@ -158,11 +155,11 @@ object frmMainForm: TfrmMainForm
       end>
   end
   object lvFileList: TListView
-    Left = 8
-    Top = 36
-    Width = 754
-    Height = 520
-    Anchors = [akLeft, akTop, akRight, akBottom]
+    Left = 0
+    Top = 30
+    Width = 770
+    Height = 532
+    Align = alClient
     Columns = <
       item
         Caption = 'Action'
@@ -235,6 +232,10 @@ object frmMainForm: TfrmMainForm
     TabOrder = 2
     ViewStyle = vsReport
     OnCustomDrawItem = lvFileListCustomDrawItem
+    ExplicitLeft = 8
+    ExplicitTop = 36
+    ExplicitWidth = 754
+    ExplicitHeight = 520
   end
   object mmMainMenu: TMainMenu
     Images = ilActionImages
@@ -876,7 +877,7 @@ object frmMainForm: TfrmMainForm
       ImageIndex = 2
       ShortCut = 16466
       SecondaryShortCuts.Strings = (
-        'Ctrl+LeftArrow')
+        'Ctrl+Left')
       OnExecute = actEditCopyRightToLeftExecute
     end
     object actEditCopyLeftToRight: TAction
@@ -886,7 +887,7 @@ object frmMainForm: TfrmMainForm
       ImageIndex = 1
       ShortCut = 16460
       SecondaryShortCuts.Strings = (
-        'Ctrl+RightArrow')
+        'Ctrl+Right')
       OnExecute = actEditCopyLeftToRightExecute
     end
     object actEditDelete: TAction
