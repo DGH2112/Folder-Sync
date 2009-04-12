@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    20 Jan 2008
+  @Date    12 Apr 2009
   @Version 1.0
   @Author  David Hoyle
 
@@ -28,6 +28,11 @@ type
     btnAdd: TBitBtn;
     btnEdit: TBitBtn;
     btnDelete: TBitBtn;
+    tabCompareFiles: TTabSheet;
+    edtCompareEXE: TEdit;
+    lblCompareFiles: TLabel;
+    btnBrowse: TButton;
+    dlgOpen: TOpenDialog;
     procedure lvFoldersResize(Sender: TObject);
     procedure btnAddClick(Sender: TObject);
     procedure btnEditClick(Sender: TObject);
@@ -35,6 +40,7 @@ type
     procedure lvFoldersDblClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure btnBrowseClick(Sender: TObject);
   private
     { Private declarations }
     FRightWidth: Integer;
@@ -59,8 +65,8 @@ type
     Property LeftWidth : Integer Read FLeftWidth Write SetLeftWidth;
   public
     { Public declarations }
-    Class Function Execute(var slFolders : TStringList; var strExclusions :String;
-      strRootKey : String) : Boolean;
+    Class Function Execute(var slFolders : TStringList; var strExclusions,
+      strCompareEXE :String; strRootKey : String) : Boolean;
     Constructor CreateWithRootKey(AOwner : TComponent; strRootKey : String); Virtual;
   end;
 
@@ -75,7 +81,8 @@ uses
 
 (**
 
-  This is the classes main interface method for editing the applications options.
+  This is the classes main interface method for editing the applications options
+  .
 
   @precon  None.
   @postcon Returns true with the updated options in the var variables else
@@ -83,12 +90,13 @@ uses
 
   @param   slFolders     as a TStringList as a reference
   @param   strExclusions as a String as a reference
+  @param   strCompareEXE as a String as a reference
   @param   strRootKey    as a String
   @return  a Boolean
 
 **)
 class function TfrmOptions.Execute(var slFolders : TStringList;
-  var strExclusions: String; strRootKey : String): Boolean;
+  var strExclusions, strCompareEXE : String; strRootKey : String): Boolean;
 
 Var
   i : Integer;
@@ -100,6 +108,7 @@ begin
       For i := 0 to slFolders.Count - 1 Do
         AddFolders(slFolders.Names[i], slFolders.Values[slFolders.Names[i]]);
       edtExclusions.Text := strExclusions;
+      edtCompareEXE.Text := strCompareEXE;
       If ShowModal = mrOK Then
         Begin
           slFolders.Clear;
@@ -107,6 +116,7 @@ begin
             slFolders.Add(lvFolders.Items[i].Caption + '=' +
               lvFolders.Items[i].SubItems[0]);
           strExclusions := edtExclusions.Text;
+          strCompareEXE := edtCompareEXE.Text;
           Result := True;
         End;
     Finally
@@ -209,6 +219,22 @@ Var
 begin
   If TfrmFolderPaths.Execute(strLeft, strRight, FRootKey) Then
     AddFolders(strLeft, strRight);
+end;
+
+(**
+
+  This is an on click event handler for the Browse button.
+
+  @precon  None.
+  @postcon Updates the edit control with the selected exe files.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmOptions.btnBrowseClick(Sender: TObject);
+begin
+  If DlgOpen.Execute Then
+    edtCompareEXE.Text := dlgOpen.FileName;
 end;
 
 (**
@@ -318,7 +344,7 @@ end;
   @precon  None.
   @postcon Sets the LeftWidth porperty.
 
-  @param   Value as an Integer constant
+  @param   Value as an Integer as a constant
 
 **)
 procedure TfrmOptions.SetLeftWidth(const Value: Integer);
@@ -334,7 +360,7 @@ end;
   @precon  None.
   @postcon Sets the RightWidth property.
 
-  @param   Value as an Integer constant
+  @param   Value as an Integer as a constant
 
 **)
 procedure TfrmOptions.SetRightWidth(const Value: Integer);

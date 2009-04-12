@@ -108,10 +108,6 @@ object frmOptions: TfrmOptions
     object pgExclusions: TTabSheet
       Caption = '&Exclusions'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         610
         379)
@@ -126,5 +122,44 @@ object frmOptions: TfrmOptions
         WordWrap = False
       end
     end
+    object tabCompareFiles: TTabSheet
+      Caption = '&Compare'
+      ImageIndex = 2
+      DesignSize = (
+        610
+        379)
+      object lblCompareFiles: TLabel
+        Left = 3
+        Top = 3
+        Width = 66
+        Height = 13
+        Caption = 'Compare &EXE'
+      end
+      object edtCompareEXE: TEdit
+        Left = 3
+        Top = 22
+        Width = 523
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 0
+        Text = 'edtCompareEXE'
+      end
+      object btnBrowse: TButton
+        Left = 532
+        Top = 20
+        Width = 75
+        Height = 25
+        Anchors = [akTop, akRight]
+        Caption = '&Browse'
+        TabOrder = 1
+        OnClick = btnBrowseClick
+      end
+    end
+  end
+  object dlgOpen: TOpenDialog
+    Filter = 'Executables (*.exe)|*.exe'
+    Title = 'Select Compare EXE'
+    Left = 53
+    Top = 108
   end
 end
