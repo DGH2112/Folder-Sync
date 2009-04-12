@@ -21,12 +21,11 @@ type
     pnlInfo: TPanel;
     lblMessage: TDGHEllipsisLabel;
     lblFileName: TDGHEllipsisLabel;
-    lblPath: TDGHEllipsisLabel;
   private
     { Private declarations }
   public
     { Public declarations }
-    Procedure Progress(iCount : Integer; strPath, strFileName : String);
+    Procedure Progress(strMessage : String; iCount : Integer; strFileName : String);
   end;
 
 implementation
@@ -37,25 +36,26 @@ implementation
 
 (**
 
-  This is the forms progress method that update the progress within the
-  dialogue.
+  This is the forms progress method that update the progress within the dialogue
+  .
 
   @precon  None.
   @postcon Update the dialogues progress.
 
+  @param   strMessage  as a String
   @param   iCount      as an Integer
-  @param   strPath     as a String
   @param   strFileName as a String
 
 **)
-procedure TfrmProgress.Progress(iCount : Integer; strPath, strFileName: String);
+procedure TfrmProgress.Progress(strMessage : String; iCount : Integer; strFileName : String);
 
 begin
-  lblMessage.Caption := Format('Scanning file (%d):', [iCount]);
-  lblPath.Caption := Format('%s:', [strPath]);
-  lblFileName.Caption := Format('%s', [strFileName]);
   If iCount Mod 100 = 0 Then
-    Application.ProcessMessages;
+    Begin
+      lblMessage.Caption := Format('%s... (%d)', [strMessage, iCount]);
+      lblFileName.Caption := Format('%s', [strFileName]);
+      Application.ProcessMessages;
+    End;
 end;
 
 end.
