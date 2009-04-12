@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    19 Apr 2007
+  @Date    12 Apr 2009
   @Author  David Hoyle
 
 **)
@@ -651,16 +651,17 @@ Var
 begin
   FCompareFolders := TObjectList.Create(True);
   For i := 0 To slFolders.Count - 1 Do
-    FCompareFolders.Add(
-      TCompareFolders.Create(
-        ExtractFilePath(slFolders.Names[i]),
-        ExtractFileName(slFolders.Names[i]),
-        ExtractFilePath(slFolders.Values[slFolders.Names[i]]),
-        ExtractFileName(slFolders.Values[slFolders.Names[i]]),
-        ProgressProc,
-        strExclusions
-      )
-    );
+    If Boolean(slFolders.Objects[i]) Then
+      FCompareFolders.Add(
+        TCompareFolders.Create(
+          ExtractFilePath(slFolders.Names[i]),
+          ExtractFileName(slFolders.Names[i]),
+          ExtractFilePath(slFolders.Values[slFolders.Names[i]]),
+          ExtractFileName(slFolders.Values[slFolders.Names[i]]),
+          ProgressProc,
+          strExclusions
+        )
+      );
 end;
 
 (**
