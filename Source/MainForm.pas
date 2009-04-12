@@ -258,7 +258,8 @@ begin
       Try
         ReadSection('Folders', sl);
         For i := 0 To sl.Count - 1 Do
-          FFolders.Add(sl[i] + '=' + ReadString('Folders', sl[i], ''));
+          FFolders.AddObject(sl[i] + '=' + ReadString('Folders', sl[i], ''),
+            TObject(ReadBool('FolderStatus', sl[i], True)));
       Finally
         sl.Free;
       End;
@@ -413,8 +414,10 @@ begin
       WriteString('Setup', 'CompareEXE', FCompareEXE);
       EraseSection('Folders');
       For i := 0 To FFolders.Count - 1 Do
-        WriteString('Folders', FFolders.Names[i],
-          FFolders.Values[FFolders.Names[i]]);
+        Begin
+          WriteString('Folders', FFolders.Names[i], FFolders.ValueFromIndex[i]);
+          WriteBool('FolderStatus', FFolders.Names[i], Boolean(FFolders.Objects[i]));
+        End;
       WriteString('Setup', 'Exclusions',
         StringReplace(FExclusions, #13#10, '|', [rfReplaceAll]));
       Free;
@@ -1273,7 +1276,7 @@ begin
   For i := 0 To FFolders.Count - 1 Do
     Begin
       CheckAndCreateFolder(FFolders.Names[i]);
-      CheckAndCreateFolder(FFolders.Values[FFolders.Names[i]]);
+      CheckAndCreateFolder(FFolders.ValueFromIndex[i]);
     End;
   Result := True;
 end;
