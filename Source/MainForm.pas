@@ -253,6 +253,7 @@ begin
       Left := ReadInteger('Setup', 'Left', 100);
       Height := ReadInteger('Setup', 'Height', 300);
       Width := ReadInteger('Setup', 'Width', 450);
+      WindowState := TWindowState(ReadInteger('Setup', 'WindowState', Byte(wsNormal)));
       FCompareEXE := ReadString('Setup', 'CompareEXE', '');
       sl := TStringList.Create;
       Try
@@ -403,14 +404,20 @@ procedure TfrmMainForm.SaveSettings;
 
 Var
   i : Integer;
+  recWndPlmt : TWindowPlacement;
 
 begin
   With TIniFile.Create(FRootKey) Do
     Begin
-      WriteInteger('Setup', 'Top', Top);
-      WriteInteger('Setup', 'Left', Left);
-      WriteInteger('Setup', 'Height', Height);
-      WriteInteger('Setup', 'Width', Width);
+      recWndPlmt.Length := SizeOf(TWindowPlacement);
+      GetWindowPlacement(Handle, @recWndPlmt);
+      WriteInteger('Setup', 'Top', recWndPlmt.rcNormalPosition.Top);
+      WriteInteger('Setup', 'Left', recWndPlmt.rcNormalPosition.Left);
+      WriteInteger('Setup', 'Height',
+        recWndPlmt.rcNormalPosition.Bottom - recWndPlmt.rcNormalPosition.Top);
+      WriteInteger('Setup', 'Width',
+        recWndPlmt.rcNormalPosition.Right - recWndPlmt.rcNormalPosition.Left);
+      WriteInteger('Setup', 'WindowState', Byte(WindowState));
       WriteString('Setup', 'CompareEXE', FCompareEXE);
       EraseSection('Folders');
       For i := 0 To FFolders.Count - 1 Do
