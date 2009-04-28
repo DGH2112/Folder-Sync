@@ -3,7 +3,7 @@ object frmProgress: TfrmProgress
   Top = 507
   BorderStyle = bsNone
   Caption = 'Progress'
-  ClientHeight = 52
+  ClientHeight = 56
   ClientWidth = 500
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object frmProgress: TfrmProgress
     Left = 0
     Top = 0
     Width = 500
-    Height = 52
+    Height = 56
     Align = alClient
     BevelInner = bvLowered
     BevelWidth = 2
@@ -29,24 +29,30 @@ object frmProgress: TfrmProgress
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
+    Padding.Left = 2
+    Padding.Top = 2
+    Padding.Right = 2
+    Padding.Bottom = 2
     ParentFont = False
     TabOrder = 0
-    ExplicitWidth = 492
-    ExplicitHeight = 74
+    ExplicitHeight = 52
     object lblMessage: TDGHEllipsisLabel
-      Left = 4
-      Top = 4
-      Width = 492
+      Left = 6
+      Top = 6
+      Width = 488
       Height = 22
       Align = alTop
+      ExplicitLeft = 4
+      ExplicitTop = 4
       ExplicitWidth = 624
     end
     object lblFileName: TDGHEllipsisLabel
-      Left = 4
-      Top = 26
-      Width = 492
+      Left = 6
+      Top = 28
+      Width = 488
       Height = 22
       Align = alClient
+      ExplicitLeft = 4
       ExplicitTop = 59
       ExplicitWidth = 624
     end

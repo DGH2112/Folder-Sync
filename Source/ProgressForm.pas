@@ -3,7 +3,7 @@
   This module represents a form for displaying progress.
 
   @Version 1.0
-  @Date    12 Apr 2009
+  @Date    28 Apr 2009
   @Author  David Hoyle
   
 **)
