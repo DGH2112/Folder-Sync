@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    12 Apr 2009
+  @Date    29 Apr 2009
   @Author  David Hoyle
 
 **)
@@ -122,8 +122,8 @@ type
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure ApplicationHint(Sender  : TObject);
-    Procedure Progress(Sender : TObject; boolShow : Boolean;
-      strMessage : String; iCount: Integer; strFile: String);
+    Procedure Progress(boolShow : Boolean; strMessage : String; iCount: Integer;
+      strFile: String);
     function GetImageIndex(strFileName: String): Integer;
     function GetRegInfo(Reg: TRegistry; strKey, strName: String): String;
     procedure FixUpPanes(fileCompColl : TCompareFoldersCollection);
@@ -514,7 +514,8 @@ Var
   fileCompColl : TCompareFoldersCollection;
 
 begin
-  If Not CheckFolders Then Exit;
+  If Not CheckFolders Then
+    Exit;
   fileCompColl := TCompareFoldersCollection.Create(FFolders,
     Progress, FExclusions);
   Try
@@ -587,8 +588,7 @@ Begin
           FindNextNonSame(RightFldr, iRight);
           While (iLeft < LeftFldr.Count) Or (iRight < RightFldr.Count) Do
             Begin
-              Progress(Self, True,
-                Format('Updating Collection %d''s List', [iCollection + 1]),
+              Progress(True, Format('Updating Collection %d''s List', [iCollection + 1]),
                 Max(iLeft, iRight), 'Please wait...');
               If (LeftFldr.Count > iLeft) And (RightFldr.Count > iRight) Then
                 Begin
@@ -875,15 +875,14 @@ End;
   @postcon Either show the progress dialogue with information or hides the 
            dialogue.
 
-  @param   Sender     as a TObject
   @param   boolShow   as a Boolean
   @param   strMessage as a String
   @param   iCount     as an Integer
   @param   strFile    as a String
 
 **)
-procedure TfrmMainForm.Progress(Sender: TObject; boolShow: Boolean;
-  strMessage : String; iCount: Integer; strFile: String);
+procedure TfrmMainForm.Progress(boolShow: Boolean; strMessage : String;
+  iCount: Integer; strFile: String);
 
 begin
   If frmProgress.Visible <> boolShow Then
@@ -1282,10 +1281,11 @@ Var
 
 begin
   For i := 0 To FFolders.Count - 1 Do
-    Begin
-      CheckAndCreateFolder(FFolders.Names[i]);
-      CheckAndCreateFolder(FFolders.ValueFromIndex[i]);
-    End;
+    If Boolean(FFolders.Objects[i]) Then
+      Begin
+        CheckAndCreateFolder(FFolders.Names[i]);
+        CheckAndCreateFolder(FFolders.ValueFromIndex[i]);
+      End;
   Result := True;
 end;
 

@@ -179,9 +179,9 @@ object frmMainForm: TfrmMainForm
       item
         Alignment = taRightJustify
         Caption = 'Size'
-        MaxWidth = 75
-        MinWidth = 75
-        Width = 75
+        MaxWidth = 85
+        MinWidth = 85
+        Width = 85
       end
       item
         Alignment = taRightJustify
@@ -202,9 +202,9 @@ object frmMainForm: TfrmMainForm
       item
         Alignment = taRightJustify
         Caption = 'Size'
-        MaxWidth = 75
-        MinWidth = 75
-        Width = 75
+        MaxWidth = 85
+        MinWidth = 85
+        Width = 85
       end
       item
         Alignment = taRightJustify
