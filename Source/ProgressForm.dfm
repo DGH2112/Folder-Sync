@@ -29,17 +29,16 @@ object frmProgress: TfrmProgress
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    Padding.Left = 2
+    Padding.Left = 5
     Padding.Top = 2
-    Padding.Right = 2
+    Padding.Right = 5
     Padding.Bottom = 2
     ParentFont = False
     TabOrder = 0
-    ExplicitHeight = 52
     object lblMessage: TDGHEllipsisLabel
-      Left = 6
+      Left = 9
       Top = 6
-      Width = 488
+      Width = 482
       Height = 22
       Align = alTop
       ExplicitLeft = 4
@@ -47,9 +46,9 @@ object frmProgress: TfrmProgress
       ExplicitWidth = 624
     end
     object lblFileName: TDGHEllipsisLabel
-      Left = 6
+      Left = 9
       Top = 28
-      Width = 488
+      Width = 482
       Height = 22
       Align = alClient
       ExplicitLeft = 4
