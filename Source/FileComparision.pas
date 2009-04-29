@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    12 Apr 2009
+  @Date    29 Apr 2009
   @Author  David Hoyle
 
 **)
@@ -20,7 +20,7 @@ Type
   TStatus = (stNewer, stOlder, stSame, stDiffSize);
 
   (** A type to define whether the CheckDifference method should check for
-      Older or Newer differences. **)  
+      Older or Newer differences. **)
   TCheckDifference = (cdNewer, cdOlder);
 
   (** A record to describe a single file. **)
@@ -74,8 +74,8 @@ Type
   End;
 
   (** A event method for feeding back progress. **)
-  TProgressProc = Procedure(Sender : TObject; boolShow : Boolean;
-    strMessage : String; iCount : Integer; strFile : String) Of Object;
+  TProgressProc = Procedure(boolShow : Boolean; strMessage : String;
+    iCount : Integer; strFile : String) Of Object;
 
   (** This class defines a list of files from a single directory. **)
   TFileList = Class
@@ -286,8 +286,9 @@ begin
   FProgressProc := ProgressProc;
   FExclusions := TStringList.Create;
   FExclusions.Text := LowerCase(strExclusions);
-  DoProgress(True, '', 0, '');
-  If Length(FolderPath) = 0 Then Exit;
+  DoProgress(True, 'Buidling list', 0, strFolderPath + '\' + strFileFilter);
+  If Length(FolderPath) = 0 Then
+    Exit;
   RecurseFolder(FFolderPath);
 end;
 
@@ -302,7 +303,7 @@ end;
 **)
 destructor TFileList.Destroy;
 begin
-  DoProgress(False, '', 0, '');
+  DoProgress(False, 'Disposing of list', 0, FFolderPath);
   FFileFilters.Free;
   FFiles.Free;
   FExclusions.Free;
@@ -327,7 +328,7 @@ procedure TFileList.DoProgress(boolShow: Boolean; strMessage : String;
   iCount  : Integer; strFile: String);
 begin
   If Assigned(FProgressProc) Then
-    FProgressProc(Self, boolShow, strMessage, iCount, strFile);
+    FProgressProc(boolShow, strMessage, iCount, strFile);
 end;
 
 (**
@@ -553,8 +554,8 @@ begin
   For iLeft := 0 To LeftFldr.Count - 1 Do
     Begin
       If Assigned(FProgressProc) Then
-        FProgressProc(Self, True, 'Comparing Folders',
-          iLeft, LeftFldr[iLeft].FileName); //: @bug Does this show paths?
+        FProgressProc(True, 'Comparing Folders',
+          iLeft, LeftFldr[iLeft].FileName);
       iRight := RightFldr.Find(LeftFldr[iLeft].FileName);
       If iRight > -1 Then
         Begin
