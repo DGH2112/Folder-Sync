@@ -78,7 +78,7 @@ Type
   Private
     FFolderPath : String;
     FFiles : TObjectList;
-    FProgressProc: TProgressProc;
+    FProgressProc: TProgressMsgProc;
     FExclusions : TStringList;
     FTotalSize : Int64;
     FFileFilters : TStringList;
@@ -86,9 +86,8 @@ Type
     function GetCount: Integer;
     function GetFiles(iIndex: Integer): TFileRecord;
   Protected
-    Procedure RecurseFolder(strFolderPath : String; iSection : Integer); Virtual;
-    Procedure DoProgress(boolShow : Boolean; iSection, iPosition, iMax : Integer;
-      strMessage : String; iCount : Integer; strFile : String);
+    Procedure RecurseFolder(strFolderPath : String); Virtual;
+    Procedure DoProgress(strMessage : String; iCount : Integer; strFile : String);
     (**
       Provides a indexable type access to the FileRecords.
       @precon  iIndex must be a valid index in the list.
@@ -98,7 +97,7 @@ Type
     **)
   Public
     Constructor Create(strFolderPath, strFileFilter : String;
-      ProgressProc : TProgressProc; strExclusions : String; iSection : Integer);
+      ProgressProc : TProgressMsgProc; strExclusions : String);
       Virtual;
     Destructor Destroy; Override;
     Function Find(strFileName : String) : Integer; Virtual;
@@ -138,13 +137,13 @@ Type
   Private
     FLeftFldr : TFileList;
     FRightFldr : TFileList;
-    FProgressProc : TProgressProc;
+    FProgressProc : TProgressMsgProc;
   Protected
-    Procedure CompareFolders(iSection : Integer);
+    Procedure CompareFolders;
   Public
     Constructor Create(strLeftFldr, strLeftFilter, strRightFldr,
-      strRightFilter : String; ProgressProc : TProgressProc;
-      strExclusions : String; iSection : Integer); Virtual;
+      strRightFilter : String; ProgressProc : TProgressMsgProc;
+      strExclusions : String); Virtual;
     function CheckDifference(iTimeDifference, iSizeDifference : Integer;
       Check : TCheckDifference): Boolean;
     Destructor Destroy; Override;
@@ -173,8 +172,8 @@ Type
     function GetCompareFolders(iIndex: Integer): TCompareFolders;
   Protected
   Public
-    Constructor Create(slFolders : TStringList; ProgressProc : TProgressProc;
-      strExclusions : String); Virtual;
+    Constructor Create(slFolders : TStringList; ProgressProc : TProgressMsgProc;
+      ProgressPosProc : TProgressPosProc; strExclusions : String); Virtual;
     Destructor Destroy; Override;
     (**
       This property returns an indexed CompareFolders class.
@@ -255,13 +254,12 @@ end;
 
   @param   strFolderPath as a String
   @param   strFileFilter as a String
-  @param   ProgressProc  as a TProgressProc
+  @param   ProgressProc  as a TProgressMsgProc
   @param   strExclusions as a String
-  @param   iSection      as an Integer
 
 **)
 constructor TFileList.Create(strFolderPath, strFileFilter: String;
-  ProgressProc : TProgressProc; strExclusions : String; iSection : Integer);
+  ProgressProc : TProgressMsgProc; strExclusions : String);
 
 Var
   iFilter : Integer;
@@ -282,11 +280,10 @@ begin
   FProgressProc := ProgressProc;
   FExclusions := TStringList.Create;
   FExclusions.Text := LowerCase(strExclusions);
-  DoProgress(True, iSection, 0, 2, 'Buidling list', 0,
-    strFolderPath + '\' + strFileFilter);
+  DoProgress('Buidling list', 0, strFolderPath + '\' + strFileFilter);
   If Length(FolderPath) = 0 Then
     Exit;
-  RecurseFolder(FFolderPath, iSection);
+  RecurseFolder(FFolderPath);
 end;
 
 (**
@@ -314,20 +311,15 @@ end;
   @precon  None.
   @postcon Fires the progress event if the event handler is hooked.
 
-  @param   boolShow   as a Boolean
-  @param   iSection   as an Integer
-  @param   iPosition  as an Integer
-  @param   iMax       as an Integer
   @param   strMessage as a String
   @param   iCount     as an Integer
   @param   strFile    as a String
 
 **)
-procedure TFileList.DoProgress(boolShow: Boolean; iSection, iPosition, iMax : Integer;
-  strMessage : String; iCount  : Integer; strFile: String);
+procedure TFileList.DoProgress(strMessage : String; iCount  : Integer; strFile: String);
 begin
   If Assigned(FProgressProc) Then
-    FProgressProc(boolShow, iSection, iPosition, iMax, strMessage, iCount, strFile);
+    FProgressProc(strMessage, iCount, strFile);
 end;
 
 (**
@@ -408,10 +400,9 @@ end;
            collection.
 
   @param   strFolderPath as a String
-  @param   iSection      as an Integer
 
 **)
-procedure TFileList.RecurseFolder(strFolderPath: String; iSection : Integer);
+procedure TFileList.RecurseFolder(strFolderPath: String);
 
 Var
   rec : TSearchRec;
@@ -453,8 +444,8 @@ begin
                             TFileRecord.Create(strFCName, rec.Size, rec.Attr,
                             rec.Time, stNewer));
                           Inc(FTotalSize, rec.Size);
-                          DoProgress(True, iSection, 1, 2,
-                            'Searching for files', Count, FFolderPath + Files[iFirst].FileName);
+                          DoProgress('Searching for files', Count,
+                            FFolderPath + Files[iFirst].FileName);
                         End;
                     End;
                   iRes := FindNext(rec);
@@ -470,7 +461,7 @@ begin
           Begin
             If rec.Attr And faDirectory <> 0 Then
               If (rec.Name <> '.') And (rec.Name <> '..') Then
-                RecurseFolder(strFolderPath + rec.Name + '\', iSection);
+                RecurseFolder(strFolderPath + rec.Name + '\');
             iRes := FindNext(rec);
           End;
       Finally
@@ -543,10 +534,8 @@ End;
   @postcon The two lists of files are correctly martked up based on matching
            filenames and comparing date and time stamps.
 
-  @param   iSection as an Integer
-
 **)
-procedure TCompareFolders.CompareFolders(iSection : Integer);
+procedure TCompareFolders.CompareFolders;
 
 Var
   iLeft, iRight : Integer;
@@ -557,8 +546,7 @@ begin
   For iLeft := 0 To LeftFldr.Count - 1 Do
     Begin
       If Assigned(FProgressProc) Then
-        FProgressProc(True, iSection, 2, 3, 'Comparing Folders',
-          iLeft, LeftFldr[iLeft].FileName);
+        FProgressProc('Comparing Folders', iLeft, LeftFldr[iLeft].FileName);
       iRight := RightFldr.Find(LeftFldr[iLeft].FileName);
       If iRight > -1 Then
         Begin
@@ -598,24 +586,23 @@ end;
   @param   strLeftFilter  as a String
   @param   strRightFldr   as a String
   @param   strRightFilter as a String
-  @param   ProgressProc   as a TProgressProc
+  @param   ProgressProc   as a TProgressMsgProc
   @param   strExclusions  as a String
-  @param   iSection       as an Integer
 
 **)
 constructor TCompareFolders.Create(strLeftFldr, strLeftFilter, strRightFldr,
-  strRightFilter: String; ProgressProc: TProgressProc;
-  strExclusions : String; iSection : Integer);
+  strRightFilter: String; ProgressProc: TProgressMsgProc;
+  strExclusions : String);
 
 begin
   If Not DirectoryExists(strLeftFldr) Then Exit;
   If Not DirectoryExists(strRightFldr) Then Exit;
   FLeftFldr := TFileList.Create(strLeftFldr, strLeftFilter, ProgressProc,
-    strExclusions, iSection);
+    strExclusions);
   FRightFldr := TFileList.Create(strRightFldr, strRightFilter, ProgressProc,
-    strExclusions, iSection);
+    strExclusions);
   FProgressProc := ProgressProc;
-  CompareFolders(iSection);
+  CompareFolders;
 end;
 
 (**
@@ -642,13 +629,15 @@ end;
   @precon  slFolders must contain pairs folders fld1=fld2 etc.
   @postcon Creates an instance of the compare folder clases for each pairing.
 
-  @param   slFolders     as a TStringList
-  @param   ProgressProc  as a TProgressProc
-  @param   strExclusions as a String
+  @param   slFolders       as a TStringList
+  @param   ProgressProc    as a TProgressMsgProc
+  @param   ProgressPosProc as a TProgressPosProc
+  @param   strExclusions   as a String
 
 **)
 constructor TCompareFoldersCollection.Create(slFolders: TStringList;
-  ProgressProc : TProgressProc; strExclusions : String);
+  ProgressProc : TProgressMsgProc; ProgressPosProc : TProgressPosProc;
+  strExclusions : String);
 
 Var
   i : Integer;
@@ -656,18 +645,20 @@ Var
 begin
   FCompareFolders := TObjectList.Create(True);
   For i := 0 To slFolders.Count - 1 Do
-    If Boolean(slFolders.Objects[i]) Then
-      FCompareFolders.Add(
-        TCompareFolders.Create(
-          ExtractFilePath(slFolders.Names[i]),
-          ExtractFileName(slFolders.Names[i]),
-          ExtractFilePath(slFolders.Values[slFolders.Names[i]]),
-          ExtractFileName(slFolders.Values[slFolders.Names[i]]),
-          ProgressProc,
-          strExclusions,
-          Succ(i)
-        )
-      );
+    Begin
+      ProgressPosProc(Succ(i));
+      If Boolean(slFolders.Objects[i]) Then
+        FCompareFolders.Add(
+          TCompareFolders.Create(
+            ExtractFilePath(slFolders.Names[i]),
+            ExtractFileName(slFolders.Names[i]),
+            ExtractFilePath(slFolders.Values[slFolders.Names[i]]),
+            ExtractFileName(slFolders.Values[slFolders.Names[i]]),
+            ProgressProc,
+            strExclusions
+          )
+        );
+    End;
 end;
 
 (**
