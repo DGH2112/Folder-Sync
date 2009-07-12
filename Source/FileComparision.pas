@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    29 Apr 2009
+  @Date    12 Jul 2009
   @Author  David Hoyle
 
 **)
@@ -13,7 +13,7 @@ Unit FileComparision;
 Interface
 
 Uses
-  SysUtils, Classes, Contnrs, Windows;
+  SysUtils, Classes, Contnrs, Windows, ProgressForm;
 
 Type
   (** A type to define the status of a file **)
@@ -73,10 +73,6 @@ Type
     Property Status : TStatus Read FStatus Write SetStatus;
   End;
 
-  (** A event method for feeding back progress. **)
-  TProgressProc = Procedure(boolShow : Boolean; strMessage : String;
-    iCount : Integer; strFile : String) Of Object;
-
   (** This class defines a list of files from a single directory. **)
   TFileList = Class
   Private
@@ -90,9 +86,9 @@ Type
     function GetCount: Integer;
     function GetFiles(iIndex: Integer): TFileRecord;
   Protected
-    Procedure RecurseFolder(strFolderPath : String); Virtual;
-    Procedure DoProgress(boolShow : Boolean; strMessage : String; iCount : Integer;
-      strFile : String);
+    Procedure RecurseFolder(strFolderPath : String; iSection : Integer); Virtual;
+    Procedure DoProgress(boolShow : Boolean; iSection, iPosition, iMax : Integer;
+      strMessage : String; iCount : Integer; strFile : String);
     (**
       Provides a indexable type access to the FileRecords.
       @precon  iIndex must be a valid index in the list.
@@ -102,7 +98,8 @@ Type
     **)
   Public
     Constructor Create(strFolderPath, strFileFilter : String;
-      ProgressProc : TProgressProc; strExclusions : String); Virtual;
+      ProgressProc : TProgressProc; strExclusions : String; iSection : Integer);
+      Virtual;
     Destructor Destroy; Override;
     Function Find(strFileName : String) : Integer; Virtual;
     (**
@@ -143,11 +140,11 @@ Type
     FRightFldr : TFileList;
     FProgressProc : TProgressProc;
   Protected
-    Procedure CompareFolders;
+    Procedure CompareFolders(iSection : Integer);
   Public
     Constructor Create(strLeftFldr, strLeftFilter, strRightFldr,
       strRightFilter : String; ProgressProc : TProgressProc;
-      strExclusions : String); Virtual;
+      strExclusions : String; iSection : Integer); Virtual;
     function CheckDifference(iTimeDifference, iSizeDifference : Integer;
       Check : TCheckDifference): Boolean;
     Destructor Destroy; Override;
@@ -201,9 +198,7 @@ Type
 Implementation
 
 Uses
-{$WARN UNIT_PLATFORM OFF}
   FileCtrl, DGHLibrary;
-{$WARN UNIT_PLATFORM ON}
 
 { TFileRecord }
 
@@ -262,10 +257,11 @@ end;
   @param   strFileFilter as a String
   @param   ProgressProc  as a TProgressProc
   @param   strExclusions as a String
+  @param   iSection      as an Integer
 
 **)
 constructor TFileList.Create(strFolderPath, strFileFilter: String;
-  ProgressProc : TProgressProc; strExclusions : String);
+  ProgressProc : TProgressProc; strExclusions : String; iSection : Integer);
 
 Var
   iFilter : Integer;
@@ -286,10 +282,11 @@ begin
   FProgressProc := ProgressProc;
   FExclusions := TStringList.Create;
   FExclusions.Text := LowerCase(strExclusions);
-  DoProgress(True, 'Buidling list', 0, strFolderPath + '\' + strFileFilter);
+  DoProgress(True, iSection, 0, 2, 'Buidling list', 0,
+    strFolderPath + '\' + strFileFilter);
   If Length(FolderPath) = 0 Then
     Exit;
-  RecurseFolder(FFolderPath);
+  RecurseFolder(FFolderPath, iSection);
 end;
 
 (**
@@ -303,7 +300,6 @@ end;
 **)
 destructor TFileList.Destroy;
 begin
-  DoProgress(False, 'Disposing of list', 0, FFolderPath);
   FFileFilters.Free;
   FFiles.Free;
   FExclusions.Free;
@@ -319,16 +315,19 @@ end;
   @postcon Fires the progress event if the event handler is hooked.
 
   @param   boolShow   as a Boolean
+  @param   iSection   as an Integer
+  @param   iPosition  as an Integer
+  @param   iMax       as an Integer
   @param   strMessage as a String
   @param   iCount     as an Integer
   @param   strFile    as a String
 
 **)
-procedure TFileList.DoProgress(boolShow: Boolean; strMessage : String;
-  iCount  : Integer; strFile: String);
+procedure TFileList.DoProgress(boolShow: Boolean; iSection, iPosition, iMax : Integer;
+  strMessage : String; iCount  : Integer; strFile: String);
 begin
   If Assigned(FProgressProc) Then
-    FProgressProc(boolShow, strMessage, iCount, strFile);
+    FProgressProc(boolShow, iSection, iPosition, iMax, strMessage, iCount, strFile);
 end;
 
 (**
@@ -401,17 +400,18 @@ end;
 
 (**
 
-  This method recurses the passed folder for file name and adds them to the
-  file collection.
+  This method recurses the passed folder for file name and adds them to the file
+  collection.
 
   @precon  None.
-  @postcon Recurses the passed folder for file name and adds them to the
-           file collection.
+  @postcon Recurses the passed folder for file name and adds them to the file
+           collection.
 
   @param   strFolderPath as a String
+  @param   iSection      as an Integer
 
 **)
-procedure TFileList.RecurseFolder(strFolderPath: String);
+procedure TFileList.RecurseFolder(strFolderPath: String; iSection : Integer);
 
 Var
   rec : TSearchRec;
@@ -453,7 +453,8 @@ begin
                             TFileRecord.Create(strFCName, rec.Size, rec.Attr,
                             rec.Time, stNewer));
                           Inc(FTotalSize, rec.Size);
-                          DoProgress(True, 'Searching for files', Count, FFolderPath + Files[iFirst].FileName);
+                          DoProgress(True, iSection, 1, 2,
+                            'Searching for files', Count, FFolderPath + Files[iFirst].FileName);
                         End;
                     End;
                   iRes := FindNext(rec);
@@ -469,7 +470,7 @@ begin
           Begin
             If rec.Attr And faDirectory <> 0 Then
               If (rec.Name <> '.') And (rec.Name <> '..') Then
-                RecurseFolder(strFolderPath + rec.Name + '\');
+                RecurseFolder(strFolderPath + rec.Name + '\', iSection);
             iRes := FindNext(rec);
           End;
       Finally
@@ -542,8 +543,10 @@ End;
   @postcon The two lists of files are correctly martked up based on matching
            filenames and comparing date and time stamps.
 
+  @param   iSection as an Integer
+
 **)
-procedure TCompareFolders.CompareFolders;
+procedure TCompareFolders.CompareFolders(iSection : Integer);
 
 Var
   iLeft, iRight : Integer;
@@ -554,7 +557,7 @@ begin
   For iLeft := 0 To LeftFldr.Count - 1 Do
     Begin
       If Assigned(FProgressProc) Then
-        FProgressProc(True, 'Comparing Folders',
+        FProgressProc(True, iSection, 2, 3, 'Comparing Folders',
           iLeft, LeftFldr[iLeft].FileName);
       iRight := RightFldr.Find(LeftFldr[iLeft].FileName);
       If iRight > -1 Then
@@ -591,27 +594,28 @@ end;
   @precon  None.
   @postcon Creates an instance of TFileList for ther left and right folder.
 
-  @param   strLeftFldr  as a String
-  @param   strLeftFilter as a String
-  @param   strRightFldr as a String
+  @param   strLeftFldr    as a String
+  @param   strLeftFilter  as a String
+  @param   strRightFldr   as a String
   @param   strRightFilter as a String
-  @param   ProgressProc as a TProgressProc
-  @param   strExclusions as a String
+  @param   ProgressProc   as a TProgressProc
+  @param   strExclusions  as a String
+  @param   iSection       as an Integer
 
 **)
 constructor TCompareFolders.Create(strLeftFldr, strLeftFilter, strRightFldr,
   strRightFilter: String; ProgressProc: TProgressProc;
-  strExclusions : String);
+  strExclusions : String; iSection : Integer);
 
 begin
   If Not DirectoryExists(strLeftFldr) Then Exit;
   If Not DirectoryExists(strRightFldr) Then Exit;
   FLeftFldr := TFileList.Create(strLeftFldr, strLeftFilter, ProgressProc,
-    strExclusions);
+    strExclusions, iSection);
   FRightFldr := TFileList.Create(strRightFldr, strRightFilter, ProgressProc,
-    strExclusions);
+    strExclusions, iSection);
   FProgressProc := ProgressProc;
-  CompareFolders;
+  CompareFolders(iSection);
 end;
 
 (**
@@ -660,7 +664,8 @@ begin
           ExtractFilePath(slFolders.Values[slFolders.Names[i]]),
           ExtractFileName(slFolders.Values[slFolders.Names[i]]),
           ProgressProc,
-          strExclusions
+          strExclusions,
+          Succ(i)
         )
       );
 end;
