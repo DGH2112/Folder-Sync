@@ -3,7 +3,7 @@ object frmProgress: TfrmProgress
   Top = 507
   BorderStyle = bsNone
   Caption = 'Progress'
-  ClientHeight = 56
+  ClientHeight = 79
   ClientWidth = 500
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object frmProgress: TfrmProgress
     Left = 0
     Top = 0
     Width = 500
-    Height = 56
+    Height = 79
     Align = alClient
     BevelInner = bvLowered
     BevelWidth = 2
@@ -37,7 +37,7 @@ object frmProgress: TfrmProgress
     TabOrder = 0
     object lblMessage: TDGHEllipsisLabel
       Left = 9
-      Top = 6
+      Top = 23
       Width = 482
       Height = 22
       Align = alTop
@@ -47,13 +47,23 @@ object frmProgress: TfrmProgress
     end
     object lblFileName: TDGHEllipsisLabel
       Left = 9
-      Top = 28
+      Top = 45
       Width = 482
       Height = 22
       Align = alClient
-      ExplicitLeft = 4
-      ExplicitTop = 59
-      ExplicitWidth = 624
+      ExplicitTop = 112
+      ExplicitHeight = 60
+    end
+    object pbrProgress: TProgressBar
+      Left = 9
+      Top = 6
+      Width = 482
+      Height = 17
+      Align = alTop
+      TabOrder = 0
+      ExplicitLeft = 56
+      ExplicitTop = 24
+      ExplicitWidth = 150
     end
   end
 end
