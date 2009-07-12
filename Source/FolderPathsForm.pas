@@ -3,7 +3,7 @@
   A class to define a form for editing the Folder Paths.
 
   @Version 1.0
-  @date    26 Mar 2008
+  @date    12 Jul 2009
   @Author  David Hoyle.
 
 **)
@@ -177,6 +177,7 @@ Var
   strFolder : String;
 
 begin
+  strFolder := ExtractFilePath(edtLeftFolder.Text);
   If SelectDirectory('Left Folder', '', strFolder) Then
     edtLeftFolder.Text := strFolder + '\';
 end;
@@ -197,6 +198,7 @@ Var
   strFolder : String;
 
 begin
+  strFolder := ExtractFilePath(edtRightFolder.Text);
   If SelectDirectory('Right Folder', '', strFolder) Then
     edtRightFolder.Text := strFolder + '\';
 end;

@@ -82,8 +82,10 @@ object frmFolderPaths: TfrmFolderPaths
     Width = 75
     Height = 25
     Anchors = [akTop, akRight]
-    TabOrder = 4
+    DoubleBuffered = True
     Kind = bkOK
+    ParentDoubleBuffered = False
+    TabOrder = 4
   end
   object btnCancel: TBitBtn
     Left = 495
@@ -91,7 +93,9 @@ object frmFolderPaths: TfrmFolderPaths
     Width = 75
     Height = 25
     Anchors = [akTop, akRight]
-    TabOrder = 5
+    DoubleBuffered = True
     Kind = bkCancel
+    ParentDoubleBuffered = False
+    TabOrder = 5
   end
 end
