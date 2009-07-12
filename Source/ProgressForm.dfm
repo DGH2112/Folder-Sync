@@ -49,7 +49,7 @@ object frmProgress: TfrmProgress
       Left = 9
       Top = 45
       Width = 482
-      Height = 22
+      Height = 28
       Align = alClient
       ExplicitTop = 112
       ExplicitHeight = 60
@@ -61,9 +61,6 @@ object frmProgress: TfrmProgress
       Height = 17
       Align = alTop
       TabOrder = 0
-      ExplicitLeft = 56
-      ExplicitTop = 24
-      ExplicitWidth = 150
     end
   end
 end

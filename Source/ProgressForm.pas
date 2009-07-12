@@ -24,23 +24,42 @@ type
     pbrProgress: TProgressBar;
   private
     { Private declarations }
-    FSections : Integer;
   public
     { Public declarations }
-    Procedure Progress(iSection, iPosition, iMax : Integer; strMessage : String;
-      iCount : Integer; strFileName : String);
+    Procedure Progress(strMessage : String; iCount : Integer;
+      strFileName : String); Overload;
+    Procedure Progress(iPosition : Integer); Overload;
     Procedure RegisterSections(iSections : Integer); Virtual;
   end;
 
-  (** A event method for feeding back progress. **)
-  TProgressProc = Procedure(boolShow : Boolean; iSection, iPosition, iMax : Integer;
-    strMessage : String; iCount : Integer; strFile : String) Of Object;
+  (** A event method for feeding back progress messages. **)
+  TProgressMsgProc = Procedure(strMessage : String; iCount : Integer;
+    strFile : String) Of Object;
+  (** A event method for feeding back progress position. **)
+  TProgressPosProc = Procedure(iPosition : Integer) Of Object;
 
 implementation
 
 {$R *.DFM}
 
 { TfrmProgress }
+
+(**
+
+  This method updates the position of the progress bar.
+
+  @precon  Position must be between 0 and Max inclusive.
+  @postcon Updates the position of the progress bar.
+
+  @param   iPosition as an Integer
+
+**)
+procedure TfrmProgress.Progress(iPosition: Integer);
+
+begin
+  pbrprogress.Position := iPosition;
+  Application.ProcessMessages;
+end;
 
 (**
 
@@ -56,7 +75,8 @@ implementation
 **)
 Procedure TfrmProgress.RegisterSections(iSections : Integer);
 begin
-  FSections := iSections;
+  pbrProgress.Position := 0;
+  pbrProgress.Max := iSections;
 end;
 
 (**
@@ -67,24 +87,13 @@ end;
   @precon  None.
   @postcon Update the dialogues progress.
 
-  @param   iSection    as an Integer
-  @param   iPosition   as an Integer
-  @param   iMax        as an Integer
   @param   strMessage  as a String
   @param   iCount      as an Integer
   @param   strFileName as a String
 
 **)
-procedure TfrmProgress.Progress(iSection, iPosition, iMax : Integer; strMessage : String;
-  iCount : Integer; strFileName : String);
-
-var
-  dblSectionWidth: Double;
-
+procedure TfrmProgress.Progress(strMessage : String; iCount : Integer; strFileName : String);
 begin
-  dblSectionWidth := Int(pbrProgress.Max) / Int(FSections);
-  pbrProgress.Position := Trunc(Int(Pred(iSection)) * dblSectionWidth +
-    dblSectionWidth * (Int(iPosition) / Int(iMax)));
   If iCount Mod 100 = 0 Then
     Begin
       lblMessage.Caption := Format('%s... (%d)', [strMessage, iCount]);
