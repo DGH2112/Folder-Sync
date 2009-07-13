@@ -3,7 +3,7 @@
   This module represents a form for displaying progress.
 
   @Version 1.0
-  @Date    12 Jul 2009
+  @Date    13 Jul 2009
   @Author  David Hoyle
 
 **)
@@ -36,7 +36,7 @@ type
   TProgressMsgProc = Procedure(strMessage : String; iCount : Integer;
     strFile : String) Of Object;
   (** A event method for feeding back progress position. **)
-  TProgressPosProc = Procedure(iPosition : Integer) Of Object;
+  TProgressPosProc = Procedure(iPosition, iIndex : Integer) Of Object;
 
 implementation
 
