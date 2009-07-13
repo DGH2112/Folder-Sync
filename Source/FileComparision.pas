@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    12 Jul 2009
+  @Date    13 Jul 2009
   @Author  David Hoyle
 
 **)
@@ -143,7 +143,8 @@ Type
   Public
     Constructor Create(strLeftFldr, strLeftFilter, strRightFldr,
       strRightFilter : String; ProgressProc : TProgressMsgProc;
-      strExclusions : String); Virtual;
+      ProgressPosProc : TProgressPosProc; strExclusions : String;
+      iSection : Integer); Virtual;
     function CheckDifference(iTimeDifference, iSizeDifference : Integer;
       Check : TCheckDifference): Boolean;
     Destructor Destroy; Override;
@@ -582,27 +583,37 @@ end;
   @precon  None.
   @postcon Creates an instance of TFileList for ther left and right folder.
 
-  @param   strLeftFldr    as a String
-  @param   strLeftFilter  as a String
-  @param   strRightFldr   as a String
-  @param   strRightFilter as a String
-  @param   ProgressProc   as a TProgressMsgProc
-  @param   strExclusions  as a String
+  @param   strLeftFldr     as a String
+  @param   strLeftFilter   as a String
+  @param   strRightFldr    as a String
+  @param   strRightFilter  as a String
+  @param   ProgressProc    as a TProgressMsgProc
+  @param   ProgressPosProc as a TProgressPosProc
+  @param   strExclusions   as a String
+  @param   iSection        as an Integer
 
 **)
 constructor TCompareFolders.Create(strLeftFldr, strLeftFilter, strRightFldr,
   strRightFilter: String; ProgressProc: TProgressMsgProc;
-  strExclusions : String);
+  ProgressPosProc : TProgressPosProc; strExclusions : String; iSection : Integer);
 
 begin
   If Not DirectoryExists(strLeftFldr) Then Exit;
   If Not DirectoryExists(strRightFldr) Then Exit;
+  If Assigned(ProgressPosProc) Then
+    ProgressPosProc(iSection, 0);
   FLeftFldr := TFileList.Create(strLeftFldr, strLeftFilter, ProgressProc,
     strExclusions);
+  If Assigned(ProgressPosProc) Then
+    ProgressPosProc(iSection, 1);
   FRightFldr := TFileList.Create(strRightFldr, strRightFilter, ProgressProc,
     strExclusions);
-  FProgressProc := ProgressProc;
+  ProgressProc := ProgressProc;
+  If Assigned(ProgressPosProc) Then
+    ProgressPosProc(iSection, 2);
   CompareFolders;
+  If Assigned(ProgressPosProc) Then
+    ProgressPosProc(iSection, 3);
 end;
 
 (**
@@ -646,7 +657,6 @@ begin
   FCompareFolders := TObjectList.Create(True);
   For i := 0 To slFolders.Count - 1 Do
     Begin
-      ProgressPosProc(Succ(i));
       If Boolean(slFolders.Objects[i]) Then
         FCompareFolders.Add(
           TCompareFolders.Create(
@@ -655,7 +665,9 @@ begin
             ExtractFilePath(slFolders.Values[slFolders.Names[i]]),
             ExtractFileName(slFolders.Values[slFolders.Names[i]]),
             ProgressProc,
-            strExclusions
+            ProgressPosProc,
+            strExclusions,
+            i
           )
         );
     End;
