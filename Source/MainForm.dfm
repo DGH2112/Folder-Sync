@@ -214,6 +214,7 @@ object frmMainForm: TfrmMainForm
         Width = 150
       end>
     ColumnClick = False
+    DoubleBuffered = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -224,6 +225,7 @@ object frmMainForm: TfrmMainForm
     MultiSelect = True
     ReadOnly = True
     RowSelect = True
+    ParentDoubleBuffered = False
     ParentFont = False
     ParentShowHint = False
     PopupMenu = pmFiles
@@ -988,5 +990,9 @@ object frmMainForm: TfrmMainForm
   object ilFileTypeIcons: TImageList
     Left = 120
     Top = 140
+  end
+  object XPManifest: TXPManifest
+    Left = 72
+    Top = 288
   end
 end

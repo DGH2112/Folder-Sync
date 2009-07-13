@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    29 Apr 2009
+  @Date    13 Jul 2009
   @Author  David Hoyle
 
 **)
@@ -15,7 +15,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   Menus, ActnList, ImgList, ComCtrls, ExtCtrls, ToolWin, StdCtrls, Buttons,
-  AppEvnts, IniFiles, Registry, FileComparision, ProgressForm;
+  AppEvnts, IniFiles, Registry, FileComparision, ProgressForm, XPMan;
 
 type
   (** A list of enumerate values for the different types of file operation that
@@ -91,6 +91,7 @@ type
     N2: TMenuItem;
     Compare1: TMenuItem;
     Compare2: TMenuItem;
+    XPManifest: TXPManifest;
     procedure actHelpAboutExecute(Sender: TObject);
     procedure actFileExitExecute(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -122,13 +123,13 @@ type
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure ApplicationHint(Sender  : TObject);
-    Procedure Progress(boolShow : Boolean; strMessage : String; iCount: Integer;
-      strFile: String);
+    Procedure Progress(strMessage : String; iCount: Integer; strFile: String);
+    Procedure ProgressPos(iPosition, iIndex : Integer);
     function GetImageIndex(strFileName: String): Integer;
     function GetRegInfo(Reg: TRegistry; strKey, strName: String): String;
     procedure FixUpPanes(fileCompColl : TCompareFoldersCollection);
     procedure InsertListItem(strLPath, strRPath : String; LeftFile,
-      RightFile : TFileRecord);
+      RightFile : TFileRecord; Group : TListGroup);
     procedure FindNextNonSame(Lst: TFileList; var iIndex: Integer);
     procedure SetFileOperation(FileOp: TFileOp);
     procedure DeleteFiles;
@@ -287,11 +288,15 @@ end;
 procedure TfrmMainForm.lvFileListCustomDrawItem(Sender: TCustomListView;
   Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
 
+Type
+  TBackground = (bgLeft, bgRight);
+
 var
-  i: Integer;
+  iSubItem: Integer;
   R, ItemR : TRect;
   Buffer : Array[0..2048] Of Char;
   Ops : Integer;
+  iBufferLen: Integer;
 
   (**
 
@@ -322,72 +327,187 @@ var
     Dec(Result.Right, 6); // Padding / Margin
   End;
 
+  (**
+
+    This method draws the background for the left and right displays of file
+    informations.
+
+    @precon  None.
+    @postcon Draws the background for the left and right displays of file
+             informations.
+
+    @param   iColumn    as an Integer
+    @param   Background as a TBackground
+
+  **)
+  Procedure DrawBackground(iColumn : Integer; Background : TBackground);
+
+  Begin
+    Sender.Canvas.Brush.Color := clWindow;
+    If Item.Selected Then
+      Sender.Canvas.Brush.Color := clHighlight
+    Else
+      If (Pos('R', Item.SubItems[iColumn - 1]) > 0) Then
+        Sender.Canvas.Brush.Color := $BBBBFF
+      Else If TFileOp(Item.StateIndex) = foNothing Then
+        Sender.Canvas.Brush.Color := clSilver;
+    If Background = bgLeft Then
+      R := GetSubItemRect(iLDateCol - 1)
+    Else
+      R := GetSubItemRect(iRDisplayCol - 1);
+    ItemR := Item.DisplayRect(drBounds);
+    If Background = bgLeft Then
+      ItemR.Right := R.Right + 6
+    Else
+      ItemR.Left := R.Left - 6;
+    Sender.Canvas.FillRect(ItemR);
+  End;
+
+  (**
+
+    This procedure sets the font colour and style attributes depending on the
+    status of the list item.
+    
+    @precon  None.
+    @postcon Sets the font colour and style attributes depending on the
+             status of the list item.
+             
+  **)
+  Procedure SetTextAttributes;
+
+  Begin
+    Sender.Canvas.Font.Color := clWindowText;
+    If TFileOp(Item.StateIndex) = foNothing Then
+      Sender.Canvas.Font.Color := clGray;
+    If TFileOp(Item.StateIndex) = foDelete Then
+      Sender.Canvas.Font.Style := Sender.Canvas.Font.Style + [fsStrikeout];
+    If Item.Selected Then
+      Sender.Canvas.Font.Color := clHighlightText;
+  End;
+
+  (**
+  
+    This procedure sets the text drawing options (alignment, etc) for the
+    different columns to be displayed.
+    
+    @precon  None.
+    @postcon Sets the text drawing options (alignment, etc) for the
+             different columns to be displayed.
+
+  **)
+  Procedure SetTextDrawingOptions;
+
+  Begin
+    Case iSubItem Of
+      0, 4 : Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS Or DT_NOPREFIX;
+      2, 3, 6, 7: Ops := DT_RIGHT;
+    Else
+      Ops := DT_LEFT;
+    End;
+  End;
+
+  (**
+  
+    This procedure returns the display rectangle (adjusted for file icon  image)
+    for the text to be displayed in the report column.
+    
+    @precon  None.
+    @postcon Returns the display rectangle (adjusted for file icon  image)
+             for the text to be displayed in the report column.
+             
+    @return  a TRect
+  
+  **)
+  Function DrawFileIcon : TRect;
+
+  Begin
+    Result := GetSubItemRect(iSubItem);
+    If Item.SubItemImages[iSubItem] > -1 Then
+      If iSubItem In [0, 4] Then
+        Begin
+          Dec(Result.Left, 3);
+          ilFileTypeIcons.Draw(Sender.Canvas, Result.Left, Result.Top,
+            Item.SubItemImages[iSubItem], True);
+          Inc(Result.Left, 16 + 3);
+        End;
+  End;
+
+  (**
+  
+    This procedure sets the text background for the columns of information.
+    
+    @precon  None.
+    @postcon Sets the text background for the columns of information.
+  
+  **)
+  Procedure SetTextFontBackground;
+
+  Begin
+    Sender.Canvas.Brush.Color := clWindow;
+    If Item.Selected Then
+      Sender.Canvas.Brush.Color := clHighlight
+    Else
+      If iSubItem In [iLDisplayCol - 1..iLDateCol - 1] Then
+        Begin
+          If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
+            Sender.Canvas.Brush.Color := $BBBBFF
+          Else If TFileOp(Item.StateIndex) = foNothing Then
+            Sender.Canvas.Brush.Color := clSilver;
+        End Else
+        Begin
+          If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
+            Sender.Canvas.Brush.Color := $BBBBFF
+          Else If TFileOp(Item.StateIndex) = foNothing Then
+            Sender.Canvas.Brush.Color := clSilver;
+        End;
+  End;
+
+  (**
+  
+    This procedure displays a grayed out destination path for files which don't
+    have a destination file, else sets up the font colours and style attributes
+    for displaying the text.
+    
+    @precon  None.
+    @postcon Displays a grayed out destination path for files which don't
+             have a destination file, else sets up the font colours and style
+             attributes for displaying the text.
+  
+  **)
+  Procedure FixUpEmptyFilePaths;
+
+  Begin
+    If (iSubItem = 0) And (Item.SubItems[iSubItem] = '') Then
+      Begin
+        StrPCopy(Buffer, Item.SubItems[iLFullFileNameCol - 1]);
+        iBufferLen := Length(Item.SubItems[iLFullFileNameCol - 1]);
+        Sender.Canvas.Font.Color := clGray;
+      End
+    Else If (iSubItem = 4) And (Item.SubItems[iSubItem] = '') Then
+      Begin
+        StrPCopy(Buffer, Item.SubItems[iRFullFileNameCol - 1]);
+        iBufferLen := Length(Item.SubItems[iRFullFileNameCol - 1]);
+        Sender.Canvas.Font.Color := clGray;
+      End Else
+        SetTextAttributes;
+  End;
+
 begin
   DefaultDraw := False;
-  // Set Left Background
-  Sender.Canvas.Brush.Color := clWindow;
-  If Item.Selected Then
-    Sender.Canvas.Brush.Color := clHighlight
-  Else
-    If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
-      Sender.Canvas.Brush.Color := $BBBBFF;
-  R := GetSubItemRect(iLDateCol - 1);
-  ItemR := Item.DisplayRect(drBounds);
-  ItemR.Right := R.Right + 6;
-  Sender.Canvas.FillRect(ItemR);
-  // Set Right Background
-  Sender.Canvas.Brush.Color := clWindow;
-  If Item.Selected Then
-    Sender.Canvas.Brush.Color := clHighlight
-  Else
-    If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
-      Sender.Canvas.Brush.Color := $BBBBFF;
-  R := GetSubItemRect(iRDisplayCol - 1);
-  ItemR := Item.DisplayRect(drBounds);
-  ItemR.Left := R.Left - 6;
-  Sender.Canvas.FillRect(ItemR);
-  // Set Text Attributes
-  If TFileOp(Item.StateIndex) = foNothing Then
-    Sender.Canvas.Font.Color := clGray;
-  If TFileOp(Item.StateIndex) = foDelete Then
-    Sender.Canvas.Font.Style := Sender.Canvas.Font.Style + [fsStrikeout];
-  If Item.Selected Then
-    Sender.Canvas.Font.Color := clHighlightText;
+  DrawBackground(iLAttrCol, bgLeft);
+  DrawBackground(iRAttrCol, bgRight);
   R := Item.DisplayRect(drBounds);
   ilActionImages.Draw(Sender.Canvas, R.Left + 2, R.Top, Item.StateIndex, True);
-  For i := 0 To iRDateCol - 1 Do
+  For iSubItem := 0 To iRDateCol - 1 Do
     Begin
-      Case i Of
-        0, 4 : Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS Or DT_NOPREFIX;
-        2, 3, 6, 7: Ops := DT_RIGHT;
-      Else
-        Ops := DT_LEFT;
-      End;
-      R := GetSubItemRect(i);
-      If Item.SubItemImages[i] > -1 Then
-        If i In [0, 4] Then
-          Begin
-            Dec(R.Left, 3);
-            ilFileTypeIcons.Draw(Sender.Canvas, R.Left, R.Top,
-              Item.SubItemImages[i], True);
-            Inc(R.Left, 16 + 3);
-          End;
-      StrPCopy(Buffer, Item.SubItems[i]);
-      Sender.Canvas.Brush.Color := clWindow;
-      If Item.Selected Then
-        Sender.Canvas.Brush.Color := clHighlight
-      Else
-        If i In [iLDisplayCol - 1..iLDateCol - 1] Then
-          Begin
-            If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
-              Sender.Canvas.Brush.Color := $BBBBFF
-          End Else
-          Begin
-            If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
-              Sender.Canvas.Brush.Color := $BBBBFF
-          End;
+      SetTextDrawingOptions;
+      R := DrawFileIcon;
+      SetTextFontBackground;
+      StrPCopy(Buffer, Item.SubItems[iSubItem]);
+      iBufferLen := Length(Item.SubItems[iSubItem]);
+      FixUpEmptyFilePaths;
       Sender.Canvas.Refresh;
-      DrawText(Sender.Canvas.Handle, Buffer, Length(Item.SubItems[i]), R, Ops);
+      DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
       R.Left := R.Right;
     End;
 end;
@@ -516,12 +636,14 @@ Var
 begin
   If Not CheckFolders Then
     Exit;
+  frmProgress.RegisterSections(FFolders.Count * 2 * 3);
   fileCompColl := TCompareFoldersCollection.Create(FFolders,
-    Progress, FExclusions);
+    Progress, ProgressPos, FExclusions);
   Try
     FixUpPanes(fileCompColl);
   Finally
     fileCompColl.Free;
+    frmProgress.Hide;
   End;
 end;
 
@@ -564,6 +686,7 @@ Var
   iRight, iLeft : Integer;
   dblLSize, dblRSize, dblLCount, dblRCount : Double;
   iCollection : Integer;
+  Group : TListGroup;
 
 Begin
   dblLSize := 0;
@@ -573,9 +696,14 @@ Begin
   lvFileList.Items.BeginUpdate;
   Try
     lvFileList.Items.Clear;
+    lvFileList.Groups.Clear;
     For iCollection := 0 To fileCompColl.Count - 1 Do
       With fileCompColl.CompareFolders[iCollection] Do
         Begin
+          ProgressPos(fileCompColl.Count + iCollection, 1);
+          Group := lvFileList.Groups.Add;
+          Group.Header := Format('Left: %s, Right: %s', [LeftFldr.FolderPath,
+            RightFldr.FolderPath]);
           If LeftFldr = Nil Then Continue;
           If RightFldr = Nil Then Continue;
           dblLSize := dblLSize + LeftFldr.TotalSize;
@@ -588,7 +716,7 @@ Begin
           FindNextNonSame(RightFldr, iRight);
           While (iLeft < LeftFldr.Count) Or (iRight < RightFldr.Count) Do
             Begin
-              Progress(True, Format('Updating Collection %d''s List', [iCollection + 1]),
+              Progress(Format('Updating Collection %d''s List', [iCollection + 1]),
                 Max(iLeft, iRight), 'Please wait...');
               If (LeftFldr.Count > iLeft) And (RightFldr.Count > iRight) Then
                 Begin
@@ -596,7 +724,7 @@ Begin
                     RightFldr[iRight].Filename) = 0 Then
                     Begin
                       InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                        LeftFldr[iLeft], RightFldr[iRight]);
+                        LeftFldr[iLeft], RightFldr[iRight], Group);
                       FindNextNonSame(LeftFldr, iLeft);
                       FindNextNonSame(RightFldr, iRight);
                     End Else
@@ -604,27 +732,27 @@ Begin
                     RightFldr[iRight].Filename) < 0 Then
                     Begin
                       InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                        LeftFldr[iLeft], Nil);
+                        LeftFldr[iLeft], Nil, Group);
                       FindNextNonSame(LeftFldr, iLeft);
                     End Else
                   If AnsiCompareFileName(LeftFldr[iLeft].FileName,
                     RightFldr[iRight].Filename) > 0 Then
                     Begin
                       InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                        Nil, RightFldr[iRight]);
+                        Nil, RightFldr[iRight], Group);
                       FindNextNonSame(RightFldr, iRight);
                     End;
                 End Else
               If (LeftFldr.Count > iLeft) Then
                 Begin
                   InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                    LeftFldr[iLeft], Nil);
+                    LeftFldr[iLeft], Nil, Group);
                   FindNextNonSame(LeftFldr, iLeft);
                 End Else
               If (RightFldr.Count > iRight) Then
                 Begin
                   InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                    Nil, RightFldr[iRight]);
+                    Nil, RightFldr[iRight], Group);
                   FindNextNonSame(RightFldr, iRight);
                 End;
             End;
@@ -676,14 +804,15 @@ End;
   @precon  None.
   @postcon Adds a pair of filenames with sizes and dates to the list view.
 
-  @param   strLPath     as a String
-  @param   strRPath     as a String
-  @param   LeftFile     as a TFileRecord
-  @param   RightFile    as a TFileRecord
+  @param   strLPath  as a String
+  @param   strRPath  as a String
+  @param   LeftFile  as a TFileRecord
+  @param   RightFile as a TFileRecord
+  @param   Group     as a TListGroup
 
 **)
 Procedure TfrmMainForm.InsertListItem(strLPath, strRPath : String; LeftFile,
-  RightFile : TFileRecord);
+  RightFile : TFileRecord; Group : TListGroup);
 
   (**
 
@@ -721,6 +850,7 @@ Begin
   Item.ImageIndex := -1;
   // Action
   Item.Caption := '';
+  Item.GroupID := Group.GroupID;
   // Left File
   If LeftFile <> Nil Then
     Begin
@@ -872,22 +1002,39 @@ End;
   This is an event handler for the progress of the searching and comparisons.
 
   @precon  None.
-  @postcon Either show the progress dialogue with information or hides the 
+  @postcon Either show the progress dialogue with information or hides the
            dialogue.
 
-  @param   boolShow   as a Boolean
   @param   strMessage as a String
   @param   iCount     as an Integer
   @param   strFile    as a String
 
 **)
-procedure TfrmMainForm.Progress(boolShow: Boolean; strMessage : String;
-  iCount: Integer; strFile: String);
+procedure TfrmMainForm.Progress(strMessage : String; iCount: Integer;
+  strFile: String);
 
 begin
-  If frmProgress.Visible <> boolShow Then
-    frmProgress.Visible := boolShow;
+  If Not frmProgress.Visible Then
+    frmProgress.Show;
   frmProgress.Progress(strMessage, iCount, strFile);
+end;
+
+(**
+
+  This is an event handler for the progress position of the progress bar.
+
+  @precon  None.
+  @postcon Updates the position of the progress bar.
+
+  @param   iPosition as an Integer
+  @param   iIndex    as an Integer
+
+**)
+procedure TfrmMainForm.ProgressPos(iPosition, iIndex: Integer);
+begin
+  If Not frmProgress.Visible Then
+    frmProgress.Show;
+  frmProgress.Progress(iPosition * 3 + iIndex);
 end;
 
 (**
@@ -1187,7 +1334,7 @@ Begin
     Begin
       strSrcFileList := strSrcFileList + #0;
       strDestFileList := strDestFileList + #0;
-      // Set file operation to delete files with recycle bin
+      // Set file operation to delete files to the recycle bin
       recFileOp.Wnd := Self.Handle;
       recFileOp.wFunc := FO_COPY;
       recFileOp.pFrom := PChar(strSrcFileList);
