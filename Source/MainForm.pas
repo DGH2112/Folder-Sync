@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    13 Jul 2009
+  @Date    14 Jul 2009
   @Author  David Hoyle
 
 **)
@@ -386,10 +386,10 @@ var
   End;
 
   (**
-  
+
     This procedure sets the text drawing options (alignment, etc) for the
     different columns to be displayed.
-    
+
     @precon  None.
     @postcon Sets the text drawing options (alignment, etc) for the
              different columns to be displayed.
@@ -407,29 +407,39 @@ var
   End;
 
   (**
-  
+
     This procedure returns the display rectangle (adjusted for file icon  image)
     for the text to be displayed in the report column.
-    
+
     @precon  None.
     @postcon Returns the display rectangle (adjusted for file icon  image)
              for the text to be displayed in the report column.
-             
+
     @return  a TRect
-  
+
   **)
   Function DrawFileIcon : TRect;
 
+  var
+    iImage: Integer;
+    boolEnabled: Boolean;
+
   Begin
     Result := GetSubItemRect(iSubItem);
-    If Item.SubItemImages[iSubItem] > -1 Then
-      If iSubItem In [0, 4] Then
-        Begin
-          Dec(Result.Left, 3);
-          ilFileTypeIcons.Draw(Sender.Canvas, Result.Left, Result.Top,
-            Item.SubItemImages[iSubItem], True);
-          Inc(Result.Left, 16 + 3);
-        End;
+    If iSubItem In [0, 4] Then
+      Begin
+        Dec(Result.Left, 3);
+        iImage := Item.SubItemImages[iSubItem];
+        boolEnabled := (iImage > -1);
+        If Not boolEnabled Then
+          If iSubItem = 0 Then
+            iImage := Item.SubItemImages[4]
+          Else
+            iImage := Item.SubItemImages[0];
+        ilFileTypeIcons.Draw(Sender.Canvas, Result.Left, Result.Top,
+          iImage, boolEnabled);
+        Inc(Result.Left, 16 + 3);
+      End;
   End;
 
   (**
