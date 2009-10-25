@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    12 Apr 2009
+  @Date    25 Oct 2009
   @Version 1.0
   @Author  David Hoyle
 
@@ -13,9 +13,21 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, ComCtrls;
+  StdCtrls, Buttons, ComCtrls, CheckLst;
 
 type
+  (** An enumerate of Folder Sync Options **)
+  TFldrSyncOption = (
+    fsoCloseIFNoFilesAfterComparison,
+    fsoNoConfirmation,
+    fsoDoNotConfirmMkDir,
+    fsoShowSimpleProgress,
+    fsoStartProcessingAutomatically
+  );
+
+  (** A set of folder sync options. **)
+  TFldrSyncOptions = Set Of TFldrSyncOption;
+
   (** This is a class to represent **)
   TfrmOptions = class(TForm)
     btnOK: TBitBtn;
@@ -33,6 +45,8 @@ type
     lblCompareFiles: TLabel;
     btnBrowse: TButton;
     dlgOpen: TOpenDialog;
+    tabAdvancedOptions: TTabSheet;
+    lbxAdvancedOptions: TCheckListBox;
     procedure lvFoldersResize(Sender: TObject);
     procedure btnAddClick(Sender: TObject);
     procedure btnEditClick(Sender: TObject);
@@ -66,7 +80,8 @@ type
   public
     { Public declarations }
     Class Function Execute(var slFolders : TStringList; var strExclusions,
-      strCompareEXE :String; strRootKey : String) : Boolean;
+      strCompareEXE :String; strRootKey : String;
+      var FldrSyncOps : TFldrSyncOptions) : Boolean;
     Constructor CreateWithRootKey(AOwner : TComponent; strRootKey : String); Virtual;
   end;
 
@@ -77,6 +92,16 @@ uses
 
 {$R *.DFM}
 
+Const
+  (** A constant array of strings corresponding to the folder sync options. **)
+  strFldrSyncOptions : Array[Low(TFldrSyncOption)..High(TFldrSyncOption)] Of String = (
+    'Close Folder Sync IF there are no files to processes after comparison.',
+    'Respond with "Yes to All" for any dialogue boxes that are displayed.',
+    'Do not confirm the creation of a new directories if the operation requires one to be created.',
+    'Display a progress dialogue box but do not show the file names.',
+    'Start processing the files after comparison automatically (DANGEROUS!).'
+  );
+
 { TfrmOptions }
 
 (**
@@ -85,21 +110,25 @@ uses
   .
 
   @precon  None.
-  @postcon Returns true with the updated options in the var variables else 
+  @postcon Returns true with the updated options in the var variables else
            returns false if the dialogue is cancelled.
 
   @param   slFolders     as a TStringList as a reference
   @param   strExclusions as a String as a reference
   @param   strCompareEXE as a String as a reference
   @param   strRootKey    as a String
+  @param   FldrSyncOps   as a TFldrSyncOptions as a reference
   @return  a Boolean
 
 **)
 class function TfrmOptions.Execute(var slFolders : TStringList;
-  var strExclusions, strCompareEXE : String; strRootKey : String): Boolean;
+  var strExclusions, strCompareEXE : String; strRootKey : String;
+  var FldrSyncOps : TFldrSyncOptions): Boolean;
 
 Var
   i : Integer;
+  iOption: TFldrSyncOption;
+  iIndex: Integer;
 
 begin
   Result := False;
@@ -110,6 +139,11 @@ begin
           Boolean(slFolders.Objects[i]));
       edtExclusions.Text := strExclusions;
       edtCompareEXE.Text := strCompareEXE;
+      For iOption := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
+        Begin
+          iIndex := lbxAdvancedOptions.Items.Add(strFldrSyncOptions[iOption]);
+          lbxAdvancedOptions.Checked[iIndex] := iOption In FldrSyncOps;
+        End;
       If ShowModal = mrOK Then
         Begin
           slFolders.Clear;
@@ -118,6 +152,11 @@ begin
               lvFolders.Items[i].SubItems[0], TObject(lvFolders.Items[i].Checked));
           strExclusions := edtExclusions.Text;
           strCompareEXE := edtCompareEXE.Text;
+          For i := 0 To lbxAdvancedOptions.Items.Count - 1 Do
+            If lbxAdvancedOptions.Checked[i] Then
+              Include(FldrSyncOps, TFldrSyncOption(i))
+            Else
+              Exclude(FldrSyncOps, TFldrSyncOption(i));
           Result := True;
         End;
     Finally

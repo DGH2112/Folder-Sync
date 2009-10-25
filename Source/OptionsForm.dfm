@@ -27,8 +27,10 @@ object frmOptions: TfrmOptions
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
-    TabOrder = 0
+    DoubleBuffered = True
     Kind = bkOK
+    ParentDoubleBuffered = False
+    TabOrder = 0
   end
   object btnCancel: TBitBtn
     Left = 553
@@ -36,15 +38,17 @@ object frmOptions: TfrmOptions
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
-    TabOrder = 1
+    DoubleBuffered = True
     Kind = bkCancel
+    ParentDoubleBuffered = False
+    TabOrder = 1
   end
   object PageControl1: TPageControl
     Left = 8
     Top = 8
     Width = 618
     Height = 407
-    ActivePage = pgFolderList
+    ActivePage = tabAdvancedOptions
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
     object pgFolderList: TTabSheet
@@ -82,6 +86,8 @@ object frmOptions: TfrmOptions
         Height = 25
         Anchors = [akRight, akBottom]
         Caption = '&Add'
+        DoubleBuffered = True
+        ParentDoubleBuffered = False
         TabOrder = 1
         OnClick = btnAddClick
       end
@@ -92,6 +98,8 @@ object frmOptions: TfrmOptions
         Height = 25
         Anchors = [akRight, akBottom]
         Caption = '&Edit'
+        DoubleBuffered = True
+        ParentDoubleBuffered = False
         TabOrder = 2
         OnClick = btnEditClick
       end
@@ -102,6 +110,8 @@ object frmOptions: TfrmOptions
         Height = 25
         Anchors = [akRight, akBottom]
         Caption = '&Delete'
+        DoubleBuffered = True
+        ParentDoubleBuffered = False
         TabOrder = 3
         OnClick = btnDeleteClick
       end
@@ -154,6 +164,22 @@ object frmOptions: TfrmOptions
         Caption = '&Browse'
         TabOrder = 1
         OnClick = btnBrowseClick
+      end
+    end
+    object tabAdvancedOptions: TTabSheet
+      Caption = '&Advanced Options'
+      ImageIndex = 3
+      DesignSize = (
+        610
+        379)
+      object lbxAdvancedOptions: TCheckListBox
+        Left = 3
+        Top = 3
+        Width = 604
+        Height = 373
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        ItemHeight = 13
+        TabOrder = 0
       end
     end
   end
