@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    14 Jul 2009
+  @Date    25 Oct 2009
   @Author  David Hoyle
 
 **)
@@ -473,13 +473,13 @@ var
   End;
 
   (**
-  
-    This procedure displays a grayed out destination path for files which don't
+
+    This procedure displays a grayed out destination path for files which don`t
     have a destination file, else sets up the font colours and style attributes
     for displaying the text.
-    
+
     @precon  None.
-    @postcon Displays a grayed out destination path for files which don't
+    @postcon Displays a grayed out destination path for files which don`t
              have a destination file, else sets up the font colours and style
              attributes for displaying the text.
   
@@ -585,6 +585,7 @@ begin
   LoadSettings();
   Application.OnHint := ApplicationHint;
   FIconFiles := TStringList.Create;
+  Caption := Format('%s: %s', [Caption, FRootKey]);
   actFileCompareExecute(Self);
 end;
 
@@ -1386,7 +1387,7 @@ end;
 (**
 
   This method checks that all the folders exist and provides an option to create
-  them if they don't. If it can not find a directory and can not create the
+  them if they don`t. If it can not find a directory and can not create the
   directory the function returns false else success is indicated by returning
   True.
 
