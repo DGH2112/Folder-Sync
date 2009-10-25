@@ -15,7 +15,8 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   Menus, ActnList, ImgList, ComCtrls, ExtCtrls, ToolWin, StdCtrls, Buttons,
-  AppEvnts, IniFiles, Registry, FileComparision, ProgressForm, XPMan;
+  AppEvnts, IniFiles, Registry, FileComparision, ProgressForm, OptionsForm,
+  XPMan;
 
 type
   (** A list of enumerate values for the different types of file operation that
@@ -120,6 +121,8 @@ type
     FRootKey : String;
     FParams : TStringList;
     FCompareEXE : String;
+    FFldrSyncOptions: TFldrSyncOptions;
+    FAutoProcessing: Boolean;
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure ApplicationHint(Sender  : TObject);
@@ -181,7 +184,7 @@ var
 implementation
 
 Uses
-  FileCtrl, ShellAPI, OptionsForm, About, CheckForUpdates, DGHLibrary;
+  FileCtrl, ShellAPI, About, CheckForUpdates, DGHLibrary;
 
 Const
   (** This is a mask for displaying the number of files and total size of
@@ -247,6 +250,7 @@ procedure TfrmMainForm.LoadSettings;
 Var
   sl : TStringList;
   i : Integer;
+  iDefault: TFldrSyncOptions;
 
 begin
   With TIniFile.Create(FRootKey) Do
@@ -257,6 +261,9 @@ begin
       Width := ReadInteger('Setup', 'Width', 450);
       WindowState := TWindowState(ReadInteger('Setup', 'WindowState', Byte(wsNormal)));
       FCompareEXE := ReadString('Setup', 'CompareEXE', '');
+      iDefault := [fsoDoNotConfirmMkDir];
+      FFldrSyncOptions := TFldrSyncOptions(Byte(ReadInteger('Setup',
+        'FldrSyncOptions', Byte(iDefault))));
       sl := TStringList.Create;
       Try
         ReadSection('Folders', sl);
@@ -550,6 +557,7 @@ begin
         recWndPlmt.rcNormalPosition.Right - recWndPlmt.rcNormalPosition.Left);
       WriteInteger('Setup', 'WindowState', Byte(WindowState));
       WriteString('Setup', 'CompareEXE', FCompareEXE);
+      WriteInteger('Setup', 'FldrSyncOptions', Byte(FFldrSyncOptions));
       EraseSection('Folders');
       For i := 0 To FFolders.Count - 1 Do
         Begin
@@ -652,6 +660,16 @@ begin
     Progress, ProgressPos, FExclusions);
   Try
     FixUpPanes(fileCompColl);
+    If (fsoCloseIFNoFilesAfterComparison In FFldrSyncOptions) And
+      (lvFileList.Items.Count = 0) Then
+      Close;
+    If (fsoStartProcessingAutomatically In FFldrSyncOptions) And Not FAutoProcessing Then
+      Try
+        FAutoProcessing := True;
+        actFileProcessFilesExecute(Sender);
+      Finally
+        FAutoProcessing := False;
+      End;
   Finally
     fileCompColl.Free;
     frmProgress.Hide;
@@ -1108,7 +1126,8 @@ end;
 **)
 procedure TfrmMainForm.actToolsOptionsExecute(Sender: TObject);
 begin
-  If TfrmOptions.Execute(FFolders, FExclusions, FCompareEXE, FRootKey) Then
+  If TfrmOptions.Execute(FFolders, FExclusions, FCompareEXE, FRootKey,
+    FFldrSyncOptions) Then
     actFileCompareExecute(Self);
 end;
 
@@ -1240,6 +1259,10 @@ Begin
       recFileOp.pFrom := PChar(strFileList);
       recFileOp.pTo := '';
       recFileOp.fFlags := FOF_ALLOWUNDO;
+      If fsoNoConfirmation In FFldrSyncOptions Then
+        recFileOp.fFlags := recFileOp.fFlags Or FOF_NOCONFIRMATION;
+      If fsoShowSimpleProgress In FFldrSyncOptions Then
+        recFileOp.fFlags := recFileOp.fFlags Or FOF_SIMPLEPROGRESS;
       recFileOp.lpszProgressTitle := PChar('Deleting files...');
       SHFileOperation(recFileOp);
     End;
@@ -1351,6 +1374,12 @@ Begin
       recFileOp.pFrom := PChar(strSrcFileList);
       recFileOp.pTo := PChar(strDestFileList);
       recFileOp.fFlags := FOF_ALLOWUNDO Or FOF_MULTIDESTFILES Or FOF_NOCONFIRMMKDIR;
+      If fsoNoConfirmation In FFldrSyncOptions Then
+        recFileOp.fFlags := recFileOp.fFlags Or FOF_NOCONFIRMATION;
+      If fsoDoNotConfirmMkDir In FFldrSyncOptions Then
+        recFileOp.fFlags := recFileOp.fFlags Or FOF_NOCONFIRMMKDIR;
+      If fsoShowSimpleProgress In FFldrSyncOptions Then
+        recFileOp.fFlags := recFileOp.fFlags Or FOF_SIMPLEPROGRESS;
       recFileOp.lpszProgressTitle := PChar('Copying files...');
       SHFileOperation(recFileOp);
     End;

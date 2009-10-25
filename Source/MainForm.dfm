@@ -220,7 +220,6 @@ object frmMainForm: TfrmMainForm
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    GridLines = True
     HideSelection = False
     MultiSelect = True
     ReadOnly = True
