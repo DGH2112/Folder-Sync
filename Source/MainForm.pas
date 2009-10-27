@@ -132,14 +132,14 @@ type
     function GetRegInfo(Reg: TRegistry; strKey, strName: String): String;
     procedure FixUpPanes(fileCompColl : TCompareFoldersCollection);
     procedure InsertListItem(strLPath, strRPath : String; LeftFile,
-      RightFile : TFileRecord; Group : TListGroup);
+      RightFile : TFileRecord; Group : TListGroup; SyncOptions : TSyncOptions);
     procedure FindNextNonSame(Lst: TFileList; var iIndex: Integer);
     procedure SetFileOperation(FileOp: TFileOp);
     procedure DeleteFiles;
     procedure CopyFiles;
     Function CheckFolders : Boolean;
     Procedure OperationStatus(LeftFile, RightFile : TFileRecord;
-      Var Item: TListItem);
+      Var Item: TListItem; SyncOptions : TSyncOptions);
     procedure ImageIndexes(strLPath, strRPath : String; LeftFile,
       RightFile : TFileRecord; Item: TListItem);
     Procedure ExceptionProc(strExceptionMsg : String);
@@ -757,7 +757,7 @@ Begin
                     RightFldr[iRight].Filename) = 0 Then
                     Begin
                       InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                        LeftFldr[iLeft], RightFldr[iRight], Group);
+                        LeftFldr[iLeft], RightFldr[iRight], Group, SyncOptions);
                       FindNextNonSame(LeftFldr, iLeft);
                       FindNextNonSame(RightFldr, iRight);
                     End Else
@@ -765,27 +765,27 @@ Begin
                     RightFldr[iRight].Filename) < 0 Then
                     Begin
                       InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                        LeftFldr[iLeft], Nil, Group);
+                        LeftFldr[iLeft], Nil, Group, SyncOptions);
                       FindNextNonSame(LeftFldr, iLeft);
                     End Else
                   If AnsiCompareFileName(LeftFldr[iLeft].FileName,
                     RightFldr[iRight].Filename) > 0 Then
                     Begin
                       InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                        Nil, RightFldr[iRight], Group);
+                        Nil, RightFldr[iRight], Group, SyncOptions);
                       FindNextNonSame(RightFldr, iRight);
                     End;
                 End Else
               If (LeftFldr.Count > iLeft) Then
                 Begin
                   InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                    LeftFldr[iLeft], Nil, Group);
+                    LeftFldr[iLeft], Nil, Group, SyncOptions);
                   FindNextNonSame(LeftFldr, iLeft);
                 End Else
               If (RightFldr.Count > iRight) Then
                 Begin
                   InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                    Nil, RightFldr[iRight], Group);
+                    Nil, RightFldr[iRight], Group, SyncOptions);
                   FindNextNonSame(RightFldr, iRight);
                 End;
             End;
@@ -837,15 +837,16 @@ End;
   @precon  None.
   @postcon Adds a pair of filenames with sizes and dates to the list view.
 
-  @param   strLPath  as a String
-  @param   strRPath  as a String
-  @param   LeftFile  as a TFileRecord
-  @param   RightFile as a TFileRecord
-  @param   Group     as a TListGroup
+  @param   strLPath    as a String
+  @param   strRPath    as a String
+  @param   LeftFile    as a TFileRecord
+  @param   RightFile   as a TFileRecord
+  @param   Group       as a TListGroup
+  @param   SyncOptions as a TSyncOptions
 
 **)
 Procedure TfrmMainForm.InsertListItem(strLPath, strRPath : String; LeftFile,
-  RightFile : TFileRecord; Group : TListGroup);
+  RightFile : TFileRecord; Group : TListGroup; SyncOptions : TSyncOptions);
 
   (**
 
@@ -918,7 +919,7 @@ Begin
     End;
   Item.SubItems.Add(strLPath + strFileName);
   Item.SubItems.Add(strRPath + strFileName);
-  OperationStatus(LeftFile, RightFile, Item);
+  OperationStatus(LeftFile, RightFile, Item, SyncOptions);
   ImageIndexes(strLPath, strRPath, LeftFile, RightFile, Item);
 End;
 
@@ -1489,25 +1490,36 @@ end;
   @postcon Updates the operational status of the files based on their date and
            time and also whether they are reasd only or not.
 
-  @param   LeftFile   as a TFileRecord
-  @param   RightFile  as a TFileRecord
-  @param   Item       as a TListItem as a reference
+  @param   LeftFile    as a TFileRecord
+  @param   RightFile   as a TFileRecord
+  @param   Item        as a TListItem as a reference
+  @param   SyncOptions as a TSyncOptions
 
 **)
 procedure TfrmMainForm.OperationStatus(LeftFile, RightFile : TFileRecord;
-  var Item: TListItem);
+  var Item: TListItem; SyncOptions : TSyncOptions);
 
 begin
   If RightFile <> Nil Then
     Case RightFile.Status Of
-      stNewer    : Item.StateIndex := Integer(foRightToLeft);
+      stNewer    :
+        Begin
+          Item.StateIndex := Integer(foRightToLeft);
+          If (soPrimaryLeft In SyncOptions) And (LeftFile = Nil) Then
+            Item.StateIndex := Integer(foDelete);
+        End;
       stOlder    : Item.StateIndex := Integer(foLeftToRight);
       stSame     : Item.StateIndex := Integer(foNothing);
       stDiffSize : Item.StateIndex := Integer(foNothing);
     End
   Else
     Case LeftFile.Status Of
-      stNewer    : Item.StateIndex := Integer(foLeftToRight);
+      stNewer    :
+        Begin
+          Item.StateIndex := Integer(foLeftToRight);
+          If (soPrimaryRight In SyncOptions) And (RightFile = Nil) Then
+            Item.StateIndex := Integer(foDelete);
+        End;
       stOlder    : Item.StateIndex := Integer(foRightToLeft);
       stSame     : Item.StateIndex := Integer(foNothing);
       stDiffSize : Item.StateIndex := Integer(foNothing);
