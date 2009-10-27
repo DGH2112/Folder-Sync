@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    13 Jul 2009
+  @Date    27 Oct 2009
   @Author  David Hoyle
 
 **)
@@ -13,7 +13,7 @@ Unit FileComparision;
 Interface
 
 Uses
-  SysUtils, Classes, Contnrs, Windows, ProgressForm;
+  SysUtils, Classes, Contnrs, Windows, ProgressForm, OptionsForm;
 
 Type
   (** A type to define the status of a file **)
@@ -25,13 +25,13 @@ Type
 
   (** A record to describe a single file. **)
   TFileRecord = Class
-  Private
+  Strict Private
     FFileName : String;
     FSize : Integer;
     FAttributes : Integer;
     FDateTime : Integer;
     FStatus : TStatus;
-  Protected
+  Strict Protected
     Procedure SetStatus(Status : TStatus);
   Public
     Constructor Create(strName : String; iSize, iAttributes : Integer;
@@ -75,7 +75,7 @@ Type
 
   (** This class defines a list of files from a single directory. **)
   TFileList = Class
-  Private
+  Strict Private
     FFolderPath : String;
     FFiles : TObjectList;
     FProgressProc: TProgressMsgProc;
@@ -85,7 +85,7 @@ Type
     function InExclusions(strFileName: String): Boolean;
     function GetCount: Integer;
     function GetFiles(iIndex: Integer): TFileRecord;
-  Protected
+  Strict Protected
     Procedure RecurseFolder(strFolderPath : String); Virtual;
     Procedure DoProgress(strMessage : String; iCount : Integer; strFile : String);
     (**
@@ -134,17 +134,18 @@ Type
 
   (** A class to compare to list of folder file. **)
   TCompareFolders = Class
-  Private
+  Strict Private
     FLeftFldr : TFileList;
     FRightFldr : TFileList;
     FProgressProc : TProgressMsgProc;
-  Protected
+    FSyncOptions : TSyncOptions;
+  Strict Protected
     Procedure CompareFolders;
   Public
     Constructor Create(strLeftFldr, strLeftFilter, strRightFldr,
       strRightFilter : String; ProgressProc : TProgressMsgProc;
       ProgressPosProc : TProgressPosProc; strExclusions : String;
-      iSection : Integer); Virtual;
+      iSection : Integer; SyncOps : TSyncOptions); Virtual;
     function CheckDifference(iTimeDifference, iSizeDifference : Integer;
       Check : TCheckDifference): Boolean;
     Destructor Destroy; Override;
@@ -163,15 +164,24 @@ Type
       @return  a TFileList
     **)
     Property RightFldr : TFileList Read FRightFldr;
+    (**
+      This property returns the sync options that should be applied to the
+      lists of files.
+      @precon  None.
+      @postcon Returns the sync options that should be applied to the
+               lists of files.
+      @return  a TSyncOptions
+    **)
+    Property SyncOptions : TSyncOptions Read FSyncOptions;
   End;
 
   (** A class to represent a collection of TCompareFolders classes. **)
   TCompareFoldersCollection = Class
-  Private
+  Strict Private
     FCompareFolders : TObjectList;
     Function GetCount : Integer;
     function GetCompareFolders(iIndex: Integer): TCompareFolders;
-  Protected
+  Strict Protected
   Public
     Constructor Create(slFolders : TStringList; ProgressProc : TProgressMsgProc;
       ProgressPosProc : TProgressPosProc; strExclusions : String); Virtual;
@@ -591,13 +601,16 @@ end;
   @param   ProgressPosProc as a TProgressPosProc
   @param   strExclusions   as a String
   @param   iSection        as an Integer
+  @param   SyncOps         as a TSyncOptions
 
 **)
 constructor TCompareFolders.Create(strLeftFldr, strLeftFilter, strRightFldr,
   strRightFilter: String; ProgressProc: TProgressMsgProc;
-  ProgressPosProc : TProgressPosProc; strExclusions : String; iSection : Integer);
+  ProgressPosProc : TProgressPosProc; strExclusions : String; iSection : Integer;
+  SyncOps : TSyncOptions);
 
 begin
+  FSyncOptions := SyncOps;
   If Not DirectoryExists(strLeftFldr) Then Exit;
   If Not DirectoryExists(strRightFldr) Then Exit;
   If Assigned(ProgressPosProc) Then
@@ -657,7 +670,7 @@ begin
   FCompareFolders := TObjectList.Create(True);
   For i := 0 To slFolders.Count - 1 Do
     Begin
-      If Boolean(slFolders.Objects[i]) Then
+      If soEnabled In TSyncOptions(Byte(slFolders.Objects[i])) Then
         FCompareFolders.Add(
           TCompareFolders.Create(
             ExtractFilePath(slFolders.Names[i]),
@@ -667,7 +680,8 @@ begin
             ProgressProc,
             ProgressPosProc,
             strExclusions,
-            i
+            i,
+            TSyncOptions(Byte(slFolders.Objects[i]))
           )
         );
     End;
