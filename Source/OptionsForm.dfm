@@ -120,7 +120,7 @@ object frmOptions: TfrmOptions
       end
     end
     object pgExclusions: TTabSheet
-      Caption = '&Exclusions'
+      Caption = 'E&xclusions'
       ImageIndex = 1
       DesignSize = (
         610
