@@ -666,7 +666,12 @@ begin
     FixUpPanes(fileCompColl);
     If (fsoCloseIFNoFilesAfterComparison In FFldrSyncOptions) And
       (lvFileList.Items.Count = 0) Then
-      Close;
+      Begin
+        frmProgress.Progress('Auto-exiting application...',
+          0, 'as there are no more files to process...');
+        Sleep(2000);
+        Close;
+      End;
     If (fsoStartProcessingAutomatically In FFldrSyncOptions) And Not FAutoProcessing Then
       Try
         FAutoProcessing := True;
