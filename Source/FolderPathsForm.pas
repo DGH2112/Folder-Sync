@@ -3,7 +3,7 @@
   A class to define a form for editing the Folder Paths.
 
   @Version 1.0
-  @date    12 Jul 2009
+  @date    27 Oct 2009
   @Author  David Hoyle.
 
 **)
@@ -13,7 +13,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  Buttons, StdCtrls;
+  Buttons, StdCtrls, OptionsForm;
 
 type
   (** A class to represent a dialogue for editing the folder paths. **)
@@ -26,6 +26,8 @@ type
     btnBrowseRight: TButton;
     btnOK: TBitBtn;
     btnCancel: TBitBtn;
+    lblSyncOption: TLabel;
+    cbxSyncOption: TComboBox;
     procedure FolderPathChange(Sender: TObject);
     procedure btnBrowseLeftClick(Sender: TObject);
     procedure btnBrowseRightClick(Sender: TObject);
@@ -37,7 +39,7 @@ type
   public
     { Public declarations }
     Class Function Execute(var strLeftFolder, strRightFolder : String;
-      strRootKey : String) : Boolean;
+      strRootKey : String; var SyncOptions : TSyncOptions) : Boolean;
     Constructor CreateWithRootKey(AOwner : TComponent; strRootKey : String);
   end;
 
@@ -52,7 +54,8 @@ Uses
 
 (**
 
-  This is a class method for invoking this dialogue and editing the folder paths.
+  This is a class method for invoking this dialogue and editing the folder paths
+  .
 
   @precon  None.
   @postcon The function returns true is the dialogue was confirmed with the
@@ -61,11 +64,12 @@ Uses
   @param   strLeftFolder  as a String as a reference
   @param   strRightFolder as a String as a reference
   @param   strRootKey     as a String
+  @param   SyncOptions    as a TSyncOptions as a reference
   @return  a Boolean
 
 **)
 Class function TfrmFolderPaths.Execute(var strLeftFolder,
-  strRightFolder: String; strRootKey : String): Boolean;
+  strRightFolder: String; strRootKey : String; var SyncOptions : TSyncOptions): Boolean;
 
 begin
   With TfrmFolderPaths.CreateWithRootKey(Nil, strRootKey) Do
@@ -73,10 +77,21 @@ begin
       Result := False;
       edtLeftFolder.Text := strLeftFolder;
       edtRightFolder.Text := strRightFolder;
+      cbxSyncOption.ItemIndex := 0;
+      If soPrimaryLeft In SyncOptions Then
+        cbxSyncOption.ItemIndex := 1;
+      If soPrimaryRight In SyncOptions Then
+        cbxSyncOption.ItemIndex := 2;
       If ShowModal = mrOK Then
         Begin
           strLeftFolder := edtLeftFolder.Text;
           strRightFolder := edtRightFolder.Text;
+          Exclude(SyncOptions, soPrimaryLeft);
+          Exclude(SyncOptions, soPrimaryRight);
+          Case cbxSyncOption.ItemIndex Of
+            1: Include(SyncOptions, soPrimaryLeft);
+            2: Include(SyncOptions, soPrimaryRight);
+          End;
           Result := True;
         End;
     Finally
