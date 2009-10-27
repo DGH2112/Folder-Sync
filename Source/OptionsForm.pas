@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    25 Oct 2009
+  @Date    27 Oct 2009
   @Version 1.0
   @Author  David Hoyle
 
@@ -27,6 +27,12 @@ type
 
   (** A set of folder sync options. **)
   TFldrSyncOptions = Set Of TFldrSyncOption;
+
+  (** This is an enumerate of synchronisation options. **)
+  TSyncOption = (soEnabled, soPrimaryLeft, soPrimaryRight);
+
+  (** A set of sync options. **)
+  TSyncOptions = Set Of TSyncOption;
 
   (** This is a class to represent **)
   TfrmOptions = class(TForm)
@@ -62,7 +68,7 @@ type
     FRootKey : String;
     procedure SetLeftWidth(const Value: Integer);
     procedure SetRightWidth(const Value: Integer);
-    Procedure AddFolders(strLeft, strRight : String; boolEnabled : Boolean);
+    Procedure AddFolders(strLeft, strRight : String; SyncOptions : TSyncOptions);
     (**
       This property holds the maximum width of the Right Folder Text.
       @precon  None.
@@ -129,6 +135,7 @@ Var
   i : Integer;
   iOption: TFldrSyncOption;
   iIndex: Integer;
+  SyncOptions: TSyncOptions;
 
 begin
   Result := False;
@@ -136,7 +143,7 @@ begin
     Try
       For i := 0 to slFolders.Count - 1 Do
         AddFolders(slFolders.Names[i], slFolders.ValueFromIndex[i],
-          Boolean(slFolders.Objects[i]));
+          TSyncOptions(Byte(slFolders.Objects[i])));
       edtExclusions.Text := strExclusions;
       edtCompareEXE.Text := strCompareEXE;
       For iOption := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
@@ -148,8 +155,17 @@ begin
         Begin
           slFolders.Clear;
           For i := 0 To lvFolders.Items.Count - 1 Do
-            slFolders.AddObject(lvFolders.Items[i].Caption + '=' +
-              lvFolders.Items[i].SubItems[0], TObject(lvFolders.Items[i].Checked));
+            Begin
+              SyncOptions := [];
+              If  lvFolders.Items[i].Checked Then
+                Include(SyncOptions, soEnabled);
+              If lvFolders.Items[i].SubItems[1] = 'Primary Left' Then
+                Include(SyncOptions, soPrimaryLeft);
+              If lvFolders.Items[i].SubItems[1] = 'Primary Right' Then
+                Include(SyncOptions, soPrimaryRight);
+              slFolders.AddObject(lvFolders.Items[i].Caption + '=' +
+                lvFolders.Items[i].SubItems[0], TObject(Byte(SyncOptions)));
+            End;
           strExclusions := edtExclusions.Text;
           strCompareEXE := edtCompareEXE.Text;
           For i := 0 To lbxAdvancedOptions.Items.Count - 1 Do
@@ -224,10 +240,10 @@ end;
 
   @param   strLeft     as a String
   @param   strRight    as a String
-  @param   boolEnabled as a Boolean
+  @param   SyncOptions as a TSyncOptions
 
 **)
-procedure TfrmOptions.AddFolders(strLeft, strRight: String; boolEnabled : Boolean);
+procedure TfrmOptions.AddFolders(strLeft, strRight: String; SyncOptions : TSyncOptions);
 
 Var
   Item : TListItem;
@@ -235,10 +251,15 @@ Var
 begin
   Item := lvFolders.Items.Add;
   Item.Caption := strLeft;
-  Item.Checked := boolEnabled;
+  Item.Checked := soEnabled In SyncOptions;
   LeftWidth := Length(strLeft);
   Item.SubItems.Add(strRight);
   RightWidth := Length(strRight);
+  Item.SubItems.Add('Synchronise');
+  If soPrimaryLeft In SyncOptions Then
+    Item.SubItems[1] := 'Primary Left';
+  If soPrimaryRight In SyncOptions Then
+    Item.SubItems[1] := 'Primary Right';
   lvFoldersResize(Self);
 end;
 
@@ -257,10 +278,12 @@ procedure TfrmOptions.btnAddClick(Sender: TObject);
 
 Var
   strLeft, strRight : String;
+  SyncOptions : TSyncOptions;
 
 begin
-  If TfrmFolderPaths.Execute(strLeft, strRight, FRootKey) Then
-    AddFolders(strLeft, strRight, True);
+  Include(SyncOptions, soEnabled);
+  If TfrmFolderPaths.Execute(strLeft, strRight, FRootKey, SyncOptions) Then
+    AddFolders(strLeft, strRight, SyncOptions);
 end;
 
 (**
@@ -293,16 +316,27 @@ procedure TfrmOptions.btnEditClick(Sender: TObject);
 
 Var
   strLeft, strRight : String;
+  SyncOptions : TSyncOptions;
 
 begin
   If lvFolders.Selected <> Nil Then
     Begin
       strLeft := lvFolders.Selected.Caption;
       strRight := lvFolders.Selected.SubItems[0];
-      If TfrmFolderPaths.Execute(strLeft, strRight, FRootKey) Then
+      SyncOptions := [];
+      If lvFolders.Selected.SubItems[1] = 'Primary Left' Then
+        Include(SyncOptions, soPrimaryLeft);
+      If lvFolders.Selected.SubItems[1] = 'Primary Right' Then
+        Include(SyncOptions, soPrimaryRight);
+      If TfrmFolderPaths.Execute(strLeft, strRight, FRootKey, SyncOptions) Then
         Begin
           lvFolders.Selected.Caption := strLeft;
           lvFolders.Selected.SubItems[0] := strRight;
+          lvFolders.Selected.SubItems[1] := 'Synchronise';
+          If soPrimaryLeft In SyncOptions Then
+            lvFolders.Selected.SubItems[1] := 'Primary Left';
+          If soPrimaryRight In SyncOptions Then
+            lvFolders.Selected.SubItems[1] := 'Primary Right';
           lvFoldersResize(Sender);
         End;
     End;
@@ -374,7 +408,8 @@ Var
   i : Integer;
 
 begin
-  i := lvFolders.ClientWidth - 22;
+  lvFolders.Column[2].Width := 100;
+  i := lvFolders.ClientWidth - 22 - lvFolders.Column[2].Width;
   lvFolders.Column[0].Width := Trunc(i * Int(LeftWidth) / Int(LeftWidth + RightWidth));
   lvFolders.Column[1].Width := Trunc(i * Int(RightWidth) / Int(LeftWidth + RightWidth));
 end;

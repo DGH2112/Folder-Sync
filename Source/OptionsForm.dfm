@@ -48,7 +48,7 @@ object frmOptions: TfrmOptions
     Top = 8
     Width = 618
     Height = 407
-    ActivePage = tabAdvancedOptions
+    ActivePage = pgFolderList
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
     object pgFolderList: TTabSheet
@@ -71,6 +71,9 @@ object frmOptions: TfrmOptions
           item
             Caption = 'Right Folder'
             Width = 300
+          end
+          item
+            Caption = 'Sync Option'
           end>
         ReadOnly = True
         RowSelect = True
