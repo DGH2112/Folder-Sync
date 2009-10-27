@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    25 Oct 2009
+  @Date    27 Oct 2009
   @Author  David Hoyle
 
 **)
@@ -251,6 +251,7 @@ Var
   sl : TStringList;
   i : Integer;
   iDefault: TFldrSyncOptions;
+  SyncOptions: TSyncOptions;
 
 begin
   With TIniFile.Create(FRootKey) Do
@@ -268,8 +269,11 @@ begin
       Try
         ReadSection('Folders', sl);
         For i := 0 To sl.Count - 1 Do
-          FFolders.AddObject(sl[i] + '=' + ReadString('Folders', sl[i], ''),
-            TObject(ReadBool('FolderStatus', sl[i], True)));
+          Begin
+            SyncOptions := [soEnabled];
+            FFolders.AddObject(sl[i] + '=' + ReadString('Folders', sl[i], ''),
+              TObject(ReadInteger('FolderStatus', sl[i], Byte(SyncOptions))));
+          End;
       Finally
         sl.Free;
       End;
@@ -562,7 +566,7 @@ begin
       For i := 0 To FFolders.Count - 1 Do
         Begin
           WriteString('Folders', FFolders.Names[i], FFolders.ValueFromIndex[i]);
-          WriteBool('FolderStatus', FFolders.Names[i], Boolean(FFolders.Objects[i]));
+          WriteInteger('FolderStatus', FFolders.Names[i], Byte(FFolders.Objects[i]));
         End;
       WriteString('Setup', 'Exclusions',
         StringReplace(FExclusions, #13#10, '|', [rfReplaceAll]));
