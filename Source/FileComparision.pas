@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    27 Oct 2009
+  @Date    02 Nov 2009
   @Author  David Hoyle
 
 **)
@@ -17,7 +17,7 @@ Uses
 
 Type
   (** A type to define the status of a file **)
-  TStatus = (stNewer, stOlder, stSame, stDiffSize);
+  TStatus = (stNewer, stOlder, stSame, stDiffSize, stTooLong);
 
   (** A type to define whether the CheckDifference method should check for
       Older or Newer differences. **)
@@ -548,6 +548,9 @@ End;
 **)
 procedure TCompareFolders.CompareFolders;
 
+Const
+  iMaxFilePath = MAX_PATH;
+
 Var
   iLeft, iRight : Integer;
   iTimeDifference : Integer;
@@ -560,29 +563,35 @@ begin
         FProgressProc('Comparing Folders', iLeft, LeftFldr[iLeft].FileName);
       iRight := RightFldr.Find(LeftFldr[iLeft].FileName);
       If iRight > -1 Then
-        Begin
-          iTimeDifference := LeftFldr[iLeft].DateTime - RightFldr[iRight].DateTime;
-          iSizeDifference := LeftFldr[iLeft].Size - RightFldr[iRight].Size;
-          If CheckDifference(iTimeDifference, iSizeDifference, cdNewer) Then
-            Begin
-              LeftFldr[iLeft].Status := stNewer;
-              RightFldr[iRight].Status := stOlder;
-            End Else
-          If CheckDifference(iTimeDifference, iSizeDifference, cdOlder) Then
-            Begin
-              LeftFldr[iLeft].Status := stOlder;
-              RightFldr[iRight].Status := stNewer;
-            End Else
-          If iSizeDifference = 0 Then
-            Begin
-              LeftFldr[iLeft].Status := stSame;
-              RightFldr[iRight].Status := stSame;
-            End Else
-            Begin
-              LeftFldr[iLeft].Status := stDiffSize;
-              RightFldr[iRight].Status := stDiffSize;
-            End;
-        End;
+        If (Length(LeftFldr[iLeft].FileName) < iMaxFilePath) And
+          (Length(RightFldr[iRight].FileName) < iMaxFilePath) Then
+          Begin
+            iTimeDifference := LeftFldr[iLeft].DateTime - RightFldr[iRight].DateTime;
+            iSizeDifference := LeftFldr[iLeft].Size - RightFldr[iRight].Size;
+            If CheckDifference(iTimeDifference, iSizeDifference, cdNewer) Then
+              Begin
+                LeftFldr[iLeft].Status := stNewer;
+                RightFldr[iRight].Status := stOlder;
+              End Else
+            If CheckDifference(iTimeDifference, iSizeDifference, cdOlder) Then
+              Begin
+                LeftFldr[iLeft].Status := stOlder;
+                RightFldr[iRight].Status := stNewer;
+              End Else
+            If iSizeDifference = 0 Then
+              Begin
+                LeftFldr[iLeft].Status := stSame;
+                RightFldr[iRight].Status := stSame;
+              End Else
+              Begin
+                LeftFldr[iLeft].Status := stDiffSize;
+                RightFldr[iRight].Status := stDiffSize;
+              End;
+          End Else
+          Begin
+            LeftFldr[iLeft].Status := stTooLong;
+            RightFldr[iRight].Status := stTooLong;
+          End;
     End;
 end;
 
