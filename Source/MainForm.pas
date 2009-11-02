@@ -750,6 +750,10 @@ Begin
       With fileCompColl.CompareFolders[iCollection] Do
         Begin
           ProgressPos(fileCompColl.Count + iCollection, 1);
+          If LeftFldr = Nil Then
+            Continue;
+          If RightFldr = Nil Then
+            Continue;
           Group := lvFileList.Groups.Add;
           Group.Header := Format('Left: %s, Right: %s', [LeftFldr.FolderPath,
             RightFldr.FolderPath]);
