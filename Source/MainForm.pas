@@ -21,7 +21,8 @@ uses
 type
   (** A list of enumerate values for the different types of file operation that
       can be undertaken. **)
-  TFileOp = (foNothing, foLeftToRight, foRightToLeft, foDelete, foSizeDiff);
+  TFileOp = (foNothing, foLeftToRight, foRightToLeft, foDelete, foSizeDiff,
+    foCanNotCopy);
 
   (** This is the class that actually describes for the form interface. **)
   TfrmMainForm = class(TForm)
@@ -305,7 +306,7 @@ Type
 var
   iSubItem: Integer;
   R, ItemR : TRect;
-  Buffer : Array[0..2048] Of Char;
+  Buffer : Array[0..MAX_PATH * 2] Of Char;
   Ops : Integer;
   iBufferLen: Integer;
 
@@ -358,10 +359,14 @@ var
     If Item.Selected Then
       Sender.Canvas.Brush.Color := clHighlight
     Else
-      If (Pos('R', Item.SubItems[iColumn - 1]) > 0) Then
-        Sender.Canvas.Brush.Color := $BBBBFF
-      Else If TFileOp(Item.StateIndex) = foNothing Then
-        Sender.Canvas.Brush.Color := clSilver;
+      If TFileOp(Item.StateIndex) <> foCanNotCopy Then
+        Begin
+          If (Pos('R', Item.SubItems[iColumn - 1]) > 0) Then
+            Sender.Canvas.Brush.Color := $BBBBFF
+          Else If TFileOp(Item.StateIndex) = foNothing Then
+            Sender.Canvas.Brush.Color := clSilver;
+        End Else
+          Sender.Canvas.Brush.Color := clYellow;
     If Background = bgLeft Then
       R := GetSubItemRect(iLDateCol - 1)
     Else
@@ -392,6 +397,8 @@ var
       Sender.Canvas.Font.Color := clGray;
     If TFileOp(Item.StateIndex) = foDelete Then
       Sender.Canvas.Font.Style := Sender.Canvas.Font.Style + [fsStrikeout];
+    If TFileOp(Item.StateIndex) = foCanNotCopy Then
+      Sender.Canvas.Font.Color := clRed;
     If Item.Selected Then
       Sender.Canvas.Font.Color := clHighlightText;
   End;
@@ -468,19 +475,23 @@ var
     If Item.Selected Then
       Sender.Canvas.Brush.Color := clHighlight
     Else
-      If iSubItem In [iLDisplayCol - 1..iLDateCol - 1] Then
+      If TFileOp(Item.StateIndex) <> foCanNotCopy Then
         Begin
-          If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
-            Sender.Canvas.Brush.Color := $BBBBFF
-          Else If TFileOp(Item.StateIndex) = foNothing Then
-            Sender.Canvas.Brush.Color := clSilver;
+          If iSubItem In [iLDisplayCol - 1..iLDateCol - 1] Then
+            Begin
+              If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
+                Sender.Canvas.Brush.Color := $BBBBFF
+              Else If TFileOp(Item.StateIndex) = foNothing Then
+                Sender.Canvas.Brush.Color := clSilver;
+            End Else
+            Begin
+              If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
+                Sender.Canvas.Brush.Color := $BBBBFF
+              Else If TFileOp(Item.StateIndex) = foNothing Then
+                Sender.Canvas.Brush.Color := clSilver;
+            End;
         End Else
-        Begin
-          If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
-            Sender.Canvas.Brush.Color := $BBBBFF
-          Else If TFileOp(Item.StateIndex) = foNothing Then
-            Sender.Canvas.Brush.Color := clSilver;
-        End;
+          Sender.Canvas.Brush.Color := clYellow;
   End;
 
   (**
@@ -1187,6 +1198,7 @@ Begin
             foLeftToRight: If Items[i].SubItems[iLDisplayCol - 1] = '' Then Continue;
             foRightToLeft: If Items[i].SubItems[iRDisplayCol - 1] = '' Then Continue;
           End;
+          If lvFileList.Items[i].StateIndex = Integer(foCanNotCopy) Then Continue;
           lvFileList.Items[i].StateIndex := Integer(FileOp);
         End;
 End;
@@ -1521,6 +1533,7 @@ begin
       stOlder    : Item.StateIndex := Integer(foLeftToRight);
       stSame     : Item.StateIndex := Integer(foNothing);
       stDiffSize : Item.StateIndex := Integer(foNothing);
+      stTooLong  : Item.StateIndex := Integer(foCanNotCopy);
     End
   Else
     Case LeftFile.Status Of
@@ -1533,6 +1546,7 @@ begin
       stOlder    : Item.StateIndex := Integer(foRightToLeft);
       stSame     : Item.StateIndex := Integer(foNothing);
       stDiffSize : Item.StateIndex := Integer(foNothing);
+      stTooLong  : Item.StateIndex := Integer(foCanNotCopy);
     End;
   Case Item.StateIndex Of
     Integer(foLeftToRight):
