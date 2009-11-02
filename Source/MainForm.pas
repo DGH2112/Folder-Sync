@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    27 Oct 2009
+  @Date    02 Nov 2009
   @Author  David Hoyle
 
 **)
@@ -954,6 +954,7 @@ Var
   szIconFile : Array[0..MAX_PATH + 1] Of Char;
   objIcon : TIcon;
   iLIcon, iSIcon : HICON;
+  strIndex: String;
 
 Begin
   Reg := TRegistry.Create;
@@ -979,7 +980,11 @@ Begin
     iPos := Pos(',', strFName);
     If iPos <> 0 Then
       Begin
-        iIndex := StrToInt(Copy(strFName, iPos + 1, Length(strFName) - iPos));
+        strIndex := Copy(strFName, iPos + 1, Length(strFName) - iPos);
+        If strIndex <> '' Then
+          If strIndex[Length(strIndex)] = '"' Then
+            strIndex := Copy(strIndex, 1, Length(strIndex) - 1);
+        iIndex := StrToInt(strIndex);
         strFName := Copy(strFName, 1, iPos - 1);
         If Not FileExists(strFName) Then
           Begin
