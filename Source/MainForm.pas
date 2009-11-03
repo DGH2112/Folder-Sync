@@ -762,7 +762,8 @@ Begin
           FindNextNonSame(RightFldr, iRight);
           While (iLeft < LeftFldr.Count) Or (iRight < RightFldr.Count) Do
             Begin
-              Progress(Format('Updating Collection %d''s List', [iCollection + 1]),
+              Progress(Format('Updating Collection "%s" & "%s" List',
+                [LeftFldr.FolderPath, RightFldr.FolderPath]),
                 Max(iLeft, iRight), 'Please wait...');
               If (LeftFldr.Count > iLeft) And (RightFldr.Count > iRight) Then
                 Begin
