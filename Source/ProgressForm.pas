@@ -3,7 +3,7 @@
   This module represents a form for displaying progress.
 
   @Version 1.0
-  @Date    13 Jul 2009
+  @Date    03 Nov 2009
   @Author  David Hoyle
 
 **)
@@ -94,7 +94,7 @@ end;
 **)
 procedure TfrmProgress.Progress(strMessage : String; iCount : Integer; strFileName : String);
 begin
-  If iCount Mod 100 = 0 Then
+  If iCount Mod 10 = 0 Then
     Begin
       lblMessage.Caption := Format('%s... (%d)', [strMessage, iCount]);
       lblFileName.Caption := Format('%s', [strFileName]);

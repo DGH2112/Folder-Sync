@@ -41,9 +41,6 @@ object frmProgress: TfrmProgress
       Width = 482
       Height = 22
       Align = alTop
-      ExplicitLeft = 4
-      ExplicitTop = 4
-      ExplicitWidth = 624
     end
     object lblFileName: TDGHEllipsisLabel
       Left = 9
@@ -51,8 +48,6 @@ object frmProgress: TfrmProgress
       Width = 482
       Height = 28
       Align = alClient
-      ExplicitTop = 112
-      ExplicitHeight = 60
     end
     object pbrProgress: TProgressBar
       Left = 9
