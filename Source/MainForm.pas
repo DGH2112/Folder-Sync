@@ -529,7 +529,8 @@ begin
   DrawBackground(iLAttrCol, bgLeft);
   DrawBackground(iRAttrCol, bgRight);
   R := Item.DisplayRect(drBounds);
-  ilActionImages.Draw(Sender.Canvas, R.Left + 2, R.Top, Item.StateIndex, True);
+  ilActionImages.Draw(Sender.Canvas, R.Left + lvFileList.Column[0].Width Div 2 - 8,
+    R.Top, Item.StateIndex, True);
   For iSubItem := 0 To iRDateCol - 1 Do
     Begin
       SetTextDrawingOptions;
@@ -540,7 +541,6 @@ begin
       FixUpEmptyFilePaths;
       Sender.Canvas.Refresh;
       DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
-      R.Left := R.Right;
     End;
 end;
 
