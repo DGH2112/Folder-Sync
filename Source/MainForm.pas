@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    02 Nov 2009
+  @Date    03 Nov 2009
   @Author  David Hoyle
 
 **)
@@ -113,7 +113,7 @@ type
     procedure actHelpCheckForUpdatesExecute(Sender: TObject);
     procedure actToolsCompareExecute(Sender: TObject);
     procedure actToolsCompareUpdate(Sender: TObject);
-  private
+  Strict Private
     { Private declarations }
     FFolders : TStringList;
     FExclusions : String;
@@ -133,7 +133,7 @@ type
     function GetRegInfo(Reg: TRegistry; strKey, strName: String): String;
     procedure FixUpPanes(fileCompColl : TCompareFoldersCollection);
     procedure InsertListItem(strLPath, strRPath : String; LeftFile,
-      RightFile : TFileRecord; Group : TListGroup; SyncOptions : TSyncOptions);
+      RightFile : TFileRecord; SyncOptions : TSyncOptions);
     procedure FindNextNonSame(Lst: TFileList; var iIndex: Integer);
     procedure SetFileOperation(FileOp: TFileOp);
     procedure DeleteFiles;
@@ -735,7 +735,6 @@ Var
   iRight, iLeft : Integer;
   dblLSize, dblRSize, dblLCount, dblRCount : Double;
   iCollection : Integer;
-  Group : TListGroup;
 
 Begin
   dblLSize := 0;
@@ -745,18 +744,12 @@ Begin
   lvFileList.Items.BeginUpdate;
   Try
     lvFileList.Items.Clear;
-    lvFileList.Groups.Clear;
     For iCollection := 0 To fileCompColl.Count - 1 Do
       With fileCompColl.CompareFolders[iCollection] Do
         Begin
           ProgressPos(fileCompColl.Count + iCollection, 1);
-          If LeftFldr = Nil Then
-            Continue;
-          If RightFldr = Nil Then
-            Continue;
-          Group := lvFileList.Groups.Add;
-          Group.Header := Format('Left: %s, Right: %s', [LeftFldr.FolderPath,
-            RightFldr.FolderPath]);
+          If LeftFldr = Nil Then Continue;
+          If RightFldr = Nil Then Continue;
           If LeftFldr = Nil Then Continue;
           If RightFldr = Nil Then Continue;
           dblLSize := dblLSize + LeftFldr.TotalSize;
@@ -777,7 +770,7 @@ Begin
                     RightFldr[iRight].Filename) = 0 Then
                     Begin
                       InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                        LeftFldr[iLeft], RightFldr[iRight], Group, SyncOptions);
+                        LeftFldr[iLeft], RightFldr[iRight], SyncOptions);
                       FindNextNonSame(LeftFldr, iLeft);
                       FindNextNonSame(RightFldr, iRight);
                     End Else
@@ -785,27 +778,27 @@ Begin
                     RightFldr[iRight].Filename) < 0 Then
                     Begin
                       InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                        LeftFldr[iLeft], Nil, Group, SyncOptions);
+                        LeftFldr[iLeft], Nil, SyncOptions);
                       FindNextNonSame(LeftFldr, iLeft);
                     End Else
                   If AnsiCompareFileName(LeftFldr[iLeft].FileName,
                     RightFldr[iRight].Filename) > 0 Then
                     Begin
                       InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                        Nil, RightFldr[iRight], Group, SyncOptions);
+                        Nil, RightFldr[iRight], SyncOptions);
                       FindNextNonSame(RightFldr, iRight);
                     End;
                 End Else
               If (LeftFldr.Count > iLeft) Then
                 Begin
                   InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                    LeftFldr[iLeft], Nil, Group, SyncOptions);
+                    LeftFldr[iLeft], Nil, SyncOptions);
                   FindNextNonSame(LeftFldr, iLeft);
                 End Else
               If (RightFldr.Count > iRight) Then
                 Begin
                   InsertListItem(LeftFldr.FolderPath, RightFldr.FolderPath,
-                    Nil, RightFldr[iRight], Group, SyncOptions);
+                    Nil, RightFldr[iRight], SyncOptions);
                   FindNextNonSame(RightFldr, iRight);
                 End;
             End;
@@ -861,12 +854,11 @@ End;
   @param   strRPath    as a String
   @param   LeftFile    as a TFileRecord
   @param   RightFile   as a TFileRecord
-  @param   Group       as a TListGroup
   @param   SyncOptions as a TSyncOptions
 
 **)
 Procedure TfrmMainForm.InsertListItem(strLPath, strRPath : String; LeftFile,
-  RightFile : TFileRecord; Group : TListGroup; SyncOptions : TSyncOptions);
+  RightFile : TFileRecord; SyncOptions : TSyncOptions);
 
   (**
 
@@ -904,7 +896,6 @@ Begin
   Item.ImageIndex := -1;
   // Action
   Item.Caption := '';
-  Item.GroupID := Group.GroupID;
   // Left File
   If LeftFile <> Nil Then
     Begin
