@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    27 Oct 2009
+  @Date    03 Nov 2009
   @Version 1.0
   @Author  David Hoyle
 
@@ -22,7 +22,8 @@ type
     fsoNoConfirmation,
     fsoDoNotConfirmMkDir,
     fsoShowSimpleProgress,
-    fsoStartProcessingAutomatically
+    fsoStartProcessingAutomatically,
+    fsoHideLongFileNames
   );
 
   (** A set of folder sync options. **)
@@ -105,7 +106,8 @@ Const
     'Respond with "Yes to All" for any dialogue boxes that are displayed.',
     'Do not confirm the creation of a new directories if the operation requires one to be created.',
     'Display a progress dialogue box but do not show the file names.',
-    'Start processing the files after comparison automatically (DANGEROUS!).'
+    'Start processing the files after comparison automatically (DANGEROUS!).',
+    'Hide file that are too long to copy or delete.'
   );
 
 { TfrmOptions }

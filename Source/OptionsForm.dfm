@@ -53,6 +53,10 @@ object frmOptions: TfrmOptions
     TabOrder = 2
     object pgFolderList: TTabSheet
       Caption = 'Folder List'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         610
         379)
@@ -122,6 +126,10 @@ object frmOptions: TfrmOptions
     object pgExclusions: TTabSheet
       Caption = 'E&xclusions'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         610
         379)
@@ -139,6 +147,10 @@ object frmOptions: TfrmOptions
     object tabCompareFiles: TTabSheet
       Caption = '&Compare'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         610
         379)
@@ -172,6 +184,10 @@ object frmOptions: TfrmOptions
     object tabAdvancedOptions: TTabSheet
       Caption = '&Advanced Options'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         610
         379)
