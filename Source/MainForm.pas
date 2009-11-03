@@ -892,6 +892,10 @@ Var
   strFileName : String;
 
 Begin
+  If fsoHideLongFileNames In FFldrSyncOptions Then
+    If ((LeftFile <> Nil) And (LeftFile.Status = stTooLong)) Or
+      ((RightFile <> Nil) And (RightFile.Status = stTooLong)) Then
+      Exit;
   Item := lvFileList.Items.Add;
   Item.ImageIndex := -1;
   // Action
