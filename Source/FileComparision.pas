@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    02 Nov 2009
+  @Date    03 Nov 2009
   @Author  David Hoyle
 
 **)
@@ -268,7 +268,7 @@ end;
   @param   ProgressProc  as a TProgressMsgProc
   @param   strExclusions as a String
 
-**)
+**)                                          
 constructor TFileList.Create(strFolderPath, strFileFilter: String;
   ProgressProc : TProgressMsgProc; strExclusions : String);
 
@@ -291,7 +291,8 @@ begin
   FProgressProc := ProgressProc;
   FExclusions := TStringList.Create;
   FExclusions.Text := LowerCase(strExclusions);
-  DoProgress('Buidling list', 0, strFolderPath + '\' + strFileFilter);
+  DoProgress(Format('Buidling list for "%s"', [strFolderPath + strFileFilter]),
+    0, 'Please wait...');
   If Length(FolderPath) = 0 Then
     Exit;
   RecurseFolder(FFolderPath);
@@ -451,12 +452,17 @@ begin
                               Else
                                 iFirst := iMid + 1;
                             End;
-                          FFiles.Insert(iFirst,
-                            TFileRecord.Create(strFCName, rec.Size, rec.Attr,
-                            rec.Time, stNewer));
+                          If Length(strFileName) < MAX_PATH Then
+                            FFiles.Insert(iFirst,
+                              TFileRecord.Create(strFCName, rec.Size, rec.Attr,
+                              rec.Time, stNewer))
+                          Else
+                            FFiles.Insert(iFirst,
+                              TFileRecord.Create(strFCName, rec.Size, rec.Attr,
+                              rec.Time, stTooLong));
                           Inc(FTotalSize, rec.Size);
-                          DoProgress('Searching for files', Count,
-                            FFolderPath + Files[iFirst].FileName);
+                          DoProgress(Format('Searching for files in "%s"', [FFolderPath]),
+                            Count, FFolderPath + Files[iFirst].FileName);
                         End;
                     End;
                   iRes := FindNext(rec);
@@ -548,9 +554,6 @@ End;
 **)
 procedure TCompareFolders.CompareFolders;
 
-Const
-  iMaxFilePath = MAX_PATH;
-
 Var
   iLeft, iRight : Integer;
   iTimeDifference : Integer;
@@ -560,38 +563,36 @@ begin
   For iLeft := 0 To LeftFldr.Count - 1 Do
     Begin
       If Assigned(FProgressProc) Then
-        FProgressProc('Comparing Folders', iLeft, LeftFldr[iLeft].FileName);
+        FProgressProc(Format('Comparing Folders "%s" to "%s"', [LeftFldr.FolderPath,
+          RightFldr.FolderPath]), iLeft, LeftFldr[iLeft].FileName);
       iRight := RightFldr.Find(LeftFldr[iLeft].FileName);
       If iRight > -1 Then
-        If (Length(LeftFldr[iLeft].FileName) < iMaxFilePath) And
-          (Length(RightFldr[iRight].FileName) < iMaxFilePath) Then
-          Begin
-            iTimeDifference := LeftFldr[iLeft].DateTime - RightFldr[iRight].DateTime;
-            iSizeDifference := LeftFldr[iLeft].Size - RightFldr[iRight].Size;
-            If CheckDifference(iTimeDifference, iSizeDifference, cdNewer) Then
-              Begin
-                LeftFldr[iLeft].Status := stNewer;
-                RightFldr[iRight].Status := stOlder;
-              End Else
-            If CheckDifference(iTimeDifference, iSizeDifference, cdOlder) Then
-              Begin
-                LeftFldr[iLeft].Status := stOlder;
-                RightFldr[iRight].Status := stNewer;
-              End Else
-            If iSizeDifference = 0 Then
-              Begin
-                LeftFldr[iLeft].Status := stSame;
-                RightFldr[iRight].Status := stSame;
-              End Else
-              Begin
-                LeftFldr[iLeft].Status := stDiffSize;
-                RightFldr[iRight].Status := stDiffSize;
-              End;
-          End Else
-          Begin
-            LeftFldr[iLeft].Status := stTooLong;
-            RightFldr[iRight].Status := stTooLong;
-          End;
+        Begin
+          If (LeftFldr[iLeft].Status <> stTooLong) And (RightFldr[iRight].Status <> stTooLong) Then
+            Begin
+              iTimeDifference := LeftFldr[iLeft].DateTime - RightFldr[iRight].DateTime;
+              iSizeDifference := LeftFldr[iLeft].Size - RightFldr[iRight].Size;
+              If CheckDifference(iTimeDifference, iSizeDifference, cdNewer) Then
+                Begin
+                  LeftFldr[iLeft].Status := stNewer;
+                  RightFldr[iRight].Status := stOlder;
+                End Else
+              If CheckDifference(iTimeDifference, iSizeDifference, cdOlder) Then
+                Begin
+                  LeftFldr[iLeft].Status := stOlder;
+                  RightFldr[iRight].Status := stNewer;
+                End Else
+              If iSizeDifference = 0 Then
+                Begin
+                  LeftFldr[iLeft].Status := stSame;
+                  RightFldr[iRight].Status := stSame;
+                End Else
+                Begin
+                  LeftFldr[iLeft].Status := stDiffSize;
+                  RightFldr[iRight].Status := stDiffSize;
+                End;
+            End;
+        End;
     End;
 end;
 
