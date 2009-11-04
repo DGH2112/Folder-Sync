@@ -891,6 +891,7 @@ Const
 Var
   Item : TListItem;
   strFileName : String;
+  boolTooLong : Boolean;
 
 Begin
   If fsoHideLongFileNames In FFldrSyncOptions Then
@@ -898,6 +899,7 @@ Begin
       ((RightFile <> Nil) And (RightFile.Status = stTooLong)) Then
       Exit;
   Item := lvFileList.Items.Add;
+  boolTooLong := False;
   Item.ImageIndex := -1;
   // Action
   Item.Caption := '';
@@ -916,6 +918,8 @@ Begin
       Item.SubItems.Add('');
       Item.SubItems.Add('');
       Item.SubItems.Add('');
+      If Length(strLPath + RightFile.FileName) >= MAX_PATH Then
+        boolTooLong := True;
     End;
   // Right File
   If RightFile <> Nil Then
@@ -932,10 +936,14 @@ Begin
       Item.SubItems.Add('');
       Item.SubItems.Add('');
       Item.SubItems.Add('');
+      If Length(strRPath + LeftFile.FileName) >= MAX_PATH Then
+        boolTooLong := True;
     End;
   Item.SubItems.Add(strLPath + strFileName);
   Item.SubItems.Add(strRPath + strFileName);
   OperationStatus(LeftFile, RightFile, Item, SyncOptions);
+  If boolTooLong Then
+    Item.StateIndex := Integer(foCanNotCopy);
   ImageIndexes(strLPath, strRPath, LeftFile, RightFile, Item);
 End;
 
