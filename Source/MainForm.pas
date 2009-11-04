@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    03 Nov 2009
+  @Date    04 Nov 2009
   @Author  David Hoyle
 
 **)
@@ -1558,6 +1558,12 @@ begin
         (Pos('R', Item.SubItems[iRAttrCol - 1]) = 0) Then
         Item.StateIndex := Integer(foNothing);
   End;
+  If soPrimaryLeft In SyncOptions Then
+    If Item.StateIndex = Integer(foRightToLeft) Then
+      Item.StateIndex := Integer(foNothing);
+  If soPrimaryRight In SyncOptions Then
+    If Item.StateIndex = Integer(foLeftToRight) Then
+      Item.StateIndex := Integer(foNothing);
 end;
 
 (**
