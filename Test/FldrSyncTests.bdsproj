@@ -123,7 +123,7 @@
 			<Directories Name="UnitOutputDir">.\DCUs\</Directories>
 			<Directories Name="PackageDLLOutputDir"></Directories>
 			<Directories Name="PackageDCPOutputDir"></Directories>
-			<Directories Name="SearchPath">$(BDSPROJECTSDIR)\Library\DUnit\src;$(BDSPROJECTSDIR)\Library\JCL\source;$(BDSPROJECTSDIR)\Library\JCL\source\common;$(BDSPROJECTSDIR)\Library\JCL\source\windows;$(BDS)\Source\DUnit\src</Directories>
+			<Directories Name="SearchPath">$(BDSPROJECTSDIR)\Library\DUnit\src;$(BDSPROJECTSDIR)\Library\JCL\source;$(BDSPROJECTSDIR)\Library\JCL\source\common;$(BDSPROJECTSDIR)\Library\JCL\source\windows;$(BDS)\Source\DUnit\src;$(BDSPROJECTSDIR)\Library\JCL\source\Include</Directories>
 			<Directories Name="Packages"></Directories>
 			<Directories Name="Conditionals">CONSOLE_TESTRUNNER;EUREKALOG;EUREKALOG_VER6;USE_JEDI_JCL</Directories>
 			<Directories Name="DebugSourceDirs"></Directories>
@@ -177,7 +177,7 @@
 		<TestFramework>DUnit / Delphi Win32</TestFramework>
 		<TestRunner>GUI</TestRunner>
 	</UnitTesting>
-<!-- EurekaLog First Line
+	<!-- EurekaLog First Line
 [Exception Log]
 EurekaLog Version=6019
 Activate=1
