@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    04 Nov 2009
+  @Date    27 Dec 2009
   @Author  David Hoyle
 
 **)
@@ -671,27 +671,36 @@ begin
   If Not CheckFolders Then
     Exit;
   frmProgress.RegisterSections(FFolders.Count * 2 * 3);
-  fileCompColl := TCompareFoldersCollection.Create(FFolders,
-    Progress, ProgressPos, FExclusions);
+  lvFileList.Items.BeginUpdate;
   Try
-    FixUpPanes(fileCompColl);
-    If (fsoCloseIFNoFilesAfterComparison In FFldrSyncOptions) And
-      (lvFileList.Items.Count = 0) Then
-      Begin
-        frmProgress.Progress('Auto-exiting application...',
-          0, 'as there are no more files to process...');
-        Sleep(2000);
-        Close;
-      End;
-    If (fsoStartProcessingAutomatically In FFldrSyncOptions) And Not FAutoProcessing Then
-      Try
-        FAutoProcessing := True;
-        actFileProcessFilesExecute(Sender);
-      Finally
-        FAutoProcessing := False;
-      End;
+    lvFileList.Clear;
   Finally
-    fileCompColl.Free;
+    lvFileList.Items.EndUpdate;
+  End;
+  Try
+    fileCompColl := TCompareFoldersCollection.Create;
+    Try
+      fileCompColl.BuildFileLists(FFolders, Progress, ProgressPos, FExclusions);
+      FixUpPanes(fileCompColl);
+      If (fsoCloseIFNoFilesAfterComparison In FFldrSyncOptions) And
+        (lvFileList.Items.Count = 0) Then
+        Begin
+          frmProgress.Progress('Auto-exiting application...',
+            0, 'as there are no more files to process...');
+          Sleep(2000);
+          Close;
+        End;
+      If (fsoStartProcessingAutomatically In FFldrSyncOptions) And Not FAutoProcessing Then
+        Try
+          FAutoProcessing := True;
+          actFileProcessFilesExecute(Sender);
+        Finally
+          FAutoProcessing := False;
+        End;
+    Finally
+      fileCompColl.Free;
+    End;
+  Finally
     frmProgress.Hide;
   End;
 end;
@@ -743,7 +752,6 @@ Begin
   dblRCount := 0;
   lvFileList.Items.BeginUpdate;
   Try
-    lvFileList.Items.Clear;
     For iCollection := 0 To fileCompColl.Count - 1 Do
       With fileCompColl.CompareFolders[iCollection] Do
         Begin
