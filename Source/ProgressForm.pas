@@ -3,7 +3,7 @@
   This module represents a form for displaying progress.
 
   @Version 1.0
-  @Date    03 Nov 2009
+  @Date    27 Dec 2009
   @Author  David Hoyle
 
 **)
@@ -13,7 +13,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ExtCtrls, StdCtrls, DGHEllipsisLabel, ComCtrls;
+  ExtCtrls, StdCtrls, DGHEllipsisLabel, ComCtrls, Buttons;
 
 type
   (** A class to represents a form for displaying progress. **)
@@ -22,8 +22,12 @@ type
     lblMessage: TDGHEllipsisLabel;
     lblFileName: TDGHEllipsisLabel;
     pbrProgress: TProgressBar;
+    btnCancel: TBitBtn;
+    procedure btnCancelClick(Sender: TObject);
   private
     { Private declarations }
+    FAbort: Boolean;
+    Procedure CheckForCancel;
   public
     { Public declarations }
     Procedure Progress(strMessage : String; iCount : Integer;
@@ -46,6 +50,28 @@ implementation
 
 (**
 
+  This method checks for the cancellation of the process and confirms that is
+  what is required.
+
+  @precon  None.
+  @postcon Checks for the cancellation of the process and confirms that is
+           what is required.
+
+**)
+procedure TfrmProgress.CheckForCancel;
+
+Const
+  strMsg = 'Are you sure you want to cancel this operation?';
+begin
+  If FAbort Then
+    Case MessageDlg(strMsg, mtConfirmation, [mbYes, mbNo], 0) Of
+      mrYes: Abort;
+      mrNo: FAbort := False;
+    End;
+end;
+
+(**
+
   This method updates the position of the progress bar.
 
   @precon  Position must be between 0 and Max inclusive.
@@ -57,8 +83,10 @@ implementation
 procedure TfrmProgress.Progress(iPosition: Integer);
 
 begin
+  SetFocus;
   pbrprogress.Position := iPosition;
   Application.ProcessMessages;
+  CheckForCancel;
 end;
 
 (**
@@ -77,6 +105,22 @@ Procedure TfrmProgress.RegisterSections(iSections : Integer);
 begin
   pbrProgress.Position := 0;
   pbrProgress.Max := iSections;
+  FAbort := False;
+end;
+
+(**
+
+  This is an on click event handler for the Cancel button.
+
+  @precon  None.
+  @postcon Sets the cancellation of the processing.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmProgress.btnCancelClick(Sender: TObject);
+begin
+  FAbort := True;
 end;
 
 (**
@@ -96,9 +140,11 @@ procedure TfrmProgress.Progress(strMessage : String; iCount : Integer; strFileNa
 begin
   If iCount Mod 10 = 0 Then
     Begin
+      SetFocus;
       lblMessage.Caption := Format('%s... (%d)', [strMessage, iCount]);
       lblFileName.Caption := Format('%s', [strFileName]);
       Application.ProcessMessages;
+      CheckForCancel;
     End;
 end;
 
