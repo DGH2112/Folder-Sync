@@ -124,6 +124,7 @@ type
     FCompareEXE : String;
     FFldrSyncOptions: TFldrSyncOptions;
     FAutoProcessing: Boolean;
+    FCloseTimer : TTimer;
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure ApplicationHint(Sender  : TObject);
@@ -144,6 +145,7 @@ type
     procedure ImageIndexes(strLPath, strRPath : String; LeftFile,
       RightFile : TFileRecord; Item: TListItem);
     Procedure ExceptionProc(strExceptionMsg : String);
+    Procedure CloseTimerEvent(Sender : TObject);
   end;
 
   (** This is a custon exception for folders not found or created. **)
@@ -600,6 +602,10 @@ procedure TfrmMainForm.FormCreate(Sender: TObject);
 
 begin
   FParams := TStringList.Create;
+  FCloseTimer := TTimer.Create(Nil);
+  FCloseTimer.Enabled := False;
+  FCloseTimer.Interval := 2000;
+  FCloseTimer.OnTimer := CloseTimerEvent;
   FRootKey := BuildRootKey(FParams, ExceptionProc);
   TfrmAbout.ShowAbout(FRootKey);
   actHelpCheckForUpdatesExecute(Nil);
@@ -630,6 +636,7 @@ begin
   FIconFiles.Free;
   frmProgress.Free;
   FFolders.Free;
+  FCloseTimer.Free;
   FParams.Free;
 end;
 
@@ -687,8 +694,7 @@ begin
         Begin
           frmProgress.Progress('Auto-exiting application...',
             0, 'as there are no more files to process...');
-          Sleep(2000);
-          Close;
+          FCloseTimer.Enabled := True;
         End;
       If (fsoStartProcessingAutomatically In FFldrSyncOptions) And Not FAutoProcessing Then
         Try
@@ -701,7 +707,8 @@ begin
       fileCompColl.Free;
     End;
   Finally
-    frmProgress.Hide;
+    If Not FCloseTimer.Enabled Then
+      frmProgress.Hide;
   End;
 end;
 
@@ -1517,6 +1524,21 @@ begin
         CheckAndCreateFolder(FFolders.ValueFromIndex[i]);
       End;
   Result := True;
+end;
+
+(**
+
+  This is an on timer event handler.
+
+  @precon  None.
+  @postcon Closes the application.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmMainForm.CloseTimerEvent(Sender: TObject);
+begin
+  Close;
 end;
 
 (**
