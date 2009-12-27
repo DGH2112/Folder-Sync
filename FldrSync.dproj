@@ -123,6 +123,7 @@
 						<Parameters Name="LoadAllSymbols">True</Parameters>
 						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
 						<Parameters Name="DebugCWD">E:\HoylD\Borland Studio Projects\Applications\Folder Sync</Parameters>
+						<Parameters Name="RunParams">/@[Test.ini]</Parameters>
 					</Parameters>
 					<Language>
 						<Language Name="ProjectLang">$00000809</Language>
@@ -132,8 +133,8 @@
 						<VersionInfo Name="AutoIncBuild">False</VersionInfo>
 						<VersionInfo Name="MajorVer">1</VersionInfo>
 						<VersionInfo Name="MinorVer">0</VersionInfo>
-						<VersionInfo Name="Release">19</VersionInfo>
-						<VersionInfo Name="Build">228</VersionInfo>
+						<VersionInfo Name="Release">20</VersionInfo>
+						<VersionInfo Name="Build">252</VersionInfo>
 						<VersionInfo Name="Debug">True</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -145,7 +146,7 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName">Season&apos;s Fall Music Limited (c) 1989</VersionInfoKeys>
 						<VersionInfoKeys Name="FileDescription">Folder Sync</VersionInfoKeys>
-						<VersionInfoKeys Name="FileVersion">1.0.19.228</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">1.0.20.252</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName">Folder Sync</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalCopyright">Season&apos;s Fall Music Limited (c) 1989</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalTrademarks">Season&apos;s Fall Music Limited (c) 1989</VersionInfoKeys>
