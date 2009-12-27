@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    03 Nov 2009
+  @Date    27 Dec 2009
   @Author  David Hoyle
 
 **)
@@ -183,9 +183,11 @@ Type
     function GetCompareFolders(iIndex: Integer): TCompareFolders;
   Strict Protected
   Public
-    Constructor Create(slFolders : TStringList; ProgressProc : TProgressMsgProc;
-      ProgressPosProc : TProgressPosProc; strExclusions : String); Virtual;
+    Constructor Create; Virtual;
     Destructor Destroy; Override;
+    Procedure BuildFileLists(slFolders : TStringList;
+      ProgressProc : TProgressMsgProc;
+      ProgressPosProc : TProgressPosProc; strExclusions : String);
     (**
       This property returns an indexed CompareFolders class.
       @precon  The index but be between 0 and Count - 1.
@@ -658,10 +660,10 @@ end;
 
 (**
 
-  This is the constructor method for the TCompareFolderCollection class.
+  This method starts the recursion of the folders for each folder pairing.
 
   @precon  slFolders must contain pairs folders fld1=fld2 etc.
-  @postcon Creates an instance of the compare folder clases for each pairing.
+  @postcon Creates an instance of the compare folder classes for each pairing.
 
   @param   slFolders       as a TStringList
   @param   ProgressProc    as a TProgressMsgProc
@@ -669,15 +671,14 @@ end;
   @param   strExclusions   as a String
 
 **)
-constructor TCompareFoldersCollection.Create(slFolders: TStringList;
-  ProgressProc : TProgressMsgProc; ProgressPosProc : TProgressPosProc;
-  strExclusions : String);
+procedure TCompareFoldersCollection.BuildFileLists(slFolders: TStringList;
+  ProgressProc: TProgressMsgProc; ProgressPosProc: TProgressPosProc;
+  strExclusions: String);
 
 Var
   i : Integer;
 
 begin
-  FCompareFolders := TObjectList.Create(True);
   For i := 0 To slFolders.Count - 1 Do
     Begin
       If soEnabled In TSyncOptions(Byte(slFolders.Objects[i])) Then
@@ -695,6 +696,20 @@ begin
           )
         );
     End;
+end;
+
+(**
+
+  This is the constructor method for the TCompareFolderCollection class.
+
+  @precon  None.
+  @postcon Creates a collection for the folder lists.
+
+**)
+constructor TCompareFoldersCollection.Create();
+
+begin
+  FCompareFolders := TObjectList.Create(True);
 end;
 
 (**
