@@ -3,7 +3,7 @@
   This module represents a form for displaying progress.
 
   @Version 1.0
-  @Date    27 Dec 2009
+  @Date    14 Feb 2010
   @Author  David Hoyle
 
 **)
@@ -136,12 +136,14 @@ end;
   @param   strFileName as a String
 
 **)
-procedure TfrmProgress.Progress(strMessage : String; iCount : Integer; strFileName : String);
+procedure TfrmProgress.Progress(strMessage : String; iCount : Integer;
+  strFileName : String);
+
 begin
   If iCount Mod 10 = 0 Then
     Begin
       SetFocus;
-      lblMessage.Caption := Format('%s... (%d)', [strMessage, iCount]);
+      lblMessage.Caption := Format('%s... (%1.0n)', [strMessage, Int(iCount)]);
       lblFileName.Caption := Format('%s', [strFileName]);
       Application.ProcessMessages;
       CheckForCancel;
