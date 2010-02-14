@@ -4,7 +4,7 @@
   files.
 
   @Version 1.0
-  @Date    27 Dec 2009
+  @Date    14 Feb 2010
   @Author  David Hoyle
 
 **)
@@ -26,15 +26,15 @@ Type
   (** A record to describe a single file. **)
   TFileRecord = Class
   Strict Private
-    FFileName : String;
-    FSize : Integer;
+    FFileName   : String;
+    FSize       : Int64;
     FAttributes : Integer;
-    FDateTime : Integer;
-    FStatus : TStatus;
+    FDateTime   : Integer;
+    FStatus     : TStatus;
   Strict Protected
     Procedure SetStatus(Status : TStatus);
   Public
-    Constructor Create(strName : String; iSize, iAttributes : Integer;
+    Constructor Create(strName : String; iSize : Int64; iAttributes,
       dtDateTime : Integer; Status : TStatus); Virtual;
     (**
       A property to return the filename of the file in this class.
@@ -47,9 +47,9 @@ Type
       A property to return the size of the file in this class.
       @precon  None.
       @postcon Returns the size of the file in the file record.
-      @return  an Integer
+      @return  an Int64
     **)
-    Property Size : Integer Read FSize;
+    Property Size : Int64 Read FSize;
     (**
       A property to return the attributes of the file in this class.
       @precon  None.
@@ -223,14 +223,14 @@ Uses
            a status.
 
   @param   strName     as a String
-  @param   iSize       as an Integer
+  @param   iSize       as an Int64
   @param   iAttributes as an Integer
   @param   dtDateTime  as an Integer
   @param   Status      as a TStatus
 
 **)
-constructor TFileRecord.Create(strName : String; iSize, iAttributes : Integer;
-  dtDateTime : Integer; Status : TStatus);
+constructor TFileRecord.Create(strName : String; iSize : Int64;
+  iAttributes, dtDateTime : Integer; Status : TStatus);
 begin
   FFileName := strName;
   FSize := iSize;
