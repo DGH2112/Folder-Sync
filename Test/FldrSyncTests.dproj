@@ -20,11 +20,12 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_UNIT_PLATFORM>false</DCC_UNIT_PLATFORM>
 			<DCC_UnitSearchPath>$(BDSPROJECTSDIR)\Library\JCL\source;$(BDSPROJECTSDIR)\Library\JCL\source\common;$(BDSPROJECTSDIR)\Library\JCL\source\windows;C:\Program Files\CodeGear\RAD Studio\6.0\source\dUnit\src;..\..\..\LIBRARY\JCL\source\include;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<DCC_Platform>x86</DCC_Platform>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
 			<DCC_DependencyCheckOutputName>FldrSyncTests.exe</DCC_DependencyCheckOutputName>
-			<DCC_Define>CONSOLE_TESTRUNNER;EUREKALOG;EUREKALOG_VER6;USE_JEDI_JCL;$(DCC_Define)</DCC_Define>
+			<DCC_Define>CONSOLE_TESTRUNNER;EUREKALOG;EUREKALOG_VER6;$(DCC_Define)</DCC_Define>
 			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;$(DCC_UnitAlias)</DCC_UnitAlias>
 			<DCC_SYMBOL_PLATFORM>false</DCC_SYMBOL_PLATFORM>
 			<DCC_Optimize>false</DCC_Optimize>
@@ -129,7 +130,7 @@
 
 <!-- EurekaLog First Line
 [Exception Log]
-EurekaLog Version=6020
+EurekaLog Version=6021
 Activate=1
 Activate Handle=1
 Save Log File=1
