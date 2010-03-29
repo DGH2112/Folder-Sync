@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    24 Feb 2008
+  @Date    29 Mar 2010
 
 **)
 unit About;
@@ -123,10 +123,10 @@ end;
   @postcon Extracts and display the applications version number present within
            the EXE file.
 
-  @param   iMajor  as an Integer
-  @param   iMinor  as an Integer
-  @param   iBugFix as an Integer
-  @param   iBuild  as an Integer
+  @param   iMajor  as an Integer as a reference
+  @param   iMinor  as an Integer as a reference
+  @param   iBugFix as an Integer as a reference
+  @param   iBuild  as an Integer as a reference
 
 **)
 Procedure TfrmAbout.BuildNumber(var iMajor, iMinor, iBugFix, iBuild : Integer);
@@ -214,7 +214,7 @@ End;
 procedure TfrmAbout.FormCreate(Sender: TObject);
 
 Const
-  strBugfixes = ' abcedfghijklmnopqrstuvwxyz';
+  strBugfixes = ' abcdefghijklmnopqrstuvwxyz';
 
 Var
   strName : String;
