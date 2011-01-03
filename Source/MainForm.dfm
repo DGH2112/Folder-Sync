@@ -2,11 +2,11 @@ object frmMainForm: TfrmMainForm
   Left = 429
   Top = 289
   Caption = 'Folder Sync'
-  ClientHeight = 600
-  ClientWidth = 770
+  ClientHeight = 738
+  ClientWidth = 948
   Color = clBtnFace
-  Constraints.MinHeight = 480
-  Constraints.MinWidth = 640
+  Constraints.MinHeight = 591
+  Constraints.MinWidth = 788
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -44,11 +44,11 @@ object frmMainForm: TfrmMainForm
   OnDestroy = FormDestroy
   OnResize = FormResize
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 16
   object tbrToolBar: TToolBar
     Left = 0
     Top = 0
-    Width = 770
+    Width = 948
     Height = 30
     AutoSize = True
     BorderWidth = 2
@@ -143,9 +143,13 @@ object frmMainForm: TfrmMainForm
   end
   object stbrStatusBar: TStatusBar
     Left = 0
-    Top = 581
-    Width = 770
+    Top = 719
+    Width = 948
     Height = 19
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Panels = <
       item
         Width = 50
@@ -157,8 +161,12 @@ object frmMainForm: TfrmMainForm
   object lvFileList: TListView
     Left = 0
     Top = 30
-    Width = 770
-    Height = 551
+    Width = 948
+    Height = 689
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Align = alClient
     Columns = <
       item
@@ -170,54 +178,46 @@ object frmMainForm: TfrmMainForm
       item
         Caption = 'Filename'
         MinWidth = 50
-        Width = 100
+        Width = 123
       end
       item
         Caption = 'Attr'
-        Width = 40
+        Width = 49
       end
       item
         Alignment = taRightJustify
         Caption = 'Size'
-        MaxWidth = 85
-        MinWidth = 85
         Width = 85
       end
       item
         Alignment = taRightJustify
         Caption = 'Date'
-        MaxWidth = 150
-        MinWidth = 150
         Width = 150
       end
       item
         Caption = 'Filename'
         MinWidth = 50
-        Width = 100
+        Width = 123
       end
       item
         Caption = 'Attr'
-        Width = 40
+        Width = 49
       end
       item
         Alignment = taRightJustify
         Caption = 'Size'
-        MaxWidth = 85
-        MinWidth = 85
         Width = 85
       end
       item
         Alignment = taRightJustify
         Caption = 'Date'
-        MaxWidth = 150
-        MinWidth = 150
         Width = 150
       end>
     ColumnClick = False
     DoubleBuffered = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -13
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     HideSelection = False
@@ -309,7 +309,7 @@ object frmMainForm: TfrmMainForm
     Left = 32
     Top = 136
     Bitmap = {
-      494C01010E001300040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010E001300200010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

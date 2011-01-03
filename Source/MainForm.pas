@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    27 Dec 2009
+  @Date    03 Jan 2011
   @Author  David Hoyle
 
 **)
@@ -152,9 +152,6 @@ type
   TFolderNotFoundException = Class(Exception);
 
 ResourceString
-  (** A resource string for the Update URLs **)
-  strUpdateURLs = 'http://www.hoyld.freeserve.co.uk/HoylD.xml|' +
-    'C:\Documents and Settings\HoylD\My Documents\Web Page\HoylD.xml';
   (** A resource string for the Update Software ID **)
   strSoftwareID = 'FldrSync';
 
@@ -229,8 +226,8 @@ Var
 begin
   With lvFileList Do
     Begin
-      i := Width Div 2 - Column[0].Width Div 2 - Column[iLAttrCol].Width -
-        Column[iLSizeCol].Width - Column[iLDateCol].Width - 11;
+      i := ClientWidth Div 2 - Column[0].Width Div 2 - Column[iLAttrCol].Width -
+        Column[iLSizeCol].Width - Column[iLDateCol].Width - 2;
       If i > 0 Then
         Begin
           Column[iLDisplayCol].Width := i;
@@ -263,6 +260,15 @@ begin
       Left := ReadInteger('Setup', 'Left', 100);
       Height := ReadInteger('Setup', 'Height', 300);
       Width := ReadInteger('Setup', 'Width', 450);
+      lvFileList.Column[iLAttrCol].Width := ReadInteger('ColumnWidths', 'LAttr', 50);
+      lvFileList.Column[iLSizeCol].Width := ReadInteger('ColumnWidths', 'LSize', 85);
+      lvFileList.Column[iLDateCol].Width := ReadInteger('ColumnWidths', 'LDAte', 150);
+      lvFileList.Column[iRAttrCol].Width := ReadInteger('ColumnWidths', 'RAttr', 50);
+      lvFileList.Column[iRSizeCol].Width := ReadInteger('ColumnWidths', 'RSize', 85);
+      lvFileList.Column[iRDateCol].Width := ReadInteger('ColumnWidths', 'RDate', 150);
+      lvFileList.Font.Name := ReadString('ListViewFont', 'Name', 'Tahoma');
+      lvFileList.Font.Size := ReadInteger('ListViewFont', 'Size', 9);
+      lvFileList.Font.Style := TFontStyles(Byte(ReadInteger('ListViewFont', 'Style', 0)));
       WindowState := TWindowState(ReadInteger('Setup', 'WindowState', Byte(wsNormal)));
       FCompareEXE := ReadString('Setup', 'CompareEXE', '');
       iDefault := [fsoDoNotConfirmMkDir];
@@ -572,6 +578,15 @@ begin
         recWndPlmt.rcNormalPosition.Bottom - recWndPlmt.rcNormalPosition.Top);
       WriteInteger('Setup', 'Width',
         recWndPlmt.rcNormalPosition.Right - recWndPlmt.rcNormalPosition.Left);
+      WriteInteger('ColumnWidths', 'LAttr', lvFileList.Column[iLAttrCol].Width);
+      WriteInteger('ColumnWidths', 'LSize', lvFileList.Column[iLSizeCol].Width);
+      WriteInteger('ColumnWidths', 'LDAte', lvFileList.Column[iLDateCol].Width);
+      WriteInteger('ColumnWidths', 'RAttr', lvFileList.Column[iRAttrCol].Width);
+      WriteInteger('ColumnWidths', 'RSize', lvFileList.Column[iRSizeCol].Width);
+      WriteInteger('ColumnWidths', 'RDate', lvFileList.Column[iRDateCol].Width);
+      WriteString('ListViewFont', 'Name', lvFileList.Font.Name);
+      WriteInteger('ListViewFont', 'Size', lvFileList.Font.Size);
+      WriteInteger('ListViewFont', 'Style', Byte(lvFileList.Font.Style));
       WriteInteger('Setup', 'WindowState', Byte(WindowState));
       WriteString('Setup', 'CompareEXE', FCompareEXE);
       WriteInteger('Setup', 'FldrSyncOptions', Byte(FFldrSyncOptions));
@@ -1176,7 +1191,7 @@ end;
 procedure TfrmMainForm.actToolsOptionsExecute(Sender: TObject);
 begin
   If TfrmOptions.Execute(FFolders, FExclusions, FCompareEXE, FRootKey,
-    FFldrSyncOptions) Then
+    FFldrSyncOptions, lvFileList.Font) Then
     actFileCompareExecute(Self);
 end;
 
