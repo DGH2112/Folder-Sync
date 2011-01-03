@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    03 Nov 2009
+  @Date    03 Jan 2011
   @Version 1.0
   @Author  David Hoyle
 
@@ -52,8 +52,14 @@ type
     lblCompareFiles: TLabel;
     btnBrowse: TButton;
     dlgOpen: TOpenDialog;
-    tabAdvancedOptions: TTabSheet;
     lbxAdvancedOptions: TCheckListBox;
+    lblAdvancedOptions: TLabel;
+    lblFontName: TLabel;
+    cbxFontName: TComboBox;
+    lblFontSize: TLabel;
+    cbxFontSize: TComboBox;
+    cbxFontStyle: TComboBox;
+    lblFontStyle: TLabel;
     procedure lvFoldersResize(Sender: TObject);
     procedure btnAddClick(Sender: TObject);
     procedure btnEditClick(Sender: TObject);
@@ -88,7 +94,7 @@ type
     { Public declarations }
     Class Function Execute(var slFolders : TStringList; var strExclusions,
       strCompareEXE :String; strRootKey : String;
-      var FldrSyncOps : TFldrSyncOptions) : Boolean;
+      var FldrSyncOps : TFldrSyncOptions; AFont : TFont) : Boolean;
     Constructor CreateWithRootKey(AOwner : TComponent; strRootKey : String); Virtual;
   end;
 
@@ -126,12 +132,13 @@ Const
   @param   strCompareEXE as a String as a reference
   @param   strRootKey    as a String
   @param   FldrSyncOps   as a TFldrSyncOptions as a reference
+  @param   AFont         as a TFont
   @return  a Boolean
 
 **)
 class function TfrmOptions.Execute(var slFolders : TStringList;
   var strExclusions, strCompareEXE : String; strRootKey : String;
-  var FldrSyncOps : TFldrSyncOptions): Boolean;
+  var FldrSyncOps : TFldrSyncOptions; AFont : TFont): Boolean;
 
 Var
   i : Integer;
@@ -153,6 +160,15 @@ begin
           iIndex := lbxAdvancedOptions.Items.Add(strFldrSyncOptions[iOption]);
           lbxAdvancedOptions.Checked[iIndex] := iOption In FldrSyncOps;
         End;
+      cbxFontName.ItemIndex := cbxFontName.Items.IndexOf(AFont.Name);
+      cbxFontSize.ItemIndex := cbxFontSize.Items.IndexOf(IntToStr(AFont.Size));
+      cbxFontStyle.ItemIndex := 0;
+      If AFont.Style = [fsItalic] Then
+        cbxFontStyle.ItemIndex := 1
+      Else If AFont.Style = [fsBold] Then
+        cbxFontStyle.ItemIndex := 2
+      Else If AFont.Style = [fsItalic, fsBold] Then
+        cbxFontStyle.ItemIndex := 3;
       If ShowModal = mrOK Then
         Begin
           slFolders.Clear;
@@ -175,6 +191,15 @@ begin
               Include(FldrSyncOps, TFldrSyncOption(i))
             Else
               Exclude(FldrSyncOps, TFldrSyncOption(i));
+          AFont.Name := cbxFontName.Items[cbxFontName.ItemIndex];
+          AFont.Size := StrToInt(cbxFontSize.Items[cbxFontSize.ItemIndex]);
+          Case cbxFontStyle.ItemIndex Of
+            1: AFont.Style := [fsItalic];
+            2: AFont.Style := [fsBold];
+            3: AFont.Style := [fsItalic, fsBold];
+          Else
+            AFont.Style := [];
+          End;
           Result := True;
         End;
     Finally
@@ -194,6 +219,10 @@ end;
 
 **)
 procedure TfrmOptions.FormCreate(Sender: TObject);
+
+var
+  i: Integer;
+
 begin
   FRightWidth := 1;
   FLeftWidth := 1;
@@ -206,6 +235,14 @@ begin
     Finally
       Free;
     End;
+  For i := 0 To Screen.Fonts.Count - 1 Do
+    cbxFontName.Items.Add(Screen.Fonts[i]);
+  For i := 6 To 32 Do
+    cbxFontSize.Items.Add(IntToStr(i));
+  cbxFontStyle.Items.Add('Normal');
+  cbxFontStyle.Items.Add('Italic');
+  cbxFontStyle.Items.Add('Bold');
+  cbxFontStyle.Items.Add('Bold Italic');
 end;
 
 (**
