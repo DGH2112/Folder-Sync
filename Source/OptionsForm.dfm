@@ -35,8 +35,6 @@ object frmOptions: TfrmOptions
     Kind = bkOK
     ParentDoubleBuffered = False
     TabOrder = 0
-    ExplicitLeft = 582
-    ExplicitTop = 520
   end
   object btnCancel: TBitBtn
     Left = 675
@@ -52,8 +50,6 @@ object frmOptions: TfrmOptions
     Kind = bkCancel
     ParentDoubleBuffered = False
     TabOrder = 1
-    ExplicitLeft = 681
-    ExplicitTop = 520
   end
   object PageControl1: TPageControl
     Left = 10
@@ -67,16 +63,16 @@ object frmOptions: TfrmOptions
     ActivePage = pgFolderList
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
-    ExplicitWidth = 760
-    ExplicitHeight = 507
     object pgFolderList: TTabSheet
       Margins.Left = 4
       Margins.Top = 4
       Margins.Right = 4
       Margins.Bottom = 4
       Caption = 'Folder List'
-      ExplicitWidth = 752
-      ExplicitHeight = 476
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         746
         474)
@@ -110,8 +106,6 @@ object frmOptions: TfrmOptions
         ViewStyle = vsReport
         OnDblClick = lvFoldersDblClick
         OnResize = lvFoldersResize
-        ExplicitWidth = 741
-        ExplicitHeight = 423
       end
       object btnAdd: TBitBtn
         Left = 443
@@ -128,8 +122,6 @@ object frmOptions: TfrmOptions
         ParentDoubleBuffered = False
         TabOrder = 1
         OnClick = btnAddClick
-        ExplicitLeft = 449
-        ExplicitTop = 437
       end
       object btnEdit: TBitBtn
         Left = 547
@@ -146,8 +138,6 @@ object frmOptions: TfrmOptions
         ParentDoubleBuffered = False
         TabOrder = 2
         OnClick = btnEditClick
-        ExplicitLeft = 553
-        ExplicitTop = 437
       end
       object btnDelete: TBitBtn
         Left = 650
@@ -164,8 +154,6 @@ object frmOptions: TfrmOptions
         ParentDoubleBuffered = False
         TabOrder = 3
         OnClick = btnDeleteClick
-        ExplicitLeft = 656
-        ExplicitTop = 437
       end
     end
     object pgExclusions: TTabSheet
@@ -175,6 +163,8 @@ object frmOptions: TfrmOptions
       Margins.Bottom = 4
       Caption = 'E&xclusions'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
       ExplicitWidth = 752
       ExplicitHeight = 476
       DesignSize = (
@@ -233,7 +223,7 @@ object frmOptions: TfrmOptions
       object lblFontName: TLabel
         Left = 3
         Top = 425
-        Width = 433
+        Width = 66
         Height = 16
         Anchors = [akLeft, akRight, akBottom]
         Caption = '&Font Name'
@@ -301,8 +291,6 @@ object frmOptions: TfrmOptions
         Margins.Bottom = 4
         Anchors = [akLeft, akTop, akRight, akBottom]
         TabOrder = 2
-        ExplicitWidth = 744
-        ExplicitHeight = 339
       end
       object cbxFontName: TComboBox
         Left = 3
