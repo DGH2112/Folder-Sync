@@ -3,7 +3,7 @@
   The main delphi module for the Folder Synchronisation application.
 
   @Author  David Hoyle
-  @Date    27 Dec 2009
+  @Date    29 Jan 2011
   @Version 1.0
 
 **)
@@ -31,8 +31,6 @@ uses
 
 begin
   Application.Initialize;
-  ReportMemoryLeaksOnShutdown := DebugHook <> 0;
-  SetEurekaLogState(DebugHook = 0);
   Application.Title := 'Folder Sync';
   Application.CreateForm(TfrmMainForm, frmMainForm);
   Application.Run;

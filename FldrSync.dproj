@@ -20,6 +20,7 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_UNIT_DEPRECATED>false</DCC_UNIT_DEPRECATED>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
 			<DCC_DependencyCheckOutputName>FldrSync.exe</DCC_DependencyCheckOutputName>
 			<DCC_MapFile>3</DCC_MapFile>
@@ -45,10 +46,12 @@
 			<DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
 			<DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
 			<DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-			<DCC_DebugInformation>false</DCC_DebugInformation>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_2)'!=''">
-			<DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
+			<DCC_Optimize>false</DCC_Optimize>
+			<DCC_RangeChecking>true</DCC_RangeChecking>
+			<DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
+			<DCC_Define>DEBUG;EUREKALOG;EUREKALOG_VER6</DCC_Define>
 		</PropertyGroup>
 		<ItemGroup>
 			<DelphiCompile Include="FldrSync.dpr">
@@ -122,7 +125,7 @@
 						<Parameters Name="UseLauncher">False</Parameters>
 						<Parameters Name="LoadAllSymbols">True</Parameters>
 						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
-						<Parameters Name="DebugCWD">E:\HoylD\Borland Studio Projects\Applications\Folder Sync</Parameters>
+						<Parameters Name="DebugCWD">D:\HoylD\Borland Studio Projects\Applications\Folder Sync</Parameters>
 					</Parameters>
 					<Language>
 						<Language Name="ProjectLang">$00000809</Language>
@@ -132,8 +135,8 @@
 						<VersionInfo Name="AutoIncBuild">False</VersionInfo>
 						<VersionInfo Name="MajorVer">1</VersionInfo>
 						<VersionInfo Name="MinorVer">0</VersionInfo>
-						<VersionInfo Name="Release">21</VersionInfo>
-						<VersionInfo Name="Build">259</VersionInfo>
+						<VersionInfo Name="Release">22</VersionInfo>
+						<VersionInfo Name="Build">340</VersionInfo>
 						<VersionInfo Name="Debug">True</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -145,7 +148,7 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName">Season&apos;s Fall Music Limited (c) 1989</VersionInfoKeys>
 						<VersionInfoKeys Name="FileDescription">Folder Sync</VersionInfoKeys>
-						<VersionInfoKeys Name="FileVersion">1.0.21.259</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">1.0.22.340</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName">Folder Sync</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalCopyright">Season&apos;s Fall Music Limited (c) 1989</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalTrademarks">Season&apos;s Fall Music Limited (c) 1989</VersionInfoKeys>
@@ -168,7 +171,7 @@
 
 <!-- EurekaLog First Line
 [Exception Log]
-EurekaLog Version=6021
+EurekaLog Version=6025
 Activate=1
 Activate Handle=1
 Save Log File=1
@@ -327,7 +330,7 @@ boSaveCompressedCopyInCaseOfError=1
 boHandleSafeCallExceptions=1
 boCallRTLExceptionEvent=0
 boCatchHandledExceptions=0
-loCatchLeaks=1
+loCatchLeaks=0
 loGroupsSonLeaks=1
 loHideBorlandLeaks=1
 loFreeAllLeaks=1
