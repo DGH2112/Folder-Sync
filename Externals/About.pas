@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    29 Mar 2010
+  @Date    07 Aug 2011
 
 **)
 unit About;
@@ -219,17 +219,17 @@ Const
 Var
   strName : String;
   strCompany : String;
-  Reg : TIniFile;
+  iniFile : TMemIniFile;
   iMajor, iMinor, iBugfix, iBuild : Integer;
   Buffer : Array[0..MAX_PATH] Of Char;
 
 begin
   GetModuleFilename(hInstance, Buffer, MAX_PATH);
   FModuleFileName := StrPas(Buffer);
-  Reg := TIniFile.Create(strRootKey);
+  iniFile := TMemIniFile.Create(strRootKey);
   Try
-    strName := Reg.Readstring('License', 'Name', '');
-    strCompany := Reg.Readstring('License', 'Company', '');
+    strName := iniFile.Readstring('License', 'Name', '');
+    strCompany := iniFile.Readstring('License', 'Company', '');
     iMajor := 0;
     iMinor := 0;
     iBugfix := 0;
@@ -248,13 +248,14 @@ begin
         If Not InputQuery(Application.Title + ' License Registration',
           'Please enter your Company:', strCompany) Then
           Exit;
-        Reg.WriteString('License', 'Name', strName);
-        Reg.WriteString('License', 'Company', strCompany);
+        iniFile.WriteString('License', 'Name', strName);
+        iniFile.WriteString('License', 'Company', strCompany);
         ClientCompanyLabel.Caption := strCompany;
         ClientNameLabel.Caption := strName;
       End;
+    iniFile.UpdateFile;
   Finally
-    Reg.Free;
+    iniFile.Free;
   End;
   AboutTimer.Enabled := True;
 end;
