@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    29 Jan 2011
+  @Date    04 Apr 2012
   @Author  David Hoyle
 
 **)
@@ -255,8 +255,8 @@ implementation
     j: TFldrSyncOption;
 
   begin
-    With TIniFile.Create(FRootKey) Do
-      Begin
+    With TMemIniFile.Create(FRootKey) Do
+      Try
         Top := ReadInteger('Setup', 'Top', 100);
         Left := ReadInteger('Setup', 'Left', 100);
         Height := ReadInteger('Setup', 'Height', 300);
@@ -305,6 +305,7 @@ implementation
         End;
         FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|',
           #13#10, [rfReplaceAll]);
+      Finally
         Free;
       End;
   end;
@@ -586,8 +587,8 @@ implementation
     j: TFldrSyncOption;
 
   begin
-    With TIniFile.Create(FRootKey) Do
-      Begin
+    With TMemIniFile.Create(FRootKey) Do
+      Try
         recWndPlmt.Length := SizeOf(TWindowPlacement);
         GetWindowPlacement(Handle, @recWndPlmt);
         WriteInteger('Setup', 'Top', recWndPlmt.rcNormalPosition.Top);
@@ -618,6 +619,8 @@ implementation
           End;
         WriteString('Setup', 'Exclusions',
           StringReplace(FExclusions, #13#10, '|', [rfReplaceAll]));
+        UpdateFile;
+      Finally
         Free;
       End;
   end;
