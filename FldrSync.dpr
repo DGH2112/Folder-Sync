@@ -3,7 +3,7 @@
   The main delphi module for the Folder Synchronisation application.
 
   @Author  David Hoyle
-  @Date    29 Jan 2011
+  @Date    04 Apr 2012
   @Version 1.0
 
 **)
@@ -25,7 +25,8 @@ uses
   CheckForUpdatesForm in '..\..\LIBRARY\CheckForUpdatesForm.pas' {frmCheckForUpdates},
   DGHSpectrum in '..\..\Components\Source\DGHSpectrum.pas',
   MSXML2_TLB in '..\..\LIBRARY\MSXML2_TLB.pas',
-  DGHEllipsisLabel in '..\..\components\source\DGHEllipsisLabel.pas';
+  DGHEllipsisLabel in '..\..\components\source\DGHEllipsisLabel.pas',
+  CheckForUpdatesOptionsForm in '..\..\Library\CheckForUpdatesOptionsForm.pas' {frmCheckForUpdatesOptions};
 
 {$R *.RES}
 
