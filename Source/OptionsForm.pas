@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    29 Jan 2011
+  @Date    04 Apr 2012
   @Version 1.0
   @Author  David Hoyle
 
@@ -260,7 +260,7 @@ Implementation
   Begin
     FRightWidth := 1;
     FLeftWidth := 1;
-    With TIniFile.Create(FRootKey) Do
+    With TMemIniFile.Create(FRootKey) Do
       Try
         Top := ReadInteger('Options', 'Top', Top);
         Left := ReadInteger('Options', 'Left', Left);
@@ -291,12 +291,13 @@ Implementation
   **)
   Procedure TfrmOptions.FormDestroy(Sender: TObject);
   Begin
-    With TIniFile.Create(FRootKey) Do
+    With TMemIniFile.Create(FRootKey) Do
       Try
         WriteInteger('Options', 'Top', Top);
         WriteInteger('Options', 'Left', Left);
         WriteInteger('Options', 'Height', Height);
         WriteInteger('Options', 'Width', Width);
+        UpdateFile;
       Finally
         Free;
       End;

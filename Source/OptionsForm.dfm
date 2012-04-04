@@ -69,10 +69,6 @@ object frmOptions: TfrmOptions
       Margins.Right = 4
       Margins.Bottom = 4
       Caption = 'Folder List'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         746
         474)
