@@ -34,7 +34,7 @@ object frmOptions: TfrmOptions
     DoubleBuffered = True
     Kind = bkOK
     ParentDoubleBuffered = False
-    TabOrder = 0
+    TabOrder = 2
   end
   object btnCancel: TBitBtn
     Left = 675
@@ -49,7 +49,7 @@ object frmOptions: TfrmOptions
     DoubleBuffered = True
     Kind = bkCancel
     ParentDoubleBuffered = False
-    TabOrder = 1
+    TabOrder = 3
   end
   object PageControl1: TPageControl
     Left = 10
@@ -62,7 +62,7 @@ object frmOptions: TfrmOptions
     Margins.Bottom = 4
     ActivePage = pgFolderList
     Anchors = [akLeft, akTop, akRight, akBottom]
-    TabOrder = 2
+    TabOrder = 0
     object pgFolderList: TTabSheet
       Margins.Left = 4
       Margins.Top = 4
@@ -159,10 +159,6 @@ object frmOptions: TfrmOptions
       Margins.Bottom = 4
       Caption = 'E&xclusions'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 752
-      ExplicitHeight = 476
       DesignSize = (
         746
         474)
@@ -179,8 +175,6 @@ object frmOptions: TfrmOptions
         ScrollBars = ssBoth
         TabOrder = 0
         WordWrap = False
-        ExplicitWidth = 741
-        ExplicitHeight = 458
       end
     end
     object tabCompareFiles: TTabSheet
@@ -190,10 +184,6 @@ object frmOptions: TfrmOptions
       Margins.Bottom = 4
       Caption = '&Options'
       ImageIndex = 2
-      ExplicitLeft = -44
-      ExplicitTop = 19
-      ExplicitWidth = 752
-      ExplicitHeight = 476
       DesignSize = (
         746
         474)
@@ -259,7 +249,6 @@ object frmOptions: TfrmOptions
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
         Text = 'edtCompareEXE'
-        ExplicitWidth = 643
       end
       object btnBrowse: TButton
         Left = 649
@@ -274,7 +263,6 @@ object frmOptions: TfrmOptions
         Caption = '&Browse'
         TabOrder = 1
         OnClick = btnBrowseClick
-        ExplicitLeft = 655
       end
       object lbxAdvancedOptions: TCheckListBox
         Left = 4
@@ -316,6 +304,27 @@ object frmOptions: TfrmOptions
         TabOrder = 5
       end
     end
+  end
+  object btnCheckforUpdates: TBitBtn
+    Left = 8
+    Top = 518
+    Width = 185
+    Height = 31
+    Anchors = [akLeft, akTop, akBottom]
+    Caption = 'Check for &Updates...'
+    DoubleBuffered = True
+    Glyph.Data = {
+      F6000000424DF600000000000000760000002800000010000000100000000100
+      0400000000008000000000000000000000001000000000000000000000000000
+      8000008000000080800080000000800080008080000080808000C0C0C0000000
+      FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00DDDDDDDDDDDD
+      DDDDDDDDDDDDDDDDDDDDDCDCDCDDCDCDDDDDDCDCDCDDCDCDDDCDDCCCDCDDCDCC
+      CDDDDCDC1CDDCDCDCDCDDCD9CCCCCCCCCDDDDDDD1DDDDDDDDDDDDDD91DDDDDA2
+      DDDDDDD91DDDDDAA2DDDDDDD91DDDAAAA2DDDDDDD91DDA2DAA2DDDDDD91DAADD
+      DAA2D91119DDADDDDDAADD999DDDDDDDDDDADDDDDDDDDDDDDDDD}
+    ParentDoubleBuffered = False
+    TabOrder = 1
+    OnClick = btnCheckforUpdatesClick
   end
   object dlgOpen: TOpenDialog
     Filter = 'Executables (*.exe)|*.exe'
