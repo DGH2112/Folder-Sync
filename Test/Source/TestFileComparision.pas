@@ -12,7 +12,7 @@ unit TestFileComparision;
 interface
 
 uses
-  TestFramework, Windows, FileComparision, SysUtils, Contnrs, Classes;
+  TestFramework, Windows, SyncModule, SysUtils, Contnrs, Classes;
 type
 
   TestTFileRecord = class(TTestCase)
@@ -99,8 +99,8 @@ end;
 
 procedure TestTFileList.SetUp;
 begin
-  FFileList := TFileList.Create('.\Test Compare Folders\Left Folder\', '*.*',
-    Nil, '');
+  FFileList := TFileList.Create;
+  FFileList.SearchFolder('.\Test Compare Folders\Left Folder\', '*.*', '');
 end;
 
 procedure TestTFileList.TearDown;
@@ -132,8 +132,9 @@ end;
 
 procedure TestTCompareFolders.SetUp;
 begin
-  FCompareFolders := TCompareFolders.Create('.\Test Compare Folders\Left Folder\',
-    '*.*', '.\Test Compare Folders\Right Folder\', '*.*', Nil, Nil, '', 0, []);
+  FCompareFolders := TCompareFolders.Create;
+  FCompareFolders.SearchFolders('.\Test Compare Folders\Left Folder\',
+    '.\Test Compare Folders\Right Folder\', '*.*', '', 0, []);
 end;
 
 procedure TestTCompareFolders.TearDown;
