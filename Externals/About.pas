@@ -5,21 +5,33 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    07 Aug 2011
+  @Date    08 Jul 2012
 
 **)
-unit About;
+Unit About;
 
-interface
+Interface
 
-uses
-  SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, ExtCtrls, StdCtrls, DGHSpectrum;
+Uses
+  SysUtils,
+  WinTypes,
+  WinProcs,
+  Messages,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  ExtCtrls,
+  StdCtrls,
+  DGHSpectrum;
 
-type
+{$I '..\..\..\Library\CompilerDefinitions.inc'}
+
+Type
   (** This is a class to represent the About form which displays the
       applications information. **)
-  TfrmAbout = class(TForm)
+  TfrmAbout = Class(TForm)
     MainPanel: TPanel;
     TitleLabel: TLabel;
     AboutTimer: TTimer;
@@ -32,34 +44,32 @@ type
     BuildLabel: TLabel;
     lblBy: TLabel;
     DGHSpectrum1: TDGHSpectrum;
-    procedure AboutTimerTimer(Sender: TObject);
-    procedure FormKeyPress(Sender: TObject; var Key: Char);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormCreate(Sender: TObject);
-    procedure FormShow(Sender: TObject);
-  private
+    Procedure AboutTimerTimer(Sender: TObject);
+    Procedure FormKeyPress(Sender: TObject; Var Key: Char);
+    Procedure FormClose(Sender: TObject; Var Action: TCloseAction);
+    Procedure FormCreate(Sender: TObject);
+    Procedure FormShow(Sender: TObject);
+  Private
     { Private declarations }
-    FModuleFileName : String;
-    Procedure BuildNumber(var iMajor, iMinor, iBugFix, iBuild : Integer);
-    procedure VersionInformation;
-  public
+    FModuleFileName: String;
+    Procedure BuildNumber(Var iMajor, iMinor, iBugFix, iBuild: Integer);
+    Procedure VersionInformation;
+  Public
     { Public declarations }
-    class procedure ShowAbout(strAppINIFile : String);
-  end;
+    Class Procedure ShowAbout;
+  End;
 
-implementation
+Implementation
 
 {$R *.DFM}
 
 Uses
-  IniFiles;
+  Registry;
 
 Var
   (** This is a private variable for an instance of the form used to implement
       this forms as a singleton class. **)
-  frm : TfrmAbout;
-  (** A private variable to hold the Apps INI File. **)
-  strRootKey : String;
+  frm: TfrmAbout;
 
 (**
 
@@ -71,12 +81,12 @@ Var
   @param   Sender as a TObject
 
 **)
-procedure TfrmAbout.AboutTimerTimer(Sender: TObject);
+Procedure TfrmAbout.AboutTimerTimer(Sender: TObject);
 
-begin
+Begin
   AboutTimer.Enabled := False;
   Close;
-end;
+End;
 
 (**
 
@@ -89,11 +99,11 @@ end;
   @param   Key    as a Char as a reference
 
 **)
-procedure TfrmAbout.FormKeyPress(Sender: TObject; var Key: Char);
+Procedure TfrmAbout.FormKeyPress(Sender: TObject; Var Key: Char);
 
-begin
+Begin
   Close;
-end;
+End;
 
 (**
 
@@ -107,12 +117,12 @@ end;
   @param   Action as a TCloseAction as a reference
 
 **)
-procedure TfrmAbout.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
+Procedure TfrmAbout.FormClose(Sender: TObject; Var Action: TCloseAction);
+Begin
   AboutTimer.Enabled := False;
-  Action := caFree;
-  frm := Nil;
-end;
+  Action             := caFree;
+  frm                := Nil;
+End;
 
 (**
 
@@ -129,14 +139,14 @@ end;
   @param   iBuild  as an Integer as a reference
 
 **)
-Procedure TfrmAbout.BuildNumber(var iMajor, iMinor, iBugFix, iBuild : Integer);
+Procedure TfrmAbout.BuildNumber(Var iMajor, iMinor, iBugFix, iBuild: Integer);
 
 Var
-  VerInfoSize: DWORD;
-  VerInfo: Pointer;
+  VerInfoSize : DWORD;
+  VerInfo     : Pointer;
   VerValueSize: DWORD;
-  VerValue: PVSFixedFileInfo;
-  Dummy: DWORD;
+  VerValue    : PVSFixedFileInfo;
+  Dummy       : DWORD;
 
 Begin
   { Build Number }
@@ -148,17 +158,19 @@ Begin
       VerQueryValue(VerInfo, '\', Pointer(VerValue), VerValueSize);
       With VerValue^ Do
         Begin
-          iMajor := dwFileVersionMS shr 16;
-          iMinor := dwFileVersionMS and $FFFF;
-          iBugFix := dwFileVersionLS shr 16;
-          iBuild := dwFileVersionLS and $FFFF;
+          iMajor  := dwFileVersionMS Shr 16;
+          iMinor  := dwFileVersionMS And $FFFF;
+          iBugFix := dwFileVersionLS Shr 16;
+          iBuild  := dwFileVersionLS And $FFFF;
         End;
-      BuildLabel.Caption := Format('Build %d.%d.%d.%d', [iMajor, iMinor,
-        iBugfix, iBuild]);
+      BuildLabel.Caption := Format('Build %d.%d.%d.%d',
+        [iMajor, iMinor, iBugFix, iBuild]);
       FreeMem(VerInfo, VerInfoSize);
-    End Else
+    End
+  Else
     Begin
-      MessageDlg('This executable does not contain any version information.', mtWarning, [mbOK], 0);
+      MessageDlg('This executable does not contain any version information.', mtWarning,
+        [mbOK], 0);
       BuildLabel.Caption := '';
     End;
 End;
@@ -175,28 +187,32 @@ End;
 Procedure TfrmAbout.VersionInformation;
 
 Var
-  MS : TMemoryStatus;
-  pVersionInfo : TOSVersionInfo;
-  strTemp : String;
+  MS          : TMemoryStatus;
+  pVersionInfo: TOSVersionInfo;
+  strTemp     : String;
 
 Begin
   GlobalMemoryStatus(MS);
-  PhysMemLabel.Caption := FormatFloat('Memory Available #,###" KB"', MS.dwTotalPhys /1024);
+  PhysMemLabel.Caption := FormatFloat('Memory Available #,###" KB"',
+    MS.dwTotalPhys / 1024);
   { Get Version Information }
   pVersionInfo.dwOSVersionInfoSize := SizeOf(pVersionInfo);
   GetVersionEx(pVersionInfo);
   With pVersionInfo Do
     Begin
       Case dwPlatformID Of
-        VER_PLATFORM_WIN32s : strTemp :=  'Win32s on Windows 3.1';
-        VER_PLATFORM_WIN32_WINDOWS  : strTemp :=  'Windows 95';
-        VER_PLATFORM_WIN32_NT	 : strTemp :=  'Windows NT';
+        VER_PLATFORM_WIN32s:
+          strTemp := 'Win32s on Windows 3.1';
+        VER_PLATFORM_WIN32_WINDOWS:
+          strTemp := 'Windows 95';
+        VER_PLATFORM_WIN32_NT:
+          strTemp := 'Windows NT';
       Else
-        strTemp :=  'Unknown Windows Version';
+        strTemp := 'Unknown Windows Version';
       End;
       WinLabel.Caption := strTemp + ' ' + IntToStr(dwMajorVersion) + '.' +
-        IntToStr(dwMinorVersion) + #13'Build: ' + IntToStr(dwBuildNumber) +
-        ' - ' + szCSDVersion;
+        IntToStr(dwMinorVersion) + #13'Build: ' + IntToStr(dwBuildNumber) + ' - ' +
+        szCSDVersion;
     End;
 End;
 
@@ -211,54 +227,38 @@ End;
   @param   Sender as a TObject
 
 **)
-procedure TfrmAbout.FormCreate(Sender: TObject);
+Procedure TfrmAbout.FormCreate(Sender: TObject);
 
 Const
   strBugfixes = ' abcdefghijklmnopqrstuvwxyz';
 
 Var
-  strName : String;
-  strCompany : String;
-  iniFile : TMemIniFile;
-  iMajor, iMinor, iBugfix, iBuild : Integer;
-  Buffer : Array[0..MAX_PATH] Of Char;
+  Reg                            : TRegistry;
+  iMajor, iMinor, iBugFix, iBuild: Integer;
+  Buffer                         : Array [0 .. MAX_PATH] Of Char;
 
-begin
+Begin
   GetModuleFilename(hInstance, Buffer, MAX_PATH);
   FModuleFileName := StrPas(Buffer);
-  iniFile := TMemIniFile.Create(strRootKey);
+  Reg             := TRegistry.Create;
   Try
-    strName := iniFile.Readstring('License', 'Name', '');
-    strCompany := iniFile.Readstring('License', 'Company', '');
-    iMajor := 0;
-    iMinor := 0;
-    iBugfix := 0;
-    iBuild := 0;
-    BuildNumber(iMajor, iMinor, iBugfix, iBuild);
-    TitleLabel.Caption := Format('%s %d.%d%s', [Application.Title, iMajor,
-      iMinor, strBugfixes[iBugfix + 1]]);
-    ClientCompanyLabel.Caption := strCompany;
-    ClientNameLabel.Caption := strName;
+    Reg.RootKey := HKEY_LOCAL_MACHINE;
+    Reg.OpenKeyReadOnly('Software\Microsoft\Windows NT\CurrentVersion');
+    iMajor  := 0;
+    iMinor  := 0;
+    iBugFix := 0;
+    iBuild  := 0;
+    BuildNumber(iMajor, iMinor, iBugFix, iBuild);
+    TitleLabel.Caption := Format('%s %d.%d%s', [Application.Title, iMajor, iMinor,
+        strBugfixes[iBugFix + 1]]);
+    ClientCompanyLabel.Caption := Reg.ReadString('RegisteredOrganization');
+    ClientNameLabel.Caption    := Reg.ReadString('RegisteredOwner');
     VersionInformation;
-    If strName + strCompany = '' Then
-      Begin
-        If Not InputQuery(Application.Title + ' License Registration',
-          'Please enter your Name:', strName) Then
-          Exit;
-        If Not InputQuery(Application.Title + ' License Registration',
-          'Please enter your Company:', strCompany) Then
-          Exit;
-        iniFile.WriteString('License', 'Name', strName);
-        iniFile.WriteString('License', 'Company', strCompany);
-        ClientCompanyLabel.Caption := strCompany;
-        ClientNameLabel.Caption := strName;
-      End;
-    iniFile.UpdateFile;
   Finally
-    iniFile.Free;
+    Reg.Free;
   End;
   AboutTimer.Enabled := True;
-end;
+End;
 
 (**
 
@@ -270,21 +270,26 @@ end;
   @param   Sender as a TObject
 
 **)
-procedure TfrmAbout.FormShow(Sender: TObject);
+Procedure TfrmAbout.FormShow(Sender: TObject);
 
 Var
-  MS : TMemoryStatus;
+  MS    : TMemoryStatus;
   dtDate: TDateTime;
 
-begin
+Begin
+  {$IFNDEF D2005}
+  dtDate := FileDateToDateTime(FileAge(FModuleFileName));
+  {$ELSE}
   FileAge(FModuleFileName, dtDate);
+  {$ENDIF}
   lblBy.Caption := 'Written by David Hoyle - Copyright ' +
-    FormatDateTime('mmmm yyyy', dtDate);
+    FormatDateTime('dd mmmm yyyy', dtDate);
   AboutTimer.Enabled := True;
   GlobalMemoryStatus(MS);
-  PhysMemLabel.Caption := FormatFloat('Memory Available #,###" KB"', MS.dwTotalPhys /1024);
+  PhysMemLabel.Caption := FormatFloat('Memory Available #,###" KB"',
+    MS.dwTotalPhys / 1024);
   Application.ProcessMessages;
-end;
+End;
 
 (**
 
@@ -294,19 +299,14 @@ end;
   @precon  None.
   @postcon Displays a single instance of this about dialogue.
 
-  @param   strAppINIFile as a String
-
 **)
-Class Procedure TfrmAbout.ShowAbout(strAppINIFile : String);
+Class Procedure TfrmAbout.ShowAbout;
 
 Begin
-  strRootKey := strAppINIFile;
   If frm = Nil Then
     frm := TfrmAbout.Create(Application);
   frm.Show;
   Application.ProcessMessages;
 End;
 
-end.
-
-
+End.
