@@ -97,7 +97,8 @@ object frmAbout: TfrmAbout
       Top = 11
       Width = 130
       Height = 75
-      AutoSize = True
+      Center = True
+      IncrementalDisplay = True
       Picture.Data = {
         07544269746D6170E22A0000424DE22A00000000000036040000280000008200
         00004B0000000100080000000000AC2600005D3700005D370000000100000001
@@ -443,6 +444,8 @@ object frmAbout: TfrmAbout
         4463D1D1D1D1B7B7B7B5D3B5C9D4D4D4D0D0C8C8AECFCFA86657575757574239
         39485690C2B8ADADADADADADADADADADADADADADADADADADADADADADADADADAD
         ADADADA2AAAA989C95958D8D0000}
+      Proportional = True
+      Stretch = True
       Transparent = True
       OnClick = AboutTimerTimer
     end
