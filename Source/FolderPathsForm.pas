@@ -3,21 +3,31 @@
   A class to define a form for editing the Folder Paths.
 
   @Version 1.0
-  @date    04 Apr 2012
+  @date    01 Aug 2012
   @Author  David Hoyle.
 
 **)
-unit FolderPathsForm;
+Unit FolderPathsForm;
 
-interface
+Interface
 
-uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  Buttons, StdCtrls, OptionsForm;
+Uses
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  Buttons,
+  StdCtrls,
+  SyncModule,
+  CheckLst;
 
-type
+Type
   (** A class to represent a dialogue for editing the folder paths. **)
-  TfrmFolderPaths = class(TForm)
+  TfrmFolderPaths = Class(TForm)
     lblLeftFolder: TLabel;
     edtLeftFolder: TEdit;
     lblRightFolder: TLabel;
@@ -26,29 +36,37 @@ type
     btnBrowseRight: TButton;
     btnOK: TBitBtn;
     btnCancel: TBitBtn;
-    lblSyncOption: TLabel;
-    cbxSyncOption: TComboBox;
-    procedure FolderPathChange(Sender: TObject);
-    procedure btnBrowseLeftClick(Sender: TObject);
-    procedure btnBrowseRightClick(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-  private
+    lbxSyncOptions: TCheckListBox;
+    lblFldrSyncOptions: TLabel;
+    Procedure FolderPathChange(Sender: TObject);
+    Procedure btnBrowseLeftClick(Sender: TObject);
+    Procedure btnBrowseRightClick(Sender: TObject);
+    Procedure FormDestroy(Sender: TObject);
+    Procedure FormCreate(Sender: TObject);
+    Procedure lbxSyncOptionsClick(Sender: TObject);
+  Private
     { Private declarations }
-    FRootKey : String;
-  public
+    FRootKey: String;
+  Public
     { Public declarations }
-    Class Function Execute(var strLeftFolder, strRightFolder : String;
-      strRootKey : String; var SyncOptions : TSyncOptions) : Boolean;
-    Constructor CreateWithRootKey(AOwner : TComponent; strRootKey : String);
-  end;
+    Class Function Execute(Var strLeftFolder, strRightFolder: String; strRootKey: String;
+      Var SyncOptions: TSyncOptions): Boolean;
+    Constructor CreateWithRootKey(AOwner: TComponent; strRootKey: String);
+  End;
 
-implementation
+Implementation
 
 Uses
-  FileCtrl, IniFiles;
+  FileCtrl,
+  IniFiles;
 
 {$R *.DFM}
+
+Const
+  (** A constant array to provide string representations of the sync options. **)
+  SyncOps: Array [Low(TSyncOption) .. High(TSyncOption)
+    ] Of String = ('Enable Folder Comparison', 'Primary Left Folder',
+    'Primary Right Folder', 'Overwrite Read Only Files', 'Confirm Yes', 'Confirm No');
 
 { TfrmFolderPaths }
 
@@ -68,36 +86,38 @@ Uses
   @return  a Boolean
 
 **)
-Class function TfrmFolderPaths.Execute(var strLeftFolder,
-  strRightFolder: String; strRootKey : String; var SyncOptions : TSyncOptions): Boolean;
+Class Function TfrmFolderPaths.Execute(Var strLeftFolder, strRightFolder: String;
+  strRootKey: String; Var SyncOptions: TSyncOptions): Boolean;
 
-begin
+Var
+  i     : TSyncOption;
+  iIndex: Integer;
+
+Begin
   With TfrmFolderPaths.CreateWithRootKey(Nil, strRootKey) Do
     Try
-      Result := False;
-      edtLeftFolder.Text := strLeftFolder;
+      Result              := False;
+      edtLeftFolder.Text  := strLeftFolder;
       edtRightFolder.Text := strRightFolder;
-      cbxSyncOption.ItemIndex := 0;
-      If soPrimaryLeft In SyncOptions Then
-        cbxSyncOption.ItemIndex := 1;
-      If soPrimaryRight In SyncOptions Then
-        cbxSyncOption.ItemIndex := 2;
+      For i               := Low(TSyncOption) To High(TSyncOption) Do
+        Begin
+          iIndex                         := lbxSyncOptions.Items.Add(SyncOps[i]);
+          lbxSyncOptions.Checked[iIndex] := i In SyncOptions;
+        End;
       If ShowModal = mrOK Then
         Begin
-          strLeftFolder := edtLeftFolder.Text;
+          strLeftFolder  := edtLeftFolder.Text;
           strRightFolder := edtRightFolder.Text;
-          Exclude(SyncOptions, soPrimaryLeft);
-          Exclude(SyncOptions, soPrimaryRight);
-          Case cbxSyncOption.ItemIndex Of
-            1: Include(SyncOptions, soPrimaryLeft);
-            2: Include(SyncOptions, soPrimaryRight);
-          End;
+          SyncOptions    := [];
+          For i          := Low(TSyncOption) To High(TSyncOption) Do
+            If lbxSyncOptions.Checked[Integer(i)] Then
+              Include(SyncOptions, i);
           Result := True;
         End;
     Finally
       Free;
     End;
-end;
+End;
 
 (**
 
@@ -111,24 +131,24 @@ end;
   @param   Sender as a TObject
 
 **)
-procedure TfrmFolderPaths.FolderPathChange(Sender: TObject);
+Procedure TfrmFolderPaths.FolderPathChange(Sender: TObject);
 
 Var
-  src, dest : TEdit;
-  strFileFilter : String;
+  src, dest    : TEdit;
+  strFileFilter: String;
 
-begin
+Begin
   If Sender Is TEdit Then
     Begin
       src := Sender As TEdit;
       If src = edtLeftFolder Then
         dest := edtRightFolder
       Else
-        dest := edtLeftFolder;
+        dest        := edtLeftFolder;
       strFileFilter := ExtractFileName(src.Text);
-      dest.Text := ExtractFilePath(dest.Text) + strFileFilter;
+      dest.Text     := ExtractFilePath(dest.Text) + strFileFilter;
     End;
-end;
+End;
 
 (**
 
@@ -140,14 +160,14 @@ end;
   @param   Sender as a TObject
 
 **)
-procedure TfrmFolderPaths.FormCreate(Sender: TObject);
-begin
+Procedure TfrmFolderPaths.FormCreate(Sender: TObject);
+Begin
   With TMemIniFile.Create(FRootKey) Do
     Try
-      Top := ReadInteger('FolderPathForm', 'Top', Top);
-      Left := ReadInteger('FolderPathForm', 'Left', Left);
+      Top    := ReadInteger('FolderPathForm', 'Top', Top);
+      Left   := ReadInteger('FolderPathForm', 'Left', Left);
       Height := ReadInteger('FolderPathForm', 'Height', Height);
-      Width := ReadInteger('FolderPathForm', 'Width', Width);
+      Width  := ReadInteger('FolderPathForm', 'Width', Width);
     Finally
       Free;
     End;
@@ -163,8 +183,8 @@ End;
   @param   Sender as a TObject
 
 **)
-procedure TfrmFolderPaths.FormDestroy(Sender: TObject);
-begin
+Procedure TfrmFolderPaths.FormDestroy(Sender: TObject);
+Begin
   With TMemIniFile.Create(FRootKey) Do
     Try
       WriteInteger('FolderPathForm', 'Top', Top);
@@ -175,7 +195,39 @@ begin
     Finally
       Free;
     End;
-end;
+End;
+
+(**
+
+  This is an on click event handler for the check list box.
+
+  @precon  None.
+  @postcon Ensures that Primary Left and Right are not checked at the same time and that
+           Confirm Yes and No are not checked at the same time.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmFolderPaths.lbxSyncOptionsClick(Sender: TObject);
+
+Const
+  SyncOpInts: Array [Low(TSyncOption) .. High(TSyncOption)
+    ] Of Integer = (0, 1, 2, 3, 4, 5);
+
+Var
+  i: TSyncOption;
+
+Begin
+  i := TSyncOption(lbxSyncOptions.ItemIndex);
+  If (i In [soPrimaryLeft]) And lbxSyncOptions.Checked[SyncOpInts[i]] Then
+    lbxSyncOptions.Checked[SyncOpInts[soPrimaryRight]] := False;
+  If (i In [soPrimaryRight]) And lbxSyncOptions.Checked[SyncOpInts[i]] Then
+    lbxSyncOptions.Checked[SyncOpInts[soPrimaryLeft]] := False;
+  If (i In [soConfirmYes]) And lbxSyncOptions.Checked[SyncOpInts[i]] Then
+    lbxSyncOptions.Checked[SyncOpInts[soConfirmNo]] := False;
+  If (i In [soConfirmNo]) And lbxSyncOptions.Checked[SyncOpInts[i]] Then
+    lbxSyncOptions.Checked[SyncOpInts[soConfirmYes]] := False;
+End;
 
 (**
 
@@ -187,16 +239,16 @@ end;
   @param   Sender as a TObject
 
 **)
-procedure TfrmFolderPaths.btnBrowseLeftClick(Sender: TObject);
+Procedure TfrmFolderPaths.btnBrowseLeftClick(Sender: TObject);
 
 Var
-  strFolder : String;
+  strFolder: String;
 
-begin
+Begin
   strFolder := ExtractFilePath(edtLeftFolder.Text);
   If SelectDirectory('Left Folder', '', strFolder) Then
     edtLeftFolder.Text := strFolder + '\';
-end;
+End;
 
 (**
 
@@ -208,16 +260,16 @@ end;
   @param   Sender as a TObject
 
 **)
-procedure TfrmFolderPaths.btnBrowseRightClick(Sender: TObject);
+Procedure TfrmFolderPaths.btnBrowseRightClick(Sender: TObject);
 
 Var
-  strFolder : String;
+  strFolder: String;
 
-begin
+Begin
   strFolder := ExtractFilePath(edtRightFolder.Text);
   If SelectDirectory('Right Folder', '', strFolder) Then
     edtRightFolder.Text := strFolder + '\';
-end;
+End;
 
 (**
 
@@ -231,11 +283,10 @@ end;
   @param   strRootKey as a String
 
 **)
-constructor TfrmFolderPaths.CreateWithRootKey(AOwner: TComponent;
-  strRootKey: String);
-begin
+Constructor TfrmFolderPaths.CreateWithRootKey(AOwner: TComponent; strRootKey: String);
+Begin
   Inherited Create(AOwner);
   FRootKey := strRootKey;
-end;
+End;
 
-end.
+End.
