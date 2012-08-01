@@ -2,7 +2,7 @@ object frmMainForm: TfrmMainForm
   Left = 429
   Top = 289
   Caption = 'Folder Sync'
-  ClientHeight = 738
+  ClientHeight = 758
   ClientWidth = 948
   Color = clBtnFace
   Constraints.MinHeight = 591
@@ -37,113 +37,17 @@ object frmMainForm: TfrmMainForm
     8000C07F8000E0FF8000F1FF8000FBFF8000E0018000C0018000C00180000001
     800100018007000180070001FFDF0001FF8F0001FF070001FE030001FC010001
     FC010001FFCF0001FF9F0001F03F0001E07F0003FFFF000FFFFF000FFFFF}
-  Menu = mmMainMenu
   OldCreateOrder = False
   ScreenSnap = True
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 16
-  object tbrToolBar: TToolBar
-    Left = 0
-    Top = 0
-    Width = 948
-    Height = 30
-    AutoSize = True
-    BorderWidth = 2
-    Caption = 'tbrToolBar'
-    Images = ilActionImages
-    TabOrder = 0
-    object tbtnFileExit: TToolButton
-      Left = 0
-      Top = 0
-      Action = actFileExit
-    end
-    object tbtnSep1: TToolButton
-      Left = 23
-      Top = 0
-      Width = 8
-      Caption = 'tbtnSep1'
-      ImageIndex = 5
-      Style = tbsSeparator
-    end
-    object tbtnFileCompare: TToolButton
-      Left = 31
-      Top = 0
-      Action = actFileCompare
-    end
-    object tbtnSep2: TToolButton
-      Left = 54
-      Top = 0
-      Width = 8
-      Caption = 'tbtnSep2'
-      ImageIndex = 4
-      Style = tbsSeparator
-    end
-    object btnToolsOptions: TToolButton
-      Left = 62
-      Top = 0
-      Action = actFileProcessFiles
-    end
-    object tbtnSep3: TToolButton
-      Left = 85
-      Top = 0
-      Width = 8
-      Caption = 'tbtnSep3'
-      ImageIndex = 3
-      Style = tbsSeparator
-    end
-    object tbtnEditDoNothing: TToolButton
-      Left = 93
-      Top = 0
-      Action = actEditDoNothing
-    end
-    object tbtnLefttoRight: TToolButton
-      Left = 116
-      Top = 0
-      Action = actEditCopyLeftToRight
-    end
-    object tbtnRightToLeft: TToolButton
-      Left = 139
-      Top = 0
-      Action = actEditCopyRightToLeft
-    end
-    object tbtnEditDelete: TToolButton
-      Left = 162
-      Top = 0
-      Action = actEditDelete
-    end
-    object tbtnSep4: TToolButton
-      Left = 185
-      Top = 0
-      Width = 8
-      Caption = 'tbtnSep4'
-      ImageIndex = 9
-      Style = tbsSeparator
-    end
-    object tbtnEditSelectAll: TToolButton
-      Left = 193
-      Top = 0
-      Action = actEditSelectAll
-    end
-    object tbtnSep5: TToolButton
-      Left = 216
-      Top = 0
-      Width = 8
-      Caption = 'tbtnSep5'
-      ImageIndex = 9
-      Style = tbsSeparator
-    end
-    object tbtnCompareFiles: TToolButton
-      Left = 224
-      Top = 0
-      Action = actToolsCompare
-    end
-  end
   object stbrStatusBar: TStatusBar
     Left = 0
-    Top = 719
+    Top = 739
     Width = 948
     Height = 19
     Margins.Left = 4
@@ -158,158 +62,215 @@ object frmMainForm: TfrmMainForm
         Width = 50
       end>
   end
-  object lvFileList: TListView
+  object ambMenuBar: TActionMainMenuBar
     Left = 0
-    Top = 30
+    Top = 0
     Width = 948
-    Height = 689
+    Height = 25
+    Margins.Left = 2
+    Margins.Top = 2
+    Margins.Right = 2
+    Margins.Bottom = 2
+    UseSystemFont = False
+    ActionManager = amActions
+    Caption = 'ambMenuBar'
+    Color = clMenuBar
+    ColorMap.DisabledFontColor = 7171437
+    ColorMap.HighlightColor = clWhite
+    ColorMap.BtnSelectedFont = clBlack
+    ColorMap.UnusedColor = clWhite
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    PersistentHotKeys = True
+    Spacing = 0
+  end
+  object pnlTop: TPanel
+    Left = 0
+    Top = 25
+    Width = 948
+    Height = 32
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 2
+    object DGHMemoryMonitor: TDGHMemoryMonitor
+      Left = 767
+      Top = 0
+      Width = 181
+      Height = 32
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
+      UpdateInterval = 500
+      HighPoint = 100
+      Align = alRight
+      BevelOuter = bvLowered
+    end
+    object atbToolbar: TActionToolBar
+      Left = 0
+      Top = 0
+      Width = 767
+      Height = 32
+      Margins.Left = 2
+      Margins.Top = 2
+      Margins.Right = 2
+      Margins.Bottom = 2
+      ActionManager = amActions
+      Align = alClient
+      Caption = 'atbToolbar'
+      Color = clMenuBar
+      ColorMap.DisabledFontColor = 7171437
+      ColorMap.HighlightColor = clWhite
+      ColorMap.BtnSelectedFont = clBlack
+      ColorMap.UnusedColor = clWhite
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      Spacing = 0
+    end
+  end
+  object pnlMainArea: TPanel
+    Left = 0
+    Top = 57
+    Width = 948
+    Height = 682
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
     Margins.Bottom = 4
     Align = alClient
-    Columns = <
-      item
-        Caption = 'Action'
-        MaxWidth = 48
-        MinWidth = 48
-        Width = 48
-      end
-      item
-        Caption = 'Filename'
-        MinWidth = 50
-        Width = 123
-      end
-      item
-        Caption = 'Attr'
-        Width = 49
-      end
-      item
-        Alignment = taRightJustify
-        Caption = 'Size'
-        Width = 85
-      end
-      item
-        Alignment = taRightJustify
-        Caption = 'Date'
-        Width = 150
-      end
-      item
-        Caption = 'Filename'
-        MinWidth = 50
-        Width = 123
-      end
-      item
-        Caption = 'Attr'
-        Width = 49
-      end
-      item
-        Alignment = taRightJustify
-        Caption = 'Size'
-        Width = 85
-      end
-      item
-        Alignment = taRightJustify
-        Caption = 'Date'
-        Width = 150
-      end>
-    ColumnClick = False
-    DoubleBuffered = False
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    HideSelection = False
-    MultiSelect = True
-    ReadOnly = True
-    RowSelect = True
-    ParentDoubleBuffered = False
-    ParentFont = False
-    ParentShowHint = False
-    PopupMenu = pmFiles
-    ShowHint = False
-    StateImages = ilActionImages
-    TabOrder = 2
-    ViewStyle = vsReport
-    OnCustomDrawItem = lvFileListCustomDrawItem
-  end
-  object mmMainMenu: TMainMenu
-    Images = ilActionImages
-    Left = 36
-    Top = 76
-    object mmiFile: TMenuItem
-      Caption = '&File'
-      object mmiFileCompare: TMenuItem
-        Action = actFileCompare
-      end
-      object mmiFileSep1: TMenuItem
-        Caption = '-'
-      end
-      object mmiFileProcessFiles: TMenuItem
-        Action = actFileProcessFiles
-      end
-      object mmiFileSep2: TMenuItem
-        Caption = '-'
-      end
-      object mmiFileExit: TMenuItem
-        Action = actFileExit
-      end
+    BevelOuter = bvNone
+    TabOrder = 3
+    object splOutputResults: TSplitter
+      Left = 0
+      Top = 559
+      Width = 948
+      Height = 4
+      Cursor = crVSplit
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
+      Align = alBottom
+      MinSize = 50
+      ResizeStyle = rsUpdate
+      ExplicitTop = 551
     end
-    object mmiEdit: TMenuItem
-      Caption = '&Edit'
-      object mmiEditCopyLefttoRight: TMenuItem
-        Action = actEditCopyLeftToRight
-      end
-      object mmiEditCopyRighttoLeft: TMenuItem
-        Action = actEditCopyRightToLeft
-      end
-      object mmiEditSep1: TMenuItem
-        Caption = '-'
-      end
-      object mmiEditDeleteBoth: TMenuItem
-        Action = actEditDelete
-      end
-      object mmiEditSep2: TMenuItem
-        Caption = '-'
-      end
-      object mmiEditDoNothing: TMenuItem
-        Action = actEditDoNothing
-      end
-      object mmiEditSep3: TMenuItem
-        Caption = '-'
-      end
-      object mmiEditSelectAll: TMenuItem
-        Action = actEditSelectAll
-      end
+    object lvFileList: TListView
+      Left = 0
+      Top = 0
+      Width = 948
+      Height = 559
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
+      Align = alClient
+      Columns = <
+        item
+          Caption = 'Action'
+          MaxWidth = 48
+          MinWidth = 48
+          Width = 48
+        end
+        item
+          Caption = 'Filename'
+          MinWidth = 50
+          Width = 123
+        end
+        item
+          Caption = 'Attr'
+          Width = 49
+        end
+        item
+          Alignment = taRightJustify
+          Caption = 'Size'
+          Width = 85
+        end
+        item
+          Alignment = taRightJustify
+          Caption = 'Date'
+          Width = 150
+        end
+        item
+          Caption = 'Filename'
+          MinWidth = 50
+          Width = 123
+        end
+        item
+          Caption = 'Attr'
+          Width = 49
+        end
+        item
+          Alignment = taRightJustify
+          Caption = 'Size'
+          Width = 85
+        end
+        item
+          Alignment = taRightJustify
+          Caption = 'Date'
+          Width = 150
+        end>
+      ColumnClick = False
+      DoubleBuffered = True
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      HideSelection = False
+      MultiSelect = True
+      ReadOnly = True
+      RowSelect = True
+      ParentDoubleBuffered = False
+      ParentFont = False
+      ParentShowHint = False
+      PopupMenu = pmFiles
+      ShowHint = False
+      StateImages = ilActionImages
+      TabOrder = 0
+      ViewStyle = vsReport
+      OnCustomDrawItem = lvFileListCustomDrawItem
     end
-    object mmiTools: TMenuItem
-      Caption = '&Tools'
-      object mmiToolsOptions: TMenuItem
-        Action = actToolsOptions
-      end
-      object Compare2: TMenuItem
-        Action = actToolsCompare
-      end
-    end
-    object mmiHelp: TMenuItem
-      Caption = '&Help'
-      object CheckforUpdates1: TMenuItem
-        Action = actHelpCheckForUpdates
-      end
-      object N1: TMenuItem
-        Caption = '-'
-      end
-      object mmiHelpAbout: TMenuItem
-        Action = actHelpAbout
-      end
+    object redtOutputResults: TRichEdit
+      Left = 0
+      Top = 563
+      Width = 948
+      Height = 119
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
+      Align = alBottom
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Courier New'
+      Font.Style = []
+      HideSelection = False
+      Constraints.MinHeight = 37
+      ParentFont = False
+      ReadOnly = True
+      ScrollBars = ssBoth
+      TabOrder = 1
+      WordWrap = False
     end
   end
   object ilActionImages: TImageList
-    Left = 32
-    Top = 136
+    Left = 33
+    Top = 151
     Bitmap = {
-      494C01010E001300280010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010E001300400010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -844,10 +805,226 @@ object frmMainForm: TfrmMainForm
       F00F801F803F0038F81FFFFFFFFF3FFC00000000000000000000000000000000
       000000000000}
   end
-  object alActions: TActionList
+  object pmFiles: TPopupMenu
     Images = ilActionImages
-    Left = 30
-    Top = 200
+    Left = 198
+    Top = 93
+    object mmiCopyLefttoRight: TMenuItem
+      Action = actEditCopyLeftToRight
+    end
+    object mmiCopyRighttoLeft: TMenuItem
+      Action = actEditCopyRightToLeft
+    end
+    object mmiSep1: TMenuItem
+      Caption = '-'
+    end
+    object mmiDeleteBoth: TMenuItem
+      Action = actEditDelete
+    end
+    object mmiSep2: TMenuItem
+      Caption = '-'
+    end
+    object mmiDoNothing: TMenuItem
+      Action = actEditDoNothing
+    end
+    object mmiSep3: TMenuItem
+      Caption = '-'
+    end
+    object mmiSelectAll: TMenuItem
+      Action = actEditSelectAll
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object Compare1: TMenuItem
+      Action = actToolsCompare
+    end
+  end
+  object appEvents: TApplicationEvents
+    OnException = appEventsException
+    Left = 113
+    Top = 95
+  end
+  object ilFileTypeIcons: TImageList
+    Left = 288
+    Top = 96
+  end
+  object XPManifest: TXPManifest
+    Left = 373
+    Top = 96
+  end
+  object amActions: TActionManager
+    ActionBars = <
+      item
+        Items = <
+          item
+            Items = <
+              item
+                Action = actFileCompare
+                ImageIndex = 4
+                ShortCut = 16451
+              end
+              item
+                Action = actFileProcessFiles
+                ImageIndex = 8
+                ShortCut = 16464
+              end
+              item
+                Caption = '-'
+              end
+              item
+                Action = actFileExit
+                ImageIndex = 6
+                ShortCut = 32856
+              end>
+            Caption = '&File'
+          end
+          item
+            Items = <
+              item
+                Action = actEditCopyRightToLeft
+                ImageIndex = 2
+                ShortCut = 16466
+              end
+              item
+                Action = actEditCopyLeftToRight
+                ImageIndex = 1
+                ShortCut = 16460
+              end
+              item
+                Caption = '-'
+              end
+              item
+                Action = actEditDelete
+                ImageIndex = 3
+                ShortCut = 16430
+              end
+              item
+                Action = actEditDoNothing
+                ImageIndex = 0
+                ShortCut = 16462
+              end
+              item
+                Caption = '-'
+              end
+              item
+                Action = actEditSelectAll
+                ImageIndex = 9
+                ShortCut = 16449
+              end>
+            Caption = '&Edit'
+          end
+          item
+            Items = <
+              item
+                Action = actToolsCompare
+                ImageIndex = 11
+                ShortCut = 57411
+              end
+              item
+                Caption = '-'
+              end
+              item
+                Action = actToolsOptions
+                ImageIndex = 13
+              end>
+            Caption = '&Tools'
+          end
+          item
+            Items = <
+              item
+                Action = actHelpCheckForUpdates
+                ImageIndex = 10
+              end
+              item
+                Caption = '-'
+              end
+              item
+                Action = actHelpAbout
+                ImageIndex = 12
+              end>
+            Caption = '&Help'
+          end>
+        ActionBar = ambMenuBar
+      end
+      item
+        Items.CaptionOptions = coNone
+        Items = <
+          item
+            Action = actFileCompare
+            ImageIndex = 4
+            ShortCut = 16451
+          end
+          item
+            Action = actFileProcessFiles
+            ImageIndex = 8
+            ShortCut = 16464
+          end
+          item
+            Action = actFileExit
+            ImageIndex = 6
+            ShortCut = 32856
+          end
+          item
+            Caption = '-'
+          end
+          item
+            Action = actEditCopyRightToLeft
+            ImageIndex = 2
+            ShortCut = 16466
+          end
+          item
+            Action = actEditCopyLeftToRight
+            ImageIndex = 1
+            ShortCut = 16460
+          end
+          item
+            Action = actEditDelete
+            ImageIndex = 3
+            ShortCut = 16430
+          end
+          item
+            Action = actEditDoNothing
+            ImageIndex = 0
+            ShortCut = 16462
+          end
+          item
+            Action = actEditSelectAll
+            ImageIndex = 9
+            ShortCut = 16449
+          end
+          item
+            Caption = '-'
+          end
+          item
+            Action = actToolsOptions
+            ImageIndex = 13
+          end
+          item
+            Action = actToolsCompare
+            Caption = 'Co&mpare'
+            ImageIndex = 11
+            ShortCut = 57411
+          end
+          item
+            Caption = '-'
+          end
+          item
+            Action = actHelpCheckForUpdates
+            Caption = 'C&heck for Updates...'
+            ImageIndex = 10
+          end
+          item
+            Action = actHelpAbout
+            Caption = 'A&bout'
+            ImageIndex = 12
+          end>
+        ActionBar = atbToolbar
+      end>
+    Images = ilActionImages
+    Left = 32
+    Top = 96
+    StyleName = 'Platform Default'
     object actFileExit: TAction
       Category = 'File'
       Caption = 'E&xit'
@@ -945,53 +1122,5 @@ object frmMainForm: TfrmMainForm
       OnExecute = actToolsCompareExecute
       OnUpdate = actToolsCompareUpdate
     end
-  end
-  object pmFiles: TPopupMenu
-    Images = ilActionImages
-    Left = 124
-    Top = 76
-    object mmiCopyLefttoRight: TMenuItem
-      Action = actEditCopyLeftToRight
-    end
-    object mmiCopyRighttoLeft: TMenuItem
-      Action = actEditCopyRightToLeft
-    end
-    object mmiSep1: TMenuItem
-      Caption = '-'
-    end
-    object mmiDeleteBoth: TMenuItem
-      Action = actEditDelete
-    end
-    object mmiSep2: TMenuItem
-      Caption = '-'
-    end
-    object mmiDoNothing: TMenuItem
-      Action = actEditDoNothing
-    end
-    object mmiSep3: TMenuItem
-      Caption = '-'
-    end
-    object mmiSelectAll: TMenuItem
-      Action = actEditSelectAll
-    end
-    object N2: TMenuItem
-      Caption = '-'
-    end
-    object Compare1: TMenuItem
-      Action = actToolsCompare
-    end
-  end
-  object appEvents: TApplicationEvents
-    OnException = appEventsException
-    Left = 120
-    Top = 201
-  end
-  object ilFileTypeIcons: TImageList
-    Left = 120
-    Top = 140
-  end
-  object XPManifest: TXPManifest
-    Left = 72
-    Top = 288
   end
 end
