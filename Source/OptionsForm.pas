@@ -1,10 +1,10 @@
 (**
 
-This module defines the options dialogue.
+  This module defines the options dialogue.
 
-@Date    04 Apr 2012
-@Version 1.0
-@Author  David Hoyle
+  @Date    01 Aug 2012
+  @Version 1.0
+  @Author  David Hoyle
 
 **)
 Unit OptionsForm;
@@ -12,50 +12,41 @@ Unit OptionsForm;
 Interface
 
 Uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, ComCtrls, CheckLst;
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  Buttons,
+  ComCtrls,
+  CheckLst,
+  SyncModule,
+  ImgList;
 
 Type
-  (** An enumerate of Folder Sync Options **)
-  TFldrSyncOption = (fsoCloseIFNoFilesAfterComparison, fsoNoConfirmation,
-    fsoDoNotConfirmMkDir, fsoShowSimpleProgress,
-    fsoStartProcessingAutomatically, fsoHideLongFileNames);
-
-  (** A set of folder sync options. **)
-  TFldrSyncOptions = Set Of TFldrSyncOption;
-
-  (** This is an enumerate of synchronisation options. **)
-  TSyncOption = (soEnabled, soPrimaryLeft, soPrimaryRight);
-
-  (** A set of sync options. **)
-  TSyncOptions = Set Of TSyncOption;
-
   (** This is a class to represent **)
   TfrmOptions = Class(TForm)
     btnOK: TBitBtn;
     btnCancel: TBitBtn;
-    PageControl1: TPageControl;
-    pgFolderList: TTabSheet;
-    pgExclusions: TTabSheet;
     edtExclusions: TMemo;
     lvFolders: TListView;
     btnAdd: TBitBtn;
     btnEdit: TBitBtn;
     btnDelete: TBitBtn;
-    tabCompareFiles: TTabSheet;
     edtCompareEXE: TEdit;
     lblCompareFiles: TLabel;
     btnBrowse: TButton;
     dlgOpen: TOpenDialog;
-    lbxAdvancedOptions: TCheckListBox;
-    lblAdvancedOptions: TLabel;
-    lblFontName: TLabel;
-    cbxFontName: TComboBox;
-    lblFontSize: TLabel;
-    cbxFontSize: TComboBox;
-    cbxFontStyle: TComboBox;
-    lblFontStyle: TLabel;
-  btnCheckforUpdates: TBitBtn;
+    btnCheckforUpdates: TBitBtn;
+    btnTableFont: TBitBtn;
+    dlgFont: TFontDialog;
+    lbxFldrSyncOps: TCheckListBox;
+    lblExclusions: TLabel;
+    ilStatus: TImageList;
     Procedure lvFoldersResize(Sender: TObject);
     Procedure btnAddClick(Sender: TObject);
     Procedure btnEditClick(Sender: TObject);
@@ -64,16 +55,22 @@ Type
     Procedure FormCreate(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
     Procedure btnBrowseClick(Sender: TObject);
-  procedure btnCheckforUpdatesClick(Sender: TObject);
+    Procedure btnCheckforUpdatesClick(Sender: TObject);
+    Procedure lvFoldersSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
+    Procedure lvFoldersChange(Sender: TObject; Item: TListItem; Change: TItemChange);
+    Procedure btnTableFontClick(Sender: TObject);
+    Procedure lvFoldersCustomDrawItem(Sender: TCustomListView; Item: TListItem;
+      State: TCustomDrawState; Var DefaultDraw: Boolean);
   Private
     { Private declarations }
-    FRightWidth: Integer;
-    FLeftWidth: Integer;
+    FRightWidth : Integer;
+    FLeftWidth  : Integer;
     FINIFileName: String;
+    FFolderList : TStringList;
+    FFont       : TFont;
     Procedure SetLeftWidth(Const Value: Integer);
     Procedure SetRightWidth(Const Value: Integer);
-    Procedure AddFolders(strLeft, strRight: String;
-      SyncOptions: TSyncOptions);
+    Procedure PopulateFolderList;
     (**
       This property holds the maximum width of the Right Folder Text.
       @precon  None.
@@ -90,59 +87,59 @@ Type
     Property LeftWidth: Integer Read FLeftWidth Write SetLeftWidth;
   Public
     { Public declarations }
-    Class Function Execute(Var slFolders: TStringList; Var strExclusions,
-      strCompareEXE: String; strINIFileName: String;
-      Var FldrSyncOps: TFldrSyncOptions; AFont: TFont): Boolean;
-    Constructor CreateWithRootKey(AOwner: TComponent; strRootKey: String);
-      Virtual;
+    Class Function Execute(Var slFolders: TStringList;
+      Var strExclusions, strCompareEXE: String; strINIFileName: String; AFont: TFont;
+      Var FldrSyncOps: TFldrSyncOptions): Boolean;
+    Constructor CreateWithRootKey(AOwner: TComponent; strRootKey: String); Virtual;
   End;
 
   (** This is a record to describe the INI file parameters for storage of the
       Application options. **)
   TOptionsInfo = Record
-    FINISection  : String;
-    FINIKey      : String;
-    FDescription : String;
-    FDefault     : Boolean;
+    FINISection: String;
+    FINIKey: String;
+    FDescription: String;
+    FDefault: Boolean;
   End;
 
 Const
-  (** A constant array of strings corresponding to the folder sync options. **)
-  strFldrSyncOptions: Array [ Low(TFldrSyncOption) .. High(TFldrSyncOption)]
-    Of TOptionsInfo = (
-    ( FINISection:  'AppOptions';
-      FINIKey:      'CloseOnNoFiles';
-      FDescription: 'Close Folder Sync IF there are no files to processes after comparison.';
-      FDefault:     False),
-    ( FINISection:  'AppOptions';
-      FINIKey:      'RespondWithYes';
-      FDescription: 'Respond with "Yes to All" for any dialogue boxes that are displayed.';
-      FDefault:     False),
-    ( FINISection:  'AppOptions';
-      FINIKey:      'DoNotConfirmDir';
-      FDescription: 'Do not confirm the creation of a new directories if the operation requires one to be created.';
-      FDefault:     True),
-    ( FINISection:  'AppOptions';
-      FINIKey:      'DisplayProgress';
+  (** A constant array of strings corresponding to the OLD folder sync options. **)
+  strOLDFldrSyncOptions: Array [Low(TOLDFldrSyncOption) .. High(TOLDFldrSyncOption)
+    ] Of TOptionsInfo = ((FINISection: 'AppOptions'; FINIKey: 'CloseOnNoFiles';
+      FDescription
+        : 'Close Folder Sync IF there are no files to processes after comparison.';
+      FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'RespondWithYes';
+      FDescription
+        : 'Respond with "Yes to All" for any dialogue boxes that are displayed.';
+      FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'DoNotConfirmDir';
+      FDescription
+        : 'Do not confirm the creation of a new directories if the operation requires one to be created.';
+      FDefault: True), (FINISection: 'AppOptions'; FINIKey: 'DisplayProgress';
       FDescription: 'Display a progress dialogue box but do not show the file names.';
-      FDefault:     False),
-    ( FINISection:  'AppOptions';
-      FINIKey:      'StartAutomatically';
-      FDescription: 'Start processing the files after comparison automatically (DANGEROUS!).';
-      FDefault:     False),
-    ( FINISection:  'AppOptions';
-      FINIKey:      'HideLongFiles';
-      FDescription: 'Hide file that are too long to copy or delete.';
-      FDefault:     False)
-  );
+      FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'StartAutomatically';
+      FDescription
+        : 'Start processing the files after comparison automatically (DANGEROUS!).';
+      FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'HideLongFiles';
+      FDescription: 'Hide file that are too long to copy or delete.'; FDefault: False));
+  (** A constant array of strings corresponding to the NEW folder sync options. **)
+  strFldrSyncOptions: Array [Low(TFldrSyncOption) .. High(TFldrSyncOption)
+    ] Of TOptionsInfo = ((FINISection: 'AppOptions'; FINIKey: 'CloseOnNoFiles';
+      FDescription
+        : 'Close Folder Sync IF there are no files to processes after comparison.';
+      FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'StartAutomatically';
+      FDescription
+        : 'Start processing the files after comparison automatically (DANGEROUS!).';
+      FDefault: False));
 
 Implementation
 
 Uses
-  FolderPathsForm, IniFiles, CheckForUpdatesOptionsForm;
+  FolderPathsForm,
+  IniFiles,
+  CheckForUpdatesOptionsForm;
 {$R *.DFM}
 
-  { TfrmOptions }
+{ TfrmOptions }
 
 (**
 
@@ -156,80 +153,44 @@ Uses
   @param   strExclusions  as a String as a reference
   @param   strCompareEXE  as a String as a reference
   @param   strINIFileName as a String
-  @param   FldrSyncOps    as a TFldrSyncOptions as a reference
   @param   AFont          as a TFont
+  @param   FldrSyncOps    as a TFldrSyncOptions as a reference
   @return  a Boolean
 
 **)
 Class Function TfrmOptions.Execute(Var slFolders: TStringList;
-  Var strExclusions, strCompareEXE: String; strINIFileName: String;
-  Var FldrSyncOps: TFldrSyncOptions; AFont: TFont): Boolean;
+  Var strExclusions, strCompareEXE: String; strINIFileName: String; AFont: TFont;
+  Var FldrSyncOps: TFldrSyncOptions): Boolean;
 
 Var
-  i: Integer;
-  iOption: TFldrSyncOption;
+  i     : TFldrSyncOption;
   iIndex: Integer;
-  SyncOptions: TSyncOptions;
 
 Begin
   Result := False;
   With TfrmOptions.CreateWithRootKey(Nil, strINIFileName) Do
     Try
-      For i := 0 To slFolders.Count - 1 Do
-        AddFolders(slFolders.Names[i], slFolders.ValueFromIndex[i],
-          TSyncOptions(Byte(slFolders.Objects[i])));
+      FFont.Assign(AFont);
+      FFolderList.Assign(slFolders);
+      PopulateFolderList;
+      lvFoldersSelectItem(Nil, Nil, False);
       edtExclusions.Text := strExclusions;
       edtCompareEXE.Text := strCompareEXE;
-      For iOption := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
+      For i              := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
         Begin
-          iIndex := lbxAdvancedOptions.Items.Add(strFldrSyncOptions[iOption].FDescription);
-          lbxAdvancedOptions.Checked[iIndex] := iOption In FldrSyncOps;
+          iIndex := lbxFldrSyncOps.Items.Add(strFldrSyncOptions[i].FDescription);
+          lbxFldrSyncOps.Checked[iIndex] := i In FldrSyncOps;
         End;
-      cbxFontName.ItemIndex := cbxFontName.Items.IndexOf(AFont.Name);
-      cbxFontSize.ItemIndex := cbxFontSize.Items.IndexOf
-        (IntToStr(AFont.Size));
-      cbxFontStyle.ItemIndex := 0;
-      If AFont.Style = [fsItalic] Then
-        cbxFontStyle.ItemIndex := 1
-      Else If AFont.Style = [fsBold] Then
-        cbxFontStyle.ItemIndex := 2
-      Else If AFont.Style = [fsItalic, fsBold] Then
-        cbxFontStyle.ItemIndex := 3;
       If ShowModal = mrOK Then
         Begin
-          slFolders.Clear;
-          For i := 0 To lvFolders.Items.Count - 1 Do
-            Begin
-              SyncOptions := [];
-              If lvFolders.Items[i].Checked Then
-                Include(SyncOptions, soEnabled);
-              If lvFolders.Items[i].SubItems[1] = 'Primary Left' Then
-                Include(SyncOptions, soPrimaryLeft);
-              If lvFolders.Items[i].SubItems[1] = 'Primary Right' Then
-                Include(SyncOptions, soPrimaryRight);
-              slFolders.AddObject
-                (lvFolders.Items[i].Caption + '=' + lvFolders.Items
-                  [i].SubItems[0], TObject(Byte(SyncOptions)));
-            End;
+          slFolders.Assign(FFolderList);
           strExclusions := edtExclusions.Text;
           strCompareEXE := edtCompareEXE.Text;
-          For i := 0 To lbxAdvancedOptions.Items.Count - 1 Do
-            If lbxAdvancedOptions.Checked[i] Then
-              Include(FldrSyncOps, TFldrSyncOption(i))
-            Else
-              Exclude(FldrSyncOps, TFldrSyncOption(i));
-          AFont.Name := cbxFontName.Items[cbxFontName.ItemIndex];
-          AFont.Size := StrToInt(cbxFontSize.Items[cbxFontSize.ItemIndex]);
-          Case cbxFontStyle.ItemIndex Of
-            1:
-              AFont.Style := [fsItalic];
-            2:
-              AFont.Style := [fsBold];
-            3:
-              AFont.Style := [fsItalic, fsBold];
-            Else
-              AFont.Style := [];
-            End;
+          FldrSyncOps   := [];
+          For i         := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
+            If lbxFldrSyncOps.Checked[iIndex] Then
+              Include(FldrSyncOps, i);
+          AFont.Assign(FFont);
           Result := True;
         End;
     Finally
@@ -250,29 +211,20 @@ End;
 **)
 Procedure TfrmOptions.FormCreate(Sender: TObject);
 
-Var
-  i: Integer;
-
 Begin
   FRightWidth := 1;
-  FLeftWidth := 1;
+  FLeftWidth  := 1;
   With TMemIniFile.Create(FINIFileName) Do
     Try
-      Top := ReadInteger('Options', 'Top', Top);
-      Left := ReadInteger('Options', 'Left', Left);
+      Top    := ReadInteger('Options', 'Top', Top);
+      Left   := ReadInteger('Options', 'Left', Left);
       Height := ReadInteger('Options', 'Height', Height);
-      Width := ReadInteger('Options', 'Width', Width);
+      Width  := ReadInteger('Options', 'Width', Width);
     Finally
       Free;
     End;
-  For i := 0 To Screen.Fonts.Count - 1 Do
-    cbxFontName.Items.Add(Screen.Fonts[i]);
-  For i := 6 To 32 Do
-    cbxFontSize.Items.Add(IntToStr(i));
-  cbxFontStyle.Items.Add('Normal');
-  cbxFontStyle.Items.Add('Italic');
-  cbxFontStyle.Items.Add('Bold');
-  cbxFontStyle.Items.Add('Bold Italic');
+  FFont       := TFont.Create;
+  FFolderList := TStringList.Create;
 End;
 
 (**
@@ -286,6 +238,7 @@ End;
 
 **)
 Procedure TfrmOptions.FormDestroy(Sender: TObject);
+
 Begin
   With TMemIniFile.Create(FINIFileName) Do
     Try
@@ -297,41 +250,8 @@ Begin
     Finally
       Free;
     End;
-End;
-
-(**
-
-  This method adds folder paths to the list view and updates the width
-  properties for calculating the resize width of the list view.
-
-  @precon  None.
-  @postcon Adds folder paths to the list view and updates the width properties
-  for calculating the resize width of the list view.
-
-  @param   strLeft     as a String
-  @param   strRight    as a String
-  @param   SyncOptions as a TSyncOptions
-
-**)
-Procedure TfrmOptions.AddFolders(strLeft, strRight: String;
-  SyncOptions: TSyncOptions);
-
-Var
-  Item: TListItem;
-
-Begin
-  Item := lvFolders.Items.Add;
-  Item.Caption := strLeft;
-  Item.Checked := soEnabled In SyncOptions;
-  LeftWidth := Length(strLeft);
-  Item.SubItems.Add(strRight);
-  RightWidth := Length(strRight);
-  Item.SubItems.Add('Synchronise');
-  If soPrimaryLeft In SyncOptions Then
-    Item.SubItems[1] := 'Primary Left';
-  If soPrimaryRight In SyncOptions Then
-    Item.SubItems[1] := 'Primary Right';
-  lvFoldersResize(Self);
+  FFolderList.Free;
+  FFont.Free;
 End;
 
 (**
@@ -349,12 +269,16 @@ Procedure TfrmOptions.btnAddClick(Sender: TObject);
 
 Var
   strLeft, strRight: String;
-  SyncOptions: TSyncOptions;
+  FOA              : TFolderOptionsAdapter;
 
 Begin
-  Include(SyncOptions, soEnabled);
-  If TfrmFolderPaths.Execute(strLeft, strRight, FINIFileName, SyncOptions) Then
-    AddFolders(strLeft, strRight, SyncOptions);
+  FOA.FRAWData := 0;
+  Include(FOA.FSyncOptions, soEnabled);
+  If TfrmFolderPaths.Execute(strLeft, strRight, FINIFileName, FOA.FSyncOptions) Then
+    Begin
+      FFolderList.AddObject(Format('%s=%s', [strLeft, strRight]), FOA.FOBjData);
+      PopulateFolderList;
+    End;
 End;
 
 (**
@@ -384,10 +308,10 @@ End;
   @param   Sender as a TObject
 
 **)
-procedure TfrmOptions.btnCheckforUpdatesClick(Sender: TObject);
-begin
+Procedure TfrmOptions.btnCheckforUpdatesClick(Sender: TObject);
+Begin
   TfrmCheckForUpdatesOptions.Execute(FINIFileName);
-end;
+End;
 
 (**
 
@@ -403,31 +327,40 @@ Procedure TfrmOptions.btnEditClick(Sender: TObject);
 
 Var
   strLeft, strRight: String;
-  SyncOptions: TSyncOptions;
+  FOA              : TFolderOptionsAdapter;
+  iIndex           : Integer;
 
 Begin
-  If lvFolders.Selected <> Nil Then
+  iIndex       := lvFolders.ItemIndex;
+  strLeft      := lvFolders.Selected.Caption;
+  strRight     := lvFolders.Selected.SubItems[0];
+  FOA.FOBjData := FFolderList.Objects[iIndex];
+  If TfrmFolderPaths.Execute(strLeft, strRight, FINIFileName, FOA.FSyncOptions) Then
     Begin
-      strLeft := lvFolders.Selected.Caption;
-      strRight := lvFolders.Selected.SubItems[0];
-      SyncOptions := [];
-      If lvFolders.Selected.SubItems[1] = 'Primary Left' Then
-        Include(SyncOptions, soPrimaryLeft);
-      If lvFolders.Selected.SubItems[1] = 'Primary Right' Then
-        Include(SyncOptions, soPrimaryRight);
-      If TfrmFolderPaths.Execute(strLeft, strRight, FINIFileName, SyncOptions)
-        Then
-        Begin
-          lvFolders.Selected.Caption := strLeft;
-          lvFolders.Selected.SubItems[0] := strRight;
-          lvFolders.Selected.SubItems[1] := 'Synchronise';
-          If soPrimaryLeft In SyncOptions Then
-            lvFolders.Selected.SubItems[1] := 'Primary Left';
-          If soPrimaryRight In SyncOptions Then
-            lvFolders.Selected.SubItems[1] := 'Primary Right';
-          lvFoldersResize(Sender);
-        End;
+      FFolderList[iIndex]         := Format('%s=%s', [strLeft, strRight]);
+      FFolderList.Objects[iIndex] := FOA.FOBjData;
+      PopulateFolderList;
+      lvFoldersResize(Sender);
     End;
+End;
+
+(**
+
+  This is an on click event handler for the Table Font button.
+
+  @precon  None.
+  @postcon Displays a dialogue from which the user can change the font anme, size and
+           style to be used in the table.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmOptions.btnTableFontClick(Sender: TObject);
+
+Begin
+  dlgFont.Font.Assign(FFont);
+  If dlgFont.Execute(Application.Handle) Then
+    FFont.Assign(dlgFont.Font);
 End;
 
 (**
@@ -442,8 +375,8 @@ End;
   @param   strRootKey as a String
 
 **)
-Constructor TfrmOptions.CreateWithRootKey(AOwner: TComponent;
-  strRootKey: String);
+Constructor TfrmOptions.CreateWithRootKey(AOwner: TComponent; strRootKey: String);
+
 Begin
   Inherited Create(AOwner);
   FINIFileName := strRootKey;
@@ -462,8 +395,132 @@ End;
 Procedure TfrmOptions.btnDeleteClick(Sender: TObject);
 
 Begin
-  If lvFolders.Selected <> Nil Then
-    lvFolders.Selected.Delete;
+  FFolderList.Delete(lvFolders.ItemIndex);
+  PopulateFolderList;
+End;
+
+(**
+
+  This is an on chnage event handler for the folders list view control.
+
+  @precon  None.
+  @postcon Updates the SyncOptions for the folder IF the check box for an item is changed.
+
+  @param   Sender as a TObject
+  @param   Item   as a TListItem
+  @param   Change as a TItemChange
+
+**)
+Procedure TfrmOptions.lvFoldersChange(Sender: TObject; Item: TListItem;
+  Change: TItemChange);
+
+Var
+  FOA: TFolderOptionsAdapter;
+
+Begin
+  FOA.FOBjData := FFolderList.Objects[Item.Index];
+  If Item.Checked Then
+    Include(FOA.FSyncOptions, soEnabled)
+  Else
+    Exclude(FOA.FSyncOptions, soEnabled);
+  FFolderList.Objects[Item.Index] := FOA.FOBjData;
+End;
+
+(**
+
+  This method is an on custom draw item event handler for the folder list view.
+
+  @precon  None.
+  @postcon Renders the folders with a PATH ellipsis if the dialogue is too narrow.
+
+  @param   Sender      as a TCustomListView
+  @param   Item        as a TListItem
+  @param   State       as a TCustomDrawState
+  @param   DefaultDraw as a Boolean as a reference
+
+**)
+Procedure TfrmOptions.lvFoldersCustomDrawItem(Sender: TCustomListView; Item: TListItem;
+  State: TCustomDrawState; Var DefaultDraw: Boolean);
+
+Var
+  i       : Integer;
+  R, ItemR: TRect;
+  Buffer  : Array [0 .. 2048] Of Char;
+  Ops     : Integer;
+
+  (**
+
+    This function returns display rectangle for the given indexed sub item.
+
+    @precon  iIndex must be a valid SubItem index..
+    @postcon Returns display rectangle for the given indexed sub item.
+
+    @param   iIndex as an Integer
+    @return  a TRect
+
+  **)
+  Function GetSubItemRect(iIndex: Integer): TRect;
+
+  Var
+    j: Integer;
+
+  Begin
+    Result := Item.DisplayRect(drBounds);
+    For j  := 0 To iIndex Do
+      Begin
+        Inc(Result.Left, Sender.Column[j].Width);
+        Result.Right := Result.Left + Sender.Column[j + 1].Width;
+      End;
+    Inc(Result.Top, 2);    // Padding / Margin
+    Inc(Result.Bottom, 2); // Padding / Margin
+    Inc(Result.Left, 6);   // Padding / Margin
+    Dec(Result.Right, 6);  // Padding / Margin
+  End;
+
+Begin
+  DefaultDraw := False;
+  // Set Left Background
+  Sender.Canvas.Brush.Color := clWindow;
+  If Item.Selected Then
+    Begin
+      Sender.Canvas.Brush.Color := clHighlight;
+      Sender.Canvas.Font.Color  := clHighlightText;
+    End;
+  ItemR := Item.DisplayRect(drBounds);
+  Sender.Canvas.FillRect(ItemR);
+  // Draw Status Icon
+  R := Item.DisplayRect(drBounds);
+  Sender.Canvas.FillRect(R);
+  ilStatus.Draw(Sender.Canvas, R.Left + 2, R.Top + 1, Integer(Item.Checked), True);
+  // Draw Caption
+  R := Item.DisplayRect(drLabel);
+  Inc(R.Top, 2);    // Padding / Margin
+  Inc(R.Bottom, 2); // Padding / Margin
+  Inc(R.Left, 2);   // Padding / Margin
+  Dec(R.Right, 2);  // Padding / Margin
+  Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS Or DT_NOPREFIX;
+  StrPCopy(Buffer, Item.Caption);
+  DrawText(Sender.Canvas.Handle, Buffer, Length(Item.Caption), R, Ops);
+  // Draw Sub Items
+  For i := 0 To 1 Do
+    Begin
+      Case i Of
+        0:
+          Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS Or DT_NOPREFIX;
+        1:
+          Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_END_ELLIPSIS Or DT_NOPREFIX;
+      Else
+        Ops := DT_LEFT;
+      End;
+      R := GetSubItemRect(i);
+      StrPCopy(Buffer, Item.SubItems[i]);
+      Sender.Canvas.Brush.Color := clWindow;
+      If Item.Selected Then
+        Sender.Canvas.Brush.Color := clHighlight;
+      Sender.Canvas.Refresh;
+      DrawText(Sender.Canvas.Handle, Buffer, Length(Item.SubItems[i]), R, Ops);
+      R.Left := R.Right;
+    End;
 End;
 
 (**
@@ -497,12 +554,92 @@ Var
   i: Integer;
 
 Begin
-  lvFolders.Column[2].Width := 100;
-  i := lvFolders.ClientWidth - 22 - lvFolders.Column[2].Width;
-  lvFolders.Column[0].Width := Trunc
-    (i * Int(LeftWidth) / Int(LeftWidth + RightWidth));
-  lvFolders.Column[1].Width := Trunc
-    (i * Int(RightWidth) / Int(LeftWidth + RightWidth));
+  lvFolders.Column[2].Width := 150;
+  i                         := lvFolders.ClientWidth - 22 - lvFolders.Column[2].Width;
+  lvFolders.Column[0].Width := Trunc(i * Int(LeftWidth) / Int(LeftWidth + RightWidth));
+  lvFolders.Column[1].Width := Trunc(i * Int(RightWidth) / Int(LeftWidth + RightWidth));
+End;
+
+(**
+
+  This is an on select item event handler for the Folder List View.
+
+  @precon  None.
+  @postcon Updates the enabled property of the Edit and Delete buttons depending upon
+           whether there is a selected item in the list.
+
+  @param   Sender   as a TObject
+  @param   Item     as a TListItem
+  @param   Selected as a Boolean
+
+**)
+Procedure TfrmOptions.lvFoldersSelectItem(Sender: TObject; Item: TListItem;
+  Selected: Boolean);
+
+Begin
+  btnEdit.Enabled   := Selected;
+  btnDelete.Enabled := Selected;
+End;
+
+(**
+
+  This method populates the list view with the folder information and options.
+
+  @precon  None.
+  @postcon The list view is populates with the folder information and options.
+
+**)
+Procedure TfrmOptions.PopulateFolderList;
+
+Const
+  SyncOps: Array [Succ(Low(TSyncOption)) .. High(TSyncOption)
+    ] Of String = ('Left', 'Right', 'Overwrite', 'Yes', 'No');
+
+Var
+  i        : Integer;
+  Item     : TListItem;
+  FOA      : TFolderOptionsAdapter;
+  j        : TSyncOption;
+  strOps   : String;
+  iSelected: Integer;
+
+Begin
+  Try
+    Try
+      lvFolders.OnChange := Nil;
+      lvFolders.Items.EndUpdate;
+      iSelected := lvFolders.ItemIndex;
+      lvFolders.Clear;
+      For i := 0 To FFolderList.Count - 1 Do
+        Begin
+          Item         := lvFolders.Items.Add;
+          Item.Caption := FFolderList.Names[i];
+          Item.SubItems.Add(FFolderList.ValueFromIndex[i]);
+          FOA.FOBjData := FFolderList.Objects[i];
+          Item.Checked := soEnabled In FOA.FSyncOptions;
+          strOps       := '';
+          For j        := Succ(Low(TSyncOption)) To High(TSyncOption) Do
+            Begin
+              If j In FOA.FSyncOptions Then
+                Begin
+                  If strOps <> '' Then
+                    strOps := strOps + ', ';
+                  strOps   := strOps + SyncOps[j];
+                End;
+              If (j = soPrimaryRight) And (strOps = '') Then
+                strOps := 'Synchronise';
+            End;
+          Item.SubItems.Add(strOps);
+        End;
+      If iSelected >= FFolderList.Count Then
+        Dec(iSelected);
+      lvFolders.ItemIndex := iSelected;
+    Finally
+      lvFolders.OnChange := lvFoldersChange;
+    End;
+  Finally
+    lvFolders.Items.EndUpdate;
+  End;
 End;
 
 (**
