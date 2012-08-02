@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    01 Aug 2012
+  @Date    02 Aug 2012
 
 **)
 Unit FileCopyProgressForm;
@@ -73,6 +73,10 @@ Type
 Implementation
 
 {$R *.dfm}
+
+Const
+  (** This is a division factor for the output display (kilobytes). **)
+  dblFactor : Double = 1024.0;
 { TfrmCopyProgress }
 
 (**
@@ -204,17 +208,17 @@ Begin
   If (iTick - FLastTick > 100) Or (iCopiedSize = iTotalSize) Then
     Begin
       If iTick <> FStartTick Then
-        dblBytesPerSec := Int(iCopiedSize) / 1.024 / (iTick - FStartTick)
+        dblBytesPerSec := Int(iCopiedSize) * 1000.0 / dblFactor / (iTick - FStartTick)
       Else
         dblBytesPerSec       := 0;
       lblBytesCopied.Caption :=
-        Format('Copied %1.0n bytes in %1.0n bytes (%1.1n kbytes/sec)',
-        [Int(iCopiedSize), Int(iTotalSize), dblBytesPerSec]);
+        Format('Copied %1.0n kbytes in %1.0n kbytes (%1.1n kbytes/sec)',
+        [Int(iCopiedSize / dblFactor), Int(iTotalSize / dblFactor), dblBytesPerSec]);
       pbrFile.Position    := Trunc(Int(iCopiedSize) / Int(iTotalSize) * pbrFile.Max);
       pbrOverall.Position := Trunc(Int(FSize + iCopiedSize) / Int(FTotalSize) *
           pbrOverall.Max);
-      lblBytesOverallCopied.Caption := Format('Copied %1.0n bytes in %1.0n bytes',
-        [Int(FSize + iCopiedSize), Int(FTotalSize)]);
+      lblBytesOverallCopied.Caption := Format('Copied %1.0n kbytes in %1.0n kbytes',
+        [Int(FSize + iCopiedSize) / dblFactor, Int(FTotalSize) / dblFactor]);
       Application.ProcessMessages;
       FLastTick := iTick;
     End;
@@ -235,8 +239,8 @@ Procedure TfrmCopyProgress.ProgressOverall(iSize: Int64);
 Begin
   FSize                         := iSize;
   pbrOverall.Position           := Trunc(pbrOverall.Max * Int(iSize) / Int(FTotalSize));
-  lblBytesOverallCopied.Caption := Format('Copied %1.0n bytes in %1.0n bytes',
-    [Int(FSize), Int(FTotalSize)]);
+  lblBytesOverallCopied.Caption := Format('Copied %1.0n kbytes in %1.0n kbytes',
+    [Int(FSize) / dblFactor, Int(FTotalSize) / dblFactor]);
   DoUpdateProgress(pbrOverall.Position, pbrOverall.Max);
   Application.ProcessMessages;
   CheckForCancel;

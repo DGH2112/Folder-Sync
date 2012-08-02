@@ -155,11 +155,11 @@ object frmCopyProgress: TfrmCopyProgress
     TabOrder = 0
   end
   object btnCancel: TBitBtn
-    Left = 192
+    Left = 218
     Top = 171
-    Width = 118
+    Width = 75
     Height = 25
-    Anchors = [akLeft, akRight, akBottom]
+    Anchors = [akLeft, akBottom]
     Kind = bkCancel
     NumGlyphs = 2
     TabOrder = 2
