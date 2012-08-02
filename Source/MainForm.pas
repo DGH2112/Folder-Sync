@@ -4,8 +4,11 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    01 Aug 2012
+  @Date    02 Aug 2012
   @Author  David Hoyle
+
+  @todo    Write Help.
+  @todo    Integrate help in application.
 
 **)
 Unit MainForm;
@@ -91,6 +94,7 @@ Type
     splOutputResults: TSplitter;
     redtOutputResults: TRichEdit;
     pnlMainArea: TPanel;
+    actEditClearLog: TAction;
     Procedure actHelpAboutExecute(Sender: TObject);
     Procedure actFileExitExecute(Sender: TObject);
     Procedure FormResize(Sender: TObject);
@@ -111,6 +115,7 @@ Type
     Procedure actToolsCompareExecute(Sender: TObject);
     Procedure actToolsCompareUpdate(Sender: TObject);
     Procedure FormShow(Sender: TObject);
+    procedure actEditClearLogExecute(Sender: TObject);
   Strict Private
     { Private declarations }
     FFolders        : TStringList;
@@ -169,21 +174,22 @@ Type
     Procedure CopyReadOnlyQueryProc(strSourceFile, strDestFile: String;
       Var Option: TFileAction);
     Procedure CopyEndProc(iCopied, iSkipped, iError: Integer);
-    Procedure FileQuery(strMsg: String; Var Option: TFileAction);
-    {: @debug
+    Procedure FileQuery(strMsg, strSource, strDest, strFilename: String;
+      Var Option: TFileAction);
     Procedure DiffSizeStart(iFileCount : Integer);
     Procedure DiffSize(strLPath, strRPath, strFileName : String);
     Procedure DiffSizeEnd();
     Procedure NothingToDoStart(iFileCount : Integer);
     Procedure NothingToDo(strLPath, strRPath, strFileName : String);
     Procedure NothingToDoEnd();
-    }
     Procedure UpdateTaskBar(ProgressType: TTaskbarProgressType; iPosition: Integer = 0;
       iMaxPosition: Integer = 100);
     Procedure UpdateProgress(iPosition, iMaxPosition: Integer);
     Procedure StartTimerEvent(Sender: TObject);
-    Procedure OutputResult(strMsg: String; iColour: TColor = clBlack);
-    Procedure OutputResultLn(strMsg: String; iColour: TColor = clBlack);
+    Procedure OutputResult(strMsg: String = ''; iColour: TColor = clBlack;
+      FontStyles : TFontStyles = []);
+    Procedure OutputResultLn(strMsg: String = ''; iColour: TColor = clBlack;
+      FontStyles : TFontStyles = []);
     Procedure DisableActions;
     Procedure EnableActions(boolSuccess: Boolean);
   End;
@@ -228,7 +234,7 @@ Uses
   ShellAPI,
   About,
   CheckForUpdates,
-  DGHLibrary;
+  DGHLibrary, ConfirmationDlg;
 
 {$R *.DFM}
 
@@ -309,6 +315,7 @@ Var
   i  : Integer;
   FOA: TFolderOptionsAdapter;
   j  : TFldrSyncOption;
+  strLog : String;
 
 Begin
   With TMemIniFile.Create(FRootKey) Do
@@ -326,6 +333,10 @@ Begin
       lvFileList.Font.Name               := ReadString('ListViewFont', 'Name', 'Tahoma');
       lvFileList.Font.Size               := ReadInteger('ListViewFont', 'Size', 9);
       lvFileList.Font.Style := TFontStyles(Byte(ReadInteger('ListViewFont', 'Style', 0)));
+      //: @todo Provide a font for the log.
+      strLog := ChangeFileExt(FRootKey, '_log.rtf');
+      If FileExists(strLog) Then
+        redtOutputResults.Lines.LoadFromFile(strLog);
       WindowState := TWindowState(ReadInteger('Setup', 'WindowState', Byte(wsNormal)));
       redtOutputResults.Height := ReadInteger('Setup', 'OutputResultsHeight', 100);
       FCompareEXE      := ReadString('Setup', 'CompareEXE', '');
@@ -666,22 +677,76 @@ End;
 
 (**
 
+  This is an on Nothing To Do event handler for the sync module.
+
+  @precon  None.
+  @postcon Outputs the name of the files that have a difference size but the same date
+           and time.
+
+  @param   strLPath    as a String
+  @param   strRPath    as a String
+  @param   strFileName as a String
+
+**)
+procedure TfrmMainForm.NothingToDo(strLPath, strRPath, strFileName: String);
+
+begin
+  OutputResultLn(Format('  %s => %s%s', [strLPath, strRPath, strFileName]));
+end;
+
+(**
+
+  This is an on nothingToDo end event handler for the sync module.
+
+  @precon  None.
+  @postcon None.
+
+**)
+procedure TfrmMainForm.NothingToDoEnd;
+
+begin
+  // Do nothing.
+end;
+
+(**
+
+  This is a Nothing To Do Start event handler for the sync module.
+
+  @precon  None.
+  @postcon Displays a header is there are files to output.
+
+  @param   iFileCount as an Integer
+
+**)
+procedure TfrmMainForm.NothingToDoStart(iFileCount: Integer);
+
+begin
+  If iFileCount > 0 Then
+    OutputResultLn(Format('There are %1.0n files marked as Do Nothing...',
+      [Int(iFileCount)]), clMaroon);
+end;
+
+(**
+
   This method outputs the given message to the output window with the optional colour but
   without a line feed and carraige return.
 
   @precon  None.
   @postcon The messages is output to the end of output window.
 
-  @param   strMsg  as a String
-  @param   iColour as a TColor
+  @param   strMsg     as a String
+  @param   iColour    as a TColor
+  @param   FontStyles as a TFontStyles
 
 **)
-Procedure TfrmMainForm.OutputResult(strMsg: String; iColour: TColor = clBlack);
+Procedure TfrmMainForm.OutputResult(strMsg: String = ''; iColour: TColor = clBlack;
+  FontStyles : TFontStyles = []);
 
 Begin
   redtOutputResults.SelLength           := 0;
   redtOutputResults.SelStart            := Length(redtOutputResults.Text);
   redtOutputResults.SelAttributes.Color := iColour;
+  redtOutputResults.SelAttributes.Style := FontStyles;
   redtOutputResults.SelText             := strMsg;
 End;
 
@@ -693,14 +758,16 @@ End;
   @precon  None.
   @postcon The messages is output to the end of output window.
 
-  @param   strMsg  as a String
-  @param   iColour as a TColor
+  @param   strMsg     as a String
+  @param   iColour    as a TColor
+  @param   FontStyles as a TFontStyles
 
 **)
-Procedure TfrmMainForm.OutputResultLn(strMsg: String; iColour: TColor);
+Procedure TfrmMainForm.OutputResultLn(strMsg: String = ''; iColour: TColor = clBlack;
+  FontStyles : TFontStyles = []);
 
 Begin
-  OutputResult(strMsg + #13#10, iColour);
+  OutputResult(strMsg + #13#10, iColour, FontStyles);
 End;
 
 (**
@@ -739,6 +806,7 @@ Begin
       WriteString('ListViewFont', 'Name', lvFileList.Font.Name);
       WriteInteger('ListViewFont', 'Size', lvFileList.Font.Size);
       WriteInteger('ListViewFont', 'Style', Byte(lvFileList.Font.Style));
+      redtOutputResults.Lines.SaveToFile(ChangeFileExt(FRootKey, '_log.rtf'));
       WriteInteger('Setup', 'WindowState', Byte(WindowState));
       WriteInteger('Setup', 'OutputResultsHeight', redtOutputResults.Height);
       WriteString('Setup', 'CompareEXE', FCompareEXE);
@@ -821,11 +889,12 @@ Begin
   FSyncModule.OnCopyQuery           := CopyQueryProc;
   FSyncModule.OnCopyReadOnlyQuery   := CopyReadOnlyQueryProc;
   FSyncModule.OnCopyEnd             := CopyEndProc;
-  // :@todo FSyncModule.OnDiffSizeStart := DiffSizeStart;
-  // :@todo FSyncModule.OnDiffSize := DiffSize;
-  // :@todo FSyncModule.OnDiffSizeEnd := DiffSizeEnd;
-  // :@todo FSyncModule.OnNothingToDo := NothingToDo;
-  // :@todo FSyncModule.OnNothingToDoEnd := NothingToDoEnd;
+  FSyncModule.OnDiffSizeStart := DiffSizeStart;
+  FSyncModule.OnDiffSize := DiffSize;
+  FSyncModule.OnDiffSizeEnd := DiffSizeEnd;
+  FSyncModule.OnNothingToDoStart := NothingToDoStart;
+  FSyncModule.OnNothingToDo := NothingToDo;
+  FSyncModule.OnNothingToDoEnd := NothingToDoEnd;
   FTaskbarList  := Nil;
   FTaskbarList3 := Nil;
   If CheckWin32Version(6, 1) Then
@@ -898,54 +967,59 @@ Var
   boolSuccess    : Boolean;
 
 Begin
+  OutputResultLn('Comparison started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
+    Now()), clBlue, [fsBold, fsUnderline]);
   boolSuccess := False;
   If Not CheckFolders Then
     Exit;
-  DisableActions;
-  redtOutputResults.Clear;
   Try
-    iEnabledFolders := 0;
-    For i           := 0 To FFolders.Count - 1 Do
-      Begin
-        FOA.FOBjData := FFolders.Objects[i];
-        If soEnabled In FOA.FSyncOptions Then
-          Inc(iEnabledFolders);
-      End;
-    FProgressForm.RegisterSections(iEnabledFolders * 3 + 2);
-    FProgressSection := -1;
-    lvFileList.Items.BeginUpdate;
+    DisableActions;
     Try
-      lvFileList.Clear;
-    Finally
-      lvFileList.Items.EndUpdate;
-    End;
-    Try
-      FSyncModule.Clear;
-      boolSuccess := FSyncModule.ProcessFolders(FFolders, FExclusions);
-      FixUpPanes;
-      FormResize(Sender);
-      If (fsoCloseIFNoFilesAfterComparison In FFldrSyncOptions) And
-        (lvFileList.Items.Count = 0) Then
+      iEnabledFolders := 0;
+      For i           := 0 To FFolders.Count - 1 Do
         Begin
-          FProgressForm.Progress(FProgressSection, 0, 'Auto-exiting application...',
-            'as there are no more files to process...');
-          FCloseTimer.Enabled := True;
+          FOA.FOBjData := FFolders.Objects[i];
+          If soEnabled In FOA.FSyncOptions Then
+            Inc(iEnabledFolders);
         End;
-      If (fsoStartProcessingAutomatically In FFldrSyncOptions) And
-        Not FAutoProcessing Then
-        Try
-          FAutoProcessing := True;
-          actFileProcessFilesExecute(Sender);
-        Finally
-          FAutoProcessing := False;
-        End;
+      FProgressForm.RegisterSections(iEnabledFolders * 3 + 2);
+      FProgressSection := -1;
+      lvFileList.Items.BeginUpdate;
+      Try
+        lvFileList.Clear;
+      Finally
+        lvFileList.Items.EndUpdate;
+      End;
+      Try
+        FSyncModule.Clear;
+        boolSuccess := FSyncModule.ProcessFolders(FFolders, FExclusions);
+        FixUpPanes;
+        FormResize(Sender);
+        If (fsoCloseIFNoFilesAfterComparison In FFldrSyncOptions) And
+          (lvFileList.Items.Count = 0) Then
+          Begin
+            FProgressForm.Progress(FProgressSection, 0, 'Auto-exiting application...',
+              'as there are no more files to process...');
+            FCloseTimer.Enabled := True;
+          End;
+        If (fsoStartProcessingAutomatically In FFldrSyncOptions) And
+          Not FAutoProcessing Then
+          Try
+            FAutoProcessing := True;
+            actFileProcessFilesExecute(Sender);
+          Finally
+            FAutoProcessing := False;
+          End;
+      Finally
+        UpdateTaskBar(ptNone);
+        If Not FCloseTimer.Enabled Then
+          FProgressForm.Hide;
+      End;
     Finally
-      UpdateTaskBar(ptNone);
-      If Not FCloseTimer.Enabled Then
-        FProgressForm.Hide;
+      EnableActions(boolSuccess);
     End;
   Finally
-    EnableActions(boolSuccess);
+    OutputResultLn();
   End;
 End;
 
@@ -1234,6 +1308,22 @@ End;
 
 (**
 
+  This is an on execute event handler for the Clear Log action.
+
+  @precon  None.
+  @postcon Clears the log.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmMainForm.actEditClearLogExecute(Sender: TObject);
+
+begin
+  redtOutputResults.Clear;
+end;
+
+(**
+
   This is an on execute event handler for the CopyLeftToRight Action.
 
   @precon  None.
@@ -1518,11 +1608,17 @@ End;
 Procedure TfrmMainForm.actFileProcessFilesExecute(Sender: TObject);
 
 Begin
-  DisableActions;
+  OutputResultLn('Processing started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
+    Now()), clBlue, [fsBold, fsUnderline]);
   Try
-    FSyncModule.ProcessFiles;
+    DisableActions;
+    Try
+      FSyncModule.ProcessFiles;
+    Finally
+      EnableActions(True);
+    End;
   Finally
-    EnableActions(True);
+    OutputResultLn();
   End;
   actFileCompareExecute(Self);
 End;
@@ -1749,7 +1845,7 @@ Begin
       FCopyForm.ProgressOverall(iSize);
     End
   Else
-    OutputResultLn(#32#32 + strErrMsg, clRed);
+    OutputResultLn(#32#32 + strErrMsg, clRed, [fsBold]);
 End;
 
 (**
@@ -1784,8 +1880,11 @@ End;
 Procedure TfrmMainForm.CopyEndProc(iCopied, iSkipped, iError: Integer);
 
 Begin
-  OutputResultLn(Format('...Copied %1.0n, Skipped %1.0n and Errored %1.0n.',
-      [Int(iCopied), Int(iSkipped), Int(iError)]));
+  OutputResult(Format('...Copied %1.0n (Skipped %1.0n', [Int(iCopied), Int(iSkipped)]),
+    clGreen);
+  If iError > 0 Then
+    OutputResult(Format(', Errored %1.0n', [Int(iError)]), clRed);
+  OutputResultLn(')', clGreen);
   FreeAndNil(FCopyForm);
 End;
 
@@ -1825,12 +1924,11 @@ Procedure TfrmMainForm.CopyQueryProc(strSourceFile, strDestFile: String;
   Var Option: TFileAction);
 
 Const
-  strMsg = 'Are you sure you want to overwrite the following file:'#13#10#13#10 +
-    'Source:'#9#9'%s'#13#10 + 'Destination:'#9'%s'#13#10'Filename:'#9'%s';
+  strMsg = 'Are you sure you want to overwrite the following file?';
 
 Begin
-  FileQuery(Format(strMsg, [ExtractFilePath(strSourceFile), ExtractFilePath(strDestFile),
-        ExtractFileName(strDestFile)]), Option);
+  FileQuery(strMsg, ExtractFilePath(strSourceFile), ExtractFilePath(strDestFile),
+    ExtractFileName(strDestFile), Option);
 End;
 
 (**
@@ -1850,12 +1948,11 @@ Procedure TfrmMainForm.CopyReadOnlyQueryProc(strSourceFile, strDestFile: String;
   Var Option: TFileAction);
 
 Const
-  strMsg = 'Are you sure you want to overwrite the following READ-ONLY file:'#13#10#13#10
-    + 'Source:'#9#9'%s'#13#10 + 'Destination:'#9'%s'#13#10'Filename:'#9'%s';
+  strMsg = 'Are you sure you want to overwrite the following READ-ONLY file?';
 
 Begin
-  FileQuery(Format(strMsg, [ExtractFilePath(strSourceFile), ExtractFilePath(strDestFile),
-        ExtractFileName(strDestFile)]), Option);
+  FileQuery(strMsg, ExtractFilePath(strSourceFile), ExtractFilePath(strDestFile),
+        ExtractFileName(strDestFile), Option);
 End;
 
 (**
@@ -1891,17 +1988,21 @@ End;
   @precon  None.
   @postcon The users response to the query is passed back to the sync module.
 
-  @param   strMsg as a String
-  @param   Option as a TFileAction as a reference
+  @param   strMsg      as a String
+  @param   strSource   as a String
+  @param   strDest     as a String
+  @param   strFilename as a String
+  @param   Option      as a TFileAction as a reference
 
 **)
-Procedure TfrmMainForm.FileQuery(strMsg: String; Var Option: TFileAction);
+Procedure TfrmMainForm.FileQuery(strMsg, strSource, strDest, strFilename: String;
+  Var Option: TFileAction);
 
 Begin
   If Option <> faAll Then
     Begin
       UpdateTaskBar(ptError, 0, 1);
-      Case MessageDlg(strMsg, mtConfirmation, [mbYes, mbNo, mbAll, mbCancel], 0, mbNo) Of
+      Case TfrmConfirmationDlg.Execute(strMsg, strSource, strDest, strFilename) Of
         mrYes:
           Option := faYes;
         mrNo:
@@ -1934,7 +2035,7 @@ Begin
   If boolSuccess Then
     FDeleteForm.Progress(iSize)
   Else
-    OutputResultLn(#32#32 + strErrMsg, clRed);
+    OutputResultLn(#32#32 + strErrMsg, clRed, [fsBold]);
 End;
 
 (**
@@ -1952,8 +2053,11 @@ End;
 Procedure TfrmMainForm.DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
 
 Begin
-  OutputResultLn(Format('...Deleted %1.0n, Skipped %1.0n and Errored %1.0n.',
-      [Int(iDeleted), Int(iSkipped), Int(iErrors)]));
+  OutputResult(Format('...Deleted %1.0n (Skipped %1.0n', [Int(iDeleted), Int(iSkipped)]),
+    clGreen);
+  If iErrors > 0 Then
+    OutputResult(Format(', Errored %1.0n', [Int(iErrors)]), clRed);
+  OutputResultLn(')', clGreen);
   FreeAndNil(FDeleteForm);
 End;
 
@@ -1972,10 +2076,11 @@ End;
 Procedure TfrmMainForm.DeleteQueryProc(strFileName: String; Var Option: TFileAction);
 
 Const
-  strMsg = 'Are you sure you want to delete the file "%s"?';
+  strMsg = 'Are you sure you want to delete the file?';
 
 Begin
-  FileQuery(Format(strMsg, [strFileName]), Option);
+  FileQuery(strMsg, ExtractFilePath(strFileName), '', ExtractFileName(strFileName),
+    Option);
 End;
 
 (**
@@ -1994,10 +2099,11 @@ Procedure TfrmMainForm.DeleteReadOnlyQueryProc(strFileName: String;
   Var Option: TFileAction);
 
 Const
-  strMsg = 'Are you sure you want to delete the READ-ONLY file "%s"?';
+  strMsg = 'Are you sure you want to delete the READ-ONLY file?';
 
 Begin
-  FileQuery(Format(strMsg, [strFileName]), Option);
+  FileQuery(strMsg, ExtractFilePath(strFileName), '', ExtractFileName(strFileName),
+    Option);
 End;
 
 (**
@@ -2039,6 +2145,57 @@ Procedure TfrmMainForm.DeletingProc(strFileName: String);
 Begin
   FDeleteForm.FileName := strFileName;
 End;
+
+(**
+
+  This is an on diff size event handler for the sync module.
+
+  @precon  None.
+  @postcon Outputs the name of the files that have a difference size but the same date
+           and time.
+
+  @param   strLPath    as a String
+  @param   strRPath    as a String
+  @param   strFileName as a String
+
+**)
+procedure TfrmMainForm.DiffSize(strLPath, strRPath, strFileName: String);
+
+begin
+  OutputResultLn(Format('  %s => %s%s', [strLPath, strRPath, strFileName]));
+end;
+
+(**
+
+  This is an on diff size end event handler for the sync module.
+
+  @precon  None.
+  @postcon None.
+
+**)
+procedure TfrmMainForm.DiffSizeEnd;
+
+begin
+  // Do nothing
+end;
+
+(**
+
+  This is a Diff Size Start event handler for the sync module.
+
+  @precon  None.
+  @postcon Displays a header is there are files to output.
+
+  @param   iFileCount as an Integer
+
+**)
+procedure TfrmMainForm.DiffSizeStart(iFileCount: Integer);
+
+begin
+  If iFileCount > 0 Then
+    OutputResultLn(Format('There are %1.0n file(s) with a size difference (same date)...',
+      [Int(iFileCount)]), clMaroon);
+end;
 
 (**
 
