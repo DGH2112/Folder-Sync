@@ -4,7 +4,7 @@
   files.
 
   @Version 1.5
-  @Date    01 Aug 2012
+  @Date    02 Aug 2012
   @Author  David Hoyle
 
 **)
@@ -1514,7 +1514,7 @@ Begin
   FLeftFile    := LeftFile;
   FRightFile   := RightFile;
   FFileOp      := FileOp;
-  FSyncOptions := FSyncOptions;
+  FSyncOptions := SyncOptions;
 End;
 
 { TCompareFolderCollection }
@@ -1611,6 +1611,7 @@ Function TCompareFoldersCollection.CanByPassQuery(SyncOps: TSyncOptions;
   Var Option: TFileAction): Boolean;
 
 Begin
+  //: @bug Doesnt work for READ ONLY files and OverwriteREADONLY flag.
   Result := SyncOps * [soConfirmNo, soConfirmYes] <> [];
   If Result Then
     If soConfirmNo In SyncOps Then
