@@ -4,11 +4,8 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    02 Aug 2012
+  @Date    03 Aug 2012
   @Author  David Hoyle
-
-  @todo    Write Help.
-  @todo    Integrate help in application.
 
 **)
 Unit MainForm;
@@ -95,6 +92,7 @@ Type
     redtOutputResults: TRichEdit;
     pnlMainArea: TPanel;
     actEditClearLog: TAction;
+    actHelpContents: TAction;
     Procedure actHelpAboutExecute(Sender: TObject);
     Procedure actFileExitExecute(Sender: TObject);
     Procedure FormResize(Sender: TObject);
@@ -116,6 +114,9 @@ Type
     Procedure actToolsCompareUpdate(Sender: TObject);
     Procedure FormShow(Sender: TObject);
     procedure actEditClearLogExecute(Sender: TObject);
+    procedure actHelpContentsExecute(Sender: TObject);
+    procedure stbrStatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
+      const Rect: TRect);
   Strict Private
     { Private declarations }
     FFolders        : TStringList;
@@ -192,6 +193,8 @@ Type
       FontStyles : TFontStyles = []);
     Procedure DisableActions;
     Procedure EnableActions(boolSuccess: Boolean);
+    Procedure LogSize;
+    Procedure OutputStats;
   End;
 
   (** This is a custon exception for folders not found or created. **)
@@ -280,7 +283,6 @@ Begin
           Column[iRDisplayCol].Width := i;
         End;
     End;
-  stbrStatusBar.Panels[0].Width := stbrStatusBar.ClientWidth Div 2;
 End;
 
 (**
@@ -333,10 +335,12 @@ Begin
       lvFileList.Font.Name               := ReadString('ListViewFont', 'Name', 'Tahoma');
       lvFileList.Font.Size               := ReadInteger('ListViewFont', 'Size', 9);
       lvFileList.Font.Style := TFontStyles(Byte(ReadInteger('ListViewFont', 'Style', 0)));
-      //: @todo Provide a font for the log.
+      redtOutputResults.Font.Name        := ReadString('LogFont', 'Name', 'Courier New');
+      redtOutputResults.Font.Size        := ReadInteger('LogFont', 'Size', 10);
       strLog := ChangeFileExt(FRootKey, '_log.rtf');
       If FileExists(strLog) Then
         redtOutputResults.Lines.LoadFromFile(strLog);
+      LogSize;
       WindowState := TWindowState(ReadInteger('Setup', 'WindowState', Byte(wsNormal)));
       redtOutputResults.Height := ReadInteger('Setup', 'OutputResultsHeight', 100);
       FCompareEXE      := ReadString('Setup', 'CompareEXE', '');
@@ -366,6 +370,23 @@ Begin
     Finally
       Free;
     End;
+End;
+
+(**
+
+  This methiohd updates the status bar with the current log size.
+
+  @precon  None.
+  @postcon The status bar is updated with the current log size.
+
+**)
+Procedure TfrmMainForm.LogSize;
+
+Begin
+  stbrStatusBar.Panels[0].Text := Format('Log size: %1.1n kbytes',
+    [Int(Length(redtOutputResults.Text)) / 1024.0]);
+  With stbrStatusBar Do
+    Panels[0].Width := Canvas.TextWidth(Panels[0].Text) + 25;
 End;
 
 (**
@@ -748,6 +769,7 @@ Begin
   redtOutputResults.SelAttributes.Color := iColour;
   redtOutputResults.SelAttributes.Style := FontStyles;
   redtOutputResults.SelText             := strMsg;
+  LogSize;
 End;
 
 (**
@@ -768,6 +790,39 @@ Procedure TfrmMainForm.OutputResultLn(strMsg: String = ''; iColour: TColor = clB
 
 Begin
   OutputResult(strMsg + #13#10, iColour, FontStyles);
+End;
+
+(**
+
+  This method adds panels to the status bar for each of the statistics returned from the
+  sync module.
+
+  @precon  None.
+  @postcon Panels are added to the status bar for each available statistic.
+
+**)
+Procedure TfrmMainForm.OutputStats;
+
+Var
+  i: Integer;
+  P: TStatusPanel;
+
+Begin
+  stbrStatusBar.Panels.BeginUpdate;
+  Try
+    While stbrStatusBar.Panels.Count > 1 Do
+      stbrStatusBar.Panels.Delete(stbrStatusBar.Panels.Count - 1);
+    FSyncModule.BuildStats;
+    For i := 0 To FSyncModule.Statistics.Count - 1 Do
+      Begin
+        P := stbrStatusBar.Panels.Add;
+        P.Text := FSyncModule.Statistics[i];
+        P.Width := stbrStatusBar.Canvas.TextWidth(P.Text) + 25;
+        P.Style := psOwnerDraw;
+      End;
+  Finally
+    stbrStatusBar.Panels.EndUpdate;
+  End;
 End;
 
 (**
@@ -806,6 +861,8 @@ Begin
       WriteString('ListViewFont', 'Name', lvFileList.Font.Name);
       WriteInteger('ListViewFont', 'Size', lvFileList.Font.Size);
       WriteInteger('ListViewFont', 'Style', Byte(lvFileList.Font.Style));
+      WriteString('LogFont', 'Name', redtOutputResults.Font.Name);
+      WriteInteger('LogFont', 'Size', redtOutputResults.Font.Size);
       redtOutputResults.Lines.SaveToFile(ChangeFileExt(FRootKey, '_log.rtf'));
       WriteInteger('Setup', 'WindowState', Byte(WindowState));
       WriteInteger('Setup', 'OutputResultsHeight', redtOutputResults.Height);
@@ -861,6 +918,7 @@ Begin
   FFolders                       := TStringList.Create;
   FProgressForm                  := TfrmProgress.Create(Self);
   FProgressForm.OnUpdateProgress := UpdateProgress;
+  Application.HelpFile := ChangeFileExt(ParamStr(0), '.chm');
   LoadSettings();
   Application.OnHint                := ApplicationHint;
   FIconFiles                        := TStringList.Create;
@@ -1014,6 +1072,7 @@ Begin
         UpdateTaskBar(ptNone);
         If Not FCloseTimer.Enabled Then
           FProgressForm.Hide;
+        OutputStats;
       End;
     Finally
       EnableActions(boolSuccess);
@@ -1302,7 +1361,7 @@ Procedure TfrmMainForm.actToolsOptionsExecute(Sender: TObject);
 
 Begin
   If TfrmOptions.Execute(FFolders, FExclusions, FCompareEXE, FRootKey, lvFileList.Font,
-    FFldrSyncOptions) Then
+    redtOutputResults.Font, FFldrSyncOptions) Then
     actFileCompareExecute(Self);
 End;
 
@@ -1434,6 +1493,7 @@ Begin
           FSyncModule.Process[i].FileOp := FileOp;
         End;
     End;
+  OutputStats;
 End;
 
 (**
@@ -1451,6 +1511,42 @@ Procedure TfrmMainForm.StartTimerEvent(Sender: TObject);
 Begin
   FStartTimer.Enabled := False;
   actFileCompareExecute(Self);
+End;
+
+(**
+
+  This is an on draw panel event handler for the status bar.
+
+  @precon  None.
+  @postcon Renders the Panels with bold text for the title and the rest as panel text.
+
+  @param   StatusBar as a TStatusBar
+  @param   Panel     as a TStatusPanel
+  @param   Rect      as a TRect as a constant
+
+**)
+Procedure TfrmMainForm.stbrStatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
+  Const Rect: TRect);
+
+Var
+  R : TRect;
+  iPos:  Integer;
+  strText : String;
+  iColour: TColor;
+
+Begin
+  iPos := Pos(':', Panel.Text);
+  strText := Copy(Panel.Text, 1, iPos);
+  R := Rect;
+  iColour := StatusBar.Canvas.Font.Color;
+  StatusBar.Canvas.Font.Color := clMaroon;
+  StatusBar.Canvas.Font.Style := [fsBold];
+  StatusBar.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
+  Inc(R.Left, StatusBar.Canvas.TextWidth(strText) + 2);
+  StatusBar.Canvas.Font.Style := [];
+  strText := Copy(Panel.Text, iPos + 1, Length(Panel.Text) - iPos);
+  StatusBar.Canvas.Font.Color := iColour;
+  StatusBar.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
 End;
 
 (**
@@ -1657,6 +1753,22 @@ End;
 
 (**
 
+  This is an on execute event handler for the Help Contents action.
+
+  @precon  None.
+  @postcon Displays the Contents and Welcome page of the HTML Help.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actHelpContentsExecute(Sender: TObject);
+
+Begin
+  Application.HelpShowTableOfContents;
+End;
+
+(**
+
   This is an on execute event handler for the Select All action.
 
   @precon  None.
@@ -1843,9 +1955,10 @@ Begin
     Begin
       FCopyForm.Progress(iSize, iSize);
       FCopyForm.ProgressOverall(iSize);
+      OutputResultLn();
     End
   Else
-    OutputResultLn(#32#32 + strErrMsg, clRed, [fsBold]);
+    OutputResultLn(#13#10#32#32 + strErrMsg, clRed, [fsBold]);
 End;
 
 (**
@@ -1905,6 +2018,7 @@ Procedure TfrmMainForm.CopyingProc(strSource, strDest, strFileName: String);
 Begin
   FCopyForm.Progress(ExtractFilePath(strSource + strFileName),
     ExtractFilePath(strDest + strFileName), ExtractFileName(strFileName));
+  OutputResult(Format('  %s => %s%s', [strSource, strDest, strFilename]));
 End;
 
 (**
@@ -2033,9 +2147,11 @@ Procedure TfrmMainForm.DeletedProc(iFile: Integer; iSize: int64; boolSuccess: Bo
 
 Begin
   If boolSuccess Then
-    FDeleteForm.Progress(iSize)
-  Else
-    OutputResultLn(#32#32 + strErrMsg, clRed, [fsBold]);
+    Begin
+      FDeleteForm.Progress(iSize);
+      OutputResultLn();
+    End Else
+      OutputResultLn(#13#10#32#32 + strErrMsg, clRed, [fsBold]);
 End;
 
 (**
@@ -2144,6 +2260,7 @@ Procedure TfrmMainForm.DeletingProc(strFileName: String);
 
 Begin
   FDeleteForm.FileName := strFileName;
+  OutputResult(#32#32 + strFileName);
 End;
 
 (**
