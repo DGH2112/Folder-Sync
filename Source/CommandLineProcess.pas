@@ -5,7 +5,7 @@
 
   @Version 1.5
   @Author  David Hoyle
-  @Date    01 Aug 2012
+  @Date    03 Aug 2012
 
 **)
 Unit CommandLineProcess;
@@ -259,8 +259,8 @@ End;
 Procedure TCommandLineProcessing.CopyContentsProc(iCopiedSize, iTotalSize: Int64);
 
 Begin
-  OutputToConsole(FStd, Format(' %1.1f%%', [Int(iCopiedSize) / Int(iTotalSize)]), clNone,
-    clNone, False);
+  OutputToConsole(FStd, Format(' %1.1f%%', [Int(iCopiedSize) / Int(iTotalSize) * 100]),
+    clNone, clNone, False);
 End;
 
 (**
