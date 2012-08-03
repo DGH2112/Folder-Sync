@@ -33,13 +33,13 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     Transparent = True
     WordWrap = True
   end
-  object lblSourceLabel: TLabel
+  object lblLabelLine1: TLabel
     Left = 8
     Top = 43
     Width = 71
     Height = 13
     AutoSize = False
-    Caption = 'lblSourceLabel'
+    Caption = 'lblLabelLine1'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -47,23 +47,23 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     Font.Style = [fsBold]
     ParentFont = False
   end
-  object lblSource: TLabel
+  object lblInformation1: TLabel
     Left = 85
     Top = 43
     Width = 377
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
-    Caption = 'lblSource'
+    Caption = 'lblInformation1'
     EllipsisPosition = epPathEllipsis
   end
-  object lblDestLabel: TLabel
+  object lblLabelLine2: TLabel
     Left = 8
     Top = 62
     Width = 71
     Height = 13
     AutoSize = False
-    Caption = 'lblDestLabel'
+    Caption = 'lblLabelLine2'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -71,23 +71,23 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     Font.Style = [fsBold]
     ParentFont = False
   end
-  object lblDest: TLabel
+  object lblInformation2: TLabel
     Left = 85
     Top = 62
     Width = 377
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
-    Caption = 'lblDest'
+    Caption = 'lblInformation2'
     EllipsisPosition = epPathEllipsis
   end
-  object lblFilenameLabel: TLabel
+  object lblLabelLine3: TLabel
     Left = 8
     Top = 81
     Width = 71
     Height = 13
     AutoSize = False
-    Caption = 'lblFilenameLabel'
+    Caption = 'lblLabelLine3'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -95,14 +95,14 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     Font.Style = [fsBold]
     ParentFont = False
   end
-  object lblFilename: TLabel
+  object lblInformation3: TLabel
     Left = 85
     Top = 81
     Width = 377
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
-    Caption = 'lblFilename'
+    Caption = 'lblInformation3'
     EllipsisPosition = epPathEllipsis
   end
   object btnYes: TBitBtn
@@ -132,8 +132,6 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     ModalResult = 6
     NumGlyphs = 2
     TabOrder = 0
-    ExplicitLeft = 203
-    ExplicitTop = 122
   end
   object btnNo: TBitBtn
     Left = 225
@@ -163,8 +161,6 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     ModalResult = 7
     NumGlyphs = 2
     TabOrder = 1
-    ExplicitLeft = 284
-    ExplicitTop = 122
   end
   object btnAll: TBitBtn
     Left = 306
@@ -175,8 +171,6 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     Kind = bkAll
     NumGlyphs = 2
     TabOrder = 2
-    ExplicitLeft = 365
-    ExplicitTop = 122
   end
   object btnCancel: TBitBtn
     Left = 387
@@ -187,7 +181,5 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     Kind = bkCancel
     NumGlyphs = 2
     TabOrder = 3
-    ExplicitLeft = 446
-    ExplicitTop = 122
   end
 end

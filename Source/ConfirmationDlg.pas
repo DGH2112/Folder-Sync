@@ -4,7 +4,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    02 Aug 2012
+  @Date    03 Aug 2012
 
 **)
 Unit ConfirmationDlg;
@@ -28,12 +28,12 @@ Type
   (** A class to represent the form interface. **)
   TfrmConfirmationDlg = Class(TForm)
     lblMessage: TLabel;
-    lblSourceLabel: TLabel;
-    lblSource: TLabel;
-    lblDestLabel: TLabel;
-    lblDest: TLabel;
-    lblFilenameLabel: TLabel;
-    lblFilename: TLabel;
+    lblLabelLine1: TLabel;
+    lblInformation1: TLabel;
+    lblLabelLine2: TLabel;
+    lblInformation2: TLabel;
+    lblLabelLine3: TLabel;
+    lblInformation3: TLabel;
     btnYes: TBitBtn;
     btnNo: TBitBtn;
     btnAll: TBitBtn;
@@ -71,15 +71,22 @@ Begin
   With TfrmConfirmationDlg.Create(Nil) Do
     Try
       lblMessage.Caption := strMsg;
-      lblSourceLabel.Caption := 'Source:';
-      lblSource.Caption := strSource;
-      lblDest.Caption := strDest;
+      lblLabelLine1.Caption := 'Source:';
+      lblInformation1.Caption := strSource;
       If strDest <> '' Then
-        lblDestLabel.Caption := 'Destination:'
-      Else
-        lblDestLabel.Caption := '';
-      lblFilenameLabel.Caption := 'Filename:';
-      lblFilename.Caption := strFilename;
+        Begin
+          lblLabelLine2.Caption := 'Destination:';
+          lblInformation2.Caption := strDest;
+          lblLabelLine3.Caption := 'Filename:';
+          lblInformation3.Caption := strFilename;
+        End Else
+        Begin
+          lblLabelLine2.Caption := 'Filename:';
+          lblInformation2.Caption := strFilename;
+          lblLabelLine3.Caption := '';
+          lblInformation3.Caption := '';
+          Height := Height - (lblInformation3.Top - lblInformation2.Top);
+        End;
       Result := ShowModal;
     Finally
       Free;
