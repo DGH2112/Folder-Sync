@@ -4,7 +4,7 @@
   files.
 
   @Version 1.5
-  @Date    02 Aug 2012
+  @Date    03 Aug 2012
   @Author  David Hoyle
 
 **)
@@ -479,6 +479,7 @@ Type
     FFiles                      : Integer;
     FSkipped                    : Integer;
     FErrors                     : Integer;
+    FStatistics                 : TStringList;
   Strict Protected
     Function GetCount: Integer;
     Function GetCompareFolders(iIndex: Integer): TCompareFolders;
@@ -529,7 +530,8 @@ Type
     Function CopyIndividualFile(strSource, strDest: String; FName: TFileRecord;
       Var boolAll: Boolean; boolReadOnly: Boolean; Var strErrmsg: String;
       SyncOps: TSyncOptions): Boolean;
-    Function CanByPassQuery(SyncOps: TSyncOptions; Var Option: TFileAction): Boolean;
+    Function CanByPassQuery(SyncOps: TSyncOptions; boolReadOnly : Boolean;
+      Var Option: TFileAction): Boolean;
     (**
       This property returns an indexed CompareFolders class.
       @precon  The index but be between 0 and Count - 1.
@@ -552,6 +554,7 @@ Type
     Function ProcessFolders(slFolders: TStringList; strExclusions: String): Boolean;
     Procedure ProcessFiles;
     Procedure Clear;
+    Procedure BuildStats;
     (**
       This property returns the number of files to process in the internal process list.
       @precon  None.
@@ -802,6 +805,13 @@ Type
     **)
     Property OnNothingToDoEnd: TNothingToDoEndNotifier Read FNothingToDoEndNotifier
       Write FNothingToDoEndNotifier;
+    (**
+      This property provides access to the list of statistics stored in a string list.
+      @precon  None.
+      @postcon Get the string list of statistics.
+      @return  a TStringList
+    **)
+    Property Statistics : TStringList Read FStatistics;
   End;
 
   (** A custom exception for exception raised by FldrSync. **)
@@ -1593,31 +1603,86 @@ End;
 
 (**
 
-  This method determines whether the querying call back procedures can be by passed
-  based on the options provided in the SyncOps parameter. If these are either
-  soConfirmYes or so ConfirmNo then the function returns TRUE and the file action options
-  is set appropriately.
+  This metohd builds a set of statistics for the comparisons made.
+
+  @precon  None.
+  @postcon Adds statistics to the string list.
+
+**)
+Procedure TCompareFoldersCollection.BuildStats;
+
+Const
+  strTemplate = '%s: %1.0n files in %1.1n kbytes';
+
+Var
+  iCount : Integer;
+  iSize  : Int64;
+  iLeft, iRight : Int64;
+  i : Integer;
+
+Begin
+  FStatistics.Clear;
+  iSize := 0;
+  iCount := CountFileOps([foDelete], iSize);
+  FStatistics.Add(Format(strTemplate, ['Delete', Int(iCount), Int(iSize) / 1024.0]));
+  iSize := 0;
+  iCount := CountFileOps([foLeftToRight, foRightToLeft], iSize);
+  FStatistics.Add(Format(strTemplate, ['Copy', Int(iCount), Int(iSize) / 1024.0]));
+  iSize := 0;
+  iCount := CountFileOps([foSizeDiff], iSize);
+  FStatistics.Add(Format(strTemplate, ['Size Diff', Int(iCount), Int(iSize) / 1024.0]));
+  iSize := 0;
+  iCount := CountFileOps([foNothing], iSize);
+  FStatistics.Add(Format(strTemplate, ['Do Nothing', Int(iCount), Int(iSize) / 1024.0]));
+  iLeft := 0;
+  iRight := 0;
+  For i := 0 To FCompareFolders.Count - 1 Do
+    Begin
+      Inc(iLeft, CompareFolders[i].LeftFldr.TotalSize);
+      Inc(iRight, CompareFolders[i].RightFldr.TotalSize);
+    End;
+  FStatistics.Add(Format('Total Left: %1.1n kbytes', [Int(iLeft) / 1024.0]));
+  FStatistics.Add(Format('Total Right: %1.1n kbytes', [Int(iRight) / 1024.0]));
+  FStatistics.Add(Format('Difference (L-R): %1.1n kbytes', [Int(iLEft - iRight) / 1024.0]));
+End;
+
+(**
+
+  This method determines whether the querying call back procedures can be by passed based
+  on the options provided in the SyncOps parameter. If these are either soConfirmYes or so
+  ConfirmNo then the function returns TRUE and the file action options is set
+  appropriately.
 
   @precon  None.
   @postcon Returns whether the querying process snhould be bypassed and modifies the file
            action appropriately.
 
-  @param   SyncOps as a TSyncOptions
-  @param   Option  as a TFileAction as a reference
+  @param   SyncOps      as a TSyncOptions
+  @param   boolReadOnly as a Boolean
+  @param   Option       as a TFileAction as a reference
   @return  a Boolean
 
 **)
 Function TCompareFoldersCollection.CanByPassQuery(SyncOps: TSyncOptions;
-  Var Option: TFileAction): Boolean;
+  boolReadOnly : Boolean; Var Option: TFileAction): Boolean;
+
+Var
+  Op: TFileAction;
 
 Begin
-  //: @bug Doesnt work for READ ONLY files and OverwriteREADONLY flag.
+  Op := Option;
   Result := SyncOps * [soConfirmNo, soConfirmYes] <> [];
   If Result Then
     If soConfirmNo In SyncOps Then
       Option := faNo
     Else If soConfirmYes In SyncOps Then
       Option := faYes;
+  If boolReadOnly Then
+    Begin
+      Result := Result And (soOverwriteReadOnlyFiles In SyncOps);
+      If Not Result Then
+        Option := Op;
+    End;
 End;
 
 (**
@@ -1878,6 +1943,7 @@ Constructor TCompareFoldersCollection.Create();
 Begin
   FCompareFolders := TObjectList.Create(True);
   FProcessList    := TObjectList.Create(True);
+  FStatistics     := TStringList.Create;
 End;
 
 (**
@@ -2021,6 +2087,7 @@ End;
 Destructor TCompareFoldersCollection.Destroy;
 
 Begin
+  FStatistics.Free;
   FProcessList.Free;
   FCompareFolders.Free;
   Inherited;
@@ -2135,7 +2202,7 @@ Procedure TCompareFoldersCollection.DoCopyQuery(strSourceFile, strDestFile: Stri
   Var Option: TFileAction; SyncOptions: TSyncOptions);
 
 Begin
-  If Not CanByPassQuery(SyncOptions, Option) Then
+  If Not CanByPassQuery(SyncOptions, False, Option) Then
     If Assigned(FCopyQueryNotifier) Then
       FCopyQueryNotifier(strSourceFile, strDestFile, Option);
 End;
@@ -2157,7 +2224,7 @@ Procedure TCompareFoldersCollection.DoCopyReadOnlyQuery(strSourceFile,
   strDestFile: String; Var Option: TFileAction; SyncOptions: TSyncOptions);
 
 Begin
-  If Not CanByPassQuery(SyncOptions, Option) Then
+  If Not CanByPassQuery(SyncOptions, True, Option) Then
     If Assigned(FCopyReadOnlyQueryNotifier) Then
       FCopyReadOnlyQueryNotifier(strSourceFile, strDestFile, Option);
 End;
@@ -2306,7 +2373,7 @@ Procedure TCompareFoldersCollection.DoDeleteQuery(strFileName: String;
   Var Option: TFileAction; SyncOptions: TSyncOptions);
 
 Begin
-  If Not CanByPassQuery(SyncOptions, Option) Then
+  If Not CanByPassQuery(SyncOptions, False, Option) Then
     If Assigned(FDeleteQueryNotifier) Then
       FDeleteQueryNotifier(strFileName, Option);
 End;
@@ -2327,7 +2394,7 @@ Procedure TCompareFoldersCollection.DoDeleteReadOnlyQuery(strFileName: String;
   Var Option: TFileAction; SyncOptions: TSyncOptions);
 
 Begin
-  If Not CanByPassQuery(SyncOptions, Option) Then
+  If Not CanByPassQuery(SyncOptions, True, Option) Then
     If Assigned(FDeleteReadOnlyQueryNotifier) Then
       FDeleteReadOnlyQueryNotifier(strFileName, Option);
 End;
@@ -2720,6 +2787,7 @@ Var
   FOA: TFolderOptionsAdapter;
 
 Begin
+  FStatistics.Clear;
   For i := 0 To slFolders.Count - 1 Do
     Begin
       FOA.FOBjData := slFolders.Objects[i];
@@ -2739,6 +2807,7 @@ Begin
         End;
     End;
   BuildMatchLists;
+  BuildStats;
   Result := True;
 End;
 
