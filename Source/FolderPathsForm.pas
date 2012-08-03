@@ -3,7 +3,7 @@
   A class to define a form for editing the Folder Paths.
 
   @Version 1.0
-  @date    01 Aug 2012
+  @date    03 Aug 2012
   @Author  David Hoyle.
 
 **)
@@ -38,12 +38,14 @@ Type
     btnCancel: TBitBtn;
     lbxSyncOptions: TCheckListBox;
     lblFldrSyncOptions: TLabel;
+    btnHelp: TBitBtn;
     Procedure FolderPathChange(Sender: TObject);
     Procedure btnBrowseLeftClick(Sender: TObject);
     Procedure btnBrowseRightClick(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
     Procedure lbxSyncOptionsClick(Sender: TObject);
+    procedure btnHelpClick(Sender: TObject);
   Private
     { Private declarations }
     FRootKey: String;
@@ -270,6 +272,22 @@ Begin
   If SelectDirectory('Right Folder', '', strFolder) Then
     edtRightFolder.Text := strFolder + '\';
 End;
+
+(**
+
+  This is an on click event handler for the Help button.
+
+  @precon  None.
+  @postcon Displays the Options topic of the HTML Help.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmFolderPaths.btnHelpClick(Sender: TObject);
+
+begin
+  Application.HelpContext(1);
+end;
 
 (**
 
