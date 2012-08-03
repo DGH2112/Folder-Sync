@@ -96,6 +96,7 @@ Type
     Procedure NothingToDoStart(iFileCount: Integer);
     Procedure NothingToDo(strLPath, strRPath, strFileName: String);
     Procedure NothingToDoEnd();
+    Procedure OutputStats(CFC : TCompareFoldersCollection);
   Public
     Constructor Create;
     Destructor Destroy; Override;
@@ -821,6 +822,7 @@ Begin
       CFC.OnNothingToDo         := NothingToDo;
       CFC.OnNothingToDoEnd      := NothingToDoEnd;
       CFC.ProcessFolders(slFolders, FExclusions);
+      OutputStats(CFC);
       CFC.ProcessFiles;
     Finally
       slFolders.Free;
@@ -1021,6 +1023,34 @@ Begin
   If iFileCount > 0 Then
     OutputToConsoleLn(FStd, Format('%1.0n Files with Nothing to do...', [Int(iFileCount)]
         ), FHeaderColour);
+End;
+
+(**
+
+  This method outputs the statistic for the synchronisation job.
+
+  @precon  CFC must be a valid instance.
+  @postcon Outputs the statistics to the console.
+
+  @param   CFC as a TCompareFoldersCollection
+
+**)
+Procedure TCommandLineProcessing.OutputStats(CFC : TCompareFoldersCollection);
+
+Var
+  i : Integer;
+  iPos : Integer;
+
+Begin
+  OutputToConsoleLn(FStd, 'Statistics:', FHeaderColour);
+  For i := 0 To CFC.Statistics.Count - 1 Do
+    Begin
+      iPos := Pos(':', CFC.Statistics[i]);
+      OutputToConsoleLn(FStd, Format('  %-20s: %40s', [
+        Copy(CFC.Statistics[i], 1, iPos - 1),
+        Copy(CFC.Statistics[i], iPos + 1, Length(CFC.Statistics[i]) - iPos)
+      ]));
+    End;
 End;
 
 (**
