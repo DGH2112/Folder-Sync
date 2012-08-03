@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    01 Aug 2012
+  @Date    03 Aug 2012
   @Version 1.0
   @Author  David Hoyle
 
@@ -47,6 +47,8 @@ Type
     lbxFldrSyncOps: TCheckListBox;
     lblExclusions: TLabel;
     ilStatus: TImageList;
+    btnHelp: TBitBtn;
+    btnLogFont: TBitBtn;
     Procedure lvFoldersResize(Sender: TObject);
     Procedure btnAddClick(Sender: TObject);
     Procedure btnEditClick(Sender: TObject);
@@ -61,13 +63,16 @@ Type
     Procedure btnTableFontClick(Sender: TObject);
     Procedure lvFoldersCustomDrawItem(Sender: TCustomListView; Item: TListItem;
       State: TCustomDrawState; Var DefaultDraw: Boolean);
+    Procedure btnHelpClick(Sender: TObject);
+    Procedure btnLogFontClick(Sender: TObject);
   Private
     { Private declarations }
     FRightWidth : Integer;
     FLeftWidth  : Integer;
     FINIFileName: String;
     FFolderList : TStringList;
-    FFont       : TFont;
+    FTableFont  : TFont;
+    FLogFont    : TFont;
     Procedure SetLeftWidth(Const Value: Integer);
     Procedure SetRightWidth(Const Value: Integer);
     Procedure PopulateFolderList;
@@ -88,8 +93,8 @@ Type
   Public
     { Public declarations }
     Class Function Execute(Var slFolders: TStringList;
-      Var strExclusions, strCompareEXE: String; strINIFileName: String; AFont: TFont;
-      Var FldrSyncOps: TFldrSyncOptions): Boolean;
+      Var strExclusions, strCompareEXE: String; strINIFileName: String;
+      TableFont, LogFont: TFont; Var FldrSyncOps: TFldrSyncOptions): Boolean;
     Constructor CreateWithRootKey(AOwner: TComponent; strRootKey: String); Virtual;
   End;
 
@@ -106,30 +111,29 @@ Const
   (** A constant array of strings corresponding to the OLD folder sync options. **)
   strOLDFldrSyncOptions: Array [Low(TOLDFldrSyncOption) .. High(TOLDFldrSyncOption)
     ] Of TOptionsInfo = ((FINISection: 'AppOptions'; FINIKey: 'CloseOnNoFiles';
-      FDescription
-        : 'Close Folder Sync IF there are no files to processes after comparison.';
-      FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'RespondWithYes';
-      FDescription
-        : 'Respond with "Yes to All" for any dialogue boxes that are displayed.';
-      FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'DoNotConfirmDir';
-      FDescription
-        : 'Do not confirm the creation of a new directories if the operation requires one to be created.';
-      FDefault: True), (FINISection: 'AppOptions'; FINIKey: 'DisplayProgress';
-      FDescription: 'Display a progress dialogue box but do not show the file names.';
-      FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'StartAutomatically';
-      FDescription
-        : 'Start processing the files after comparison automatically (DANGEROUS!).';
-      FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'HideLongFiles';
-      FDescription: 'Hide file that are too long to copy or delete.'; FDefault: False));
+    FDescription
+    : 'Close Folder Sync IF there are no files to processes after comparison.';
+    FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'RespondWithYes';
+    FDescription: 'Respond with "Yes to All" for any dialogue boxes that are displayed.';
+    FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'DoNotConfirmDir';
+    FDescription
+    : 'Do not confirm the creation of a new directories if the operation requires one to be created.';
+    FDefault: True), (FINISection: 'AppOptions'; FINIKey: 'DisplayProgress';
+    FDescription: 'Display a progress dialogue box but do not show the file names.';
+    FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'StartAutomatically';
+    FDescription
+    : 'Start processing the files after comparison automatically (DANGEROUS!).';
+    FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'HideLongFiles';
+    FDescription: 'Hide file that are too long to copy or delete.'; FDefault: False));
   (** A constant array of strings corresponding to the NEW folder sync options. **)
   strFldrSyncOptions: Array [Low(TFldrSyncOption) .. High(TFldrSyncOption)
     ] Of TOptionsInfo = ((FINISection: 'AppOptions'; FINIKey: 'CloseOnNoFiles';
-      FDescription
-        : 'Close Folder Sync IF there are no files to processes after comparison.';
-      FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'StartAutomatically';
-      FDescription
-        : 'Start processing the files after comparison automatically (DANGEROUS!).';
-      FDefault: False));
+    FDescription
+    : 'Close Folder Sync IF there are no files to processes after comparison.';
+    FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'StartAutomatically';
+    FDescription
+    : 'Start processing the files after comparison automatically (DANGEROUS!).';
+    FDefault: False));
 
 Implementation
 
@@ -138,7 +142,6 @@ Uses
   IniFiles,
   CheckForUpdatesOptionsForm;
 {$R *.DFM}
-
 { TfrmOptions }
 
 (**
@@ -153,14 +156,15 @@ Uses
   @param   strExclusions  as a String as a reference
   @param   strCompareEXE  as a String as a reference
   @param   strINIFileName as a String
-  @param   AFont          as a TFont
+  @param   TableFont      as a TFont
+  @param   LogFont        as a TFont
   @param   FldrSyncOps    as a TFldrSyncOptions as a reference
   @return  a Boolean
 
 **)
 Class Function TfrmOptions.Execute(Var slFolders: TStringList;
-  Var strExclusions, strCompareEXE: String; strINIFileName: String; AFont: TFont;
-  Var FldrSyncOps: TFldrSyncOptions): Boolean;
+  Var strExclusions, strCompareEXE: String; strINIFileName: String;
+  TableFont, LogFont: TFont; Var FldrSyncOps: TFldrSyncOptions): Boolean;
 
 Var
   i     : TFldrSyncOption;
@@ -170,7 +174,8 @@ Begin
   Result := False;
   With TfrmOptions.CreateWithRootKey(Nil, strINIFileName) Do
     Try
-      FFont.Assign(AFont);
+      FTableFont.Assign(TableFont);
+      FLogFont.Assign(LogFont);
       FFolderList.Assign(slFolders);
       PopulateFolderList;
       lvFoldersSelectItem(Nil, Nil, False);
@@ -190,7 +195,8 @@ Begin
           For i         := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
             If lbxFldrSyncOps.Checked[iIndex] Then
               Include(FldrSyncOps, i);
-          AFont.Assign(FFont);
+          TableFont.Assign(FTableFont);
+          LogFont.Assign(FLogFont);
           Result := True;
         End;
     Finally
@@ -223,7 +229,8 @@ Begin
     Finally
       Free;
     End;
-  FFont       := TFont.Create;
+  FTableFont  := TFont.Create;
+  FLogFont    := TFont.Create;
   FFolderList := TStringList.Create;
 End;
 
@@ -251,7 +258,8 @@ Begin
       Free;
     End;
   FFolderList.Free;
-  FFont.Free;
+  FTableFont.Free;
+  FLogFont.Free;
 End;
 
 (**
@@ -346,6 +354,42 @@ End;
 
 (**
 
+  This is an on click event handler for the Help button.
+
+  @precon  None.
+  @postcon Displays the Options topic of the HTML Help.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmOptions.btnHelpClick(Sender: TObject);
+
+Begin
+  Application.HelpContext(1);
+End;
+
+(**
+
+  This is an on click event handler for the Table Font button.
+
+  @precon  None.
+  @postcon Displays a dialogue from which the user can change the font anme, size and
+           style to be used in the table.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmOptions.btnLogFontClick(Sender: TObject);
+
+Begin
+  dlgFont.Font.Assign(FLogFont);
+  dlgFont.Options := [fdForceFontExist, fdNoStyleSel];
+  If dlgFont.Execute(Application.Handle) Then
+    FLogFont.Assign(dlgFont.Font);
+End;
+
+(**
+
   This is an on click event handler for the Table Font button.
 
   @precon  None.
@@ -358,9 +402,10 @@ End;
 Procedure TfrmOptions.btnTableFontClick(Sender: TObject);
 
 Begin
-  dlgFont.Font.Assign(FFont);
+  dlgFont.Font.Assign(FTableFont);
+  dlgFont.Options := [fdForceFontExist];
   If dlgFont.Execute(Application.Handle) Then
-    FFont.Assign(dlgFont.Font);
+    FTableFont.Assign(dlgFont.Font);
 End;
 
 (**
