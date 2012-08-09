@@ -5,7 +5,7 @@
 
   @Version 1.5
   @Author  David Hoyle
-  @Date    03 Aug 2012
+  @Date    09 Aug 2012
 
 **)
 Unit CommandLineProcess;
@@ -1070,6 +1070,7 @@ Var
   i        : Integer;
 
 Begin
+  FCommandLineOptions := [];
   For i := 0 To FParams.Count - 1 Do
     Begin
       strOption := FParams[i];
