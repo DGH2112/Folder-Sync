@@ -8,6 +8,7 @@ object frmFolderPaths: TfrmFolderPaths
   Constraints.MaxHeight = 308
   Constraints.MinHeight = 250
   Constraints.MinWidth = 640
+  DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -92,7 +93,6 @@ object frmFolderPaths: TfrmFolderPaths
     Kind = bkOK
     NumGlyphs = 2
     TabOrder = 6
-    ExplicitTop = 186
   end
   object btnCancel: TBitBtn
     Left = 549
@@ -103,7 +103,6 @@ object frmFolderPaths: TfrmFolderPaths
     Kind = bkCancel
     NumGlyphs = 2
     TabOrder = 7
-    ExplicitTop = 186
   end
   object lbxSyncOptions: TCheckListBox
     Left = 8
@@ -115,7 +114,6 @@ object frmFolderPaths: TfrmFolderPaths
     ItemHeight = 13
     TabOrder = 4
     OnClick = lbxSyncOptionsClick
-    ExplicitHeight = 60
   end
   object btnHelp: TBitBtn
     Left = 387
@@ -127,6 +125,5 @@ object frmFolderPaths: TfrmFolderPaths
     NumGlyphs = 2
     TabOrder = 5
     OnClick = btnHelpClick
-    ExplicitTop = 186
   end
 end
