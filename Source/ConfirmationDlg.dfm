@@ -7,6 +7,7 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   ClientHeight = 133
   ClientWidth = 470
   Color = clBtnFace
+  DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
