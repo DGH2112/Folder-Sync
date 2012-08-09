@@ -7,6 +7,7 @@ object frmDeleteProgress: TfrmDeleteProgress
   ClientHeight = 103
   ClientWidth = 451
   Color = clBtnFace
+  DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
