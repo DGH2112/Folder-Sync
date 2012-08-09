@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    03 Aug 2012
+  @Date    09 Aug 2012
   @Author  David Hoyle
 
 **)
@@ -1378,7 +1378,10 @@ End;
 procedure TfrmMainForm.actEditClearLogExecute(Sender: TObject);
 
 begin
-  redtOutputResults.Clear;
+  If redtOutputResults.SelLength > 0 Then
+    redtOutputResults.SelText := ''
+  Else
+    redtOutputResults.Clear;
 end;
 
 (**
@@ -1958,7 +1961,7 @@ Begin
       OutputResultLn();
     End
   Else
-    OutputResultLn(#13#10#32#32 + strErrMsg, clRed, [fsBold]);
+    OutputResultLn(#13#10#32#32#32#32 + strErrMsg, clRed, [fsBold]);
 End;
 
 (**
@@ -2151,7 +2154,7 @@ Begin
       FDeleteForm.Progress(iSize);
       OutputResultLn();
     End Else
-      OutputResultLn(#13#10#32#32 + strErrMsg, clRed, [fsBold]);
+      OutputResultLn(#13#10#32#32#32#32 + strErrMsg, clRed, [fsBold]);
 End;
 
 (**
