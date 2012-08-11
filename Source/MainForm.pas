@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    09 Aug 2012
+  @Date    10 Aug 2012
   @Author  David Hoyle
 
 **)
@@ -160,7 +160,7 @@ Type
     Procedure MatchListProc(iPosition, iMaxItems: Integer);
     Procedure MatchListEndProc;
     Procedure DeleteStartProc(iFileCount: Integer; iTotalSize: int64);
-    Procedure DeletingProc(strFileName: String);
+    Procedure DeletingProc(iFile : Integer; strFileName: String);
     Procedure DeletedProc(iFile: Integer; iSize: int64; boolSuccess: Boolean;
       strErrMsg: String);
     Procedure DeleteQueryProc(strFileName: String; Var Option: TFileAction);
@@ -168,7 +168,7 @@ Type
     Procedure DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
     Procedure CopyStartProc(iFileCount: Integer; iSize: int64);
     Procedure CopyContentsProc(iCopiedSize, iTotalSize: int64);
-    Procedure CopyingProc(strSource, strDest, strFileName: String);
+    Procedure CopyingProc(iFile : Integer; strSource, strDest, strFileName: String);
     Procedure CopiedProc(iFile: Integer; iSize: int64; boolSuccess: Boolean;
       strErrMsg: String);
     Procedure CopyQueryProc(strSourceFile, strDestFile: String; Var Option: TFileAction);
@@ -337,6 +337,7 @@ Begin
       lvFileList.Font.Style := TFontStyles(Byte(ReadInteger('ListViewFont', 'Style', 0)));
       redtOutputResults.Font.Name        := ReadString('LogFont', 'Name', 'Courier New');
       redtOutputResults.Font.Size        := ReadInteger('LogFont', 'Size', 10);
+      redtOutputResults.MaxLength := $7FFFFFF0;
       strLog := ChangeFileExt(FRootKey, '_log.rtf');
       If FileExists(strLog) Then
         redtOutputResults.Lines.LoadFromFile(strLog);
@@ -691,7 +692,7 @@ End;
 Procedure TfrmMainForm.MatchListStartProc;
 
 Begin
-  OutputResult('Matching files...');
+  OutputResult('Matching files');
   Inc(FProgressSection);
   FProgressForm.InitialiseSection(FProgressSection, 1, 100);
 End;
@@ -743,7 +744,7 @@ procedure TfrmMainForm.NothingToDoStart(iFileCount: Integer);
 
 begin
   If iFileCount > 0 Then
-    OutputResultLn(Format('There are %1.0n files marked as Do Nothing...',
+    OutputResultLn(Format('There are %1.0n files marked as Do Nothing',
       [Int(iFileCount)]), clMaroon);
 end;
 
@@ -1415,8 +1416,8 @@ End;
 Procedure TfrmMainForm.SearchEndProc(iFileCount: Integer; iTotalSize: int64);
 
 Begin
-  FProgressForm.Progress(FProgressSection, 1, 'Done!', '');
-  OutputResultLn(Format('... Found %1.0n files (%1.0n bytes)',
+  FProgressForm.Progress(FProgressSection, 1, ' Done!', '');
+  OutputResultLn(Format(' Found %1.0n files (%1.0n bytes)',
       [Int(iFileCount), Int(iTotalSize)]), clGreen);
 End;
 
@@ -1454,7 +1455,7 @@ End;
 Procedure TfrmMainForm.SearchStartProc(strFolder: String);
 
 Begin
-  OutputResult(Format('Search: %s...', [strFolder]));
+  OutputResult(Format('Search: %s', [strFolder]));
   Inc(FProgressSection);
   FProgressForm.InitialiseSection(FProgressSection, 0, 1);
 End;
@@ -1890,7 +1891,7 @@ Procedure TfrmMainForm.CompareEndProc;
 
 Begin
   FProgressForm.Progress(FProgressSection, 100, 'Done!', '');
-  OutputResultLn('Done!', clGreen);
+  OutputResultLn(' Done!', clGreen);
 End;
 
 (**
@@ -1932,7 +1933,7 @@ End;
 Procedure TfrmMainForm.CompareStartProc(strLeftFldr, strRightFldr: String);
 
 Begin
-  OutputResult(Format('Comparing %s to %s...', [strLeftFldr, strRightFldr]));
+  OutputResult(Format('Comparing %s to %s', [strLeftFldr, strRightFldr]));
   Inc(FProgressSection);
   FProgressForm.InitialiseSection(FProgressSection, 0, 100);
 End;
@@ -1996,7 +1997,7 @@ End;
 Procedure TfrmMainForm.CopyEndProc(iCopied, iSkipped, iError: Integer);
 
 Begin
-  OutputResult(Format('...Copied %1.0n (Skipped %1.0n', [Int(iCopied), Int(iSkipped)]),
+  OutputResult(Format(' Copied %1.0n (Skipped %1.0n', [Int(iCopied), Int(iSkipped)]),
     clGreen);
   If iError > 0 Then
     OutputResult(Format(', Errored %1.0n', [Int(iError)]), clRed);
@@ -2011,16 +2012,22 @@ End;
   @precon  None.
   @postcon Updates the copy dialogue.
 
+  @param   iFile       as an Integer
   @param   strSource   as a String
   @param   strDest     as a String
   @param   strFileName as a String
 
 **)
-Procedure TfrmMainForm.CopyingProc(strSource, strDest, strFileName: String);
+Procedure TfrmMainForm.CopyingProc(iFile : Integer; strSource, strDest,
+  strFileName: String);
 
 Begin
-  FCopyForm.Progress(ExtractFilePath(strSource + strFileName),
-    ExtractFilePath(strDest + strFileName), ExtractFileName(strFileName));
+  FCopyForm.Progress(
+    iFile,
+    ExtractFilePath(strSource + strFileName),
+    ExtractFilePath(strDest + strFileName),
+    ExtractFileName(strFileName)
+  );
   OutputResult(Format('  %s => %s%s', [strSource, strDest, strFilename]));
 End;
 
@@ -2086,13 +2093,13 @@ End;
 Procedure TfrmMainForm.CopyStartProc(iFileCount: Integer; iSize: int64);
 
 Begin
-  OutputResultLn(Format('Copying %1.0n files (%1.0n bytes)...',
+  OutputResultLn(Format('Copying %1.0n files (%1.0n bytes)',
       [Int(iFileCount), Int(iSize)]));
   If iFileCount > 0 Then
     Begin
       FCopyForm                  := TfrmCopyProgress.Create(Nil);
       FCopyForm.OnUpdateProgress := UpdateProgress;
-      FCopyForm.Initialise(iSize);
+      FCopyForm.Initialise(iFileCount, iSize);
     End;
 End;
 
@@ -2151,7 +2158,7 @@ Procedure TfrmMainForm.DeletedProc(iFile: Integer; iSize: int64; boolSuccess: Bo
 Begin
   If boolSuccess Then
     Begin
-      FDeleteForm.Progress(iSize);
+      FDeleteForm.Progress(iFIle, iSize);
       OutputResultLn();
     End Else
       OutputResultLn(#13#10#32#32#32#32 + strErrMsg, clRed, [fsBold]);
@@ -2172,7 +2179,7 @@ End;
 Procedure TfrmMainForm.DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
 
 Begin
-  OutputResult(Format('...Deleted %1.0n (Skipped %1.0n', [Int(iDeleted), Int(iSkipped)]),
+  OutputResult(Format(' Deleted %1.0n (Skipped %1.0n', [Int(iDeleted), Int(iSkipped)]),
     clGreen);
   If iErrors > 0 Then
     OutputResult(Format(', Errored %1.0n', [Int(iErrors)]), clRed);
@@ -2239,13 +2246,13 @@ End;
 Procedure TfrmMainForm.DeleteStartProc(iFileCount: Integer; iTotalSize: int64);
 
 Begin
-  OutputResultLn(Format('Deleting %1.0n files (%1.0n bytes)...',
+  OutputResultLn(Format('Deleting %1.0n files (%1.0n bytes)',
       [Int(iFileCount), Int(iTotalSize)]));
   If iFileCount > 0 Then
     Begin
       FDeleteForm                  := TfrmDeleteProgress.Create(Nil);
       FDeleteForm.OnUpdateProgress := UpdateProgress;
-      FDeleteForm.Initialise(iTotalSize);
+      FDeleteForm.Initialise(iFileCount, iTotalSize);
     End;
 End;
 
@@ -2256,13 +2263,14 @@ End;
   @precon  None.
   @postcon Output the file to be deleted to the deletion progress form.
 
+  @param   iFile       as an Integer
   @param   strFileName as a String
 
 **)
-Procedure TfrmMainForm.DeletingProc(strFileName: String);
+Procedure TfrmMainForm.DeletingProc(iFile : Integer; strFileName: String);
 
 Begin
-  FDeleteForm.FileName := strFileName;
+  FDeleteForm.InitialiseFileName(iFile, strFileName);
   OutputResult(#32#32 + strFileName);
 End;
 
@@ -2313,7 +2321,7 @@ procedure TfrmMainForm.DiffSizeStart(iFileCount: Integer);
 
 begin
   If iFileCount > 0 Then
-    OutputResultLn(Format('There are %1.0n file(s) with a size difference (same date)...',
+    OutputResultLn(Format('There are %1.0n file(s) with a size difference (same date)',
       [Int(iFileCount)]), clMaroon);
 end;
 
