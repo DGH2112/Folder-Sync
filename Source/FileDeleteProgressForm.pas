@@ -4,7 +4,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    01 Aug 2012
+  @Date    11 Aug 2012
 
 **)
 Unit FileDeleteProgressForm;
@@ -39,23 +39,18 @@ Type
     Procedure btnCancelClick(Sender: TObject);
   Private
     { Private declarations }
+    FFileCount     : Integer;
     FTotalSize     : Int64;
+    FCaption       : String;
     FAbort         : Boolean;
     FUpdateProgress: TUpdateProgress;
-    Procedure SetFileName(strFileName: String);
     Procedure CheckForCancel;
     Procedure DoUpdateProgress(iPosition, iMaxPosition: Integer);
   Public
     { Public declarations }
-    Procedure Initialise(iTotalSize: Int64);
-    Procedure Progress(iSize: Int64);
-    (**
-      This property is a write only property to set the From and Filename labels.
-      @precon  None.
-      @postcon The From and Filename label are updated.
-      @return  a String
-    **)
-    Property FileName: String Write SetFileName;
+    Procedure Initialise(iFileCount : Integer; iTotalSize: Int64);
+    Procedure InitialiseFileName(iFile : Integer; strFileName: String);
+    Procedure Progress(iFile : Integer; iSize: Int64);
     (**
       This property defines a call back event handler for getting the current progress
       position from the dialogue.
@@ -138,33 +133,17 @@ End;
   @precon  None.
   @postcon The progress dialogue is initialised.
 
+  @param   iFileCount as an Integer
   @param   iTotalSize as an Int64
 
 **)
-Procedure TfrmDeleteProgress.Initialise(iTotalSize: Int64);
+Procedure TfrmDeleteProgress.Initialise(iFileCount : Integer; iTotalSize: Int64);
 
 Begin
+  FFileCount := iFileCount;
   FTotalSize := iTotalSize;
+  FCaption := Caption;
   Show;
-  Application.ProcessMessages;
-  CheckForCancel;
-End;
-
-(**
-
-  This method updates the progress bar on the dialogue.
-
-  @precon  None.
-  @postcon The progress bar on the dialogue is updated.
-
-  @param   iSize as an Int64
-
-**)
-Procedure TfrmDeleteProgress.Progress(iSize: Int64);
-
-Begin
-  pbrOverall.Position := Trunc(Int(iSize) / Int(FTotalSize) * pbrOverall.Max);
-  DoUpdateProgress(pbrOverall.Position, pbrOverall.Max);
   Application.ProcessMessages;
   CheckForCancel;
 End;
@@ -176,14 +155,36 @@ End;
   @precon  None.
   @postcon The filename and from labels are updated.
 
+  @param   iFile       as an Integer
   @param   strFileName as a String
 
 **)
-Procedure TfrmDeleteProgress.SetFileName(strFileName: String);
+Procedure TfrmDeleteProgress.InitialiseFileName(iFile : Integer; strFileName: String);
 
 Begin
+  Caption := Format('%s (%1.0n of %1.0n)', [FCaption, Int(iFile), Int(FFileCount)]);
   lblFrom.Caption     := ExtractFilePath(strFileName);
   lblFilename.Caption := ExtractFileName(strFileName);
+  Application.ProcessMessages;
+  CheckForCancel;
+End;
+
+(**
+
+  This method updates the progress bar on the dialogue.
+
+  @precon  None.
+  @postcon The progress bar on the dialogue is updated.
+
+  @param   iFile as an Integer
+  @param   iSize as an Int64
+
+**)
+Procedure TfrmDeleteProgress.Progress(iFile : Integer; iSize: Int64);
+
+Begin
+  pbrOverall.Position := Trunc(Int(iSize) / Int(FTotalSize) * pbrOverall.Max);
+  DoUpdateProgress(pbrOverall.Position, pbrOverall.Max);
   Application.ProcessMessages;
   CheckForCancel;
 End;

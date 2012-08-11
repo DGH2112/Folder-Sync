@@ -72,6 +72,7 @@ object frmDeleteProgress: TfrmDeleteProgress
     Height = 17
     Anchors = [akLeft, akTop, akRight]
     Max = 1000000
+    MarqueeInterval = 5
     TabOrder = 0
   end
   object btnCancel: TBitBtn
