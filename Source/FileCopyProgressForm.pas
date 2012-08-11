@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    02 Aug 2012
+  @Date    11 Aug 2012
 
 **)
 Unit FileCopyProgressForm;
@@ -46,7 +46,9 @@ Type
     Procedure btnCancelClick(Sender: TObject);
   Private
     { Private declarations }
+    FFileCount     : Integer;
     FTotalSize     : Int64;
+    FCaption       : String;
     FSize          : Int64;
     FStartTick     : Int64;
     FLastTick      : Int64;
@@ -56,8 +58,9 @@ Type
     Procedure DoUpdateProgress(iPosition, iMaxPosition: Integer);
   Public
     { Public declarations }
-    Procedure Initialise(iTotalSize: Int64);
-    Procedure Progress(strSource, strDest, strFileName: String); Overload;
+    Procedure Initialise(iFileCount : Integer; iTotalSize: Int64);
+    Procedure Progress(iFile : Integer; strSource, strDest,
+      strFileName: String); Overload;
     Procedure Progress(iCopiedSize, iTotalSize: Int64); Overload;
     Procedure ProgressOverall(iSize: Int64);
     (**
@@ -146,12 +149,15 @@ End;
   @precon  None.
   @postcon The copy progress dialogue is intialised.
 
+  @param   iFileCount as an Integer
   @param   iTotalSize as an Int64
 
 **)
-Procedure TfrmCopyProgress.Initialise(iTotalSize: Int64);
+Procedure TfrmCopyProgress.Initialise(iFileCount : Integer; iTotalSize: Int64);
 
 Begin
+  FCaption := Caption;
+  FFileCount := iFileCount;
   FTotalSize := iTotalSize;
   Show;
   Application.ProcessMessages;
@@ -167,14 +173,17 @@ End;
   @postcon The Source, Destinationa dn Filename labels are updated and the progress bar
            for the file set to zero.
 
+  @param   iFile       as an Integer
   @param   strSource   as a String
   @param   strDest     as a String
   @param   strFileName as a String
 
 **)
-Procedure TfrmCopyProgress.Progress(strSource, strDest, strFileName: String);
+Procedure TfrmCopyProgress.Progress(iFile : Integer; strSource, strDest,
+  strFileName: String);
 
 Begin
+  Caption := Format('%S (%1.0n of %1.0n)', [FCaption, Int(iFile), Int(FFileCount)]);
   lblFrom.Caption        := strSource;
   lblTo.Caption          := strDest;
   lblFilename.Caption    := strFileName;
@@ -205,7 +214,7 @@ Var
 
 Begin
   iTick := GetTickCount;
-  If (iTick - FLastTick > 100) Or (iCopiedSize = iTotalSize) Then
+  If (iTick - FLastTick > 25) Or (iCopiedSize = iTotalSize) Then
     Begin
       If iTick <> FStartTick Then
         dblBytesPerSec := Int(iCopiedSize) * 1000.0 / dblFactor / (iTick - FStartTick)
