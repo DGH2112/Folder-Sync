@@ -5,7 +5,7 @@
 
   @Version 1.5
   @Author  David Hoyle
-  @Date    09 Aug 2012
+  @Date    11 Aug 2012
 
 **)
 Unit CommandLineProcess;
@@ -72,7 +72,7 @@ Type
     Procedure MatchListEndProc;
     Procedure ClearLine;
     Procedure DeleteStartProc(iFileCount: Integer; iTotalSize: Int64);
-    Procedure DeletingProc(strFileName: String);
+    Procedure DeletingProc(iFile : Integer; strFileName: String);
     Procedure DeletedProc(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
       strErrMsg: String);
     Procedure DeleteQueryProc(strFileName: String; Var Option: TFileAction);
@@ -80,7 +80,7 @@ Type
     Procedure DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
     Procedure CopyStartProc(iFileCount: Integer; iSize: Int64);
     Procedure CopyContentsProc(iCopiedSize, iTotalSize: Int64);
-    Procedure CopyingProc(strSource, strDest, strFileName: String);
+    Procedure CopyingProc(iFile : Integer; strSource, strDest, strFileName: String);
     Procedure CopiedProc(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
       strErrMsg: String);
     Procedure CopyQueryProc(strSourceFile, strDestFile: String; Var Option: TFileAction);
@@ -297,12 +297,14 @@ End;
   @precon  None.
   @postcon Outputs the file information for the file being copied.
 
+  @param   iFile       as an Integer
   @param   strSource   as a String
   @param   strDest     as a String
   @param   strFileName as a String
 
 **)
-Procedure TCommandLineProcessing.CopyingProc(strSource, strDest, strFileName: String);
+Procedure TCommandLineProcessing.CopyingProc(iFile : Integer; strSource, strDest,
+  strFileName: String);
 
 Var
   iColour: TColor;
@@ -499,10 +501,11 @@ End;
   @precon  None.
   @postcon Outputs the name of the file being deleted.
 
+  @param   iFile       as an Integer
   @param   strFileName as a String
 
 **)
-Procedure TCommandLineProcessing.DeletingProc(strFileName: String);
+Procedure TCommandLineProcessing.DeletingProc(iFile : Integer; strFileName: String);
 
 Begin
   If Not IsRO(strFileName) Then
