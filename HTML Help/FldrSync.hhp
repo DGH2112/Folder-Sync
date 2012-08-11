@@ -1,0 +1,43 @@
+[OPTIONS]
+Compatibility=1.1 or later
+Compiled file=..\FldrSync.chm
+Contents file=Table of Contents.hhc
+Default Window=MainWindow
+Default topic=Welcome.html
+Display compile progress=Yes
+Error log file=BuildLog.txt
+Full-text search=Yes
+Language=0x809 English (United Kingdom)
+Title=Folder Sunchronisation
+
+[WINDOWS]
+MainWindow="Folder Synchronisation Help","Table of Contents.hhc",,"Welcome.html","Welcome.html",,,,,0x62520,,0x307e,[100,100,740,580],,,,,,,0
+
+
+[FILES]
+Welcome.html
+FileCompare.html
+FileProcessFiles.html
+FileExit.html
+EditCopyRightToLEft.html
+EditCopyLeftToRight.html
+EditDelete.html
+EditDoNothing.html
+EditSelectAll.html
+EditClearLog.html
+ToolsCompare.html
+ToolsOptions.html
+HelpContents.html
+HelpCheckForUpdates.html
+HelpAbout.html
+CommandLine.html
+ProjectHistory.html
+
+[ALIAS]
+IDH_TOOLS_OPTIONS = ToolsOptions.html
+
+[MAP]
+#define IDH_TOOLS_OPTIONS 1
+
+[INFOTYPES]
+
