@@ -4,7 +4,7 @@
   files.
 
   @Version 1.5
-  @Date    03 Aug 2012
+  @Date    10 Aug 2012
   @Author  David Hoyle
 
 **)
@@ -47,7 +47,7 @@ Type
   (** An event signature for the start of the deletion process. **)
   TDeleteStartNotifier = Procedure(iFileCount: Integer; iTotalSize: Int64) Of Object;
   (** An event signature for the start of the deletion of an individual file. **)
-  TDeletingNotifier = Procedure(strFileName: String) Of Object;
+  TDeletingNotifier = Procedure(iFile : Integer; strFileName: String) Of Object;
   (** An event signature for the end of the deletion of an individual file. **)
   TDeletedNotifier = Procedure(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
     strErrmsg: String) Of Object;
@@ -63,7 +63,8 @@ Type
   (** An event signature for the start of the copying process. **)
   TCopyStartNotifier = Procedure(iCount: Integer; iSize: Int64) Of Object;
   (** An event signature for the start of the copying of an individual file. **)
-  TCopyingNotifier = Procedure(strSource, strDest, strFileName: String) Of Object;
+  TCopyingNotifier = Procedure(iFile : Integer; strSource, strDest,
+    strFileName: String) Of Object;
   (** An event signature for feeding back progress on the copying of a file. **)
   TCopyContents = Procedure(iCopiedSize, iTotalSize: Int64) Of Object;
   (** An event signature for the end of the copying of an individual file. **)
@@ -223,6 +224,7 @@ Type
     Destructor Destroy; Override;
     Procedure SearchFolder(strFolderPath, strFileFilter, strExclusions: String);
     Function Find(strFileName: String): Integer; Virtual;
+    Procedure Delete(iIndex : Integer);
     (**
       Aa property to return the folder path for the class.
       @precon  None.
@@ -306,6 +308,7 @@ Type
       strExclusions: String; iSection: Integer; SyncOps: TSyncOptions);
     Function CheckDifference(iTimeDifference: Integer; iSizeDifference: Integer;
       Check: TCheckDifference): Boolean;
+    Procedure ClearUnchangedItems;
     (**
       A property to reference the Left Folder file list.
       @precon  None.
@@ -495,7 +498,7 @@ Type
     Function GetProcessCount: Integer;
     Function GetProcessItem(iIndex: Integer): TProcessItem;
     Procedure DoDeleteStart(iFileCount: Integer; iTotalSize: Int64);
-    Procedure DoDeleting(strFileName: String);
+    Procedure DoDeleting(iFile : Integer; strFileName: String);
     Procedure DoDeleted(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
       strErrmsg: String);
     Procedure DoDeleteQuery(strFileName: String; Var Option: TFileAction;
@@ -504,7 +507,7 @@ Type
       SyncOptions: TSyncOptions);
     Procedure DoDeleteEnd(iDeleted, iSkipped, iErrors: Integer);
     Procedure DoCopyStart(iCount: Integer; iSize: Int64);
-    Procedure DoCopying(strSource, strDest, strFileName: String);
+    Procedure DoCopying(iFile : Integer; strSource, strDest, strFileName: String);
     Procedure DoCopied(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
       strErrmsg: String);
     Procedure DoCopyQuery(strSourceFile, strDestFile: String; Var Option: TFileAction;
@@ -956,6 +959,22 @@ End;
 
 (**
 
+  This method deletes the indexed item from the file list.
+
+  @precon  None.
+  @postcon The indexed item is deleted.
+
+  @param   iIndex as an Integer
+
+**)
+Procedure TFileList.Delete(iIndex: Integer);
+
+Begin
+  FFiles.Delete(iIndex);
+End;
+
+(**
+
   This is the destructor method for the TFileList class.
 
   @precon  None.
@@ -1272,6 +1291,29 @@ Begin
     { And (iSizeDifference = 0)});
   Result := Result And Not((iTimeDifference = Direction[Check] * 18432)
     { And (iSizeDifference = 0)});
+End;
+
+(**
+
+  This method removes from the left and right folders all items that are marked as the
+  same. This is done to reduce the memory usage of the application.
+
+  @precon  None.
+  @postcon Left and Right items that are marked the same are deleted.
+
+**)
+Procedure TCompareFolders.ClearUnchangedItems;
+
+Var
+  i : Integer;
+
+Begin
+  For i := FLeftFldr.Count - 1 DownTo 0 Do
+    If FLeftFldr.Files[i].Status = stSame Then
+      FLeftFldr.Delete(i);
+  For i := FRightFldr.Count - 1 DownTo 0 Do
+    If FRightFldr.Files[i].Status = stSame Then
+      FRightFldr.Delete(i);
 End;
 
 (**
@@ -1597,6 +1639,7 @@ Begin
               FindNextNonSame(CP.RightFldr, iRight);
             End;
         End;
+      CP.ClearUnchangedItems;
     End;
   DoMatchListEnd;
 End;
@@ -1785,7 +1828,7 @@ Begin
                 strDest   := P.LPath;
                 FName     := P.RightFile;
               End;
-            DoCopying(strSource, strDest, FName.FileName);
+            DoCopying(iFile + 1, strSource, strDest, FName.FileName);
             If Not SysUtils.DirectoryExists
               (ExtractFilePath(strDest + FName.FileName)) Then
               If Not SysUtils.ForceDirectories
@@ -2026,7 +2069,7 @@ Var
 
 Begin
   boolResult := False;
-  DoDeleting(strPath + F.FileName);
+  DoDeleting(iFile, strPath + F.FileName);
   If Not boolAll Then
     FA := faUnknown
   Else
@@ -2173,16 +2216,18 @@ End;
   @postcon Fires any hook DoCopying events but issuing events for each files giving the
            source, destination and filename.
 
+  @param   iFile       as an Integer
   @param   strSource   as a String
   @param   strDest     as a String
   @param   strFileName as a String
 
 **)
-Procedure TCompareFoldersCollection.DoCopying(strSource, strDest, strFileName: String);
+Procedure TCompareFoldersCollection.DoCopying(iFile : Integer; strSource, strDest,
+  strFileName: String);
 
 Begin
   If Assigned(FCopyingNotifier) Then
-    FCopyingNotifier(strSource, strDest, strFileName);
+    FCopyingNotifier(iFile, strSource, strDest, strFileName);
 End;
 
 (**
@@ -2254,14 +2299,15 @@ End;
   @precon  None.
   @postcon Fires the Deleting event if the event has a handler installed.
 
+  @param   iFile       as an Integer
   @param   strFileName as a String
 
 **)
-Procedure TCompareFoldersCollection.DoDeleting(strFileName: String);
+Procedure TCompareFoldersCollection.DoDeleting(iFile : Integer; strFileName: String);
 
 Begin
   If Assigned(FDeletingNotifier) Then
-    FDeletingNotifier(strFileName);
+    FDeletingNotifier(iFile, strFileName);
 End;
 
 (**
