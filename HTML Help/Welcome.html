@@ -1,0 +1,105 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml11/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>Welcome</title>
+    <link rel="stylesheet" href="HELPStyles.css" type="text/css" media="all"/>
+  </head>
+
+  <body>
+    <h1>Welcome</h1>
+
+    <p>Welcome to the on-line help for the Folder Sync applications (GUI and
+    Command Line).</p>
+
+    <h2><a name="Overview"/>Overview</h2>
+
+    <p>This application provides a simple to use folder synchronisation tool.
+    The application compares the date and time stamps of files and suggests that
+    and older file should be overwritten with the new file or where a
+    destination file doesn&#39;t exist (files with no destinates
+    are shown as a filename and path in gray).</p>
+
+    <p><img src="Images/FldrSync.gif" alt=""/></p>
+
+    <p>A read only file will not be overwritten with non-read only files.</p>
+
+    <h3>File List Colours and Fonts</h3>
+
+    <p>Some of the files in the resulting file list are colour coded as follows:</p>
+
+    <ul>
+      <li><strong>Do Nothing Operation</strong> : Font is coloured Gray with the
+      background in silver.</li>
+      <li><strong>Delete Operation</strong> : Font is Struck Out.</li>
+      <li><strong>Read Only Files</strong> : The background is a pale Red.</li>
+    </ul>
+
+    <h3>Alternate INI Files</h3>
+
+    <p>This application now supports alternate INI files specified on the
+    command-line as follows (long filename should be enclosed in double quotes):
+    </p>
+
+    <pre>FldrSync /@[drive:\path\filename.ext]</pre>
+
+
+    <h2><a name="WhatsNew">What&#39;s New</a></h2>
+
+    <p>In this release I&#39;ve made quite a number of changes, some visually,
+    but most and under the bonnet. Below is a non-exhaustive list of those
+    changes:</p>
+
+    <ul>
+      <li>Created a command line version of the application that can synchronise one pair
+      of folders;</li>
+      <li>The internal engine that does all of this has been refactored so that it can
+      easily be used by both the GUI and the command-line;</li>
+      <li>Added a log to the GUI application that appended with information about the
+      comparisons and the processing.</li>
+    </ul>
+
+    <h2><a name="Topics"/>Topics</h2>
+
+    <p>The help for the Folder Sync is broken down into the following
+    sections:</p>
+
+    <ul>
+      <li>Welcome</li>
+      <li>Menu
+        <ul>
+          <li>File
+            <ul>
+              <li><a href="FileCompare.html">Compare</a></li>
+              <li><a href="FileProcessFiles.html">Process Files</a></li>
+              <li><a href="FileExit.html">Exit</a></li>
+            </ul>
+          </li>
+          <li>Edit
+            <ul>
+              <li><a href="EditCopyRightToLeft.html">Copy Right to Left</a></li>
+              <li><a href="EditCopyLeftToRight.html">Copy Left to Right</a></li>
+              <li><a href="EditDelete.html">Delete</a></li>
+              <li><a href="EditDoNothing.html">Do Nothing</a></li>
+              <li><a href="EditSelectAll.html">Select All</a></li>
+              <li><a href="EditClearLog.html">Clear Log</a></li>
+            </ul>
+          </li>
+          <li>Tools
+            <li><a href="ToolsCompare.html">Compare</a></li>
+            <li><a href="ToolsOptions.html">Options</a></li>
+          </li>
+          <li>Help
+            <ul>
+              <li><a href="HelpContents.html">Contents</a></li>
+              <li><a href="HelpCheckForUpdates">Check for Updates</a></li>
+              <li><a href="HelpAbout.html">About</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li><a href="CommandLine.html">Command Line</a></li>
+      <li><a href="ProjectHistory.html">Project History</a></li>
+    </ul>
+
+  </body>
+</html>
