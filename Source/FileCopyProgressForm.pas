@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    11 Aug 2012
+  @Date    12 Aug 2012
 
 **)
 Unit FileCopyProgressForm;
