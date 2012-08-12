@@ -84,7 +84,7 @@ object frmProgress: TfrmProgress
       Anchors = [akLeft, akTop, akRight]
       Max = 1000000
       Smooth = True
-      MarqueeInterval = 5
+      MarqueeInterval = 0
       TabOrder = 0
     end
     object btnCancel: TBitBtn
