@@ -3,19 +3,20 @@
   The main delphi module for the Folder Synchronisation application.
 
   @Author  David Hoyle
-  @Date    04 Apr 2012
+  @Date    10 Aug 2012
   @Version 1.0
 
 **)
 program FldrSync;
 
-
+{$R 'ITHelperVersionInfoGUI.res' 'ITHelperVersionInfoGUI.RC'}
 
 uses
   ExceptionLog,
   Forms,
+  HTMLHelpViewer,
   MainForm in 'Source\MainForm.pas' {frmMainForm},
-  FileComparision in 'Source\FileComparision.pas',
+  SyncModule in 'Source\SyncModule.pas',
   OptionsForm in 'Source\OptionsForm.pas' {frmOptions},
   ProgressForm in 'Source\ProgressForm.pas' {frmProgress},
   FolderPathsForm in 'Source\FolderPathsForm.pas' {frmFolderPaths},
@@ -24,9 +25,13 @@ uses
   checkforupdates in '..\..\LIBRARY\checkforupdates.pas',
   CheckForUpdatesForm in '..\..\LIBRARY\CheckForUpdatesForm.pas' {frmCheckForUpdates},
   DGHSpectrum in '..\..\Components\Source\DGHSpectrum.pas',
-  MSXML2_TLB in '..\..\LIBRARY\MSXML2_TLB.pas',
   DGHEllipsisLabel in '..\..\components\source\DGHEllipsisLabel.pas',
-  CheckForUpdatesOptionsForm in '..\..\Library\CheckForUpdatesOptionsForm.pas' {frmCheckForUpdatesOptions};
+  CheckForUpdatesOptionsForm in '..\..\Library\CheckForUpdatesOptionsForm.pas' {frmCheckForUpdatesOptions},
+  FileCopyProgressForm in 'Source\FileCopyProgressForm.pas' {frmCopyProgress},
+  DGHMemoryMonitorControl in '..\..\Components\Source\DGHMemoryMonitorControl.pas',
+  DGHCustomGraphicsControl in '..\..\Components\Source\DGHCustomGraphicsControl.pas',
+  FileDeleteProgressForm in 'Source\FileDeleteProgressForm.pas' {frmDeleteProgress},
+  ConfirmationDlg in 'Source\ConfirmationDlg.pas' {frmConfirmationDlg};
 
 {$R *.RES}
 
