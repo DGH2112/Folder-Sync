@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml11/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>Options</title>
+    <link rel="stylesheet" href="HELPStyles.css" type="text/css" media="all"/>
+  </head>
+
+  <body>
+    <h1>Options</h1>
+
+    <p>This action allows you to configure Folder Sync.</p>
+
+    <img src="Images/Options.gif" alt=""/>
+
+    <p>The dialogue is broken down into the following elements:</p>
+
+    <h2>Folder List</h2>
+
+    <p>This is a list of all the pairs of folders that you wish to have
+    synchronised. To add a new pairs of folders press the &lt;Add> button. To
+    edit an existing folder pairing press the &lt;Edit> button. Finally to
+    delete a dolder pair press the &lt;Delete button.</p>
+
+    <p>Pressing the &lt;Add> or &lt;Edit> buttons will display the folder path
+    editing dialogue as below.</p>
+
+    <img src="Images/FolderOptions.gif" alt=""/>
+
+    <p>In this dialogue you specify the left and right folders to synchronise. If you do
+    not specify any wildcards (semi-colon separated list) then all files will be
+    assumed.</p>
+
+    <p>The wildcards can include the asterisk (*) and question mark (?) and you can
+    specify more than one using a semi-colon between them. For instance:</p>
+
+    <pre>H:\HoylD\Development\*.pas;*.dpr;*.dpk</pre>
+
+    <p>The option below are specify to this pairing of folders as are as follows:</p>
+
+    <table class="Commands">
+      <tr>
+        <th>Option</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td>Enable Folder Comparison</td>
+        <td>This option enabled or disables a particular folder pairing from being
+        included in the comparison and subsequent processing of files. You can enable
+        and disables the folder pairings by clicking on the green or red circle next to
+        the folder pair in the main options dialogue.</td>
+      </tr>
+      <tr>
+        <td>Primary Left Folder</td>
+        <td>This option makes the left folder the original so that files will be deleted
+        from the right folder if they do not exist in the left and files will always be
+        copied from left to right (except where you would be overwriting an newer
+        file).</td>
+      </tr>
+      <tr>
+        <td>Primary Right Folder</td>
+        <td>This option makes the right folder the original so that files will be deleted
+        from the left folder if they do not exist in the right and files will always be
+        copied from right to left (except where you would be overwriting an newer
+        file).</td>
+      </tr>
+      <tr>
+        <td>Overwrite Read Only Files</td>
+        <td>This option is used in conjunction with the below Confirm Yes/No option to
+        stop you being prompted to overwrite read only files with nonn-read only
+        files.</td>
+      </tr>
+      <tr>
+        <td>Confirm Yes</td>
+        <td>This option stops you being prompted to overwrite files and confirms Yes so
+        that all files are overwritten. In order to overwrite a read only files with
+        a non-read onyl file you will need to include the above Overrwite Read Only Files
+        option.</td>
+      </tr>
+      <tr>
+        <td>Confirm No</td>
+        <td>This option stops you being prompted to overwrite files and confirms No so
+        that destination all files are NOT overwritten.</td>
+      </tr>
+   </table>
+
+    <h2>Exclusion List</h2>
+
+    <p>This list allows you to exclude files and folder from all the comparison by
+    specifying tex that would appear in the full path name of the file. Note: these
+    exclusions can not contain a semi-colon. Each exclusion should be entered on a
+    separated line.</p>
+
+    <h2>Application Options</h2>
+
+    <p>These options allow you to specify global options for the application as
+    follows:.</p>
+
+    <table class="Comamnds">
+      <tr>
+        <th>Option</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td>Close Folder Sync IF there are no files to process after comparison.</td>
+        <td>This option allows you to configure Folder Sync to close if there are no files
+        left to process after the comparison post processing files.</td>
+      </tr>
+      <tr>
+        <td>Start processing the files after comparison automatically (DANGEROUS)</td>
+        <td>This option should be used with caution but allows you to start processing
+        the files after the initial comparison with no further interaction.</td>
+      </tr>
+    </table>
+
+    <h2>Compare EXE</h2>
+
+    <p>This allows you to configure a difference tool like WinMerge or BeyondCompare that
+    can be invoked on a file pairing to show you the difference between the files.</p>
+
+    <h2>Log Font</h2>
+
+    <p>This option allows you to specify the font name and size for the log.</p>
+
+    <h2>Table Font</h2>
+
+    <p>This options allows you to specify the font name, size and style for the font used
+    in the comparison results table.</p>
+
+    <h2>Check for Updates</h2>
+
+    <p>This option displays the below dialogue and allows you to configure the Check for
+    Updates functionality of the application be specifying whether its enabled and the
+    period of time between check in days.</p>
+
+    <img src="Images/CheckForUpdatesOptions.gif" alt=""/>
+
+  </body>
+</html>
