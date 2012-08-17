@@ -4,7 +4,7 @@
   files.
 
   @Version 1.5
-  @Date    10 Aug 2012
+  @Date    17 Aug 2012
   @Author  David Hoyle
 
 **)
@@ -2526,6 +2526,7 @@ Var
   iCount: Integer;
   i     : Integer;
   P     : TProcessItem;
+  strFileName : String;
 
 Begin
   iSize  := 0;
@@ -2535,7 +2536,13 @@ Begin
     Begin
       P := Process[i];
       If P.FileOp In [foNothing] Then
-        DoNothingToDo(P.LPath, P.RPath, P.LeftFile.FileName);
+        Begin
+          If P.LeftFile <> Nil   Then
+            strFileName := P.LeftFile.FileName
+          Else
+            strFileName := P.RightFile.FileName;
+          DoNothingToDo(P.LPath, P.RPath, strFileName);
+        End;
     End;
   DoNothingToDoEnd();
 End;
