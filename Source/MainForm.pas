@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    10 Aug 2012
+  @Date    17 Aug 2012
   @Author  David Hoyle
 
 **)
@@ -924,6 +924,8 @@ Begin
   Application.OnHint                := ApplicationHint;
   FIconFiles                        := TStringList.Create;
   FIconFiles.Sorted                 := True;
+  If IsDebuggerPresent Then
+    Caption := Format('%s [DEBUGGING]', [Caption]);
   Caption                           := Format('%s: %s', [Caption, FRootKey]);
   FSyncModule                       := TCompareFoldersCollection.Create;
   FSyncModule.OnSearchStart         := SearchStartProc;
