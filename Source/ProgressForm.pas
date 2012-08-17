@@ -3,7 +3,7 @@
   This module represents a form for displaying progress.
 
   @Version 1.0
-  @Date    12 Aug 2012
+  @Date    17 Aug 2012
   @Author  David Hoyle
 
 **)
@@ -159,12 +159,16 @@ Var
   dblSectionWidth: Double;
   dblSectionPos  : Double;
   dblPosition    : Double;
+  iDenominator   : Integer;
 
 Begin
   SetFocus;
   dblSectionWidth := pbrProgress.Max / Int(Succ(High(FSections)));
-  dblSectionPos   := dblSectionWidth * iPosition /
-    Int(FSections[iSection].FMax - FSections[iSection].FMin);
+  iDenominator := FSections[iSection].FMax - FSections[iSection].FMin;
+  If iDenominator <> 0 Then
+    dblSectionPos   := dblSectionWidth * iPosition / Int(iDenominator)
+  Else
+    dblSectionPos := 0;
   dblPosition := pbrProgress.Max * (iSection / Succ(High(FSections))) + dblSectionPos;
   pbrProgress.Position := Trunc(dblPosition);
   DoUpdateProgress(pbrProgress.Position, pbrProgress.Max);
