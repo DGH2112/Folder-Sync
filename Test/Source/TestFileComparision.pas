@@ -76,18 +76,18 @@ end;
 
 procedure TestTFileRecord.TestDateTime;
 begin
-  Check(FileDateToDateTime(FFileRecord.DateTime) = StrToDateTime('07/01/2007 10:11:12'));
+  CheckEquals(StrToDateTime('07/01/2007 10:11:12'), FileDateToDateTime(FFileRecord.DateTime));
 end;
 
 procedure TestTFileRecord.TestFileName;
 
 begin
-  Check(FFileRecord.FileName = 'Daves File.Txt');
+  CheckEquals('Daves File.Txt', FFileRecord.FileName);
 end;
 
 procedure TestTFileRecord.TestSize;
 begin
-  Check(FFileRecord.Size = 123456);
+  CheckEquals(123456, FFileRecord.Size);
 end;
 
 procedure TestTFileRecord.TestStatus;
@@ -111,23 +111,23 @@ end;
 
 procedure TestTFileList.TestCount;
 begin
-  Check(FFileList.Count = 4);
+  CheckEquals(4, FFileList.Count);
 end;
 
 procedure TestTFileList.TestFiles;
 begin
-  Check(FFileList[1].FileName = '20 Bytes.Txt');
-  Check(FFileList[1].Size = 20);
+  CheckEquals('20 Bytes.Txt', FFileList[1].FileName);
+  CheckEquals(20, FFileList[1].Size);
 end;
 
 procedure TestTFileList.TestFolderPath;
 begin
-  Check(FFileList.FolderPath = '.\Test Compare Folders\Left Folder\');
+  CheckEquals('.\Test Compare Folders\Left Folder\', FFileList.FolderPath);
 end;
 
 procedure TestTFileList.TestTotalSize;
 begin
-  Check(FFileList.TotalSize = 100);
+  CheckEquals(100, FFileList.TotalSize);
 end;
 
 procedure TestTCompareFolders.SetUp;
@@ -179,16 +179,16 @@ end;
 
 procedure TestTCompareFolders.TestCheckFolders;
 begin
-  Check(FCompareFolders.LeftFldr.Count = 4);
-  Check(FCompareFolders.LeftFldr[1].FileName = '20 Bytes.Txt');
-  Check(FCompareFolders.LeftFldr[1].Size = 20);
-  Check(FCompareFolders.LeftFldr.FolderPath = '.\Test Compare Folders\Left Folder\');
-  Check(FCompareFolders.LeftFldr.TotalSize = 100);
-  Check(FCompareFolders.RightFldr.Count = 4);
-  Check(FCompareFolders.RightFldr[1].FileName = '30 Bytes.Txt');
-  Check(FCompareFolders.RightFldr[1].Size = 30);
-  Check(FCompareFolders.RightFldr.FolderPath = '.\Test Compare Folders\Right Folder\');
-  Check(FCompareFolders.RightFldr.TotalSize = 140);
+  CheckEquals(4, FCompareFolders.LeftFldr.Count);
+  CheckEquals('20 Bytes.Txt', FCompareFolders.LeftFldr[1].FileName);
+  CheckEquals(20, FCompareFolders.LeftFldr[1].Size);
+  CheckEquals('.\Test Compare Folders\Left Folder\', FCompareFolders.LeftFldr.FolderPath);
+  CheckEquals(100, FCompareFolders.LeftFldr.TotalSize);
+  CheckEquals(4, FCompareFolders.RightFldr.Count);
+  CheckEquals('30 Bytes.Txt', FCompareFolders.RightFldr[1].FileName);
+  CheckEquals(30, FCompareFolders.RightFldr[1].Size);
+  CheckEquals('.\Test Compare Folders\Right Folder\', FCompareFolders.RightFldr.FolderPath);
+  CheckEquals(140, FCompareFolders.RightFldr.TotalSize);
 end;
 
 initialization
