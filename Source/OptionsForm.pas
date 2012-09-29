@@ -178,6 +178,7 @@ Begin
       FLogFont.Assign(LogFont);
       FFolderList.Assign(slFolders);
       PopulateFolderList;
+      lvFoldersResize(Nil);
       lvFoldersSelectItem(Nil, Nil, False);
       edtExclusions.Text := strExclusions;
       edtCompareEXE.Text := strCompareEXE;
@@ -638,7 +639,7 @@ Procedure TfrmOptions.PopulateFolderList;
 
 Const
   SyncOps: Array [Succ(Low(TSyncOption)) .. High(TSyncOption)
-    ] Of String = ('Left', 'Right', 'Overwrite', 'Yes', 'No');
+    ] Of String = ('Left', 'Right', 'Overwrite', 'Yes', 'No', 'No Recursion');
 
 Var
   i        : Integer;
