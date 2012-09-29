@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    12 Aug 2012
+  @Date    14 Sep 2012
 
 **)
 Unit FileCopyProgressForm;
@@ -51,7 +51,7 @@ Type
     FCaption       : String;
     FSize          : Int64;
     FStartTick     : Int64;
-    FLastTick      : Int64;
+    //FLastTick      : Int64;
     FAbort         : Boolean;
     FUpdateProgress: TUpdateProgress;
     Procedure CheckForCancel;
@@ -190,7 +190,7 @@ Begin
   pbrFile.Position       := 0;
   lblBytesCopied.Caption := '';
   FStartTick             := GetTickCount;
-  FLastTick              := FStartTick;
+  //FLastTick              := FStartTick;
   Application.ProcessMessages;
   CheckForCancel;
 End;
@@ -214,7 +214,7 @@ Var
 
 Begin
   iTick := GetTickCount;
-  If (iTick - FLastTick > 25) Or (iCopiedSize = iTotalSize) Then
+  //If (iTick - FLastTick > 25) Or (iCopiedSize = iTotalSize) Then
     Begin
       If iTick <> FStartTick Then
         dblBytesPerSec := Int(iCopiedSize) * 1000.0 / dblFactor / (iTick - FStartTick)
@@ -229,7 +229,7 @@ Begin
       lblBytesOverallCopied.Caption := Format('Copied %1.0n kbytes in %1.0n kbytes',
         [Int(FSize + iCopiedSize) / dblFactor, Int(FTotalSize) / dblFactor]);
       Application.ProcessMessages;
-      FLastTick := iTick;
+      //FLastTick := iTick;
     End;
 End;
 
