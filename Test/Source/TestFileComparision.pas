@@ -100,7 +100,7 @@ end;
 procedure TestTFileList.SetUp;
 begin
   FFileList := TFileList.Create;
-  FFileList.SearchFolder('.\Test Compare Folders\Left Folder\', '*.*', '');
+  FFileList.SearchFolder('.\Test Compare Folders\Left Folder\', '*.*', '', []);
 end;
 
 procedure TestTFileList.TearDown;
