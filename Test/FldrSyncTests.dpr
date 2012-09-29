@@ -14,20 +14,24 @@ program FldrSyncTests;
 {$APPTYPE CONSOLE}
 {$ENDIF}
 
+{$R 'ITHelperVersionInfo.res' 'ITHelperVersionInfo.RC'}
+
 uses
   ExceptionLog,
   Forms,
   TestFramework,
   GUITestRunner,
   TextTestRunner,
+  JclDebug,
   TestFileComparision in 'Source\TestFileComparision.pas',
-  FileComparision in '..\Source\FileComparision.pas',
+  SyncModule in '..\Source\SyncModule.pas',
   TestDGHLibrary in '..\..\..\LIBRARY\Test\Source\TestDGHLibrary.pas',
   dghlibrary in '..\..\..\LIBRARY\dghlibrary.pas',
   ProgressForm in '..\source\ProgressForm.pas' {frmProgress},
   DGHEllipsisLabel in '..\..\..\Components\Source\DGHEllipsisLabel.pas',
   OptionsForm in '..\Source\OptionsForm.pas' {frmOptions},
-  FolderPathsForm in '..\Source\FolderPathsForm.pas' {frmFolderPaths};
+  FolderPathsForm in '..\Source\FolderPathsForm.pas' {frmFolderPaths},
+  CheckForUpdatesOptionsForm in '..\..\..\Library\CheckForUpdatesOptionsForm.pas' {frmCheckForUpdatesOptions};
 
 {$R *.RES}
 
@@ -48,6 +52,8 @@ begin
       End;
     End else
       GUITestRunner.RunRegisteredTests;
+  If IsDebuggerPresent Then
+    ReadLn;
   If iErrors > 0 Then
     Halt(iErrors);
 end.
