@@ -4,7 +4,7 @@
   files.
 
   @Version 1.5
-  @Date    17 Aug 2012
+  @Date    14 Sep 2012
   @Author  David Hoyle
 
 **)
@@ -61,15 +61,15 @@ Type
   TDeleteEndNotifier = Procedure(iDeleted, iSkipped, iErrors: Integer) Of Object;
 
   (** An event signature for the start of the copying process. **)
-  TCopyStartNotifier = Procedure(iCount: Integer; iSize: Int64) Of Object;
+  TCopyStartNotifier = Procedure(iTotalCount: Integer; iTotalSize: Int64) Of Object;
   (** An event signature for the start of the copying of an individual file. **)
   TCopyingNotifier = Procedure(iFile : Integer; strSource, strDest,
     strFileName: String) Of Object;
   (** An event signature for feeding back progress on the copying of a file. **)
   TCopyContents = Procedure(iCopiedSize, iTotalSize: Int64) Of Object;
   (** An event signature for the end of the copying of an individual file. **)
-  TCopiedNotifier = Procedure(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
-    strErrmsg: String) Of Object;
+  TCopiedNotifier = Procedure(iCopiedFiles: Integer; iCopiedFileTotalSize,
+    iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrmsg: String) Of Object;
   (** An event signature to prompt for the overwriting of a file. **)
   TCopyQueryNotifier = Procedure(strSourceFile, strDestFile: String;
     Var Option: TFileAction) Of Object;
@@ -478,7 +478,7 @@ Type
     FNothingToDoNotifier        : TNothingToDoNotifier;
     FNothingToDoEndNotifier     : TNothingToDoEndNotifier;
     FProcessList                : TObjectList;
-    FSize                       : Int64;
+    FCopiedTotalSize            : Int64;
     FFiles                      : Integer;
     FSkipped                    : Integer;
     FErrors                     : Integer;
@@ -506,10 +506,10 @@ Type
     Procedure DoDeleteReadOnlyQuery(strFileName: String; Var Option: TFileAction;
       SyncOptions: TSyncOptions);
     Procedure DoDeleteEnd(iDeleted, iSkipped, iErrors: Integer);
-    Procedure DoCopyStart(iCount: Integer; iSize: Int64);
+    Procedure DoCopyStart(iTotalCount: Integer; iTotalSize: Int64);
     Procedure DoCopying(iFile : Integer; strSource, strDest, strFileName: String);
-    Procedure DoCopied(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
-      strErrmsg: String);
+    Procedure DoCopied(iCopiedFiles: Integer; iCopiedFileTotalSize,
+      iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrmsg: String);
     Procedure DoCopyQuery(strSourceFile, strDestFile: String; Var Option: TFileAction;
       SyncOptions: TSyncOptions);
     Procedure DoCopyReadOnlyQuery(strSourceFile, strDestFile: String;
@@ -1798,18 +1798,18 @@ Var
   boolSuccess       : Boolean;
 
 Begin
-  FSize    := 0;
+  FCopiedTotalSize := 0;
   FFiles   := 0;
   FSkipped := 0;
-  iCount   := CountFileOps([foLeftToRight, foRightToLeft], FSize);
-  DoCopyStart(iCount, FSize);
+  iCount   := CountFileOps([foLeftToRight, foRightToLeft], FCopiedTotalSize);
+  DoCopyStart(iCount, FCopiedTotalSize);
   Try
     If iCount = 0 Then
       Exit;
     boolAll   := False;
     boolROAll := False;
     iFile     := 0;
-    FSize     := 0;
+    FCopiedTotalSize     := 0;
     FErrors   := 0;
     For i     := 0 To ProcessCount - 1 Do
       Begin
@@ -1848,12 +1848,12 @@ Begin
                   boolSuccess := CopyIndividualFile(strSource, strDest, FName, boolROAll,
                     True, strErrmsg, P.SyncOptions);
               End;
-            Inc(FSize, FName.Size);
+            Inc(FCopiedTotalSize, FName.Size);
             If Not boolSuccess Then
               Inc(FErrors)
             Else
               Inc(iFile);
-            DoCopied(iFile, FSize, boolSuccess, strErrmsg);
+            DoCopied(iFile, FName.Size, FCopiedTotalSize, boolSuccess, strErrmsg);
           End;
       End;
   Finally
@@ -2008,14 +2008,14 @@ Var
   iFile    : Integer;
 
 Begin
-  FSize    := 0;
+  FCopiedTotalSize    := 0;
   FFiles   := 0;
   FSkipped := 0;
   FErrors  := 0;
-  iCount   := CountFileOps([foDelete], FSize);
-  DoDeleteStart(iCount, FSize);
+  iCount   := CountFileOps([foDelete], FCopiedTotalSize);
+  DoDeleteStart(iCount, FCopiedTotalSize);
   Try
-    FSize := 0;
+    FCopiedTotalSize := 0;
     If iCount = 0 Then
       Exit;
     boolAll   := False;
@@ -2100,7 +2100,7 @@ Begin
             iAttr := iAttr Xor FILE_ATTRIBUTE_READONLY;
             SetFileAttributes(PChar(Expand(strPath + F.FileName)), iAttr);
           End;
-        Inc(FSize, F.Size);
+        Inc(FCopiedTotalSize, F.Size);
         If Not DeleteFile(PChar(Expand(strPath + F.FileName))) Then
           strErrmsg := Format(strMsg, [strPath + F.FileName,
               SysErrorMessage(GetLastError)])
@@ -2116,7 +2116,7 @@ Begin
         Inc(FSkipped);
       End;
   End;
-  DoDeleted(iFile, FSize, boolResult, strErrmsg);
+  DoDeleted(iFile, FCopiedTotalSize, boolResult, strErrmsg);
 End;
 
 (**
@@ -2174,18 +2174,20 @@ End;
   @precon  None.
   @postcon Fires the Copied event if the event has a handler installed.
 
-  @param   iFile       as an Integer
-  @param   iSize       as an Int64
-  @param   boolSuccess as a Boolean
-  @param   strErrMsg   as a String
+  @param   iCopiedFiles         as an Integer
+  @param   iCopiedFileTotalSize as an Int64
+  @param   iCopiedTotalSize     as an Int64
+  @param   boolSuccess          as a Boolean
+  @param   strErrmsg            as a String
 
 **)
-Procedure TCompareFoldersCollection.DoCopied(iFile: Integer; iSize: Int64;
-  boolSuccess: Boolean; strErrmsg: String);
+Procedure TCompareFoldersCollection.DoCopied(iCopiedFiles: Integer; iCopiedFileTotalSize,
+  iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrmsg: String);
 
 Begin
   If Assigned(FCopiedNotifier) Then
-    FCopiedNotifier(iFile, iSize, boolSuccess, strErrmsg);
+    FCopiedNotifier(iCopiedFiles, iCopiedFileTotalSize, iCopiedTotalSize, boolSuccess,
+      strErrmsg);
 End;
 
 (**
@@ -2281,15 +2283,15 @@ End;
   @precon  None.
   @postcon Fires the CopyStart event if the event has a handler installed.
 
-  @param   iCount as an Integer
-  @param   iSize  as an Int64
+  @param   iTotalCount as an Integer
+  @param   iTotalSize  as an Int64
 
 **)
-Procedure TCompareFoldersCollection.DoCopyStart(iCount: Integer; iSize: Int64);
+Procedure TCompareFoldersCollection.DoCopyStart(iTotalCount: Integer; iTotalSize: Int64);
 
 Begin
   If Assigned(FCopyStartNotifier) Then
-    FCopyStartNotifier(iCount, iSize);
+    FCopyStartNotifier(iTotalCount, iTotalSize);
 End;
 
 (**
