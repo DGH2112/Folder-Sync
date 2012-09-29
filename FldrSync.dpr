@@ -3,7 +3,7 @@
   The main delphi module for the Folder Synchronisation application.
 
   @Author  David Hoyle
-  @Date    10 Aug 2012
+  @Date    17 Aug 2012
   @Version 1.0
 
 **)
@@ -14,6 +14,7 @@ program FldrSync;
 uses
   ExceptionLog,
   Forms,
+  SysUtils,
   HTMLHelpViewer,
   MainForm in 'Source\MainForm.pas' {frmMainForm},
   SyncModule in 'Source\SyncModule.pas',
@@ -36,6 +37,7 @@ uses
 {$R *.RES}
 
 begin
+  SetEurekaLogState(IsDebuggerPresent);
   Application.Initialize;
   Application.Title := 'Folder Sync';
   Application.CreateForm(TfrmMainForm, frmMainForm);
