@@ -5,7 +5,7 @@
 
   @Version 1.5
   @Author  David Hoyle
-  @Date    14 Sep 2012
+  @Date    29 Sep 2012
 
 **)
 Unit CommandLineProcess;
@@ -1107,6 +1107,8 @@ Begin
               Include(FSyncOptions, soConfirmYes);
               Exclude(FSyncOptions, soConfirmNo);
             End
+          Else If CompareText(strOption, 'NoRecursion') = 0 Then
+            Include(FSyncOptions, soNoRecursion)
           Else
             Raise EFldrSyncException.CreateFmt('Invalid command line option "%s".',
               [FParams[i]]);
