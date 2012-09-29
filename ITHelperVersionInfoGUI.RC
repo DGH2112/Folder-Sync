@@ -1,8 +1,8 @@
 LANGUAGE LANG_ENGLISH,SUBLANG_ENGLISH_US
 
 1 VERSIONINFO LOADONCALL MOVEABLE DISCARDABLE IMPURE
-FILEVERSION 1, 5, 0, 872
-PRODUCTVERSION 1, 5, 0, 872
+FILEVERSION 1, 5, 2, 896
+PRODUCTVERSION 1, 5, 2, 896
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEOS VOS__WINDOWS32
 FILETYPE VFT_APP
@@ -11,16 +11,16 @@ FILETYPE VFT_APP
   {
     BLOCK "040904E4"
     {
-     VALUE "CompanyName", "\000"
-     VALUE "FileDescription", "\000"
-     VALUE "FileVersion", "1.5.0.872\000"
-     VALUE "InternalName", "\000"
-     VALUE "LegalCopyright", "\000"
-     VALUE "LegalTrademarks", "\000"
-     VALUE "OriginalFilename", "\000"
-     VALUE "ProductName", "\000"
-     VALUE "ProductVersion", "1.0\000"
-     VALUE "Comments", "\000"
+     VALUE "CompanyName", "Season's Fall Music Limited (c) 1989\000"
+     VALUE "FileDescription", "A GUI application to synchronise files in folders.\000"
+     VALUE "FileVersion", "1.5.2.896\000"
+     VALUE "InternalName", "FldrSync\000"
+     VALUE "LegalCopyright", "Season's Fall Music Limited (c) 1989\000"
+     VALUE "LegalTrademarks", "Season's Fall Music Limited (c) 1989\000"
+     VALUE "OriginalFilename", "FldrSync\000"
+     VALUE "ProductName", "FldrSync\000"
+     VALUE "ProductVersion", "1.5\000"
+     VALUE "Comments", "A GUI application to synchronise files in folders.\000"
     }
   }
   BLOCK "VarFileInfo"
