@@ -4,7 +4,7 @@
   files.
 
   @Version 1.5
-  @Date    14 Sep 2012
+  @Date    29 Sep 2012
   @Author  David Hoyle
 
 **)
@@ -109,7 +109,7 @@ Type
 
   (** This is an enumerate for synchronisation options on a pair of folders. **)
   TSyncOption = (soEnabled, soPrimaryLeft, soPrimaryRight, soOverwriteReadOnlyFiles,
-    soConfirmYes, soConfirmNo);
+    soConfirmYes, soConfirmNo, soNoRecursion);
 
   (** A set of sync options. **)
   TSyncOptions = Set Of TSyncOption;
@@ -211,6 +211,7 @@ Type
     FExclusions         : TStringList;
     FTotalSize          : Int64;
     FFileFilters        : TStringList;
+    FSyncOptions        : TSyncOptions;
   Strict Protected
     Function InExclusions(strFileName: String): Boolean;
     Function GetCount: Integer;
@@ -222,7 +223,8 @@ Type
   Public
     Constructor Create; Virtual;
     Destructor Destroy; Override;
-    Procedure SearchFolder(strFolderPath, strFileFilter, strExclusions: String);
+    Procedure SearchFolder(strFolderPath, strFileFilter, strExclusions: String;
+      SyncOps : TSyncOptions);
     Function Find(strFileName: String): Integer; Virtual;
     Procedure Delete(iIndex : Integer);
     (**
@@ -1053,22 +1055,25 @@ End;
   folder collection.
 
   @precon  None.
-  @postcon Searches the give folder for files matching the file filters and excluding
-           any files that match one of the exclusions somewhere in their path and adds
-           them to the folder collection.
+  @postcon Searches the give folder for files matching the file filters and excluding any
+           files that match one of the exclusions somewhere in their path and adds them
+           to the folder collection.
 
   @param   strFolderPath as a String
   @param   strFileFilter as a String
   @param   strExclusions as a String
+  @param   SyncOps       as a TsyncOptions
 
 **)
-Procedure TFileList.SearchFolder(strFolderPath, strFileFilter, strExclusions: String);
+Procedure TFileList.SearchFolder(strFolderPath, strFileFilter, strExclusions: String;
+  SyncOps : TsyncOptions);
 
 Var
   iFilter: Integer;
 
 Begin
   FFolderPath := strFolderPath;
+  FSyncOptions := SyncOps;
   If strFileFilter = '' Then
     FFileFilters.Add('*.*')
   Else
@@ -1222,18 +1227,21 @@ Begin
           End;
         End;
       // Search directories
-      iRes := FindFirst(Expand(strFolderPath + '*.*'), faAnyFile, rec);
-      Try
-        While iRes = 0 Do
-          Begin
-            If rec.Attr And faDirectory <> 0 Then
-              If (rec.Name <> '.') And (rec.Name <> '..') Then
-                RecurseFolder(strFolderPath + rec.Name + '\');
-            iRes := FindNext(rec);
+      If Not (soNoRecursion In FSyncOptions) Then
+        Begin
+          iRes := FindFirst(Expand(strFolderPath + '*.*'), faAnyFile, rec);
+          Try
+            While iRes = 0 Do
+              Begin
+                If rec.Attr And faDirectory <> 0 Then
+                  If (rec.Name <> '.') And (rec.Name <> '..') Then
+                    RecurseFolder(strFolderPath + rec.Name + '\');
+                iRes := FindNext(rec);
+              End;
+          Finally
+            SysUtils.FindClose(rec);
           End;
-      Finally
-        SysUtils.FindClose(rec);
-      End;
+        End;
     End;
 End;
 
@@ -1480,8 +1488,8 @@ Begin
     Exit;
   If Not SysUtils.DirectoryExists(strRightFldr) Then
     Exit;
-  FLeftFldr.SearchFolder(strLeftFldr, strPatterns, strExclusions);
-  FRightFldr.SearchFolder(strRightFldr, strPatterns, strExclusions);
+  FLeftFldr.SearchFolder(strLeftFldr, strPatterns, strExclusions, SyncOps);
+  FRightFldr.SearchFolder(strRightFldr, strPatterns, strExclusions, SyncOps);
   CompareFolders;
 End;
 
