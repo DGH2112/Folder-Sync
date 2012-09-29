@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    09 Jul 2012
+  @Date    29 Sep 2012
 
 **)
 Unit About;
@@ -26,7 +26,7 @@ Uses
   StdCtrls,
   DGHSpectrum;
 
-{$I '..\..\..\Library\CompilerDefinitions.inc'}
+{$I 'CompilerDefinitions.inc'}
 
 Type
   (** This is a class to represent the About form which displays the
