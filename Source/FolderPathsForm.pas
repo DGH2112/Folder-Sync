@@ -3,7 +3,7 @@
   A class to define a form for editing the Folder Paths.
 
   @Version 1.0
-  @date    03 Aug 2012
+  @date    29 Sep 2012
   @Author  David Hoyle.
 
 **)
@@ -68,7 +68,8 @@ Const
   (** A constant array to provide string representations of the sync options. **)
   SyncOps: Array [Low(TSyncOption) .. High(TSyncOption)
     ] Of String = ('Enable Folder Comparison', 'Primary Left Folder',
-    'Primary Right Folder', 'Overwrite Read Only Files', 'Confirm Yes', 'Confirm No');
+    'Primary Right Folder', 'Overwrite Read Only Files', 'Confirm Yes', 'Confirm No',
+    'No Recursion');
 
 { TfrmFolderPaths }
 
@@ -213,8 +214,8 @@ End;
 Procedure TfrmFolderPaths.lbxSyncOptionsClick(Sender: TObject);
 
 Const
-  SyncOpInts: Array [Low(TSyncOption) .. High(TSyncOption)
-    ] Of Integer = (0, 1, 2, 3, 4, 5);
+  SyncOpInts: Array [Low(TSyncOption) .. High(TSyncOption)] Of Integer =
+    (0, 1, 2, 3, 4, 5, 6);
 
 Var
   i: TSyncOption;

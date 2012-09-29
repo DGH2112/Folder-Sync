@@ -2,12 +2,12 @@ object frmFolderPaths: TfrmFolderPaths
   Left = 499
   Top = 388
   Caption = 'Folder Paths'
-  ClientHeight = 216
-  ClientWidth = 632
+  ClientHeight = 270
+  ClientWidth = 778
   Color = clBtnFace
-  Constraints.MaxHeight = 308
-  Constraints.MinHeight = 250
-  Constraints.MinWidth = 640
+  Constraints.MaxHeight = 379
+  Constraints.MinHeight = 308
+  Constraints.MinWidth = 788
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,107 +19,150 @@ object frmFolderPaths: TfrmFolderPaths
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
-    632
-    216)
+    778
+    270)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 16
   object lblLeftFolder: TLabel
-    Left = 8
-    Top = 8
-    Width = 50
-    Height = 13
+    Left = 10
+    Top = 10
+    Width = 63
+    Height = 16
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Caption = '&Left Folder'
     FocusControl = edtLeftFolder
   end
   object lblRightFolder: TLabel
-    Left = 8
-    Top = 52
-    Width = 57
-    Height = 13
+    Left = 10
+    Top = 64
+    Width = 73
+    Height = 16
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Caption = '&Right Folder'
     FocusControl = edtRightFolder
   end
   object lblFldrSyncOptions: TLabel
-    Left = 8
-    Top = 101
-    Width = 146
-    Height = 13
+    Left = 10
+    Top = 124
+    Width = 185
+    Height = 16
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Caption = 'Folder Synchronization Options'
   end
   object edtLeftFolder: TEdit
-    Left = 8
-    Top = 25
-    Width = 577
-    Height = 21
+    Left = 10
+    Top = 31
+    Width = 710
+    Height = 24
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
     OnChange = FolderPathChange
   end
   object edtRightFolder: TEdit
-    Left = 8
-    Top = 69
-    Width = 577
-    Height = 21
+    Left = 10
+    Top = 85
+    Width = 710
+    Height = 24
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 2
     OnChange = FolderPathChange
   end
   object btnBrowseLeft: TButton
-    Left = 591
-    Top = 23
-    Width = 33
-    Height = 25
+    Left = 727
+    Top = 28
+    Width = 41
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akTop, akRight]
     Caption = '...'
     TabOrder = 1
     OnClick = btnBrowseLeftClick
   end
   object btnBrowseRight: TButton
-    Left = 591
-    Top = 67
-    Width = 33
-    Height = 25
+    Left = 727
+    Top = 82
+    Width = 41
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akTop, akRight]
     Caption = '...'
     TabOrder = 3
     OnClick = btnBrowseRightClick
   end
   object btnOK: TBitBtn
-    Left = 468
-    Top = 183
-    Width = 75
-    Height = 25
+    Left = 576
+    Top = 229
+    Width = 92
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akRight, akBottom]
     Kind = bkOK
     NumGlyphs = 2
     TabOrder = 6
   end
   object btnCancel: TBitBtn
-    Left = 549
-    Top = 183
-    Width = 75
-    Height = 25
+    Left = 676
+    Top = 229
+    Width = 92
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akRight, akBottom]
     Kind = bkCancel
     NumGlyphs = 2
     TabOrder = 7
   end
   object lbxSyncOptions: TCheckListBox
-    Left = 8
-    Top = 120
-    Width = 616
-    Height = 57
+    Left = 10
+    Top = 148
+    Width = 758
+    Height = 74
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akTop, akRight, akBottom]
     Columns = 2
-    ItemHeight = 13
     TabOrder = 4
     OnClick = lbxSyncOptionsClick
   end
   object btnHelp: TBitBtn
-    Left = 387
-    Top = 183
-    Width = 75
-    Height = 25
+    Left = 476
+    Top = 229
+    Width = 93
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akRight, akBottom]
     Kind = bkHelp
     NumGlyphs = 2
