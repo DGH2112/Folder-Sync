@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    03 Aug 2012
+  @Date    29 Sep 2012
   @Version 1.0
   @Author  David Hoyle
 
@@ -193,7 +193,7 @@ Begin
           strCompareEXE := edtCompareEXE.Text;
           FldrSyncOps   := [];
           For i         := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
-            If lbxFldrSyncOps.Checked[iIndex] Then
+            If lbxFldrSyncOps.Checked[Integer(i)] Then
               Include(FldrSyncOps, i);
           TableFont.Assign(FTableFont);
           LogFont.Assign(FLogFont);

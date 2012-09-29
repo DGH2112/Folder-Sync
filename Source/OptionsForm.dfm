@@ -2,11 +2,11 @@ object frmOptions: TfrmOptions
   Left = 502
   Top = 310
   Caption = 'Folder Sync Options'
-  ClientHeight = 449
-  ClientWidth = 632
+  ClientHeight = 553
+  ClientWidth = 778
   Color = clBtnFace
-  Constraints.MinHeight = 480
-  Constraints.MinWidth = 640
+  Constraints.MinHeight = 591
+  Constraints.MinWidth = 788
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,51 +18,67 @@ object frmOptions: TfrmOptions
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
-    632
-    449)
+    778
+    553)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 16
   object lblCompareFiles: TLabel
-    Left = 8
-    Top = 371
-    Width = 66
-    Height = 13
+    Left = 10
+    Top = 457
+    Width = 85
+    Height = 16
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akBottom]
     Caption = 'Compare &EXE'
   end
   object lblExclusions: TLabel
-    Left = 8
-    Top = 226
-    Width = 87
-    Height = 13
+    Left = 10
+    Top = 278
+    Width = 109
+    Height = 16
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akBottom]
     Caption = 'Exclusion &Patterns'
   end
   object btnOK: TBitBtn
-    Left = 468
-    Top = 416
-    Width = 75
-    Height = 25
+    Left = 576
+    Top = 512
+    Width = 92
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akRight, akBottom]
     Kind = bkOK
     NumGlyphs = 2
     TabOrder = 11
   end
   object btnCancel: TBitBtn
-    Left = 549
-    Top = 416
-    Width = 75
-    Height = 25
+    Left = 676
+    Top = 512
+    Width = 92
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akRight, akBottom]
     Kind = bkCancel
     NumGlyphs = 2
     TabOrder = 12
   end
   object btnCheckforUpdates: TBitBtn
-    Left = 221
-    Top = 416
-    Width = 150
-    Height = 25
+    Left = 272
+    Top = 512
+    Width = 185
+    Height = 31
     Margins.Left = 2
     Margins.Top = 2
     Margins.Right = 2
@@ -82,24 +98,28 @@ object frmOptions: TfrmOptions
     OnClick = btnCheckforUpdatesClick
   end
   object lvFolders: TListView
-    Left = 8
-    Top = 8
-    Width = 616
-    Height = 197
+    Left = 10
+    Top = 10
+    Width = 758
+    Height = 242
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akTop, akRight]
     Checkboxes = True
     Columns = <
       item
         Caption = 'Left Folder'
-        Width = 300
+        Width = 369
       end
       item
         Caption = 'Right Folder'
-        Width = 300
+        Width = 369
       end
       item
         Caption = 'Sync Option'
-        Width = 100
+        Width = 123
       end>
     ReadOnly = True
     RowSelect = True
@@ -112,69 +132,97 @@ object frmOptions: TfrmOptions
     OnSelectItem = lvFoldersSelectItem
   end
   object btnAdd: TBitBtn
-    Left = 386
-    Top = 211
-    Width = 76
-    Height = 25
+    Left = 475
+    Top = 260
+    Width = 94
+    Height = 30
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akTop, akRight]
     Caption = '&Add'
     TabOrder = 1
     OnClick = btnAddClick
   end
   object btnEdit: TBitBtn
-    Left = 468
-    Top = 211
-    Width = 75
-    Height = 25
+    Left = 576
+    Top = 260
+    Width = 92
+    Height = 30
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akTop, akRight]
     Caption = '&Edit'
     TabOrder = 2
     OnClick = btnEditClick
   end
   object btnDelete: TBitBtn
-    Left = 549
-    Top = 211
-    Width = 75
-    Height = 25
+    Left = 676
+    Top = 260
+    Width = 92
+    Height = 30
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akTop, akRight]
     Caption = '&Delete'
     TabOrder = 3
     OnClick = btnDeleteClick
   end
   object edtExclusions: TMemo
-    Left = 8
-    Top = 242
-    Width = 616
-    Height = 79
+    Left = 10
+    Top = 298
+    Width = 758
+    Height = 97
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akTop, akRight, akBottom]
     ScrollBars = ssBoth
     TabOrder = 4
     WordWrap = False
   end
   object btnBrowse: TButton
-    Left = 549
-    Top = 385
-    Width = 75
-    Height = 25
+    Left = 676
+    Top = 474
+    Width = 92
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akRight, akBottom]
     Caption = '&Browse'
     TabOrder = 7
     OnClick = btnBrowseClick
   end
   object edtCompareEXE: TEdit
-    Left = 8
-    Top = 389
-    Width = 535
-    Height = 21
+    Left = 10
+    Top = 479
+    Width = 658
+    Height = 24
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akRight, akBottom]
     TabOrder = 6
     Text = 'edtCompareEXE'
   end
   object btnTableFont: TBitBtn
-    Left = 115
-    Top = 416
-    Width = 101
-    Height = 25
+    Left = 142
+    Top = 512
+    Width = 124
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akBottom]
     Caption = 'Table &Font'
     Glyph.Data = {
@@ -190,19 +238,26 @@ object frmOptions: TfrmOptions
     OnClick = btnTableFontClick
   end
   object lbxFldrSyncOps: TCheckListBox
-    Left = 8
-    Top = 327
-    Width = 616
-    Height = 37
+    Left = 10
+    Top = 402
+    Width = 758
+    Height = 46
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akRight, akBottom]
-    ItemHeight = 13
     TabOrder = 5
   end
   object btnHelp: TBitBtn
-    Left = 387
-    Top = 416
-    Width = 75
-    Height = 25
+    Left = 476
+    Top = 512
+    Width = 93
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akRight, akBottom]
     Kind = bkHelp
     NumGlyphs = 2
@@ -210,10 +265,14 @@ object frmOptions: TfrmOptions
     OnClick = btnHelpClick
   end
   object btnLogFont: TBitBtn
-    Left = 8
-    Top = 416
-    Width = 101
-    Height = 25
+    Left = 10
+    Top = 512
+    Width = 124
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akBottom]
     Caption = 'Log &Font'
     Glyph.Data = {
@@ -248,7 +307,7 @@ object frmOptions: TfrmOptions
     Left = 281
     Top = 77
     Bitmap = {
-      494C010102000500080010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101020005000C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
