@@ -1,0 +1,1561 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml11/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>Project History</title>
+    <link rel="stylesheet" href="HELPStyles.css" type="text/css" media="all"/>
+  </head>
+
+  <body>
+    <h1>Project History</h1>
+
+    <h4>Version 1.5b (Build 1.5.2.896) @ Sep 29, 2012</h4>
+
+    <div class="Indent">
+
+      <h5>Sep 29, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">syncmodule.pas</span>: Try and fix copy update problem - Windows 7 progress bars dont update roperly because they are animated.</li>
+          <li><span class="module">commandlineprocess.pas</span>: Try and fix copy update problem - Windows 7 progress bars dont update roperly because they are animated.</li>
+          <li><span class="module">filecopyprogressform.pas</span>: Fixed bug in GUI that shows a floating point error with no files to process.</li>
+          <li><span class="module">mainform.pas</span>: Fixed the auto closing of the application on no files remaining.</li>
+          <li><span class="module">optionsform.pas</span>: Fixed the bug where the folder sync options are not saved correctly.</li>
+          <li><span class="module">fldrsync.dpr</span>: Fixed bug in GUI that shows a floating point error with no files to process and a bug in the options.</li>
+          <li><span class="module">fldrsynctests.dpr</span>: Update to use CopyFileEx() and DeleteFile().</li>
+          <li><span class="module">syncmodule.pas</span>: Added the ability to enable no recursion of directories.</li>
+          <li><span class="module">testfilecomparision.pas</span>: Updated tests.</li>
+          <li><span class="module">commandlineprocess.pas</span>: Added the ability to enable no recursion of directories.</li>
+          <li><span class="module">optionsform.pas</span>: Added the ability to enable no recursion of directories.</li>
+          <li><span class="module">folderpathsform.pas</span>: Added the ability to enable no recursion of directories.</li>
+          <li><span class="module">commandline.html</span>: Updated HTML Help.</li>
+          <li><span class="module">toolsoptions.html</span>: Updated HTML Help.</li>
+          <li><span class="module">welcome.html</span>: Updated HTML Help.</li>
+          <li><span class="module">about.pas</span>: Updated Compiler Definition reference.</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.5a (Build 1.5.1.877) @ Aug 17, 2012</h4>
+
+    <div>
+
+      <h5>Aug 17, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>To Dos</h6>
+
+        <table class="commands">
+          <tr>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Description</th>
+            <th>Created</th>
+            <th>Target</th>
+            <th>Done</th>
+          </tr>
+
+          <tr>
+            <td>bug</td>
+            <td>1</td>
+            <td>If there are not files to process after a comparison there is a floating point exception.</td>
+            <td>Aug&nbsp;17&nbsp;2012&nbsp;&nbsp;6:32PM</td>
+            <td>&nbsp;</td>
+            <td>Aug&nbsp;16,&nbsp;2012</td>
+          </tr>
+          <tr>
+            <td>bug</td>
+            <td>1</td>
+            <td>If you answer NO to missing directories (i.e. when a drive is missing) you get a floating point error, probably in the progress code.</td>
+            <td>Aug&nbsp;17&nbsp;2012&nbsp;&nbsp;6:32PM</td>
+            <td>&nbsp;</td>
+            <td>Aug&nbsp;16,&nbsp;2012</td>
+          </tr>
+        </table>
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">testfilecomparision.pas</span>: Worked out why these tests now fail.</li>
+          <li><span class="module">syncmodule.pas</span>: Fixed an AV when outputting DoNothing files where there is only one file.</li>
+          <li><span class="module">progressform.pas</span>: Fixed bug in GUI that shows a floating point erro with no files to process.</li>
+          <li><span class="module">mainform.pas</span>: Changed the caption of the form to denote debugging in the IDE.</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.5  (Build 1.5.0.872) @ Aug 12, 2012</h4>
+
+    <div class="Indent">
+
+      <h5>Aug 12, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">filecopyprogressform.pas</span>: Reduced the animation time of the progress bars to zero so they react fast enough to quick updates.</li>
+          <li><span class="module">filedeleteprogressform.pas</span>: Reduced the animation time of the progress bars to zero so they react fast enough to quick updates.</li>
+          <li><span class="module">progressform.pas</span>: Reduced the animation time of the progress bars to zero so they react fast enough to quick updates.</li>
+          <li><span class="module">toolsoptions.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">fldrsynccmd.dpr</span>: Initial import into the version control system of the command line version of Folder Sync.</li>
+          <li><span class="module">ithelperversioninfocmd.rc</span>: Initial import into the version control system of the command line version of Folder Sync.</li>
+          <li><span class="module">fldrsync.dpr</span>: Updated to use CopyFileEx() and DeleteFile().</li>
+          <li><span class="module">ithelperversioninfogui.rc</span>: Updated to use CopyFileEx() and DeleteFile().</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 11, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">progressform.pas</span>: Updated progress bar animation interval.</li>
+          <li><span class="module">filedeleteprogressform.pas</span>: Updated interfaces to add the number of files and the file being processed.</li>
+          <li><span class="module">filecopyprogressform.pas</span>: Updated interfaces to add the number of files and the file being processed.</li>
+          <li><span class="module">mainform.pas</span>: Added the file count to the Deleting and Copying method signatures.</li>
+          <li><span class="module">syncmodule.pas</span>: Released memory before the completion of the process.</li>
+          <li><span class="module">commandlineprocess.pas</span>: Added the file count to the Deleting and Copying method signatures.</li>
+          <li><span class="module">commandline.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">editclearlog.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">editcopylefttoright.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">editcopyrighttoleft.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">editdelete.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">editdonothing.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">editselectall.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">filecompare.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">fileexit.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">fileprocessfiles.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">helpabout.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">helpcheckforupdates.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">helpcontents.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">helpstyles.css</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">table of contents.hhc</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">toolscompare.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">welcome.html</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+          <li><span class="module">fldrsync.hhp</span>: Initial import into the version control system of the HTML Help files for the application.</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 9, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">commandlineprocess.pas</span>: Fixed bug in the command line options where Pause seems to be permanently on.</li>
+          <li><span class="module">mainform.pas</span>: Added double buffering and indent the errors more.</li>
+          <li><span class="module">confirmationdlg.pas</span>: Updated interface to use double buffering.</li>
+          <li><span class="module">filecopyprogressform.pas</span>: Updated interface to use double buffering.</li>
+          <li><span class="module">filedeleteprogressform.pas</span>: Updated interface to use double buffering.</li>
+          <li><span class="module">folderpathsform.pas</span>: Updated interface to use double buffering.</li>
+          <li><span class="module">optionsform.pas</span>: Updated interface to use double buffering.</li>
+          <li><span class="module">progressform.pas</span>: Updated interface to use double buffering.</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 3, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">commandlineprocess.pas</span>: Fixed bug in progress of file contents.</li>
+          <li><span class="module">commandlineprocess.pas</span>: Added the output of statistics.</li>
+          <li><span class="module">confirmationdlg.pas</span>: Made the sizing of the dialogue based on content dynamic.</li>
+          <li><span class="module">folderpathsform.pas</span>: Added help support.</li>
+          <li><span class="module">optionsform.pas</span>: Added help support and a button to edit the log font.</li>
+          <li><span class="module">syncmodule.pas</span>: Added the ability to generate stats for the process items and fix the bug in the CanBypassQuery method.</li>
+          <li><span class="module">mainform.pas</span>: Added help support and added the output of statistics to the status bar.</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 2, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">syncmodule.pas</span>: Fixed a bug in the setting of the folder sync options of a process item.</li>
+          <li><span class="module">filecopyprogressform.pas</span>: Updated the dialogue layout and chnaged the output to kilobytes.</li>
+          <li><span class="module">mainform.pas</span>: Fixed and added the follows:<br/> * Custom form for querying the file operations;<br/> * Outputting nothing to do items and diff size items;<br/> * Loading and savinf of the log implemented.</li>
+          <li><span class="module">confirmationdlg.pas</span>: Initial import into the version control system.</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 1, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">syncmodule.pas</span>: Updated code so that is can be shared between and GUI and a Command Line.</li>
+          <li><span class="module">progressform.pas</span>: Updated code so that is can be shared between and GUI and a Command Line.</li>
+          <li><span class="module">optionsform.pas</span>: Updated code so that is can be shared between and GUI and a Command Line.</li>
+          <li><span class="module">folderpathsform.pas</span>: Updated code so that is can be shared between and GUI and a Command Line.</li>
+          <li><span class="module">dghmemorymonitorcontrol.pas</span>: Updated component to work in the opposite manner to the battery monitor.</li>
+          <li><span class="module">filecopyprogressform.pas</span>: Initial import into the version control system.</li>
+          <li><span class="module">filedeleteprogressform.pas</span>: Initial import into the version control system.</li>
+          <li><span class="module">mainform.pas</span>: Updated to use CopyFileEx() and DeleteFile().</li>
+          <li><span class="module">checkforupdates.pas</span>: Updated to remove the references to MSXML and replace with TXMLDocument.</li>
+          <li><span class="module">commandlineprocess.pas</span>: Initial import into the version control system.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jul 21, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">dghlibrary.pas</span>: Added a new function to extract the EXE file from the register knowing the file extension.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jul 9, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">about.pas</span>: Updated graphic display properties for About dialogue.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jul 8, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">about.pas</span>: Updated code to backward compatability to D7</li>
+        </ul>
+
+      </div>
+
+      <h5>Jun 9, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">testfilecomparision.pas</span>: Updated code so that is can be shared between and GUI and a Command Line.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jun 7, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">dghlibrary.pas</span>: Ensured that GetField() returns a NULL string for non-valid fields.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jun 4, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">dghlibrary.pas</span>: Added a title to the TProcessInfo record.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 4, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>To Dos</h6>
+
+        <table class="commands">
+          <tr>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Description</th>
+            <th>Created</th>
+            <th>Target</th>
+            <th>Done</th>
+          </tr>
+
+          <tr>
+            <td>functionality</td>
+            <td>1</td>
+            <td>Update any references to TIniFile with TMemIniFile for improved performance.</td>
+            <td>Apr&nbsp;&nbsp;4&nbsp;2012&nbsp;&nbsp;2:27PM</td>
+            <td>&nbsp;</td>
+            <td>Apr&nbsp;3,&nbsp;2012</td>
+          </tr>
+          <tr>
+            <td>functionality</td>
+            <td>1</td>
+            <td>Add the ability to configure the Check for Updates functionality in the opions dialogue.</td>
+            <td>Apr&nbsp;&nbsp;4&nbsp;2012&nbsp;&nbsp;2:34PM</td>
+            <td>&nbsp;</td>
+            <td>Apr&nbsp;3,&nbsp;2012</td>
+          </tr>
+        </table>
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">folderpathsform.pas</span>: Updated any references to TIniFile with TMemIniFile for improved performance.</li>
+          <li><span class="module">optionsform.pas</span>: Updated any references to TIniFile with TMemIniFile for improved performance.</li>
+          <li><span class="module">mainform.pas</span>: Updated any references to TIniFile with TMemIniFile for improved performance.</li>
+          <li><span class="module">optionsform.pas</span>: Added the ability to configure the Check for Updates functionality in the opions dialogue.</li>
+          <li><span class="module">fldrsync.dpr</span>: Made some minot internal bugs fixes and enhancements.</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 7, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">about.pas</span>: Updated any references to TIniFile with TMemIniFile for improved performance.</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 5, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">checkforupdatesoptionsform.pas</span>: Updated DFM for earlier version of Delphi.</li>
+          <li><span class="module">checkforupdates.pas</span>: Updated any references to TIniFile with TMemIniFile for improved performance.</li>
+          <li><span class="module">dghlibrary.pas</span>: Updated any references to TIniFile with TMemIniFile for improved performance.</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 4, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">compilerdefinitions.inc</span>: Updated the compiler definitions for Delphi XE and XE2.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jul 30, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">checkforupdatesoptionsform.pas</span>: Initial import into the version control system.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jun 13, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">checkforupdates.pas</span>: Fixed Check for Updates to stop the not disappearing after 5 seconds IF successful.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 27, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">dghcustomgraphicscontrol.pas</span>: Initial import into the version control system of a base class for graphics controls like battery monitors and memory monitors.</li>
+          <li><span class="module">dghmemorymonitorcontrol.pas</span>: Initial import into the version control system of a class for monitoring memory in a graphic control.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 15, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">dghlibrary.pas</span>: Made SHGetFolderPath work with all version of Delphi.</li>
+          <li><span class="module">checkforupdates.pas</span>: Makd CheckForUpdates work with all version of Delphi.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 13, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">checkforupdatesform.pas</span>: Updated the form for Delphi 7 properties.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 10, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+      <ul>
+          <li><span class="module">fldrsynctests.dpr</span>: Fixed the List View of Folder Sync so that its dynamically sizes the "fixed" columns based on the list views font.</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+
+    <h4>Version 1.0w (Build 1.0.23.344) @ Apr 04, 2012</h4>
+
+    <div class="Indent">
+
+      <h5>Apr 4, 2012</h5>
+
+      <div class="Indent">
+
+        <h6>To Dos</h6>
+
+        <table class="commands">
+          <tr>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Description</th>
+            <th>Created</th>
+            <th>Target</th>
+            <th>Done</th>
+          </tr>
+
+          <tr>
+            <td>functionality</td>
+            <td>1</td>
+            <td>Update any references to TIniFile with TMemIniFile for improved performance.</td>
+            <td>Apr&nbsp;&nbsp;4&nbsp;2012&nbsp;&nbsp;2:27PM</td>
+            <td>&nbsp;</td>
+            <td>Apr&nbsp;3,&nbsp;2012</td>
+          </tr>
+          <tr>
+            <td>functionality</td>
+            <td>1</td>
+            <td>Add the ability to configure the Check for Updates functionality in the opions dialogue.</td>
+            <td>Apr&nbsp;&nbsp;4&nbsp;2012&nbsp;&nbsp;2:34PM</td>
+            <td>&nbsp;</td>
+            <td>Apr&nbsp;3,&nbsp;2012</td>
+          </tr>
+        </table>
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">folderpathsform.pas</span>: Updated any references to TIniFile with TMemIniFile for improved performance.</li>
+          <li><span class="module">optionsform.pas</span>: Updated any references to TIniFile with TMemIniFile for improved performance.</li>
+          <li><span class="module">mainform.pas</span>: Updated any references to TIniFile with TMemIniFile for improved performance.</li>
+          <li><span class="module">optionsform.pas</span>: Added the ability to configure the Check for Updates functionality in the opions dialogue.</li>
+          <li><span class="module">fldrsync.dpr</span>: Made some minot internal bugs fixes and enhancements.</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 7, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">about.pas</span>: Updated any references to TIniFile with TMemIniFile for improved performance.</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 5, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">checkforupdates.pas</span>: Updated any references to TIniFile with TMemIniFile for improved performance.</li>
+          <li><span class="module">dghlibrary.pas</span>: Updated any references to TIniFile with TMemIniFile for improved performance.</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 4, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">compilerdefinitions.inc</span>: Updated the compiler definitions for Delphi XE and XE2.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jun 13, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">checkforupdates.pas</span>: Fixed Check for Updates to stop the not disappearing after 5 seconds IF successful.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 15, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">dghlibrary.pas</span>: Made SHGetFolderPath work with all version of Delphi.</li>
+          <li><span class="module">checkforupdates.pas</span>: Makd CheckForUpdates work with all version of Delphi.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 13, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">checkforupdatesform.pas</span>: Updated the form for Delphi 7 properties.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 10, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">fldrsynctests.dpr</span>: Fixed the List View of Folder Sync so that its dynamically sizes the "fixed" columns based on the list views font.</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.0v (Build 1.0.22.339) @ Jan 30, 2011</h4>
+
+    <div class="Indent">
+
+      <h5>Jan 30, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">fldrsync.dpr</span>: Fixed the List View of Folder Sync so that its dynamically sizes the "fixed" columns based on the list views font.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jan 29, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">optionsform.pas</span>: Added the ability to switch on and off Check for Updates.</li>
+          <li><span class="module">mainform.pas</span>: Updated the mechanisms for loading and save the boolean options.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jan 24, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">dghlibrary.pas</span>: Fixed the non working alternate INI file options.</li>
+          <li><span class="module">checkforupdatesform.pas</span>: Made form taller.</li>
+          <li><span class="module">checkforupdates.pas</span>: Updated CheckForUpdates for the following:<br/> * Disabled by default;<br/> * Checks for the Internet Connection first<br/> * Captures OLESysErrors if MS XML is not available.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jan 3, 2011</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">optionsform.pas</span>: Rearranged the options dialogue and added the ability to select the font used in the list view.</li>
+          <li><span class="module">mainform.pas</span>: Fixed the List View of Folder Sync so that its dynamically sizes the "fixed" columns based on the list views font.</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.0u (Build 1.0.21.258) @ Feb 15, 2010</h4>
+
+    <div class="Indent">
+
+      <h5>Feb 15, 2010</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">fldrsync.dpr</span>: Fixed bugs.</li>
+        </ul>
+
+      </div>
+
+      <h5>Feb 14, 2010</h5>
+
+      <div class="Indent">
+
+        <h6>To Dos</h6>
+
+        <table class="commands">
+          <tr>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Description</th>
+            <th>Created</th>
+            <th>Target</th>
+            <th>Done</th>
+          </tr>
+
+          <tr>
+            <td>bug</td>
+            <td>1</td>
+            <td>Files greater than 2^15 are displayed as negative.</td>
+            <td>Feb&nbsp;14&nbsp;2010&nbsp;&nbsp;8:34PM</td>
+            <td>Feb&nbsp;19,&nbsp;2010</td>
+            <td>Feb&nbsp;14,&nbsp;2010</td>
+          </tr>
+        </table>
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">progressform.pas</span>: Changed the progress bar to put commas between thousands.</li>
+          <li><span class="module">filecomparision.pas</span>: Changed the file size to use a Int64 for files larger than 2^15.</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.0t (Build 1.0.20.251) @ Dec 27, 2009</h4>
+
+    <div class="Indent">
+
+      <h5>Dec 27, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">progressform.pas</span>: Added a cancel button to this form and configure it to Abort is the cancellation was confirmed.</li>
+          <li><span class="module">filecomparision.pas</span>: Reconfigured progress events for Cancel parameter.</li>
+          <li><span class="module">mainform.pas</span>: Reconfigured progress events for Cancel parameter.</li>
+          <li><span class="module">mainform.pas</span>: Fixed issue with closing when no files are to be processed at application startup.</li>
+          <li><span class="module">fldrsync.dpr</span>: Updated to add the ability to &lt;cancel> the comparison operation.</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.0s (Build 1.0.19.227) @ Nov 07, 2009</h4>
+
+    <div class="Indent">
+
+      <h5>Nov 7, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">fldrsync.dpr</span>: Closed tests for fixing bugs with long files names and icon index errors.</li>
+        </ul>
+
+      </div>
+
+      <h5>Nov 4, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Ensured that Primary Left / Right only copies Left to Right and Right to Left respectively (this is how is SHOULD have been).</li>
+          <li><span class="module">mainform.pas</span>: Checked non-existant filepath for being too long.</li>
+        </ul>
+
+      </div>
+
+      <h5>Nov 3, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">progressform.pas</span>: Changed the update interval from 100 to 10.</li>
+          <li><span class="module">filecomparision.pas</span>: Moved the marking of files as "too long" (is flawed) from the CompareFodlers() method. This marking has been moved to the point at which the files are found. CompareFolders() needed to understand not to tough these "Too Long" files.</li>
+          <li><span class="module">mainform.pas</span>: Removed support for Grouping.</li>
+          <li><span class="module">mainform.pas</span>: Added option to NOT show files that are "Too Long".</li>
+          <li><span class="module">optionsform.pas</span>: Added an option to hide files that are "Too Long"..</li>
+          <li><span class="module">mainform.pas</span>: Updated the position of the file action icon (centred).</li>
+          <li><span class="module">mainform.pas</span>: Updated the progress information.</li>
+        </ul>
+
+      </div>
+
+      <h5>Nov 2, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Fixed bug where an icon index enclosed in double quotes will raise an invalid integer exception in GetImageIndex().</li>
+          <li><span class="module">filecomparision.pas</span>: Marked files in the file comparison collections as "Too Long" if longer than MAX_PATH in length.</li>
+          <li><span class="module">mainform.pas</span>: Highlighted the Files that are "Too Long" to copy in yellow.<br/>Made sure that their operation can not be changed.</li>
+          <li><span class="module">mainform.pas</span>: Fixed AV when there are no files, i.,e. LeftFldr and RightFldr are nil.</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.0r (Build 1.0.18.196) @ Oct 27, 2009</h4>
+
+    <div class="Indent">
+
+      <h5>Oct 27, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">folderpathsform.pas</span>: Added option for selecting the Sync Option.</li>
+          <li><span class="module">optionsform.pas</span>: Added additional options to allow folders to by Sync&#39;ed, or have the Right or Left folder to be primary causing the other to be changed to match (i.e. files will be marked for deletion if they no longer exist in the primary folders).</li>
+          <li><span class="module">mainform.pas</span>: Loaded and Saved the SyncOptions for the folders.</li>
+          <li><span class="module">filecomparision.pas</span>: Updated folder checking to use the new TSyncOptions rather than assume Boolean on the Objects[].</li>
+          <li><span class="module">mainform.pas</span>: Implemented the TSyncOptions when processing the files.</li>
+          <li><span class="module">mainform.pas</span>: Displayed a message about auto-exiting the application for 1 second when this advanced option is enabled.</li>
+          <li><span class="module">optionsform.pas</span>: Changed the accelerator key for the Exclusions tab (conflicts with the Edit button).</li>
+          <li><span class="module">fldrsync.dpr</span>: Added new features to the application.</li>
+        </ul>
+
+      </div>
+
+      <h5>Oct 25, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Put INI file in main form caption.</li>
+          <li><span class="module">optionsform.pas</span>: Added a series of boolean options that can be switched on or off for an INI file.</li>
+          <li><span class="module">mainform.pas</span>: Implemented various folder sync options in the main application.</li>
+        </ul>
+
+      </div>
+
+      <h5>Oct 24, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>To Dos</h6>
+
+        <table class="commands">
+          <tr>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Description</th>
+            <th>Created</th>
+            <th>Target</th>
+            <th>Done</th>
+          </tr>
+
+          <tr>
+            <td>functionality</td>
+            <td>1</td>
+            <td>Add advanced options to define additional actions that the application can be configured for - automation.</td>
+            <td>Oct&nbsp;25&nbsp;2009&nbsp;&nbsp;6:52PM</td>
+            <td>&nbsp;</td>
+            <td>Oct&nbsp;24,&nbsp;2009</td>
+          </tr>
+          <tr>
+            <td>functionality</td>
+            <td>1</td>
+            <td>Put INI file in title</td>
+            <td>Oct&nbsp;25&nbsp;2009&nbsp;&nbsp;6:52PM</td>
+            <td>&nbsp;</td>
+            <td>Oct&nbsp;24,&nbsp;2009</td>
+          </tr>
+        </table>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.0q (Build 1.0.17.159) @ Jul 14, 2009</h4>
+
+    <div class="">
+
+      <h5>Jul 14, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Updated the position of missing files in the listview.</li>
+          <li><span class="module">fldrsync.dpr</span>: Updated the position of missing files in the listview.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jul 13, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">progressform.pas</span>: Added 3 more positions to the progress bar.</li>
+          <li><span class="module">filecomparision.pas</span>: Added 3 more positions to the progress bar.</li>
+          <li><span class="module">mainform.pas</span>: Updated folder view with new files paths shown in grey.</li>
+          <li><span class="module">fldrsync.dpr</span>: Updated folder view with new files paths shown in grey.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jul 12, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">folderpathsform.pas</span>: Made browse for folder start at last folder position.</li>
+          <li><span class="module">progressform.pas</span>: Added a progress bar to the progress form..</li>
+          <li><span class="module">filecomparision.pas</span>: Added a progress bar to the progress form..</li>
+          <li><span class="module">progressform.pas</span>: Changed the progress for to have a separate procedure for updating the progress bar.</li>
+          <li><span class="module">filecomparision.pas</span>: Changed the progress for to have a separate procedure for updating the progress bar.</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.0p (Build 1.0.16.79) @ Apr 29, 2009</h4>
+
+    <div class="Indent">
+
+      <h5>Apr 29, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">progressform.pas</span>: Added more padding.</li>
+          <li><span class="module">filecomparision.pas</span>: Updated progress interface.</li>
+          <li><span class="module">mainform.pas</span>: Updated progress interface.</li>
+          <li><span class="module">fldrsync.dpr</span>: Updated progress interface.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 28, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">fldrsync.dpr</span>: Updated to fix "Check for Updates" problem.</li>
+          <li><span class="module">progressform.pas</span>: Added margins / padding.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 12, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">optionsform.pas</span>: Added a compare files tool.</li>
+          <li><span class="module">mainform.pas</span>: Added a menu option top compare 2 files (text) with an externa; tool, say WinMerge, JVCSDiff, etc.</li>
+          <li><span class="module">fldrsync.dpr</span>: Added a menu option top compare 2 files (text) with an externa; tool, say WinMerge, JVCSDiff, etc.</li>
+          <li><span class="module">optionsform.pas</span>: Allowed enabling / disabling of individual folder pairs in the list.</li>
+          <li><span class="module">filecomparision.pas</span>: Allowed enabling / disabling of individual folder pairs in the list.</li>
+          <li><span class="module">mainform.pas</span>: Allowed enabling / disabling of individual folder pairs in the list.</li>
+          <li><span class="module">progressform.pas</span>: Added Ellipsis path on information dialogue.</li>
+          <li><span class="module">dghellipsislabel.pas</span>: Registered with the IDE.</li>
+          <li><span class="module">fldrsync.dpr</span>: Added Ellipsis path on information dialogue.</li>
+          <li><span class="module">mainform.pas</span>: Understand when the application is maximised and remember the position of the windows. DONE.</li>
+          <li><span class="module">fldrsync.dpr</span>: Understand when the application is maximised and remember the position of the windows. Done.</li>
+          <li><span class="module">mainform.pas</span>: Understand when the application is maximised and remember the position of the windows. Done.</li>
+          <li><span class="module">fldrsync.dpr</span>: Added Tools Compare to the meun and add a shortcut.</li>
+          <li><span class="module">mainform.pas</span>: Added Tools Compare to the meun and add a shortcut.</li>
+          <li><span class="module">progressform.pas</span>: Changed the interface of the Progress() method to ask for Message and FileName only.</li>
+          <li><span class="module">filecomparision.pas</span>: Changed the interface of the Progress() method to ask for Message and FileName only.</li>
+          <li><span class="module">mainform.pas</span>: Changed the interface of the Progress() method to ask for Message and FileName only.</li>
+          <li><span class="module">fldrsync.dpr</span>: Changed the interface of the Progress() method to ask for Message and FileName only.</li>
+          <li><span class="module">fldrsync.dpr</span>: Updated project file.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 11, 2009</h5>
+
+      <div class="Indent">
+
+        <h6>To Dos</h6>
+
+        <table class="commands">
+          <tr>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Description</th>
+            <th>Created</th>
+            <th>Target</th>
+            <th>Done</th>
+          </tr>
+
+          <tr>
+            <td>functionality</td>
+            <td>3</td>
+            <td>Allow enabling / disabling of individual folder pairs in the list.</td>
+            <td>Oct&nbsp;11&nbsp;2008&nbsp;&nbsp;9:43AM</td>
+            <td>&nbsp;</td>
+            <td>Apr&nbsp;11,&nbsp;2009</td>
+          </tr>
+          <tr>
+            <td>functionality</td>
+            <td>2</td>
+            <td>Ellipsis path on information dialogue.</td>
+            <td>Dec&nbsp;19&nbsp;2008&nbsp;&nbsp;8:03PM</td>
+            <td>&nbsp;</td>
+            <td>Apr&nbsp;11,&nbsp;2009</td>
+          </tr>
+          <tr>
+            <td>functionality</td>
+            <td>2</td>
+            <td>Understand when the application is maximised and remember the position of the windows</td>
+            <td>Mar&nbsp;27&nbsp;2009&nbsp;&nbsp;7:07PM</td>
+            <td>&nbsp;</td>
+            <td>Apr&nbsp;11,&nbsp;2009</td>
+          </tr>
+          <tr>
+            <td>functionality</td>
+            <td>2</td>
+            <td>Allow snag to desktop... for the main windows</td>
+            <td>Mar&nbsp;27&nbsp;2009&nbsp;&nbsp;7:10PM</td>
+            <td>&nbsp;</td>
+            <td>Apr&nbsp;11,&nbsp;2009</td>
+          </tr>
+          <tr>
+            <td>functionality</td>
+            <td>1</td>
+            <td>Add a menu option top compare 2 files (text) with an externa; tool, say WinMerge, JVCSDiff, etc.</td>
+            <td>Apr&nbsp;12&nbsp;2009&nbsp;12:02PM</td>
+            <td>&nbsp;</td>
+            <td>Apr&nbsp;11,&nbsp;2009</td>
+          </tr>
+        </table>
+
+      </div>
+
+      <h5>Jul 22, 2008</h5>
+
+      <div class="Indent">
+
+        <h6>To Dos</h6>
+
+        <table class="commands">
+          <tr>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Description</th>
+            <th>Created</th>
+            <th>Target</th>
+            <th>Done</th>
+          </tr>
+
+          <tr>
+            <td>functionality</td>
+            <td>1</td>
+            <td>Allow application to load a custom INI files using the syntax (/|-)@Drive:\Path\INIFile.INI</td>
+            <td>Jun&nbsp;19&nbsp;2008&nbsp;&nbsp;7:23PM</td>
+            <td>&nbsp;</td>
+            <td>Jul&nbsp;22,&nbsp;2008</td>
+          </tr>
+        </table>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.0m (Build 1.0.13.25) @ Jul 17, 2008</h4>
+
+    <div class="Indent">
+
+      <h5>Jul 17, 2008</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Updated the app to use the new BuildRootKey method.</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.0l (Build 1.0.12.22) @ May 28, 2008</h4>
+
+    <div class="Indent">
+
+      <h5>May 28, 2008</h5>
+
+      <h6>Check in Comments</h6>
+
+      <div class="Indent">
+
+        <ul>
+          <li><span class="module">fldrsync.dpr</span>: Updated the version number.</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.0l (Build 1.0.12.22) @ May 28, 2008</h4>
+
+    <div class="Indent">
+
+      <h5>May 11, 2008</h5>
+
+      <div class="">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Updated the CheckForUpdates for to use an internal list of websites and not rely on the app to supply them.</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.0l (Build 1.0.12.20) @ Mar 26, 2008</h4>
+
+    <div class="Indent">
+
+      <h5>Mar 26, 2008</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">folderpathsform.pas</span>: Made sure the FolderPathForm uses the INI file and not the registry</li>
+          <li><span class="module">fldrsync.dpr</span>: Made sure the FolderPathForm uses the INI file and not the registry</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <h4>Version 1.0k (Build 1.0.11.18) @ Jan 20, 2008</h4>
+
+    <div class="Indent">
+
+      <h5>Jan 20, 2008</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">about.pas</span>: Made sure the message are processed after display.</li>
+          <li><span class="module">optionsform.pas</span>: Used the INI file not the registry.</li>
+          <li><span class="module">mainform.pas</span>: Made sure the check for updates occurs after the About form.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jan 13, 2008</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">fldrsync.dpr</span>: Re-compiled with new CheckForUpdate code and EurekaLog options.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jan 6, 2008</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">folderpathsform.pas</span>: Sorted TAB order.</li>
+          <li><span class="module">mainform.pas</span>: Ensured LF and CR are replaced when storing to the INI file.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jan 3, 2008</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Added the following fixes:<br/> * Draw file icons directly in a custom draw event and not &#34;Cache&#34; the images NOT IMPLEMENTED AS THIS HAD A DETREMENTAL EFFECT TO THE PERFORMANCE OF THE INTERFACE.	<br/> * Filename and path SHOULD NOT render the &amp; sign as an underscope</li>
+          <li><span class="module">checkforupdatesform.pas</span>: Widened the dialogue and allows for multi-line text..</li>
+          <li><span class="module">checkforupdates.pas</span>: Made the messages about new or older software display the 2 version numbers.</li>
+          <li><span class="module">fldrsync.dpr</span>: Added the following fixes:<br/> * Draw file icons directly in a custom draw event and not &#34;Cache&#34; the images NOT IMPLEMENTED AS THIS HAD A DETREMENTAL EFFECT TO THE PERFORMANCE OF THE INTERFACE.	<br/> * Filename and path SHOULD NOT render the &amp; sign as an underscope</li>
+          <li><span class="module">fldrsync.dpr</span>: Added the control files to the project.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jan 2, 2008</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">about.pas</span>: Made this dialogue use the Apps INI file.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 19, 2007</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">filecomparision.pas</span>: Removed the Tolerance field and replace the logic with a day light saving check = 3600 seconds. Also add a check for different in file size.</li>
+          <li><span class="module">mainform.pas</span>: Removed the Tolerance field and replace the logic with a day light saving check = 3600 seconds. Also add a check for different in file size.</li>
+          <li><span class="module">fldrsync.dpr</span>: Made the file comparison check for day light saving and also file size.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 16, 2007</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">optionsform.pas</span>: Removed the Tolerance field and replace the logic with a day light saving check = 3600 seconds. Also add a check for different in file size.</li>
+        </ul>
+
+      </div>
+
+      <h5>Dec 9, 2006</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Updated the colouring of the Readonly files to only fill the side that is Read Only.</li>
+        </ul>
+
+      </div>
+
+      <h5>Dec 7, 2006</h5>
+
+      <div class="">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">fldrsync.dpr</span>: Made the Options form remember its size</li>
+          <li><span class="module">folderpathsform.pas</span>: Made the FolderPathsForm remember its size</li>
+          <li><span class="module">mainform.pas</span>: Removed the "Icon" local scope conflict</li>
+          <li><span class="module">optionsform.pas</span>: Made the Options form remember its size</li>
+        </ul>
+
+      </div>
+
+      <h5>Oct 22, 2006</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Updated the main form to fix the positioning of the list view.</li>
+        </ul>
+
+      </div>
+
+      <h5>Oct 19, 2006</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">fldrsync.dpr</span>: Got the List view to display ellipsis on the file paths and Hints for the files</li>
+          <li><span class="module">mainform.pas</span>: Got the List view to display ellipsis on the file paths and Hints for the files</li>
+        </ul>
+
+      </div>
+
+      <h5>Oct 7, 2006</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">optionsform.pas</span>: Updated the options dialogue to split the folders using the ratio of the length of the files</li>
+          <li><span class="module">mainform.pas</span>: Allowed Read Only files to overwrite readonly files.</li>
+          <li><span class="module">fldrsync.dpr</span>: Updated application as follows:<br/> * Updated the options dialogue to split the folders using the ratio of the length of the files<br/> * Allowed Read Only files to overwrite readonly files.</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 16, 2006</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Fixed the problem where files the don&#39;t exist at a destination have no operation.</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 13, 2006</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Allowed readonly files to overwrite non-readonly files.</li>
+          <li><span class="module">mainform.pas</span>: Made the following changes to the on screen informattion:<br/>1) File for deletion should be struckout<br/>2) File labelled as foNothing as greyed out</li>
+        </ul>
+
+      </div>
+
+      <h5>Aug 12, 2006</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">filecomparision.pas</span>: Added file attributes to the comparison classes.</li>
+          <li><span class="module">filecomparision.pas</span>: Added file attributes to the comparison classes.</li>
+          <li><span class="module">mainform.pas</span>: Made readonly files = no operation and highlight readonly files in a light red background.</li>
+          <li><span class="module">fldrsync.dpr</span>: Updated the application version number</li>
+        </ul>
+
+      </div>
+
+      <h5>Jun 13, 2006</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">fldrsync.dpr</span>: Added modelling support</li>
+        </ul>
+
+      </div>
+
+      <h5>Feb 8, 2006</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">fldrsync.dpr</span>: Made the OptionsForm dialogue sizeable.</li>
+          <li><span class="module">optionsform.pas</span>: Made the OptionsForm dialogue sizeable.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jan 19, 2006</h5>
+
+      <div class="Indent">
+
+        <h6>To Dos</h6>
+
+        <table class="commands">
+          <tr>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Description</th>
+            <th>Created</th>
+            <th>Target</th>
+            <th>Done</th>
+          </tr>
+
+          <tr>
+            <td>functionality</td>
+            <td>1</td>
+            <td>Try and implement multiple file filters separated by a semi-colon - this will need TStringList collection to each filter and the RecurseFolder() routine to iterate over each filter.</td>
+            <td>Jan&nbsp;18&nbsp;2006&nbsp;10:29PM</td>
+            <td>&nbsp;</td>
+            <td>Jan&nbsp;19,&nbsp;2006</td>
+          </tr>
+          <tr>
+            <td>functionality</td>
+            <td>1</td>
+            <td>Try and implement the ability for a file filter being typed on one folder path to be automatically added to the other path.</td>
+            <td>Jan&nbsp;18&nbsp;2006&nbsp;10:29PM</td>
+            <td>&nbsp;</td>
+            <td>Jan&nbsp;19,&nbsp;2006</td>
+          </tr>
+        </table>
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">folderpathsform.pas</span>: Updated the folder sync application to handle more than 1 file filter for each folder, i,e, semi-colon separated.</li>
+          <li><span class="module">filecomparision.pas</span>: Updated the folder sync application to handle more than 1 file filter for each folder, i,e, semi-colon separated.</li>
+          <li><span class="module">fldrsync.dpr</span>: Updated the folder sync application to handle more than 1 file filter for each folder, i,e, semi-colon separated.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jan 18, 2006</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">filecomparision.pas</span>: Updated this application to allow path to be appended with file filters (directory alone must end with a \).</li>
+          <li><span class="module">folderpathsform.pas</span>: Updated this application to allow path to be appended with file filters (directory alone must end with a \).</li>
+          <li><span class="module">mainform.pas</span>: Updated this application to allow path to be appended with file filters (directory alone must end with a \).</li>
+          <li><span class="module">fldrsync.dpr</span>: Updated this application to allow path to be appended with file filters (directory alone must end with a \).</li>
+          <li><span class="module">filecomparision.pas</span>: Fixed the bug that puts double slashes \\ in the file paths of the list view.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jan 3, 2006</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">folderpathsform.pas</span>: Fixed the incorrect positioning of the folder form.</li>
+        </ul>
+
+      </div>
+
+      <h5>Dec 30, 2005</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Added the About form to the project.</li>
+          <li><span class="module">filecomparision.pas</span>: Updated uses clause to include Windows.</li>
+          <li><span class="module">filecomparision.pas</span>: Updated the FindClose method to call the correct method.</li>
+          <li><span class="module">about.pas</span>: Changed the way the Application Title if displayed by making the dialogue construct it from the Application.Title + Major version number . minor version number and space, a -> z for bug fix.</li>
+          <li><span class="module">fldrsync.dpr</span>: Added the About form to the project.</li>
+          <li><span class="module">mainform.pas</span>: Hooked actHelpAbout to the menu mmiHelpAbout.</li>
+        </ul>
+
+      </div>
+
+      <h5>Jun 2, 2005</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">filecomparision.pas</span>: Checked the search path for Exclusions before recursing.</li>
+        </ul>
+
+      </div>
+
+      <h5>Oct 22, 2004</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Made sure that the user is prompted before creation of any missing root directory, this way directories will not get created willy nilly.</li>
+        </ul>
+
+      </div>
+
+      <h5>Oct 20, 2004</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">filecomparision.pas</span>: Removed the Exception Raising statements in the Constructor of TCompareFolders as these will not be propagated and display a dialogue.</li>
+          <li><span class="module">mainform.pas</span>: Added a new method to check for the existance of all the folders before comparing start and provide the option to create them if they do not already exist.</li>
+          <li><span class="module">mainform.pas</span>: Added a Reg.Free to the LoadSettings and SaveSettings methods</li>
+        </ul>
+
+      </div>
+
+      <h5>Oct 19, 2004</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">mainform.pas</span>: Changed the way the information is stored. Instead of FileName + Path we will have displayname + full path to file and use the full path to the file for all operations.</li>
+        </ul>
+
+      </div>
+
+      <h5>Oct 6, 2004</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">filecomparision.pas</span>: Fixed bug in total file size counter causing an overflow.</li>
+          <li><span class="module">mainform.pas</span>: Updated the main interface to show the total file sizes.</li>
+        </ul>
+
+      </div>
+
+      <h5>Oct 2, 2004</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">folderpathsform.pas</span>: Initial import into the VCS system</li>
+          <li><span class="module">filecomparision.pas</span>: Updated to new version of Folder Sync</li>
+          <li><span class="module">fldrsync.dpr</span>: Updated to new version of Folder Sync</li>
+          <li><span class="module">optionsform.pas</span>: Updated to new version of Folder Sync</li>
+          <li><span class="module">progressform.pas</span>: Updated to new version of Folder Sync</li>
+          <li><span class="module">mainform.pas</span>: Updated to new version of Folder Sync</li>
+          <li><span class="module">mainform.pas</span>: Fixed bug in save settings where old folders are now removed.</li>
+        </ul>
+
+      </div>
+
+      <h5>Apr 14, 2004</h5>
+
+      <div class="Indent">
+
+        <h6>Check in Comments</h6>
+
+        <ul>
+          <li><span class="module">filecomparision.pas</span>: Initial import into the VCS system</li>
+          <li><span class="module">fldrsync.dpr</span>: Initial import into the VCS system</li>
+          <li><span class="module">mainform.pas</span>: Initial import into the VCS system</li>
+          <li><span class="module">optionsform.pas</span>: Initial import into the VCS system</li>
+          <li><span class="module">progressform.pas</span>: Initial import into the VCS system</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+  </body>
+</html>
