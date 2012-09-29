@@ -5,7 +5,7 @@
 
   @Version 1.5
   @Author  David Hoyle
-  @Date    11 Aug 2012
+  @Date    14 Sep 2012
 
 **)
 Unit CommandLineProcess;
@@ -78,11 +78,11 @@ Type
     Procedure DeleteQueryProc(strFileName: String; Var Option: TFileAction);
     Procedure DeleteReadOnlyQueryProc(strFileName: String; Var Option: TFileAction);
     Procedure DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
-    Procedure CopyStartProc(iFileCount: Integer; iSize: Int64);
+    Procedure CopyStartProc(iTotalCount: Integer; iTotalSize: Int64);
     Procedure CopyContentsProc(iCopiedSize, iTotalSize: Int64);
     Procedure CopyingProc(iFile : Integer; strSource, strDest, strFileName: String);
-    Procedure CopiedProc(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
-      strErrMsg: String);
+    Procedure CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
+      iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrMsg: String);
     Procedure CopyQueryProc(strSourceFile, strDestFile: String; Var Option: TFileAction);
     Procedure CopyReadOnlyQueryProc(strSourceFile, strDestFile: String;
       Var Option: TFileAction);
@@ -225,19 +225,20 @@ End;
   @precon  None.
   @postcon Outputs the percentage completion of the overall copying process.
 
-  @param   iFile       as an Integer
-  @param   iSize       as an int64
-  @param   boolSuccess as a Boolean
-  @param   strErrMsg   as a String
+  @param   iCopiedFiles         as an Integer
+  @param   iCopiedFileTotalSize as an Int64
+  @param   iCopiedTotalSize     as an Int64
+  @param   boolSuccess          as a Boolean
+  @param   strErrMsg            as a String
 
 **)
-Procedure TCommandLineProcessing.CopiedProc(iFile: Integer; iSize: Int64;
-  boolSuccess: Boolean; strErrMsg: String);
+Procedure TCommandLineProcessing.CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
+  iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrMsg: String);
 
 Begin
   If boolSuccess Then
     OutputToConsoleLn(FStd, Format(' %1.1n%% Complete',
-        [Int64(iSize) / Int64(FTotalSize) * 100.0]), FSuccessColour)
+        [Int64(iCopiedTotalSize) / Int64(FTotalSize) * 100.0]), FSuccessColour)
   Else
     Begin
       OutputToConsoleLn(FStd);
@@ -416,16 +417,16 @@ End;
   @precon  None.
   @postcon Outputs the number of files to be copied.
 
-  @param   iFileCount as an Integer
-  @param   iSize      as an Int64
+  @param   iTotalCount as an Integer
+  @param   iTotalSize  as an Int64
 
 **)
-Procedure TCommandLineProcessing.CopyStartProc(iFileCount: Integer; iSize: Int64);
+Procedure TCommandLineProcessing.CopyStartProc(iTotalCount: Integer; iTotalSize: Int64);
 
 Begin
-  FTotalFiles := iFileCount;
-  FTotalSize  := iSize;
-  OutputToConsoleLn(FStd, Format('Copying %1.0n files...', [Int(iFileCount)]),
+  FTotalFiles := iTotalCount;
+  FTotalSize  := iTotalSize;
+  OutputToConsoleLn(FStd, Format('Copying %1.0n files...', [Int(iTotalCount)]),
     FHeaderColour);
 End;
 
