@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    17 Aug 2012
+  @Date    29 Sep 2012
   @Author  David Hoyle
 
 **)
@@ -166,11 +166,11 @@ Type
     Procedure DeleteQueryProc(strFileName: String; Var Option: TFileAction);
     Procedure DeleteReadOnlyQueryProc(strFileName: String; Var Option: TFileAction);
     Procedure DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
-    Procedure CopyStartProc(iFileCount: Integer; iSize: int64);
+    Procedure CopyStartProc(iTotalCount: Integer; iTotalSize: int64);
     Procedure CopyContentsProc(iCopiedSize, iTotalSize: int64);
     Procedure CopyingProc(iFile : Integer; strSource, strDest, strFileName: String);
-    Procedure CopiedProc(iFile: Integer; iSize: int64; boolSuccess: Boolean;
-      strErrMsg: String);
+    Procedure CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
+      iCopiedTotalSize: int64; boolSuccess: Boolean; strErrMsg: String);
     Procedure CopyQueryProc(strSourceFile, strDestFile: String; Var Option: TFileAction);
     Procedure CopyReadOnlyQueryProc(strSourceFile, strDestFile: String;
       Var Option: TFileAction);
@@ -1059,7 +1059,8 @@ Begin
         If (fsoCloseIFNoFilesAfterComparison In FFldrSyncOptions) And
           (lvFileList.Items.Count = 0) Then
           Begin
-            FProgressForm.Progress(FProgressSection, 0, 'Auto-exiting application...',
+            FProgressForm.InitialiseSection(FProgressSection, 0, 1);
+            FProgressForm.Progress(FProgressSection, 1, 'Auto-exiting application...',
               'as there are no more files to process...');
             FCloseTimer.Enabled := True;
           End;
@@ -1947,20 +1948,21 @@ End;
   @precon  None.
   @postcon Updates the copy progress or if an error outputs the error message.
 
-  @param   iFile       as an Integer
-  @param   iSize       as an int64
-  @param   boolSuccess as a Boolean
-  @param   strErrMsg   as a String
+  @param   iCopiedFiles         as an Integer
+  @param   iCopiedFileTotalSize as an int64
+  @param   iCopiedTotalSize     as an int64
+  @param   boolSuccess          as a Boolean
+  @param   strErrMsg            as a String
 
 **)
-Procedure TfrmMainForm.CopiedProc(iFile: Integer; iSize: int64; boolSuccess: Boolean;
-  strErrMsg: String);
+Procedure TfrmMainForm.CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
+  iCopiedTotalSize: int64; boolSuccess: Boolean; strErrMsg: String);
 
 Begin
   If boolSuccess Then
     Begin
-      FCopyForm.Progress(iSize, iSize);
-      FCopyForm.ProgressOverall(iSize);
+      FCopyForm.Progress(iCopiedFileTotalSize, iCopiedFileTotalSize);
+      FCopyForm.ProgressOverall(iCopiedTotalSize);
       OutputResultLn();
     End
   Else
@@ -2088,20 +2090,20 @@ End;
   @precon  None.
   @postcon Initialises the copy progress dialogue.
 
-  @param   iFileCount as an Integer
-  @param   iSize      as an int64
+  @param   iTotalCount as an Integer
+  @param   iTotalSize  as an int64
 
 **)
-Procedure TfrmMainForm.CopyStartProc(iFileCount: Integer; iSize: int64);
+Procedure TfrmMainForm.CopyStartProc(iTotalCount: Integer; iTotalSize: int64);
 
 Begin
   OutputResultLn(Format('Copying %1.0n files (%1.0n bytes)',
-      [Int(iFileCount), Int(iSize)]));
-  If iFileCount > 0 Then
+      [Int(iTotalCount), Int(iTotalSize)]));
+  If iTotalCount > 0 Then
     Begin
       FCopyForm                  := TfrmCopyProgress.Create(Nil);
       FCopyForm.OnUpdateProgress := UpdateProgress;
-      FCopyForm.Initialise(iFileCount, iSize);
+      FCopyForm.Initialise(iTotalCount, iTotalSize);
     End;
 End;
 
