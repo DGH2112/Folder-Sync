@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    14 Sep 2012
+  @Date    04 Oct 2012
 
 **)
 Unit FileCopyProgressForm;
@@ -25,7 +25,7 @@ Uses
   StdCtrls,
   Buttons,
   ComCtrls,
-  SyncModule;
+  SyncModule, Vcl.Samples.Gauges;
 
 Type
   (** This is a class to represent the form interface for displaying progress. **)
@@ -51,7 +51,7 @@ Type
     FCaption       : String;
     FSize          : Int64;
     FStartTick     : Int64;
-    //FLastTick      : Int64;
+    FLastTick      : Int64;
     FAbort         : Boolean;
     FUpdateProgress: TUpdateProgress;
     Procedure CheckForCancel;
@@ -190,7 +190,7 @@ Begin
   pbrFile.Position       := 0;
   lblBytesCopied.Caption := '';
   FStartTick             := GetTickCount;
-  //FLastTick              := FStartTick;
+  FLastTick              := FStartTick;
   Application.ProcessMessages;
   CheckForCancel;
 End;
@@ -214,7 +214,7 @@ Var
 
 Begin
   iTick := GetTickCount;
-  //If (iTick - FLastTick > 25) Or (iCopiedSize = iTotalSize) Then
+  If (iTick - FLastTick > 25) Or (iCopiedSize = iTotalSize) Then
     Begin
       If iTick <> FStartTick Then
         dblBytesPerSec := Int(iCopiedSize) * 1000.0 / dblFactor / (iTick - FStartTick)
@@ -223,13 +223,23 @@ Begin
       lblBytesCopied.Caption :=
         Format('Copied %1.0n kbytes in %1.0n kbytes (%1.1n kbytes/sec)',
         [Int(iCopiedSize / dblFactor), Int(iTotalSize / dblFactor), dblBytesPerSec]);
+      If iTotalSize = 0 Then
+        Inc(iTotalSize);
       pbrFile.Position    := Trunc(Int(iCopiedSize) / Int(iTotalSize) * pbrFile.Max);
+      // Workaround for Windows 7 animatation not updating the bar correctly.
+      pbrFile.Position := pbrFile.Position - 1;
+      pbrFile.Position := pbrFile.Position + 1;
+      If FTotalSize = 0 Then
+        Inc(FTotalSize);
       pbrOverall.Position := Trunc(Int(FSize + iCopiedSize) / Int(FTotalSize) *
-          pbrOverall.Max);
+          Int(pbrOverall.Max));
+      // Workaround for Windows 7 animatation not updating the bar correctly.
+      pbrOverall.Position := pbrOverall.Position - 1;
+      pbrOverall.Position := pbrOverall.Position + 1;
       lblBytesOverallCopied.Caption := Format('Copied %1.0n kbytes in %1.0n kbytes',
         [Int(FSize + iCopiedSize) / dblFactor, Int(FTotalSize) / dblFactor]);
       Application.ProcessMessages;
-      //FLastTick := iTick;
+      FLastTick := iTick;
     End;
 End;
 
@@ -247,7 +257,12 @@ Procedure TfrmCopyProgress.ProgressOverall(iSize: Int64);
 
 Begin
   FSize                         := iSize;
-  pbrOverall.Position           := Trunc(pbrOverall.Max * Int(iSize) / Int(FTotalSize));
+  If FTotalSize = 0 Then
+    Inc(FTotalSize);
+  pbrOverall.Position           := Trunc(Int(pbrOverall.Max) * Int(iSize) / Int(FTotalSize));
+  // Workaround for Windows 7 animatation not updating the bar correctly.
+  pbrOverall.Position := pbrOverall.Position - 1;
+  pbrOverall.Position := pbrOverall.Position + 1;
   lblBytesOverallCopied.Caption := Format('Copied %1.0n kbytes in %1.0n kbytes',
     [Int(FSize) / dblFactor, Int(FTotalSize) / dblFactor]);
   DoUpdateProgress(pbrOverall.Position, pbrOverall.Max);
