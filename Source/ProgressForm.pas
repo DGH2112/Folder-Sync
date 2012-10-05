@@ -3,7 +3,7 @@
   This module represents a form for displaying progress.
 
   @Version 1.0
-  @Date    17 Aug 2012
+  @Date    04 Oct 2012
   @Author  David Hoyle
 
 **)
@@ -171,6 +171,9 @@ Begin
     dblSectionPos := 0;
   dblPosition := pbrProgress.Max * (iSection / Succ(High(FSections))) + dblSectionPos;
   pbrProgress.Position := Trunc(dblPosition);
+  // Workaround for windows 7 bug.
+  pbrProgress.Position := pbrProgress.Position - 1;
+  pbrProgress.Position := pbrProgress.Position + 1;
   DoUpdateProgress(pbrProgress.Position, pbrProgress.Max);
   lblMessage.Caption  := strMsg;
   lblFileName.Caption := strFileName;
