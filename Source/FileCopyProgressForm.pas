@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    04 Oct 2012
+  @Date    12 Oct 2012
 
 **)
 Unit FileCopyProgressForm;
@@ -225,7 +225,7 @@ Begin
         [Int(iCopiedSize / dblFactor), Int(iTotalSize / dblFactor), dblBytesPerSec]);
       If iTotalSize = 0 Then
         Inc(iTotalSize);
-      pbrFile.Position    := Trunc(Int(iCopiedSize) / Int(iTotalSize) * pbrFile.Max);
+      pbrFile.Position    := Trunc(Int(iCopiedSize) / Int(iTotalSize) * Int(pbrFile.Max));
       // Workaround for Windows 7 animatation not updating the bar correctly.
       pbrFile.Position := pbrFile.Position - 1;
       pbrFile.Position := pbrFile.Position + 1;
