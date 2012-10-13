@@ -99,8 +99,8 @@
 			<DCC_Define>DEBUG;EUREKALOG;EUREKALOG_VER6</DCC_Define>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
-			<Debugger_RunParams>&quot;/@[64GB USB Folder Sync Settings.ini]&quot;</Debugger_RunParams>
 			<Debugger_CWD>D:\HoylD\Scripts</Debugger_CWD>
+			<Debugger_RunParams>&quot;/@[64GB USB Folder Sync Settings.ini]&quot;</Debugger_RunParams>
 			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.5.0.499;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
 			<VerInfo_Locale>1033</VerInfo_Locale>
 			<VerInfo_Build>499</VerInfo_Build>
