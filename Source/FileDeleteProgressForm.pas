@@ -4,7 +4,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    12 Aug 2012
+  @Date    04 Dec 2012
 
 **)
 Unit FileDeleteProgressForm;
@@ -37,6 +37,8 @@ Type
     pbrOverall: TProgressBar;
     btnCancel: TBitBtn;
     Procedure btnCancelClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   Private
     { Private declarations }
     FFileCount     : Integer;
@@ -124,6 +126,38 @@ Procedure TfrmDeleteProgress.DoUpdateProgress(iPosition, iMaxPosition: Integer);
 Begin
   If Assigned(FUpdateProgress) Then
     FUpdateProgress(iPosition, iMaxPosition);
+End;
+
+(**
+
+  This is an on resize event handler for the form.
+
+  @precon  None.
+  @postcon Ensures that the cancel button is centred on the form.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmDeleteProgress.FormResize(Sender: TObject);
+
+Begin
+  btnCancel.Left := (ClientWidth - btnCancel.Width) Div 2;
+End;
+
+(**
+
+  This is an on show event handler for the form.
+
+  @precon  None.
+  @postcon Ensures that the cancel buttons is centred on the form.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmDeleteProgress.FormShow(Sender: TObject);
+
+Begin
+  FormResize(Sender);
 End;
 
 (**
