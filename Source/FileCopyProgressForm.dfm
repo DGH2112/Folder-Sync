@@ -2,11 +2,14 @@ object frmCopyProgress: TfrmCopyProgress
   Left = 0
   Top = 20
   BorderIcons = []
-  BorderStyle = bsDialog
   Caption = 'Copying Files'
-  ClientHeight = 204
-  ClientWidth = 494
+  ClientHeight = 212
+  ClientWidth = 544
   Color = clBtnFace
+  Constraints.MaxHeight = 250
+  Constraints.MaxWidth = 560
+  Constraints.MinHeight = 250
+  Constraints.MinWidth = 560
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,9 +19,11 @@ object frmCopyProgress: TfrmCopyProgress
   FormStyle = fsStayOnTop
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnResize = FormResize
+  OnShow = FormShow
   DesignSize = (
-    494
-    204)
+    544
+    212)
   PixelsPerInch = 96
   TextHeight = 13
   object lblFromLabel: TLabel
@@ -37,7 +42,7 @@ object frmCopyProgress: TfrmCopyProgress
   object lblFrom: TLabel
     Left = 72
     Top = 8
-    Width = 414
+    Width = 464
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
@@ -60,7 +65,7 @@ object frmCopyProgress: TfrmCopyProgress
   object lblTo: TLabel
     Left = 72
     Top = 27
-    Width = 414
+    Width = 464
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
@@ -83,7 +88,7 @@ object frmCopyProgress: TfrmCopyProgress
   object lblFilename: TLabel
     Left = 72
     Top = 46
-    Width = 414
+    Width = 464
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
@@ -119,7 +124,7 @@ object frmCopyProgress: TfrmCopyProgress
   object lblBytesCopied: TLabel
     Left = 72
     Top = 85
-    Width = 414
+    Width = 464
     Height = 13
     Alignment = taRightJustify
     Anchors = [akLeft, akTop, akRight]
@@ -130,36 +135,39 @@ object frmCopyProgress: TfrmCopyProgress
   object lblBytesOverallCopied: TLabel
     Left = 72
     Top = 127
-    Width = 414
+    Width = 464
     Height = 13
     Alignment = taRightJustify
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     EllipsisPosition = epPathEllipsis
+    ExplicitWidth = 414
   end
   object pbrOverall: TProgressBar
     Left = 8
     Top = 146
-    Width = 478
+    Width = 528
     Height = 17
     Anchors = [akLeft, akTop, akRight]
     Max = 1000000
     MarqueeInterval = 0
     TabOrder = 1
+    ExplicitWidth = 478
   end
   object pbrFile: TProgressBar
     Left = 8
     Top = 104
-    Width = 478
+    Width = 528
     Height = 17
     Anchors = [akLeft, akTop, akRight]
     Max = 1000000
     MarqueeInterval = 0
     TabOrder = 0
+    ExplicitWidth = 478
   end
   object btnCancel: TBitBtn
-    Left = 218
-    Top = 171
+    Left = 230
+    Top = 179
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -167,5 +175,6 @@ object frmCopyProgress: TfrmCopyProgress
     NumGlyphs = 2
     TabOrder = 2
     OnClick = btnCancelClick
+    ExplicitTop = 180
   end
 end

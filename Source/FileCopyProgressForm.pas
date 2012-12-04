@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    12 Oct 2012
+  @Date    04 Dec 2012
 
 **)
 Unit FileCopyProgressForm;
@@ -40,10 +40,12 @@ Type
     pbrOverall: TProgressBar;
     pbrFile: TProgressBar;
     lblFile: TLabel;
-    btnCancel: TBitBtn;
     lblBytesCopied: TLabel;
     lblBytesOverallCopied: TLabel;
+    btnCancel: TBitBtn;
     Procedure btnCancelClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   Private
     { Private declarations }
     FFileCount     : Integer;
@@ -140,6 +142,38 @@ Procedure TfrmCopyProgress.DoUpdateProgress(iPosition, iMaxPosition: Integer);
 Begin
   If Assigned(FUpdateProgress) Then
     FUpdateProgress(iPosition, iMaxPosition);
+End;
+
+(**
+
+  This is an on resize method for the form.
+
+  @precon  None.
+  @postcon Centres the Cancel button on the form.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmCopyProgress.FormResize(Sender: TObject);
+
+Begin
+  btnCancel.Left := (ClientWidth - btnCancel.Width) Div 2;
+End;
+
+(**
+
+  This is an on show event handler for the Form.
+
+  @precon  None.
+  @postcon Ensures the cancel button is centred on the form.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmCopyProgress.FormShow(Sender: TObject);
+
+Begin
+  FormResize(Sender);
 End;
 
 (**
