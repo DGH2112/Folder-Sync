@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    29 Sep 2012
+  @Date    04 Dec 2012
   @Version 1.0
   @Author  David Hoyle
 
@@ -140,8 +140,11 @@ Implementation
 Uses
   FolderPathsForm,
   IniFiles,
-  CheckForUpdatesOptionsForm;
+  CheckForUpdatesOptionsForm,
+  Themes;
+  
 {$R *.DFM}
+
 { TfrmOptions }
 
 (**
@@ -526,11 +529,12 @@ Var
 Begin
   DefaultDraw := False;
   // Set Left Background
-  Sender.Canvas.Brush.Color := clWindow;
+  Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);
+  Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clWindow);
   If Item.Selected Then
     Begin
-      Sender.Canvas.Brush.Color := clHighlight;
-      Sender.Canvas.Font.Color  := clHighlightText;
+      Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
+      Sender.Canvas.Font.Color  := StyleServices.GetSystemColor(clHighlightText);
     End;
   ItemR := Item.DisplayRect(drBounds);
   Sender.Canvas.FillRect(ItemR);
@@ -560,9 +564,9 @@ Begin
       End;
       R := GetSubItemRect(i);
       StrPCopy(Buffer, Item.SubItems[i]);
-      Sender.Canvas.Brush.Color := clWindow;
+      Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clWindow);
       If Item.Selected Then
-        Sender.Canvas.Brush.Color := clHighlight;
+        Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
       Sender.Canvas.Refresh;
       DrawText(Sender.Canvas.Handle, Buffer, Length(Item.SubItems[i]), R, Ops);
       R.Left := R.Right;
