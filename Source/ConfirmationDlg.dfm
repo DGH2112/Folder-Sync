@@ -2,11 +2,14 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   Left = 0
   Top = 0
   BorderIcons = []
-  BorderStyle = bsDialog
   Caption = 'Please confirm the action'
-  ClientHeight = 133
-  ClientWidth = 470
+  ClientHeight = 137
+  ClientWidth = 484
   Color = clBtnFace
+  Constraints.MaxHeight = 175
+  Constraints.MaxWidth = 500
+  Constraints.MinHeight = 175
+  Constraints.MinWidth = 500
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,14 +20,14 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   OldCreateOrder = False
   Position = poMainFormCenter
   DesignSize = (
-    470
-    133)
+    484
+    137)
   PixelsPerInch = 96
   TextHeight = 13
   object lblMessage: TLabel
     Left = 8
     Top = 8
-    Width = 454
+    Width = 468
     Height = 29
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
@@ -33,6 +36,7 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     ParentColor = False
     Transparent = True
     WordWrap = True
+    ExplicitWidth = 454
   end
   object lblLabelLine1: TLabel
     Left = 8
@@ -51,12 +55,13 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   object lblInformation1: TLabel
     Left = 85
     Top = 43
-    Width = 377
+    Width = 391
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     Caption = 'lblInformation1'
     EllipsisPosition = epPathEllipsis
+    ExplicitWidth = 377
   end
   object lblLabelLine2: TLabel
     Left = 8
@@ -75,12 +80,13 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   object lblInformation2: TLabel
     Left = 85
     Top = 62
-    Width = 377
+    Width = 391
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     Caption = 'lblInformation2'
     EllipsisPosition = epPathEllipsis
+    ExplicitWidth = 377
   end
   object lblLabelLine3: TLabel
     Left = 8
@@ -99,16 +105,17 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   object lblInformation3: TLabel
     Left = 85
     Top = 81
-    Width = 377
+    Width = 391
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     Caption = 'lblInformation3'
     EllipsisPosition = epPathEllipsis
+    ExplicitWidth = 377
   end
   object btnYes: TBitBtn
-    Left = 144
-    Top = 100
+    Left = 158
+    Top = 104
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -133,10 +140,12 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     ModalResult = 6
     NumGlyphs = 2
     TabOrder = 0
+    ExplicitLeft = 144
+    ExplicitTop = 100
   end
   object btnNo: TBitBtn
-    Left = 225
-    Top = 100
+    Left = 239
+    Top = 104
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -162,25 +171,31 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     ModalResult = 7
     NumGlyphs = 2
     TabOrder = 1
+    ExplicitLeft = 225
+    ExplicitTop = 100
   end
   object btnAll: TBitBtn
-    Left = 306
-    Top = 100
+    Left = 320
+    Top = 104
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
     Kind = bkAll
     NumGlyphs = 2
     TabOrder = 2
+    ExplicitLeft = 306
+    ExplicitTop = 100
   end
   object btnCancel: TBitBtn
-    Left = 387
-    Top = 100
+    Left = 401
+    Top = 104
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
     Kind = bkCancel
     NumGlyphs = 2
     TabOrder = 3
+    ExplicitLeft = 387
+    ExplicitTop = 100
   end
 end
