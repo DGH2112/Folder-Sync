@@ -4,7 +4,7 @@
   files.
 
   @Version 1.5
-  @Date    29 Sep 2012
+  @Date    05 Dec 2012
   @Author  David Hoyle
 
 **)
@@ -1928,7 +1928,7 @@ Begin
           FFiles, strErrmsg);
       End;
     faCancel:
-      Raise EFldrSyncException.Create('Operation aborted.');
+      Abort;
   End;
 End;
 
@@ -2099,7 +2099,7 @@ Begin
     End;
   Case FA Of
     faCancel:
-      Raise EFldrSyncException.Create('Operation aborted.');
+      Abort;
     faYes:
       Begin
         If F.Attributes And faReadOnly > 0 Then
