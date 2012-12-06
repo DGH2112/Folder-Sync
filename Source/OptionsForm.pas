@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    04 Dec 2012
+  @Date    06 Dec 2012
   @Version 1.0
   @Author  David Hoyle
 
@@ -49,6 +49,8 @@ Type
     ilStatus: TImageList;
     btnHelp: TBitBtn;
     btnLogFont: TBitBtn;
+    cbxThemes: TComboBox;
+    lblThemes: TLabel;
     Procedure lvFoldersResize(Sender: TObject);
     Procedure btnAddClick(Sender: TObject);
     Procedure btnEditClick(Sender: TObject);
@@ -94,7 +96,8 @@ Type
     { Public declarations }
     Class Function Execute(Var slFolders: TStringList;
       Var strExclusions, strCompareEXE: String; strINIFileName: String;
-      TableFont, LogFont: TFont; Var FldrSyncOps: TFldrSyncOptions): Boolean;
+      TableFont, LogFont: TFont; Var FldrSyncOps: TFldrSyncOptions;
+      var strTheme : String): Boolean;
     Constructor CreateWithRootKey(AOwner: TComponent; strRootKey: String); Virtual;
   End;
 
@@ -152,7 +155,7 @@ Uses
   This is the classes main interface method for editing the applications options .
 
   @precon  None.
-  @postcon Returns true with the updated options in the var variables else returns false
+  @postcon Returns true with the updated options in the var variables else returns false 
            if the dialogue is cancelled.
 
   @param   slFolders      as a TStringList as a reference
@@ -162,12 +165,14 @@ Uses
   @param   TableFont      as a TFont
   @param   LogFont        as a TFont
   @param   FldrSyncOps    as a TFldrSyncOptions as a reference
+  @param   strTheme       as a String as a reference
   @return  a Boolean
 
 **)
 Class Function TfrmOptions.Execute(Var slFolders: TStringList;
   Var strExclusions, strCompareEXE: String; strINIFileName: String;
-  TableFont, LogFont: TFont; Var FldrSyncOps: TFldrSyncOptions): Boolean;
+  TableFont, LogFont: TFont; Var FldrSyncOps: TFldrSyncOptions;
+  var strTheme : String): Boolean;
 
 Var
   i     : TFldrSyncOption;
@@ -201,6 +206,7 @@ Begin
               Include(FldrSyncOps, i);
           TableFont.Assign(FTableFont);
           LogFont.Assign(FLogFont);
+          strTheme := cbxThemes.Text;
           Result := True;
         End;
     Finally
@@ -221,6 +227,9 @@ End;
 **)
 Procedure TfrmOptions.FormCreate(Sender: TObject);
 
+Var
+  i : Integer;
+  
 Begin
   FRightWidth := 1;
   FLeftWidth  := 1;
@@ -236,6 +245,9 @@ Begin
   FTableFont  := TFont.Create;
   FLogFont    := TFont.Create;
   FFolderList := TStringList.Create;
+  For i := Low(TStyleManager.StyleNames) To High(TStyleManager.StyleNames) Do
+    cbxThemes.Items.Add(TStyleManager.StyleNames[i]);
+  cbxThemes.ItemIndex := cbxThemes.Items.IndexOf(TStyleManager.ActiveStyle.Name);
 End;
 
 (**

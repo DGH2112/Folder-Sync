@@ -1,11 +1,12 @@
 object frmOptions: TfrmOptions
   Left = 502
   Top = 310
+  ActiveControl = lvFolders
   Caption = 'Folder Sync Options'
-  ClientHeight = 553
+  ClientHeight = 572
   ClientWidth = 778
   Color = clBtnFace
-  Constraints.MinHeight = 591
+  Constraints.MinHeight = 610
   Constraints.MinWidth = 788
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -19,12 +20,12 @@ object frmOptions: TfrmOptions
   OnDestroy = FormDestroy
   DesignSize = (
     778
-    553)
+    572)
   PixelsPerInch = 96
   TextHeight = 16
   object lblCompareFiles: TLabel
-    Left = 10
-    Top = 457
+    Left = 9
+    Top = 445
     Width = 85
     Height = 16
     Margins.Left = 4
@@ -33,6 +34,7 @@ object frmOptions: TfrmOptions
     Margins.Bottom = 4
     Anchors = [akLeft, akBottom]
     Caption = 'Compare &EXE'
+    ExplicitTop = 489
   end
   object lblExclusions: TLabel
     Left = 10
@@ -45,9 +47,18 @@ object frmOptions: TfrmOptions
     Margins.Bottom = 4
     Caption = 'Exclusion &Patterns'
   end
+  object lblThemes: TLabel
+    Left = 8
+    Top = 500
+    Width = 43
+    Height = 16
+    Anchors = [akLeft, akBottom]
+    Caption = '&Theme'
+    FocusControl = cbxThemes
+  end
   object btnOK: TBitBtn
     Left = 576
-    Top = 512
+    Top = 531
     Width = 92
     Height = 31
     Margins.Left = 4
@@ -57,11 +68,12 @@ object frmOptions: TfrmOptions
     Anchors = [akRight, akBottom]
     Kind = bkOK
     NumGlyphs = 2
-    TabOrder = 11
+    TabOrder = 12
+    ExplicitTop = 512
   end
   object btnCancel: TBitBtn
     Left = 676
-    Top = 512
+    Top = 531
     Width = 92
     Height = 31
     Margins.Left = 4
@@ -71,11 +83,12 @@ object frmOptions: TfrmOptions
     Anchors = [akRight, akBottom]
     Kind = bkCancel
     NumGlyphs = 2
-    TabOrder = 12
+    TabOrder = 13
+    ExplicitTop = 512
   end
   object btnCheckforUpdates: TBitBtn
     Left = 272
-    Top = 512
+    Top = 531
     Width = 185
     Height = 31
     Margins.Left = 2
@@ -93,8 +106,9 @@ object frmOptions: TfrmOptions
       CDDDDCDC1CDDCDCDCDCDDCD9CCCCCCCCCDDDDDDD1DDDDDDDDDDDDDD91DDDDDA2
       DDDDDDD91DDDDDAA2DDDDDDD91DDDAAAA2DDDDDDD91DDA2DAA2DDDDDD91DAADD
       DAA2D91119DDADDDDDAADD999DDDDDDDDDDADDDDDDDDDDDDDDDD}
-    TabOrder = 10
+    TabOrder = 11
     OnClick = btnCheckforUpdatesClick
+    ExplicitTop = 512
   end
   object lvFolders: TListView
     Left = 10
@@ -176,7 +190,7 @@ object frmOptions: TfrmOptions
     Left = 10
     Top = 298
     Width = 758
-    Height = 97
+    Height = 85
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
@@ -185,10 +199,11 @@ object frmOptions: TfrmOptions
     ScrollBars = ssBoth
     TabOrder = 4
     WordWrap = False
+    ExplicitHeight = 129
   end
   object btnBrowse: TButton
-    Left = 676
-    Top = 474
+    Left = 675
+    Top = 466
     Width = 92
     Height = 31
     Margins.Left = 4
@@ -199,10 +214,11 @@ object frmOptions: TfrmOptions
     Caption = '&Browse'
     TabOrder = 7
     OnClick = btnBrowseClick
+    ExplicitTop = 510
   end
   object edtCompareEXE: TEdit
-    Left = 10
-    Top = 479
+    Left = 9
+    Top = 469
     Width = 658
     Height = 24
     Margins.Left = 4
@@ -212,10 +228,11 @@ object frmOptions: TfrmOptions
     Anchors = [akLeft, akRight, akBottom]
     TabOrder = 6
     Text = 'edtCompareEXE'
+    ExplicitTop = 513
   end
   object btnTableFont: TBitBtn
     Left = 142
-    Top = 512
+    Top = 531
     Width = 124
     Height = 31
     Margins.Left = 4
@@ -233,12 +250,13 @@ object frmOptions: TfrmOptions
       8AAAAAA44AAAA844AAAAAAA84AAAA448AAAAAAAA4444444AAAAAAAAA84AA448A
       AAAAAAAAA44A44AAAAAAAAAAA84448AAAAAAAAAAAA444AAAAAAAAAAAAA848AAA
       AAAAAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA}
-    TabOrder = 9
+    TabOrder = 10
     OnClick = btnTableFontClick
+    ExplicitTop = 512
   end
   object lbxFldrSyncOps: TCheckListBox
-    Left = 10
-    Top = 402
+    Left = 9
+    Top = 391
     Width = 758
     Height = 46
     Margins.Left = 4
@@ -247,10 +265,11 @@ object frmOptions: TfrmOptions
     Margins.Bottom = 4
     Anchors = [akLeft, akRight, akBottom]
     TabOrder = 5
+    ExplicitTop = 435
   end
   object btnHelp: TBitBtn
     Left = 476
-    Top = 512
+    Top = 531
     Width = 93
     Height = 31
     Margins.Left = 4
@@ -260,12 +279,13 @@ object frmOptions: TfrmOptions
     Anchors = [akRight, akBottom]
     Kind = bkHelp
     NumGlyphs = 2
-    TabOrder = 13
+    TabOrder = 14
     OnClick = btnHelpClick
+    ExplicitTop = 512
   end
   object btnLogFont: TBitBtn
     Left = 10
-    Top = 512
+    Top = 531
     Width = 124
     Height = 31
     Margins.Left = 4
@@ -283,8 +303,18 @@ object frmOptions: TfrmOptions
       8AAAAAA44AAAA844AAAAAAA84AAAA448AAAAAAAA4444444AAAAAAAAA84AA448A
       AAAAAAAAA44A44AAAAAAAAAAA84448AAAAAAAAAAAA444AAAAAAAAAAAAA848AAA
       AAAAAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA}
-    TabOrder = 8
+    TabOrder = 9
     OnClick = btnLogFontClick
+    ExplicitTop = 512
+  end
+  object cbxThemes: TComboBox
+    Left = 57
+    Top = 500
+    Width = 710
+    Height = 24
+    Anchors = [akLeft, akRight, akBottom]
+    TabOrder = 8
+    Text = 'cbxThemes'
   end
   object dlgOpen: TOpenDialog
     Filter = 'Executables (*.exe)|*.exe'
@@ -306,7 +336,7 @@ object frmOptions: TfrmOptions
     Left = 281
     Top = 77
     Bitmap = {
-      494C010102000500140010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000500180010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
