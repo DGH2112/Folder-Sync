@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    04 Dec 2012
+  @Date    19 Dec 2012
 
 **)
 Unit FileCopyProgressForm;
@@ -272,6 +272,7 @@ Begin
       pbrOverall.Position := pbrOverall.Position + 1;
       lblBytesOverallCopied.Caption := Format('Copied %1.0n kbytes in %1.0n kbytes',
         [Int(FSize + iCopiedSize) / dblFactor, Int(FTotalSize) / dblFactor]);
+      DoUpdateProgress(pbrOverall.Position, pbrOverall.Max);
       Application.ProcessMessages;
       FLastTick := iTick;
     End;

@@ -152,7 +152,6 @@ object frmCopyProgress: TfrmCopyProgress
     Max = 1000000
     MarqueeInterval = 0
     TabOrder = 1
-    ExplicitWidth = 478
   end
   object pbrFile: TProgressBar
     Left = 8
@@ -163,7 +162,6 @@ object frmCopyProgress: TfrmCopyProgress
     Max = 1000000
     MarqueeInterval = 0
     TabOrder = 0
-    ExplicitWidth = 478
   end
   object btnCancel: TBitBtn
     Left = 230
@@ -175,6 +173,5 @@ object frmCopyProgress: TfrmCopyProgress
     NumGlyphs = 2
     TabOrder = 2
     OnClick = btnCancelClick
-    ExplicitTop = 180
   end
 end
