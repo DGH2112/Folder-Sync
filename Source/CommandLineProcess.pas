@@ -5,7 +5,7 @@
 
   @Version 1.5
   @Author  David Hoyle
-  @Date    29 Sep 2012
+  @Date    22 Dec 2012
 
 **)
 Unit CommandLineProcess;
@@ -755,7 +755,7 @@ Procedure TCommandLineProcessing.Execute(iStd, iErr: THandle);
 
 Const
   strTitle =
-    'Folder Sync %d.%d%s (Build %s) A command line tool to synchronise directories.';
+    'Folder Sync %d.%d%s (Build %s) [%s] A command line tool to synchronise directories.';
   strSoftwareID = 'FldrSync';
 
 Var
@@ -827,7 +827,12 @@ Begin
       CFC.OnNothingToDoEnd      := NothingToDoEnd;
       CFC.ProcessFolders(slFolders, FExclusions);
       OutputStats(CFC);
-      CFC.ProcessFiles;
+      Try
+        CFC.ProcessFiles;
+      Except
+        On E : EAbort Do
+          {Do nothing};
+      End;
     Finally
       slFolders.Free;
     End;
