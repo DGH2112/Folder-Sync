@@ -1,6 +1,7 @@
 object frmMainForm: TfrmMainForm
   Left = 429
   Top = 289
+  ActiveControl = lvFileList
   Caption = 'Folder Sync'
   ClientHeight = 758
   ClientWidth = 948
@@ -43,7 +44,6 @@ object frmMainForm: TfrmMainForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
-  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 16
   object stbrStatusBar: TStatusBar
@@ -136,6 +136,8 @@ object frmMainForm: TfrmMainForm
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
       Spacing = 0
     end
   end
@@ -155,7 +157,7 @@ object frmMainForm: TfrmMainForm
       Left = 0
       Top = 559
       Width = 948
-      Height = 4
+      Height = 3
       Cursor = crVSplit
       Margins.Left = 4
       Margins.Top = 4
@@ -164,7 +166,6 @@ object frmMainForm: TfrmMainForm
       Align = alBottom
       MinSize = 50
       ResizeStyle = rsUpdate
-      ExplicitTop = 551
     end
     object lvFileList: TListView
       Left = 0
@@ -242,23 +243,23 @@ object frmMainForm: TfrmMainForm
       ViewStyle = vsReport
       OnCustomDrawItem = lvFileListCustomDrawItem
     end
-    object redtOutputResults: TRichEdit
+    object redtOutputResults: TMemo
       Left = 0
-      Top = 563
+      Top = 562
       Width = 948
-      Height = 119
+      Height = 120
       Margins.Left = 4
       Margins.Top = 4
       Margins.Right = 4
       Margins.Bottom = 4
       Align = alBottom
+      Constraints.MinHeight = 37
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
       Font.Name = 'Courier New'
       Font.Style = []
-      HideSelection = False
-      Constraints.MinHeight = 37
+      MaxLength = 268435455
       ParentFont = False
       ReadOnly = True
       ScrollBars = ssBoth
@@ -270,7 +271,7 @@ object frmMainForm: TfrmMainForm
     Left = 33
     Top = 151
     Bitmap = {
-      494C01010F001300480010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010F001300880010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -847,10 +848,6 @@ object frmMainForm: TfrmMainForm
   end
   object ilFileTypeIcons: TImageList
     Left = 288
-    Top = 96
-  end
-  object XPManifest: TXPManifest
-    Left = 373
     Top = 96
   end
   object amActions: TActionManager

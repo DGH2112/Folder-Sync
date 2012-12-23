@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    29 Sep 2012
+  @Date    23 Dec 2012
   @Author  David Hoyle
 
 **)
@@ -82,17 +82,16 @@ Type
     actToolsCompare: TAction;
     N2: TMenuItem;
     Compare1: TMenuItem;
-    XPManifest: TXPManifest;
     amActions: TActionManager;
     ambMenuBar: TActionMainMenuBar;
     atbToolbar: TActionToolBar;
     pnlTop: TPanel;
     DGHMemoryMonitor: TDGHMemoryMonitor;
     splOutputResults: TSplitter;
-    redtOutputResults: TRichEdit;
     pnlMainArea: TPanel;
     actEditClearLog: TAction;
     actHelpContents: TAction;
+    redtOutputResults: TMemo;
     Procedure actHelpAboutExecute(Sender: TObject);
     Procedure actFileExitExecute(Sender: TObject);
     Procedure FormResize(Sender: TObject);
@@ -112,7 +111,6 @@ Type
     Procedure actHelpCheckForUpdatesExecute(Sender: TObject);
     Procedure actToolsCompareExecute(Sender: TObject);
     Procedure actToolsCompareUpdate(Sender: TObject);
-    Procedure FormShow(Sender: TObject);
     procedure actEditClearLogExecute(Sender: TObject);
     procedure actHelpContentsExecute(Sender: TObject);
     procedure stbrStatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
@@ -139,7 +137,7 @@ Type
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure ApplicationHint(Sender: TObject);
-    Function GetImageIndex(strFileName: String): Integer;
+    Function GetImageIndex(strFileName: String): NativeInt;
     Procedure FixUpPanes;
     Procedure InsertListItem(strLPath, strRPath: String; LeftFile, RightFile: TFileRecord;
       SyncOptions: TSyncOptions; FileOp: TFileOp);
@@ -187,10 +185,8 @@ Type
       iMaxPosition: Integer = 100);
     Procedure UpdateProgress(iPosition, iMaxPosition: Integer);
     Procedure StartTimerEvent(Sender: TObject);
-    Procedure OutputResult(strMsg: String = ''; iColour: TColor = clBlack;
-      FontStyles : TFontStyles = []);
-    Procedure OutputResultLn(strMsg: String = ''; iColour: TColor = clBlack;
-      FontStyles : TFontStyles = []);
+    Procedure OutputResult(strMsg: String = '');
+    Procedure OutputResultLn(strMsg: String = '');
     Procedure DisableActions;
     Procedure EnableActions(boolSuccess: Boolean);
     Procedure LogSize;
@@ -237,7 +233,9 @@ Uses
   ShellAPI,
   About,
   CheckForUpdates,
-  DGHLibrary, ConfirmationDlg;
+  DGHLibrary,
+  ConfirmationDlg,
+  Themes;
 
 {$R *.DFM}
 
@@ -287,23 +285,6 @@ End;
 
 (**
 
-  This is an on show event handler for the form.
-
-  @precon  None.
-  @postcon Starts the start timer to allow the interface 500ms to appear and then start
-           processing folder.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.FormShow(Sender: TObject);
-
-Begin
-  FStartTimer.Enabled := True;
-End;
-
-(**
-
   This method loads the applications seetings from the registry.
 
   @precon  None.
@@ -322,6 +303,8 @@ Var
 Begin
   With TMemIniFile.Create(FRootKey) Do
     Try
+      TStyleManager.SetStyle(ReadString('Setup', 'Theme',
+        TStyleManager.ActiveStyle.Name));
       Top                                := ReadInteger('Setup', 'Top', 100);
       Left                               := ReadInteger('Setup', 'Left', 100);
       Height                             := ReadInteger('Setup', 'Height', 300);
@@ -337,8 +320,7 @@ Begin
       lvFileList.Font.Style := TFontStyles(Byte(ReadInteger('ListViewFont', 'Style', 0)));
       redtOutputResults.Font.Name        := ReadString('LogFont', 'Name', 'Courier New');
       redtOutputResults.Font.Size        := ReadInteger('LogFont', 'Size', 10);
-      redtOutputResults.MaxLength := $7FFFFFF0;
-      strLog := ChangeFileExt(FRootKey, '_log.rtf');
+      strLog := ChangeFileExt(FRootKey, '_log.txt');
       If FileExists(strLog) Then
         redtOutputResults.Lines.LoadFromFile(strLog);
       LogSize;
@@ -385,7 +367,7 @@ Procedure TfrmMainForm.LogSize;
 
 Begin
   stbrStatusBar.Panels[0].Text := Format('Log size: %1.1n kbytes',
-    [Int(Length(redtOutputResults.Text)) / 1024.0]);
+    [Int(Length(redtOutputResults.Lines.Text)) / 1024.0]);
   With stbrStatusBar Do
     Panels[0].Width := Canvas.TextWidth(Panels[0].Text) + 25;
 End;
@@ -461,9 +443,9 @@ Var
   Procedure DrawBackground(iColumn: Integer; Background: TBackground);
 
   Begin
-    Sender.Canvas.Brush.Color := clWindow;
+    Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clWindow);
     If Item.Selected Then
-      Sender.Canvas.Brush.Color := clHighlight
+      Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight)
     Else
       Begin
         If (Pos('R', Item.SubItems[iColumn - 1]) > 0) Then
@@ -496,13 +478,13 @@ Var
   Procedure SetTextAttributes;
 
   Begin
-    Sender.Canvas.Font.Color := clWindowText;
+    //Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);
     If TFileOp(Item.StateIndex) = foNothing Then
       Sender.Canvas.Font.Color := clGray;
     If TFileOp(Item.StateIndex) = foDelete Then
       Sender.Canvas.Font.Style := Sender.Canvas.Font.Style + [fsStrikeout];
     If Item.Selected Then
-      Sender.Canvas.Font.Color := clHighlightText;
+      Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
   End;
 
   (**
@@ -574,24 +556,38 @@ Var
   Procedure SetTextFontBackground;
 
   Begin
-    Sender.Canvas.Brush.Color := clWindow;
+    Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clWindow);
+    Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);
     If Item.Selected Then
-      Sender.Canvas.Brush.Color := clHighlight
-    Else
+      Begin
+        Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
+        Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+      End Else
       Begin
         If iSubItem In [iLDisplayCol - 1 .. iLDateCol - 1] Then
           Begin
             If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
-              Sender.Canvas.Brush.Color := $BBBBFF
+              Begin
+                Sender.Canvas.Brush.Color := $BBBBFF;
+                Sender.Canvas.Font.Color := clBlack;
+              End
             Else If TFileOp(Item.StateIndex) = foNothing Then
-              Sender.Canvas.Brush.Color := clSilver;
-          End
-        Else
+              Begin
+                Sender.Canvas.Brush.Color := clSilver;
+                Sender.Canvas.Font.Color := clGray;
+              End;
+          End  Else
           Begin
             If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
-              Sender.Canvas.Brush.Color := $BBBBFF
+              Begin
+                Sender.Canvas.Brush.Color := $BBBBFF;
+                Sender.Canvas.Font.Color := clBlack;
+              End
             Else If TFileOp(Item.StateIndex) = foNothing Then
-              Sender.Canvas.Brush.Color := clSilver;
+              Begin
+                Sender.Canvas.Brush.Color := clSilver;
+                Sender.Canvas.Font.Color := clGray;
+              End;
           End;
       End;
   End;
@@ -658,7 +654,7 @@ End;
 Procedure TfrmMainForm.MatchListEndProc;
 
 Begin
-  OutputResultLn(' Done!', clGreen);
+  OutputResultLn(' Done!');
   FProgressForm.Progress(FProgressSection, 100, 'Done!', '');
 End;
 
@@ -745,7 +741,7 @@ procedure TfrmMainForm.NothingToDoStart(iFileCount: Integer);
 begin
   If iFileCount > 0 Then
     OutputResultLn(Format('There are %1.0n files marked as Do Nothing',
-      [Int(iFileCount)]), clMaroon);
+      [Int(iFileCount)]));
 end;
 
 (**
@@ -757,18 +753,13 @@ end;
   @postcon The messages is output to the end of output window.
 
   @param   strMsg     as a String
-  @param   iColour    as a TColor
-  @param   FontStyles as a TFontStyles
 
 **)
-Procedure TfrmMainForm.OutputResult(strMsg: String = ''; iColour: TColor = clBlack;
-  FontStyles : TFontStyles = []);
+Procedure TfrmMainForm.OutputResult(strMsg: String = '');
 
 Begin
   redtOutputResults.SelLength           := 0;
   redtOutputResults.SelStart            := Length(redtOutputResults.Text);
-  redtOutputResults.SelAttributes.Color := iColour;
-  redtOutputResults.SelAttributes.Style := FontStyles;
   redtOutputResults.SelText             := strMsg;
   LogSize;
 End;
@@ -782,15 +773,12 @@ End;
   @postcon The messages is output to the end of output window.
 
   @param   strMsg     as a String
-  @param   iColour    as a TColor
-  @param   FontStyles as a TFontStyles
 
 **)
-Procedure TfrmMainForm.OutputResultLn(strMsg: String = ''; iColour: TColor = clBlack;
-  FontStyles : TFontStyles = []);
+Procedure TfrmMainForm.OutputResultLn(strMsg: String = '');
 
 Begin
-  OutputResult(strMsg + #13#10, iColour, FontStyles);
+  OutputResult(strMsg + #13#10);
 End;
 
 (**
@@ -864,7 +852,7 @@ Begin
       WriteInteger('ListViewFont', 'Style', Byte(lvFileList.Font.Style));
       WriteString('LogFont', 'Name', redtOutputResults.Font.Name);
       WriteInteger('LogFont', 'Size', redtOutputResults.Font.Size);
-      redtOutputResults.Lines.SaveToFile(ChangeFileExt(FRootKey, '_log.rtf'));
+      redtOutputResults.Lines.SaveToFile(ChangeFileExt(FRootKey, '_log.txt'));
       WriteInteger('Setup', 'WindowState', Byte(WindowState));
       WriteInteger('Setup', 'OutputResultsHeight', redtOutputResults.Height);
       WriteString('Setup', 'CompareEXE', FCompareEXE);
@@ -880,6 +868,7 @@ Begin
         End;
       WriteString('Setup', 'Exclusions', StringReplace(FExclusions, #13#10, '|',
           [rfReplaceAll]));
+      WriteString('Setup', 'Theme', TStyleManager.ActiveStyle.Name);
       UpdateFile;
     Finally
       Free;
@@ -914,18 +903,22 @@ Begin
   DGHMemoryMonitor.LowPoint       := 80;
   DGHMemoryMonitor.UpdateInterval := 500;
   FRootKey                        := BuildRootKey(FParams, ExceptionProc);
-  TfrmAbout.ShowAbout;
-  actHelpCheckForUpdatesExecute(Nil);
   FFolders                       := TStringList.Create;
   FProgressForm                  := TfrmProgress.Create(Self);
   FProgressForm.OnUpdateProgress := UpdateProgress;
-  Application.HelpFile := ChangeFileExt(ParamStr(0), '.chm');
+  Application.HelpFile := ExtractFilePath(ParamStr(0)) + 'FldrSync.chm';
   LoadSettings();
+  actHelpCheckForUpdatesExecute(Nil);
   Application.OnHint                := ApplicationHint;
   FIconFiles                        := TStringList.Create;
   FIconFiles.Sorted                 := True;
   If IsDebuggerPresent Then
     Caption := Format('%s [DEBUGGING]', [Caption]);
+  {$IFDEF WIN64}
+  Caption := Caption + ' [64-bit]';
+  {$ELSE}
+  Caption := Caption + ' [32-bit]';
+  {$ENDIF}
   Caption                           := Format('%s: %s', [Caption, FRootKey]);
   FSyncModule                       := TCompareFoldersCollection.Create;
   FSyncModule.OnSearchStart         := SearchStartProc;
@@ -964,6 +957,7 @@ Begin
       FTaskbarList.HrInit;
       Supports(FTaskbarList, IID_ITaskbarList3, FTaskbarList3);
     End;
+  FStartTimer.Enabled := True;
 End;
 
 (**
@@ -1029,7 +1023,7 @@ Var
 
 Begin
   OutputResultLn('Comparison started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
-    Now()), clBlue, [fsBold, fsUnderline]);
+    Now()));
   boolSuccess := False;
   If Not CheckFolders Then
     Exit;
@@ -1227,10 +1221,10 @@ End;
            it in a list and returns the index of the index in the list
 
   @param   strFileName as a String
-  @return  an Integer
+  @return  an NativeInt
 
 **)
-Function TfrmMainForm.GetImageIndex(strFileName: String): Integer;
+Function TfrmMainForm.GetImageIndex(strFileName: String): NativeInt;
 
 Var
   strExt        : String;
@@ -1252,7 +1246,7 @@ Begin
   strClassName := GetRegStringValue(strExt, '');
   If FIconFiles.Find(strClassName, iIndex) Then
     Begin
-      Result := Integer(FIconFiles.Objects[iIndex]);
+      Result := NativeInt(FIconFiles.Objects[iIndex]);
       Exit;
     End;
   If strClassName <> '' Then
@@ -1363,10 +1357,17 @@ End;
 **)
 Procedure TfrmMainForm.actToolsOptionsExecute(Sender: TObject);
 
+Var
+  strTheme : String;
+  
 Begin
   If TfrmOptions.Execute(FFolders, FExclusions, FCompareEXE, FRootKey, lvFileList.Font,
-    redtOutputResults.Font, FFldrSyncOptions) Then
-    actFileCompareExecute(Self);
+    redtOutputResults.Font, FFldrSyncOptions, strTheme) Then
+    Begin
+      If CompareText(strTheme, TStyleManager.ActiveStyle.Name) <> 0 Then
+        TStyleManager.SetStyle(strTheme);
+      actFileCompareExecute(Self);
+    End;
 End;
 
 (**
@@ -1421,7 +1422,7 @@ Procedure TfrmMainForm.SearchEndProc(iFileCount: Integer; iTotalSize: int64);
 Begin
   FProgressForm.Progress(FProgressSection, 1, ' Done!', '');
   OutputResultLn(Format(' Found %1.0n files (%1.0n bytes)',
-      [Int(iFileCount), Int(iTotalSize)]), clGreen);
+      [Int(iFileCount), Int(iTotalSize)]));
 End;
 
 (**
@@ -1493,10 +1494,6 @@ Begin
                 Continue;
           End;
           lvFileList.Items[i].StateIndex := Integer(FileOp);
-          {$IFDEF DEBUG}
-          Assert(FSyncModule.Process[i].FileOp = FileOp,
-            'Synchronisation Error in Process List.');
-          {$ENDIF}
           FSyncModule.Process[i].FileOp := FileOp;
         End;
     End;
@@ -1539,20 +1536,19 @@ Var
   R : TRect;
   iPos:  Integer;
   strText : String;
-  iColour: TColor;
 
 Begin
   iPos := Pos(':', Panel.Text);
   strText := Copy(Panel.Text, 1, iPos);
   R := Rect;
-  iColour := StatusBar.Canvas.Font.Color;
-  StatusBar.Canvas.Font.Color := clMaroon;
+  StatusBar.Canvas.FillRect(R);
+  Inc(R.Left, 4);
+  StatusBar.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);
   StatusBar.Canvas.Font.Style := [fsBold];
   StatusBar.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
   Inc(R.Left, StatusBar.Canvas.TextWidth(strText) + 2);
   StatusBar.Canvas.Font.Style := [];
   strText := Copy(Panel.Text, iPos + 1, Length(Panel.Text) - iPos);
-  StatusBar.Canvas.Font.Color := iColour;
   StatusBar.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
 End;
 
@@ -1712,7 +1708,7 @@ Procedure TfrmMainForm.actFileProcessFilesExecute(Sender: TObject);
 
 Begin
   OutputResultLn('Processing started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
-    Now()), clBlue, [fsBold, fsUnderline]);
+    Now()));
   Try
     DisableActions;
     Try
@@ -1894,7 +1890,7 @@ Procedure TfrmMainForm.CompareEndProc;
 
 Begin
   FProgressForm.Progress(FProgressSection, 100, 'Done!', '');
-  OutputResultLn(' Done!', clGreen);
+  OutputResultLn(' Done!');
 End;
 
 (**
@@ -1966,7 +1962,7 @@ Begin
       OutputResultLn();
     End
   Else
-    OutputResultLn(#13#10#32#32#32#32 + strErrMsg, clRed, [fsBold]);
+    OutputResultLn(#13#10#32#32#32#32 + strErrMsg);
 End;
 
 (**
@@ -2001,11 +1997,10 @@ End;
 Procedure TfrmMainForm.CopyEndProc(iCopied, iSkipped, iError: Integer);
 
 Begin
-  OutputResult(Format(' Copied %1.0n (Skipped %1.0n', [Int(iCopied), Int(iSkipped)]),
-    clGreen);
+  OutputResult(Format(' Copied %1.0n (Skipped %1.0n', [Int(iCopied), Int(iSkipped)]));
   If iError > 0 Then
-    OutputResult(Format(', Errored %1.0n', [Int(iError)]), clRed);
-  OutputResultLn(')', clGreen);
+    OutputResult(Format(', Errored %1.0n', [Int(iError)]));
+  OutputResultLn(')');
   FreeAndNil(FCopyForm);
 End;
 
@@ -2165,7 +2160,7 @@ Begin
       FDeleteForm.Progress(iFIle, iSize);
       OutputResultLn();
     End Else
-      OutputResultLn(#13#10#32#32#32#32 + strErrMsg, clRed, [fsBold]);
+      OutputResultLn(#13#10#32#32#32#32 + strErrMsg);
 End;
 
 (**
@@ -2183,11 +2178,10 @@ End;
 Procedure TfrmMainForm.DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
 
 Begin
-  OutputResult(Format(' Deleted %1.0n (Skipped %1.0n', [Int(iDeleted), Int(iSkipped)]),
-    clGreen);
+  OutputResult(Format(' Deleted %1.0n (Skipped %1.0n', [Int(iDeleted), Int(iSkipped)]));
   If iErrors > 0 Then
-    OutputResult(Format(', Errored %1.0n', [Int(iErrors)]), clRed);
-  OutputResultLn(')', clGreen);
+    OutputResult(Format(', Errored %1.0n', [Int(iErrors)]));
+  OutputResultLn(')');
   FreeAndNil(FDeleteForm);
 End;
 
@@ -2326,7 +2320,7 @@ procedure TfrmMainForm.DiffSizeStart(iFileCount: Integer);
 begin
   If iFileCount > 0 Then
     OutputResultLn(Format('There are %1.0n file(s) with a size difference (same date)',
-      [Int(iFileCount)]), clMaroon);
+      [Int(iFileCount)]));
 end;
 
 (**
