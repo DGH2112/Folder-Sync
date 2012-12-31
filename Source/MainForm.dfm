@@ -271,7 +271,7 @@ object frmMainForm: TfrmMainForm
     Left = 33
     Top = 151
     Bitmap = {
-      494C01010F001300880010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010F0013008C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1076,6 +1076,7 @@ object frmMainForm: TfrmMainForm
       SecondaryShortCuts.Strings = (
         'Ctrl+Left')
       OnExecute = actEditCopyRightToLeftExecute
+      OnUpdate = actEditFileOperationsUpdate
     end
     object actEditCopyLeftToRight: TAction
       Category = 'Edit'
@@ -1086,6 +1087,7 @@ object frmMainForm: TfrmMainForm
       SecondaryShortCuts.Strings = (
         'Ctrl+Right')
       OnExecute = actEditCopyLeftToRightExecute
+      OnUpdate = actEditFileOperationsUpdate
     end
     object actEditDelete: TAction
       Category = 'Edit'
@@ -1094,6 +1096,7 @@ object frmMainForm: TfrmMainForm
       ImageIndex = 3
       ShortCut = 16430
       OnExecute = actEditDeleteExecute
+      OnUpdate = actEditFileOperationsUpdate
     end
     object actEditDoNothing: TAction
       Category = 'Edit'
@@ -1102,6 +1105,7 @@ object frmMainForm: TfrmMainForm
       ImageIndex = 0
       ShortCut = 16462
       OnExecute = actEditDoNothingExecute
+      OnUpdate = actEditFileOperationsUpdate
     end
     object actFileProcessFiles: TAction
       Category = 'File'

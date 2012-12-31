@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    23 Dec 2012
+  @Date    31 Dec 2012
   @Author  David Hoyle
 
 **)
@@ -115,6 +115,7 @@ Type
     procedure actHelpContentsExecute(Sender: TObject);
     procedure stbrStatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
       const Rect: TRect);
+    procedure actEditFileOperationsUpdate(Sender: TObject);
   Strict Private
     { Private declarations }
     FFolders        : TStringList;
@@ -957,6 +958,10 @@ Begin
       FTaskbarList.HrInit;
       Supports(FTaskbarList, IID_ITaskbarList3, FTaskbarList3);
     End;
+  actEditCopyRightToLeft.Tag := Integer(foRightToLeft);
+  actEditCopyLeftToRight.Tag := Integer(foLeftToRight);
+  actEditDelete.Tag := Integer(foDelete);
+  actEditDoNothing.Tag := Integer(foNothing);
   FStartTimer.Enabled := True;
 End;
 
@@ -1404,6 +1409,46 @@ Procedure TfrmMainForm.actEditCopyLeftToRightExecute(Sender: TObject);
 
 Begin
   SetFileOperation(foLeftToRight);
+End;
+
+(**
+
+  This is an on update event handler for the Fiole Operation actions.
+
+  @precon  None.
+  @postcon Enables / disables the file operations based on the opertation and the selected
+           files.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actEditFileOperationsUpdate(Sender: TObject);
+
+Var
+  Item: TListItem;
+  boolEnabled : Boolean;
+  
+Begin
+  If Sender Is TAction Then
+    With Sender As TAction Do
+      Begin
+        boolEnabled := lvFileList.SelCount > 0;
+        Item := lvFileList.Selected;
+        While Item <> Nil Do
+          Begin
+            boolEnabled := boolEnabled And (Item.StateIndex <> Tag);
+            Case TFileOp(Tag) Of
+              foLeftToRight:
+                If lvFileList.Items[Item.Index].SubItems[iLDisplayCol - 1] = '' Then
+                  boolEnabled := False;
+              foRightToLeft:
+                If lvFileList.Items[Item.Index].SubItems[iRDisplayCol - 1] = '' Then
+                  boolEnabled := False;
+            End;
+            Item := lvFileList.GetNextItem(Item, sdBelow, [isSelected]);
+          End; 
+        Enabled := boolEnabled;
+      End;        
 End;
 
 (**
@@ -2409,3 +2454,5 @@ Begin
 End;
 
 End.
+
+
