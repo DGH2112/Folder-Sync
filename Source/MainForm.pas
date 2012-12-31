@@ -232,7 +232,7 @@ Implementation
 Uses
   FileCtrl,
   ShellAPI,
-  About,
+  AboutForm,
   CheckForUpdates,
   DGHLibrary,
   ConfirmationDlg,
@@ -1780,7 +1780,7 @@ End;
 Procedure TfrmMainForm.actHelpAboutExecute(Sender: TObject);
 
 Begin
-  TfrmAbout.ShowAbout;
+  TfrmAboutDialogue.ShowAbout(Self);
 End;
 
 (**
