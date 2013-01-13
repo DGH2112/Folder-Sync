@@ -4,7 +4,7 @@
   files.
 
   @Version 1.5
-  @Date    05 Dec 2012
+  @Date    13 Jan 2013
   @Author  David Hoyle
 
 **)
@@ -1769,18 +1769,61 @@ End;
 Function TCompareFoldersCollection.CopyFileContents(strSourceFile, strDestFile: String;
   Var iCopied: Integer; Var strErrmsg: String): Boolean;
 
+  (**
+
+    This function returns the size of the given file if found else returns 0.
+
+    @precon  None.
+    @postcon Returns the size of the given file if found else returns 0.
+
+    @param   strFileName as a String
+    @return  an Int64
+
+  **)
+  Function GetFileSize(strFileName : String): Int64;
+
+  Var
+    recSearch: TSearchRec;
+    iResult: Integer;
+  
+  Begin
+    Result := 0;
+    iResult := FindFirst(strFileName, faAnyFile, recSearch);
+    Try
+      If iResult = 0 Then
+        Result := recSearch.Size;
+    Finally
+      SysUtils.FindClose(recSearch);
+    End;
+  End;
+
+Var
+  iSrcSize : Int64;
+  iDestSize : Int64;
+  iFreeBytesAvailableToCaller: Int64;
+  iTotalNumberOfBytes: Int64;
+  iTotalNumberOfFreeBytes: Int64;
+
 Begin
   Result    := False;
   strErrmsg := '';
-  If Not CopyFileEx(PChar(Expand(strSourceFile)), PChar(Expand(strDestFile)),
-    @CopyCallback, Self, Nil, 0) Then
-    strErrmsg := Format('Could not copy file "%s" (%s)',
-      [strSourceFile, SysErrorMessage(GetLastError)])
-  Else
+  iSrcSize := GetFileSize(strSourceFile);
+  iDestSize := GetFileSize(strDestFile);
+  GetDiskFreeSpaceEx(PChar(ExtractFilePath(strDestFile)), iFreeBytesAvailableToCaller,
+    iTotalNumberOfBytes, @iTotalNumberOfFreeBytes);
+  If (iSrcSize - iDestSize) < iTotalNumberOfFreeBytes Then
     Begin
-      Result := True;
-      Inc(iCopied);
-    End;
+      If Not CopyFileEx(PChar(Expand(strSourceFile)), PChar(Expand(strDestFile)),
+        @CopyCallback, Self, Nil, 0) Then
+        strErrMsg := Format('Could not copy file "%s" (%s)',
+          [strSourceFile, SysErrorMessage(GetLastError)])
+      Else
+        Begin
+          Result := True;
+          Inc(iCopied);
+        End;
+    End Else
+      strErrMsg := 'There is not enough disk space at the destination to copy this file.';
 End;
 
 (**
