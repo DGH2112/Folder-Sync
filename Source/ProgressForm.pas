@@ -3,7 +3,7 @@
   This module represents a form for displaying progress.
 
   @Version 1.0
-  @Date    04 Oct 2012
+  @Date    04 Jan 2013
   @Author  David Hoyle
 
 **)
@@ -22,7 +22,6 @@ Uses
   Dialogs,
   ExtCtrls,
   StdCtrls,
-  DGHEllipsisLabel,
   ComCtrls,
   Buttons,
   SyncModule;
