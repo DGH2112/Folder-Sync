@@ -4,7 +4,7 @@
   files.
 
   @Version 1.5
-  @Date    13 Jan 2013
+  @Date    06 Mar 2013
   @Author  David Hoyle
 
 **)
@@ -20,135 +20,13 @@ Uses
 
 Type
   (** An enumerate to define an action to take with a file. **)
-  TFileAction = (faNo, faYes, faAll, faCancel, faUnknown);
-
-  (** An event signature for the start of a search. **)
-  TSearchStartNotifier = Procedure(strFolder: String) Of Object;
-  (** A event signature for feeding back progress during searching for files. **)
-  TSearchNotifier = Procedure(strFolder, strFileName: String; iCount: Integer) Of Object;
-  (** An event signature for the end of a search. **)
-  TSearchEndNotifier = Procedure(iFileCount: Integer; iTotalSize: Int64) Of Object;
-
-  (** An event signature for the start of a comparison operation. **)
-  TCompareStartNotifier = Procedure(strLeftFldr, strRightFldr: String) Of Object;
-  (** An event signature for feeding back progress during comparisons. **)
-  TCompareNotifier = Procedure(strLeftFldr, strRightFldr, strFileName: String;
-    iPosition, iMaxItems: Integer) Of Object;
-  (** An event signature for the end of the comparison operation. **)
-  TCompareEndNotifier = Procedure Of Object;
-
-  (** An event signature for the start of the Match List operation. **)
-  TMatchListStartNotifier = Procedure Of Object;
-  (** An event signature for feeding bacl progress during Matching List Items. **)
-  TMatchListNotifier = Procedure(iPosition, iMaxItems: Integer) Of Object;
-  (** An event signature for the end of the Match List operation. **)
-  TMatchListEndNotifier = Procedure Of Object;
-
-  (** An event signature for the start of the deletion process. **)
-  TDeleteStartNotifier = Procedure(iFileCount: Integer; iTotalSize: Int64) Of Object;
-  (** An event signature for the start of the deletion of an individual file. **)
-  TDeletingNotifier = Procedure(iFile : Integer; strFileName: String) Of Object;
-  (** An event signature for the end of the deletion of an individual file. **)
-  TDeletedNotifier = Procedure(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
-    strErrmsg: String) Of Object;
-  (** An event signature to prompt for the deletion of a file. **)
-  TDeleteQueryNotifier = Procedure(strFileName: String; Var Option: TFileAction)
-    Of Object;
-  (** An event signature to prompt for the deletion of a read only file. **)
-  TDeleteReadOnlyQueryNotifier = Procedure(strFileName: String; Var Option: TFileAction)
-    Of Object;
-  (** An event sighature for the end of the deletion process. **)
-  TDeleteEndNotifier = Procedure(iDeleted, iSkipped, iErrors: Integer) Of Object;
-
-  (** An event signature for the start of the copying process. **)
-  TCopyStartNotifier = Procedure(iTotalCount: Integer; iTotalSize: Int64) Of Object;
-  (** An event signature for the start of the copying of an individual file. **)
-  TCopyingNotifier = Procedure(iFile : Integer; strSource, strDest,
-    strFileName: String) Of Object;
-  (** An event signature for feeding back progress on the copying of a file. **)
-  TCopyContents = Procedure(iCopiedSize, iTotalSize: Int64) Of Object;
-  (** An event signature for the end of the copying of an individual file. **)
-  TCopiedNotifier = Procedure(iCopiedFiles: Integer; iCopiedFileTotalSize,
-    iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrmsg: String) Of Object;
-  (** An event signature to prompt for the overwriting of a file. **)
-  TCopyQueryNotifier = Procedure(strSourceFile, strDestFile: String;
-    Var Option: TFileAction) Of Object;
-  (** An event signature to prompt for the overwriting of a read only file. **)
-  TCopyReadOnlyQueryNotifier = Procedure(strSourceFile, strDestFile: String;
-    Var Option: TFileAction) Of Object;
-  (** An event signature for the end of the copying process. **)
-  TCopyEndNotifier = Procedure(iCopied, iSkipped, iError: Integer) Of Object;
-  (** An event signature for the start of the different size process. **)
-  TDiffSizeStartNotifier = Procedure(iFileCount: Integer) Of Object;
-  (** An event signature for each file in the different size process. **)
-  TDiffSizeNotifier = Procedure(strLPath, strRPath, strFileName: String) Of Object;
-  (** An event signature for the end of the different size process. **)
-  TDiffSizeEndNotifier = Procedure() Of Object;
-  (** An event signature for the start of the Nothing to do Process. **)
-  TNothingToDoStartNotifier = Procedure(iFileCount: Integer) Of Object;
-  (** An event signature for each file in the Nothing to do Process. **)
-  TNothingToDoNotifier = Procedure(strLPath, strRPath, strFileName: String) Of Object;
-  (** An event signature for the end of the Nothing to do Process. **)
-  TNothingToDoEndNotifier = Procedure() Of Object;
-
-  (** An event signature for updating the taskbar from a progress dialogue. **)
-  TUpdateProgress = Procedure(iPosition, iMaxPosition: Integer) Of Object;
-
-  (** A ercord to define the upper and lower limits of a progress section. **)
-  TSectionRecord = Record
-    FMin: Integer;
-    FMax: Integer;
-  End;
+  TFileAction = (faNo, faYes, faYesToAll, faNoToAll, faYesToAllRO, faNoToAllRO, faCancel,
+    faUnknown);
+  (** A set of the above file actions. **)
+  TFileActions = Set Of TFileAction;
 
   (** A type to define the status of a file **)
-  TStatus = (stNewer, stOlder, stSame, stDiffSize);
-
-  (** A type to define whether the CheckDifference method should check for
-      Older or Newer differences. **)
-  TCheckDifference = (cdNewer, cdOlder);
-
-  (** This is an enumerate for synchronisation options on a pair of folders. **)
-  TSyncOption = (soEnabled, soPrimaryLeft, soPrimaryRight, soOverwriteReadOnlyFiles,
-    soConfirmYes, soConfirmNo, soNoRecursion);
-
-  (** A set of sync options. **)
-  TSyncOptions = Set Of TSyncOption;
-
-  (** A list of enumerate values for the different types of file operation that
-   can be undertaken. **)
-  TFileOp = (foNothing, foLeftToRight, foRightToLeft, foDelete, foSizeDiff);
-  (** A set of the above TFileOp enumerates. **)
-  TFileOps = Set Of TFileOp;
-
-  (** An enumerate of Folder Sync Options from the pre-1.5 version - required for
-      upgrade. **)
-  TOLDFldrSyncOption = (fsoCloseIFNoFilesAfterComparisonOLD, fsoNoConfirmation,
-    fsoDoNotConfirmMkDir, fsoShowSimpleProgress, fsoStartProcessingAutomaticallyOLD,
-    fsoHideLongFileNames);
-
-  (** An enumerate of NEW Folder Sync Options **)
-  TFldrSyncOption = (fsoCloseIFNoFilesAfterComparison, fsoStartProcessingAutomatically);
-
-  (** A set of folder sync options. **)
-  TOLDFldrSyncOptions = Set Of TOLDFldrSyncOption;
-  (** A set of folder sync options. **)
-  TFldrSyncOptions = Set Of TFldrSyncOption;
-
-  (** A variant record to translate various options for each folder using the
-      data element of the string list item. **)
-  TFolderOptionsAdapter = Record
-    Case Integer Of
-      1:
-        (FRAWData: Integer); // 4 bytes
-      2:
-        (FOBjData: TObject); // 4 btes
-      3:
-        (FSyncOptions: TSyncOptions; // 1 bytes
-          FReserved1: Byte;          // 1 bytes
-          FReserved2: Byte;          // 1 bytes
-          FReserved3: Byte;          // 1 bytes
-        );
-  End;
+  TStatus = (stNewer, stOlder, stSame, stDiffSize, stTooLarge);
 
   (** A record to describe a single file. **)
   TFileRecord = Class
@@ -200,6 +78,202 @@ Type
     Property Status: TStatus Read FStatus Write SetStatus;
   End;
 
+  (** An event signature for the start of a search. **)
+  TSearchStartNotifier = Procedure(strFolder: String) Of Object;
+  (** A event signature for feeding back progress during searching for files. **)
+  TSearchNotifier = Procedure(strFolder, strFileName: String; iCount: Integer) Of Object;
+  (** An event signature for the end of a search. **)
+  TSearchEndNotifier = Procedure(iFileCount: Integer; iTotalSize: Int64) Of Object;
+
+  (** An event signature for the start of a comparison operation. **)
+  TCompareStartNotifier = Procedure(strLeftFldr, strRightFldr: String) Of Object;
+  (** An event signature for feeding back progress during comparisons. **)
+  TCompareNotifier = Procedure(strLeftFldr, strRightFldr, strFileName: String;
+    iPosition, iMaxItems: Integer) Of Object;
+  (** An event signature for the end of the comparison operation. **)
+  TCompareEndNotifier = Procedure Of Object;
+
+  (** An event signature for the start of the Match List operation. **)
+  TMatchListStartNotifier = Procedure Of Object;
+  (** An event signature for feeding bacl progress during Matching List Items. **)
+  TMatchListNotifier = Procedure(iPosition, iMaxItems: Integer) Of Object;
+  (** An event signature for the end of the Match List operation. **)
+  TMatchListEndNotifier = Procedure Of Object;
+
+  (** An event signature for the start of the deletion process. **)
+  TDeleteStartNotifier = Procedure(iFileCount: Integer; iTotalSize: Int64) Of Object;
+  (** An event signature for the start of the deletion of an individual file. **)
+  TDeletingNotifier = Procedure(iFile : Integer; strFileName: String) Of Object;
+  (** An event signature for the end of the deletion of an individual file. **)
+  TDeletedNotifier = Procedure(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
+    strErrmsg: String) Of Object;
+  (** An event signature to prompt for the deletion of a file. **)
+  TDeleteQueryNotifier = Procedure(strDeletePath: String; DeleteFile : TFileRecord;
+    Var Option: TFileAction) Of Object;
+  (** An event signature to prompt for the deletion of a read only file. **)
+  TDeleteReadOnlyQueryNotifier = Procedure(strDeletePath: String;
+    DeleteFile : TFileRecord; Var Option: TFileAction) Of Object;
+  (** An event sighature for the end of the deletion process. **)
+  TDeleteEndNotifier = Procedure(iDeleted, iSkipped, iErrors: Integer) Of Object;
+
+  (** An event signature for the start of the copying process. **)
+  TCopyStartNotifier = Procedure(iTotalCount: Integer; iTotalSize: Int64) Of Object;
+  (** An event signature for the start of the copying of an individual file. **)
+  TCopyingNotifier = Procedure(iFile : Integer; strSource, strDest,
+    strFileName: String) Of Object;
+  (** An event signature for feeding back progress on the copying of a file. **)
+  TCopyContents = Procedure(iCopiedSize, iTotalSize: Int64) Of Object;
+  (** An event signature for the end of the copying of an individual file. **)
+  TCopiedNotifier = Procedure(iCopiedFiles: Integer; iCopiedFileTotalSize,
+    iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrmsg: String) Of Object;
+  (** An event signature to prompt for the overwriting of a file. **)
+  TCopyQueryNotifier = Procedure(strSrcPath, strDestPath : String; SourceFile,
+    DestFile: TFileRecord; Var Option: TFileAction) Of Object;
+  (** An event signature to prompt for the overwriting of a read only file. **)
+  TCopyReadOnlyQueryNotifier = Procedure(strSrcPath, strDestPath : String; SourceFile,
+    DestFile: TFileRecord; Var Option: TFileAction) Of Object;
+  (** An event signature for the end of the copying process. **)
+  TCopyEndNotifier = Procedure(iCopied, iSkipped, iError: Integer) Of Object;
+  (** An event signature for the start of the different size process. **)
+  TDiffSizeStartNotifier = Procedure(iFileCount: Integer) Of Object;
+  (** An event signature for each file in the different size process. **)
+  TDiffSizeNotifier = Procedure(strLPath, strRPath, strFileName: String) Of Object;
+  (** An event signature for the end of the different size process. **)
+  TDiffSizeEndNotifier = Procedure() Of Object;
+  (** An event signature for the start of the Nothing to do Process. **)
+  TNothingToDoStartNotifier = Procedure(iFileCount: Integer) Of Object;
+  (** An event signature for each file in the Nothing to do Process. **)
+  TNothingToDoNotifier = Procedure(strLPath, strRPath, strFileName: String) Of Object;
+  (** An event signature for the end of the Nothing to do Process. **)
+  TNothingToDoEndNotifier = Procedure() Of Object;
+  (** An event signature for the start of the Size Limit Process. **)
+  TExceedsSizeLimitStartNotifier = Procedure(iFileCount: Integer) Of Object;
+  (** An event signature for each file in the Size Limit Process. **)
+  TExceedsSizeLimitNotifier = Procedure(strLPath, strRPath, strFileName: String) Of Object;
+  (** An event signature for the end of the Size Limit Process. **)
+  TExceedsSizeLimitEndNotifier = Procedure() Of Object;
+
+  (** An event signature for updating the taskbar from a progress dialogue. **)
+  TUpdateProgress = Procedure(iPosition, iMaxPosition: Integer) Of Object;
+
+  (** A ercord to define the upper and lower limits of a progress section. **)
+  TSectionRecord = Record
+    FMin: Integer;
+    FMax: Integer;
+  End;
+
+  (** A type to define whether the CheckDifference method should check for
+      Older or Newer differences. **)
+  TCheckDifference = (cdNewer, cdOlder);
+
+  (** This is an enumerate for synchronisation options on a pair of folders. **)
+  TSyncOption = (soEnabled, soPrimaryLeft, soPrimaryRight, soOverwriteReadOnlyFiles,
+    soConfirmYes, soConfirmNo, soNoRecursion);
+
+  (** A set of sync options. **)
+  TSyncOptions = Set Of TSyncOption;
+
+  (** A list of enumerate values for the different types of file operation that
+   can be undertaken. **)
+  TFileOp = (foNothing, foLeftToRight, foRightToLeft, foDelete, foSizeDiff,
+    foExceedsSizeLimit);
+  (** A set of the above TFileOp enumerates. **)
+  TFileOps = Set Of TFileOp;
+
+  (** An enumerate of Folder Sync Options from the pre-1.5 version - required for
+      upgrade. **)
+  TOLDFldrSyncOption = (fsoCloseIFNoFilesAfterComparisonOLD, fsoNoConfirmation,
+    fsoDoNotConfirmMkDir, fsoShowSimpleProgress, fsoStartProcessingAutomaticallyOLD,
+    fsoHideLongFileNames);
+
+  (** An enumerate of NEW Folder Sync Options **)
+  TFldrSyncOption = (fsoCloseIFNoFilesAfterComparison, fsoStartProcessingAutomatically);
+
+  (** A set of folder sync options. **)
+  TOLDFldrSyncOptions = Set Of TOLDFldrSyncOption;
+  (** A set of folder sync options. **)
+  TFldrSyncOptions = Set Of TFldrSyncOption;
+
+  (** A class to hold the settings information for a pair of folders to be compared. **)
+  TFolder = Class
+  Strict Private
+    FLeftFldr    : String;
+    FRightFldr   : String;
+    FPatterns    : String;
+    FSyncOptions : TSyncOptions;
+    FMaxFileSize : Int64;
+  Strict Protected
+  Public
+    Constructor Create(strLeftFldr, strRightFldr, strPatterns : String;
+      iSyncOptions : TSyncOptions; iMaxFileSize : Int64);
+    Procedure Assign(AFolder : TFolder);
+    (**
+      This property defines the Left Folder in the comparison operation.
+      @precon  None.
+      @postcon Returns the Left Folder in the comparison operation.
+      @return  a String
+    **)
+    Property LeftFldr : String Read FLeftFldr Write FLeftFldr;
+    (**
+      This property defines the Right Folder in the comparison operation.
+      @precon  None.
+      @postcon Returns the Right Folder in the comparison operation.
+      @return  a String
+    **)
+    Property RightFldr : String Read FRightFldr Write FRightFldr;
+    (**
+      This property defines the file search wildcard patterns for the comparison.
+      @precon  None.
+      @postcon Returns the file search wildcard patterns for the comparison. 
+      @return  a String
+    **)
+    Property Patterns : String Read FPatterns Write FPatterns;
+    (**
+      This property defines the synchronisation options for the comparison.
+      @precon  None.
+      @postcon Returns the synchronisation options for the comparison.
+      @return  a TSyncOptions
+    **)
+    Property SyncOptions : TSyncOptions Read FSyncOptions Write FSyncOptions;
+    (**
+      This property defines the maxzimum size of file to be processed in the comparison.
+      @precon  None.
+      @postcon Returns the maxzimum size of file to be processed in the comparison. 
+      @return  an Int64
+    **)
+    Property MaxFileSize : Int64 Read FMaxFileSize Write FMaxFileSize;
+  End;
+
+  (** A class to represent a collection of TFolder classes. **)
+  TFolders = Class
+  Strict Private
+    FFolders : TObjectList;
+  Strict Protected
+    Function GetCount : Integer;
+    Function GetFolder(iIndex : Integer) : TFolder;
+  Public
+    Constructor Create;
+    Destructor Destroy; Override;
+    Procedure Add(Folder : TFolder);
+    Procedure Assign(Folders : TFolders);
+    Procedure Delete(iIndex : Integer);
+    (**
+      This property returns the indexed folder from the collection.
+      @precon  iIndex must be between 0 and Count - 1.
+      @postcon Returns the indexed folder from the collection.
+      @param   iIndex as an Integer
+      @return  a TFolder
+    **)
+    Property Folder[iIndex : Integer] : TFolder Read GetFolder;
+    (**
+      This property returns the number of folders in the collection.
+      @precon  None.
+      @postcon Returns the number of folders in the collection.
+      @return  an Integer
+    **)
+    Property Count : Integer Read GetCount;
+  End;
+
   (** This class defines a list of files from a single directory. **)
   TFileList = Class
   Strict Private
@@ -212,6 +286,7 @@ Type
     FTotalSize          : Int64;
     FFileFilters        : TStringList;
     FSyncOptions        : TSyncOptions;
+    FMaxFileSize        : Int64;
   Strict Protected
     Function InExclusions(strFileName: String): Boolean;
     Function GetCount: Integer;
@@ -224,8 +299,7 @@ Type
     Constructor Create; Virtual;
     Destructor Destroy; Override;
     Procedure SearchFolder(strFolderPath, strFileFilter, strExclusions: String;
-      SyncOps : TSyncOptions);
-    Function Find(strFileName: String): Integer; Virtual;
+      SyncOps : TSyncOptions; iMaxFileSize : Int64);
     Procedure Delete(iIndex : Integer);
     (**
       Aa property to return the folder path for the class.
@@ -281,13 +355,14 @@ Type
       Write FSearchEndNotifier;
   End;
 
-  (** A class to compare to list of folder file. **)
+  (** A class to compare two lists of folder file. **)
   TCompareFolders = Class
   Strict Private
     FLeftFldr            : TFileList;
     FRightFldr           : TFileList;
     FSyncOptions         : TSyncOptions;
     FFldrSyncOptions     : TFldrSyncOptions;
+    FMaxFileSize         : Int64;
     FSearchStartNotifier : TSearchStartNotifier;
     FSearchNotifier      : TSearchNotifier;
     FSearchEndNotifier   : TSearchEndNotifier;
@@ -307,7 +382,8 @@ Type
     Constructor Create; Virtual;
     Destructor Destroy; Override;
     Procedure SearchFolders(strLeftFldr, strRightFldr, strPatterns: String;
-      strExclusions: String; iSection: Integer; SyncOps: TSyncOptions);
+      strExclusions: String; iSection: Integer; SyncOps: TSyncOptions;
+      iMaxFileSize : Int64);
     Function CheckDifference(iTimeDifference: Integer; iSizeDifference: Integer;
       Check: TCheckDifference): Boolean;
     Procedure ClearUnchangedItems;
@@ -342,6 +418,13 @@ Type
       @return  a TFldrSyncOptions
     **)
     Property FldrSyncOptions: TFldrSyncOptions Read FFldrSyncOptions;
+    (**
+      This property defines the maximum size of file to process.
+      @precon  None.
+      @postcon Returns the maximum size of file to process.
+      @return  an Int64
+    **)
+    Property MaxFileSize : Int64 Read FMaxFileSize;
     (**
       This is an event handler for the start of the searching for files process.
       @precon  None.
@@ -450,41 +533,44 @@ Type
   (** A class to represent a collection of TCompareFolders classes. **)
   TCompareFoldersCollection = Class
   Strict Private
-    FCompareFolders             : TObjectList;
-    FSearchStartNotifier        : TSearchStartNotifier;
-    FSearchNotifier             : TSearchNotifier;
-    FSearchEndNotifier          : TSearchEndNotifier;
-    FCompareStartNotifier       : TCompareStartNotifier;
-    FCompareNotifier            : TCompareNotifier;
-    FCompareEndNotifier         : TCompareEndNotifier;
-    FMatchListStartNotifier     : TMatchListStartNotifier;
-    FMatchListNotifier          : TMatchListNotifier;
-    FMatchListEndNotifier       : TMatchListEndNotifier;
-    FDeleteStartNotifier        : TDeleteStartNotifier;
-    FDeletingNotifier           : TDeletingNotifier;
-    FDeletedNotifier            : TDeletedNotifier;
-    FDeleteQueryNotifier        : TDeleteQueryNotifier;
-    FDeleteReadOnlyQueryNotifier: TDeleteReadOnlyQueryNotifier;
-    FDeleteEndNotifier          : TDeleteEndNotifier;
-    FCopyStartNotifier          : TCopyStartNotifier;
-    FCopyingNotifier            : TCopyingNotifier;
-    FCopyContents               : TCopyContents;
-    FCopiedNotifier             : TCopiedNotifier;
-    FCopyQueryNotifier          : TCopyQueryNotifier;
-    FCopyReadOnlyQueryNotifier  : TCopyReadOnlyQueryNotifier;
-    FCopyEndNotifier            : TCopyEndNotifier;
-    FDiffSizeStartNotifier      : TDiffSizeStartNotifier;
-    FDiffSizeNotifier           : TDiffSizeNotifier;
-    FDiffSizeEndNotifier        : TDiffSizeEndNotifier;
-    FNothingToDoStartNotifier   : TNothingToDoStartNotifier;
-    FNothingToDoNotifier        : TNothingToDoNotifier;
-    FNothingToDoEndNotifier     : TNothingToDoEndNotifier;
-    FProcessList                : TObjectList;
-    FCopiedTotalSize            : Int64;
-    FFiles                      : Integer;
-    FSkipped                    : Integer;
-    FErrors                     : Integer;
-    FStatistics                 : TStringList;
+    FCompareFolders                : TObjectList;
+    FSearchStartNotifier           : TSearchStartNotifier;
+    FSearchNotifier                : TSearchNotifier;
+    FSearchEndNotifier             : TSearchEndNotifier;
+    FCompareStartNotifier          : TCompareStartNotifier;
+    FCompareNotifier               : TCompareNotifier;
+    FCompareEndNotifier            : TCompareEndNotifier;
+    FMatchListStartNotifier        : TMatchListStartNotifier;
+    FMatchListNotifier             : TMatchListNotifier;
+    FMatchListEndNotifier          : TMatchListEndNotifier;
+    FDeleteStartNotifier           : TDeleteStartNotifier;
+    FDeletingNotifier              : TDeletingNotifier;
+    FDeletedNotifier               : TDeletedNotifier;
+    FDeleteQueryNotifier           : TDeleteQueryNotifier;
+    FDeleteReadOnlyQueryNotifier   : TDeleteReadOnlyQueryNotifier;
+    FDeleteEndNotifier             : TDeleteEndNotifier;
+    FCopyStartNotifier             : TCopyStartNotifier;
+    FCopyingNotifier               : TCopyingNotifier;
+    FCopyContents                  : TCopyContents;
+    FCopiedNotifier                : TCopiedNotifier;
+    FCopyQueryNotifier             : TCopyQueryNotifier;
+    FCopyReadOnlyQueryNotifier     : TCopyReadOnlyQueryNotifier;
+    FCopyEndNotifier               : TCopyEndNotifier;
+    FDiffSizeStartNotifier         : TDiffSizeStartNotifier;
+    FDiffSizeNotifier              : TDiffSizeNotifier;
+    FDiffSizeEndNotifier           : TDiffSizeEndNotifier;
+    FNothingToDoStartNotifier      : TNothingToDoStartNotifier;
+    FNothingToDoNotifier           : TNothingToDoNotifier;
+    FNothingToDoEndNotifier        : TNothingToDoEndNotifier;
+    FExceedsSizeLimitStartNotifier : TExceedsSizeLimitStartNotifier;
+    FExceedsSizeLimitNotifier      : TExceedsSizeLimitNotifier;
+    FExceedsSizeLimitEndNotifier   : TExceedsSizeLimitEndNotifier;
+    FProcessList                   : TObjectList;
+    FCopiedTotalSize               : Int64;
+    FFiles                         : Integer;
+    FSkipped                       : Integer;
+    FErrors                        : Integer;
+    FStatistics                    : TStringList;
   Strict Protected
     Function GetCount: Integer;
     Function GetCompareFolders(iIndex: Integer): TCompareFolders;
@@ -503,19 +589,19 @@ Type
     Procedure DoDeleting(iFile : Integer; strFileName: String);
     Procedure DoDeleted(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
       strErrmsg: String);
-    Procedure DoDeleteQuery(strFileName: String; Var Option: TFileAction;
-      SyncOptions: TSyncOptions);
-    Procedure DoDeleteReadOnlyQuery(strFileName: String; Var Option: TFileAction;
-      SyncOptions: TSyncOptions);
+    Procedure DoDeleteQuery(strFilePath: String; DeleteFile : TFileRecord;
+      Var Option: TFileAction;  SyncOptions: TSyncOptions);
+    Procedure DoDeleteReadOnlyQuery(strFilePath: String; DeleteFile : TFileRecord;
+      Var Option: TFileAction; SyncOptions: TSyncOptions);
     Procedure DoDeleteEnd(iDeleted, iSkipped, iErrors: Integer);
     Procedure DoCopyStart(iTotalCount: Integer; iTotalSize: Int64);
     Procedure DoCopying(iFile : Integer; strSource, strDest, strFileName: String);
     Procedure DoCopied(iCopiedFiles: Integer; iCopiedFileTotalSize,
       iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrmsg: String);
-    Procedure DoCopyQuery(strSourceFile, strDestFile: String; Var Option: TFileAction;
-      SyncOptions: TSyncOptions);
-    Procedure DoCopyReadOnlyQuery(strSourceFile, strDestFile: String;
-      Var Option: TFileAction; SyncOptions: TSyncOptions);
+    Procedure DoCopyQuery(strSourcePath, strDestPath: String; SourceFile,
+      DestFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
+    Procedure DoCopyReadOnlyQuery(strSourcePath, strDestPath: String; SourceFile,
+      DestFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
     Procedure DoCopyEnd(iCopied, iSkipped, iError: Integer);
     Procedure DoDiffSizeStart(iFileCount: Integer);
     Procedure DoDiffSize(strLPath, strRPath, strFileName: String);
@@ -523,17 +609,21 @@ Type
     Procedure DoNothingToDoStart(iFileCount: Integer);
     Procedure DoNothingToDo(strLPath, strRPath, strFileName: String);
     Procedure DoNothingToDoEnd;
+    Procedure DoExceedsSizeLimitStart(iFileCount: Integer);
+    Procedure DoExceedsSizeLimit(strLPath, strRPath, strFileName: String);
+    Procedure DoExceedsSizeLimitEnd;
     Procedure DeleteFiles;
     Procedure CopyFiles;
     Procedure DifferentSize;
     Procedure DoNothing;
+    Procedure DoSizeLimit;
     Function CopyFileContents(strSourceFile, strDestFile: String; Var iCopied: Integer;
       Var strErrmsg: String): Boolean;
     Function CountFileOps(FileOps: TFileOps; Var iSize: Int64): Integer;
     Procedure DeleteIndividualFile(strPath: String; F: TFileRecord; iFile: Integer;
-      Var boolAll, boolROAll: Boolean; SyncOps: TSyncOptions);
-    Function CopyIndividualFile(strSource, strDest: String; FName: TFileRecord;
-      Var boolAll: Boolean; boolReadOnly: Boolean; Var strErrmsg: String;
+      Var FileActions : TFileActions; SyncOps: TSyncOptions);
+    Function CopyIndividualFile(strSource, strDest: String; SourceFile,
+      DestFile: TFileRecord; Var FileActions : TFileActions; Var strErrmsg: String;
       SyncOps: TSyncOptions): Boolean;
     Function CanByPassQuery(SyncOps: TSyncOptions; boolReadOnly : Boolean;
       Var Option: TFileAction): Boolean;
@@ -556,7 +646,7 @@ Type
   Public
     Constructor Create; Virtual;
     Destructor Destroy; Override;
-    Function ProcessFolders(slFolders: TStringList; strExclusions: String): Boolean;
+    Function ProcessFolders(Folders: TFolders; strExclusions: String): Boolean;
     Procedure ProcessFiles;
     Procedure Clear;
     Procedure BuildStats;
@@ -811,6 +901,30 @@ Type
     Property OnNothingToDoEnd: TNothingToDoEndNotifier Read FNothingToDoEndNotifier
       Write FNothingToDoEndNotifier;
     (**
+      This is an event handler that is fired at the start of the exceeds size limit output.
+      @precon  None.
+      @postcon Event handler that is fired at the start of the exceeds size limit output.
+      @return  a TExceedsSizeLimitStartNotifier
+    **)
+    Property OnExceedsSizeLimitStart: TExceedsSizeLimitStartNotifier
+      Read FExceedsSizeLimitStartNotifier Write FExceedsSizeLimitStartNotifier;
+    (**
+      This is an event handler that is fired for each file in the exceeds size limit output.
+      @precon  None.
+      @postcon Event handler that is fired for each file in the exceeds size limit output.
+      @return  a TExceedsSizeLimitNotifier
+    **)
+    Property OnExceedsSizeLimit: TExceedsSizeLimitNotifier Read FExceedsSizeLimitNotifier
+      Write FExceedsSizeLimitNotifier;
+    (**
+      This is an event handler that is fired at the end of the exceeeds size limit output.
+      @precon  None.
+      @postcon Event handler that is fired at the end of the exceeeds size limit output.
+      @return  a TExceedsSizeLimitEndNotifier
+    **)
+    Property OnExceedsSizeLimitEnd: TExceedsSizeLimitEndNotifier
+      Read FExceedsSizeLimitEndNotifier Write FExceedsSizeLimitEndNotifier;
+    (**
       This property provides access to the list of statistics stored in a string list.
       @precon  None.
       @postcon Get the string list of statistics.
@@ -825,13 +939,22 @@ Type
 Function Expand(strFileName: String): String;
 
 Const
-  (** A constant array to define string representation of the TFileAction enumerates. **)
-  strFileOptions: Array [Low(TFileAction) .. High(TFileAction)] Of String = ('No', 'Yes',
-    'All', 'Cancel', 'Unknown');
+  (** A constant array to define string representation of the TFileAction enumerates.  **)
+  strFileOptions: Array [Low(TFileAction) .. High(TFileAction)] Of String = (
+    '[N]o',
+    '[Y]es',
+    'Yes to [A]ll',
+    'No to A[l]l',
+    'Yes to [A]ll',
+    'No to A[l]l',
+    '[C]ancel',
+    '[U]nknown'
+  );
 
 Implementation
 
 Uses
+  CodeSiteLogging,
   FileCtrl,
   DGHLibrary,
   Math;
@@ -894,6 +1017,178 @@ Begin
       Else If Copy(Result, 1, 2) = '\\' Then
         Result := '\\?\UNC\' + Copy(Result, 3, Length(Result) - 2);
     End;
+End;
+
+{ TFolder }
+
+(**
+
+  This method assigns the properties of the given folder to the current instance of a 
+  folder.
+
+  @precon  AFolder must be a valid instance.
+  @postcon Assigns the properties of the given folder to the current instance of a 
+           folder.
+
+  @param   AFolder as a TFolder
+
+**)
+Procedure TFolder.Assign(AFolder: TFolder);
+
+Begin
+  FLeftFldr := AFolder.LeftFldr;
+  FRightFldr := AFolder.RightFldr;
+  FPatterns := AFolder.Patterns;
+  FSyncOptions := AFolder.SyncOptions;
+  FMaxFileSize := AFolder.MaxFileSize;
+End;
+(**
+
+  This is a constructor for the TFolder class.
+
+  @precon  None.
+  @postcon Initialises an instance of a TFolder class.
+
+  @param   strLeftFldr  as a String
+  @param   strRightFldr as a String
+  @param   strPatterns  as a String
+  @param   iSyncOptions as a TSyncOptions
+  @param   iMaxFileSize as an Int64
+
+**)
+Constructor TFolder.Create(strLeftFldr, strRightFldr, strPatterns: String;
+  iSyncOptions: TSyncOptions; iMaxFileSize: Int64);
+
+Begin
+  FLeftFldr := strLeftFldr;
+  FRightFldr := strRightFldr;
+  FPatterns := strPatterns;
+  FSyncOptions := iSyncOptions;
+  FMaxFileSize := iMaxFileSize;
+End;
+
+{ TFolders }
+
+(**
+
+  This method adds the passed folder to the folders collection.
+
+  @precon  None.
+  @postcon Adds the passed folder to the folders collection.
+
+  @param   Folder as a TFolder
+
+**)
+Procedure TFolders.Add(Folder: TFolder);
+
+Begin
+  FFolders.Add(Folder);
+End;
+
+(**
+
+  This method assigns the givens folders to a new collection of folders in the current
+  instance.
+
+  @precon  Folders must be a valid instance.
+  @postcon Assigns the givens folders to a new collection of folders in the current
+           instance.
+
+  @param   Folders as a TFolders
+
+**)
+Procedure TFolders.Assign(Folders: TFolders);
+
+Var
+  i : Integer;
+  AFolder: TFolder;
+  
+Begin
+  FFolders.Clear;
+  For i := 0 To Folders.Count - 1 Do
+    Begin
+      AFolder := TFolder.Create('', '', '', [], 0);
+      AFolder.Assign(Folders.Folder[i]);
+      Add(AFolder);
+    End;
+End;
+
+(**
+
+  This is a constructor for the TFolders class.
+
+  @precon  None.
+  @postcon Initialises an empty collection of Tfolder(s)
+
+**)
+Constructor TFolders.Create;
+
+Begin
+  FFolders := TObjectList.Create(True);
+End;
+
+(**
+
+  This method deletes the indexed folder in the collection.
+
+  @precon  iIndex must be a valid index between 0 and Count  - 1.
+  @postcon Deletes the indexed folder in the collection.
+
+  @param   iIndex as an Integer
+
+**)
+Procedure TFolders.Delete(iIndex: Integer);
+
+Begin
+  FFolders.Delete(iIndex);
+End;
+
+(**
+
+  This is a destructor for the TFolders class.
+
+  @precon  None.
+  @postcon Fress the memory used by the collection of TFolder(s).
+
+**)
+Destructor TFolders.Destroy;
+
+Begin
+  FFolders.Free;
+  Inherited Destroy;
+End;
+
+(**
+
+  This is a getter method for the Count property.
+
+  @precon  None.
+  @postcon Returns the number of items in the Folders collection.
+
+  @return  an Integer
+
+**)
+Function TFolders.GetCount: Integer;
+
+Begin
+  Result := FFolders.Count
+End;
+
+(**
+
+  This is a getter method for the Folder property.
+
+  @precon  iIndex must be a valid value between 0 and Count - 1.
+  @postcon Returns a TFolder instance of the indexed folder.
+
+  @param   iIndex as an Integer
+  @return  a TFolder
+
+**)
+Function TFolders.GetFolder(iIndex: Integer): TFolder;
+
+Begin
+  Result := FFolders[iIndex] As TFolder;
 End;
 
 { TFileRecord }
@@ -1050,8 +1345,8 @@ End;
 
 (**
 
-  This method searches the give folder for files matching the file filters and excluding
-  any files that match one of the exclusions somewhere in their path and adds them to the
+  This method searches the give folder for files matching the file filters and excluding 
+  any files that match one of the exclusions somewhere in their path and adds them to the 
   folder collection.
 
   @precon  None.
@@ -1062,11 +1357,12 @@ End;
   @param   strFolderPath as a String
   @param   strFileFilter as a String
   @param   strExclusions as a String
-  @param   SyncOps       as a TsyncOptions
+  @param   SyncOps       as a TSyncOptions
+  @param   iMaxFileSize  as an Int64
 
 **)
 Procedure TFileList.SearchFolder(strFolderPath, strFileFilter, strExclusions: String;
-  SyncOps : TsyncOptions);
+  SyncOps : TSyncOptions; iMaxFileSize : Int64);
 
 Var
   iFilter: Integer;
@@ -1087,43 +1383,6 @@ Begin
   DoSearchStart(FFolderPath);
   RecurseFolder(FFolderPath);
   DoSearchEnd(FFiles.Count, FTotalSize);
-End;
-
-(**
-
-  This method uses a binary search to find the given filename in the collection
-  and return the index of the filename in the collection.
-
-  @precon  None.
-  @postcon Returns the index of the filename if the file is found else returns
-           -1.
-
-  @param   strFileName as a String
-  @return  an Integer
-
-**)
-Function TFileList.Find(strFileName: String): Integer;
-
-Var
-  iFirst, iLast, iMid: Integer;
-
-Begin
-  Result := -1;
-  iFirst := 0;
-  iLast  := Count - 1;
-  While iLast >= iFirst Do
-    Begin
-      iMid := (iFirst + iLast) Div 2;
-      If AnsiCompareFileName(strFileName, Files[iMid].FileName) = 0 Then
-        Begin
-          Result := iMid;
-          Exit;
-        End;
-      If AnsiCompareFileName(strFileName, Files[iMid].FileName) < 0 Then
-        iLast := iMid - 1
-      Else
-        iFirst := iMid + 1;
-    End;
 End;
 
 (**
@@ -1192,34 +1451,35 @@ Begin
             While iRes = 0 Do
               Begin
                 If rec.Attr And faDirectory = 0 Then
-                  Begin
-                    strFileName := strFolderPath + rec.Name;
-                    If Not InExclusions(strFileName) Then
-                      Begin
-                        strFCName := Copy(strFileName, Length(FFolderPath) + 1,
-                          Length(strFileName));
-                        iFirst := 0;
-                        iLast  := Count - 1;
-                        While iLast >= iFirst Do
-                          Begin
-                            iMid := (iFirst + iLast) Div 2;
-                            If AnsiCompareFileName(strFCName,
-                              Files[iMid].FileName) = 0 Then
-                              Break;
-                            If AnsiCompareFileName(strFCName,
-                              Files[iMid].FileName) < 0 Then
-                              iLast := iMid - 1
-                            Else
-                              iFirst := iMid + 1;
-                          End;
-                        {$WARN SYMBOL_DEPRECATED OFF}
-                        FFiles.Insert(iFirst, TFileRecord.Create(strFCName, rec.Size,
-                            rec.Attr, rec.Time, stNewer));
-                        {$WARN SYMBOL_DEPRECATED ON}
-                        Inc(FTotalSize, rec.Size);
-                        DoSearch(FFolderPath, Files[iFirst].FileName, Count);
-                      End;
-                  End;
+                  If (FMaxFileSize = 0) Or (rec.Size <= FMaxFileSize) Then
+                    Begin
+                      strFileName := strFolderPath + rec.Name;
+                      If Not InExclusions(strFileName) Then
+                        Begin
+                          strFCName := Copy(strFileName, Length(FFolderPath) + 1,
+                            Length(strFileName));
+                          iFirst := 0;
+                          iLast  := Count - 1;
+                          While iLast >= iFirst Do
+                            Begin
+                              iMid := (iFirst + iLast) Div 2;
+                              If AnsiCompareFileName(strFCName,
+                                Files[iMid].FileName) = 0 Then
+                                Break;
+                              If AnsiCompareFileName(strFCName,
+                                Files[iMid].FileName) < 0 Then
+                                iLast := iMid - 1
+                              Else
+                                iFirst := iMid + 1;
+                            End;
+                          {$WARN SYMBOL_DEPRECATED OFF}
+                          FFiles.Insert(iFirst, TFileRecord.Create(strFCName, rec.Size,
+                              rec.Attr, rec.Time, stNewer));
+                          {$WARN SYMBOL_DEPRECATED ON}
+                          Inc(FTotalSize, rec.Size);
+                          DoSearch(FFolderPath, Files[iFirst].FileName, Count);
+                        End;
+                    End;
                 iRes := FindNext(rec);
               End;
           Finally
@@ -1340,40 +1600,77 @@ Var
   iLeft, iRight  : Integer;
   iTimeDifference: Integer;
   iSizeDifference: Integer;
+  strLeftFile: String;
+  strRightFile: String;
+  iCompare: Integer;
 
 Begin
   DoCompareStart(LeftFldr.FolderPath, RightFldr.FolderPath);
-  For iLeft := 0 To LeftFldr.Count - 1 Do
+  iLeft := 0;
+  iRight := 0;
+  While (iLeft < LeftFldr.Count) And (iRight < RightFldr.Count) Do
     Begin
-      DoCompare(LeftFldr.FolderPath, RightFldr.FolderPath, LeftFldr[iLeft].FileName,
-        iLeft + 1, LeftFldr.Count);
-      iRight := RightFldr.Find(LeftFldr[iLeft].FileName);
-      If iRight > -1 Then
-        Begin
-          iTimeDifference := LeftFldr[iLeft].DateTime - RightFldr[iRight].DateTime;
-          iSizeDifference := LeftFldr[iLeft].Size - RightFldr[iRight].Size;
-          If CheckDifference(iTimeDifference, iSizeDifference, cdNewer) Then
-            Begin
-              LeftFldr[iLeft].Status   := stNewer;
-              RightFldr[iRight].Status := stOlder;
-            End
-          Else If CheckDifference(iTimeDifference, iSizeDifference, cdOlder) Then
-            Begin
-              LeftFldr[iLeft].Status   := stOlder;
+      If iLeft < LeftFldr.Count Then
+        strLeftFile := LeftFldr[iLeft].FileName
+      Else
+        strLeftFile := '';
+      If iRight < RightFldr.Count Then
+        strRightFile := RightFldr[iRight].FileName
+      Else
+        strRightFile := '';
+      iCompare := AnsiCompareFileName(strLeftFile, strRightFile);
+      Case iCompare Of
+        -2147483648..-1:
+          Begin
+            If (FMaxFileSize > 0) And (LeftFldr[iLeft].Size > FMaxFileSize) Then
+              LeftFldr[iLeft].Status   := stTooLarge
+            Else
+              LeftFldr[iLeft].Status := stNewer;
+            Inc(iLeft);
+          End;
+        +1..+2147483647:
+          Begin
+            If (FMaxFileSize > 0) And (RightFldr[iRight].Size > FMaxFileSize) Then
+              RightFldr[iLeft].Status   := stTooLarge
+            Else
               RightFldr[iRight].Status := stNewer;
-            End
-          Else If iSizeDifference = 0 Then
-            Begin
-              LeftFldr[iLeft].Status   := stSame;
-              RightFldr[iRight].Status := stSame;
-            End
-          Else
-            Begin
-              LeftFldr[iLeft].Status   := stDiffSize;
-              RightFldr[iRight].Status := stDiffSize;
-            End;
-        End;
-    End;
+            Inc(iRight);
+          End;
+      Else  
+        DoCompare(LeftFldr.FolderPath, RightFldr.FolderPath, LeftFldr[iLeft].FileName,
+          Max(iLeft + 1, iRight + 1), Max(LeftFldr.Count, RightFldr.Count));
+        iTimeDifference := LeftFldr[iLeft].DateTime - RightFldr[iRight].DateTime;
+        iSizeDifference := LeftFldr[iLeft].Size - RightFldr[iRight].Size;
+        If (FMaxFileSize > 0) And ((LeftFldr[iLeft].Size > FMaxFileSize) Or
+          (RightFldr[iRight].Size > FMaxFileSize)) Then
+          Begin
+            LeftFldr[iLeft].Status   := stTooLarge;
+            RightFldr[iRight].Status := stTooLarge;
+          End
+        Else If CheckDifference(iTimeDifference, iSizeDifference, cdNewer) Then
+          Begin
+            LeftFldr[iLeft].Status   := stNewer;
+            RightFldr[iRight].Status := stOlder;
+          End
+        Else If CheckDifference(iTimeDifference, iSizeDifference, cdOlder) Then
+          Begin
+            LeftFldr[iLeft].Status   := stOlder;
+            RightFldr[iRight].Status := stNewer;
+          End
+        Else If iSizeDifference = 0 Then
+          Begin
+            LeftFldr[iLeft].Status   := stSame;
+            RightFldr[iRight].Status := stSame;
+          End
+        Else
+          Begin
+            LeftFldr[iLeft].Status   := stDiffSize;
+            RightFldr[iRight].Status := stDiffSize;
+          End;
+        Inc(iLeft);
+        Inc(iRight);
+      End; 
+    End;        
   DoCompareEnd;
 End;
 
@@ -1470,26 +1767,28 @@ End;
   @precon  None.
   @postcon Starts the process of searching the give folders for files.
 
-  @param   strLeftFldr     as a String
-  @param   strRightFldr    as a String
-  @param   strPatterns     as a String
-  @param   strExclusions   as a String
-  @param   iSection        as an Integer
-  @param   SyncOps         as a TSyncOptions
+  @param   strLeftFldr   as a String
+  @param   strRightFldr  as a String
+  @param   strPatterns   as a String
+  @param   strExclusions as a String
+  @param   iSection      as an Integer
+  @param   SyncOps       as a TSyncOptions
+  @param   iMaxFileSize  as an Int64
 
 **)
 Procedure TCompareFolders.SearchFolders(strLeftFldr, strRightFldr, strPatterns,
-  strExclusions: String; iSection: Integer; SyncOps: TSyncOptions);
+  strExclusions: String; iSection: Integer; SyncOps: TSyncOptions; iMaxFileSize : Int64);
 
 Begin
   FSyncOptions     := SyncOps;
   FFldrSyncOptions := FldrSyncOptions;
+  FMaxFileSize := iMaxFileSize;
   If Not SysUtils.DirectoryExists(strLeftFldr) Then
     Exit;
   If Not SysUtils.DirectoryExists(strRightFldr) Then
     Exit;
-  FLeftFldr.SearchFolder(strLeftFldr, strPatterns, strExclusions, SyncOps);
-  FRightFldr.SearchFolder(strRightFldr, strPatterns, strExclusions, SyncOps);
+  FLeftFldr.SearchFolder(strLeftFldr, strPatterns, strExclusions, SyncOps, iMaxFileSize);
+  FRightFldr.SearchFolder(strRightFldr, strPatterns, strExclusions, SyncOps, iMaxFileSize);
   CompareFolders;
 End;
 
@@ -1838,12 +2137,12 @@ Procedure TCompareFoldersCollection.CopyFiles;
 
 Var
   iCount            : Integer;
-  boolAll, boolROAll: Boolean;
+  FileActions       : TFileActions;
   iFile             : Integer;
   i                 : Integer;
   P                 : TProcessItem;
   strSource, strDest: String;
-  FName             : TFileRecord;
+  SourceFile, DestFile : TFileRecord;
   iAttr             : Cardinal;
   strErrmsg         : String;
   boolSuccess       : Boolean;
@@ -1857,8 +2156,7 @@ Begin
   Try
     If iCount = 0 Then
       Exit;
-    boolAll   := False;
-    boolROAll := False;
+    FileActions := [];
     iFile     := 0;
     FCopiedTotalSize     := 0;
     FErrors   := 0;
@@ -1869,42 +2167,44 @@ Begin
           Begin
             If P.FileOp = foLeftToRight Then
               Begin
-                strSource := P.LPath;
-                strDest   := P.RPath;
-                FName     := P.LeftFile;
+                strSource  := P.LPath;
+                strDest    := P.RPath;
+                SourceFile := P.LeftFile;
+                DestFile   := P.RightFile;
               End
             Else
               Begin
-                strSource := P.RPath;
-                strDest   := P.LPath;
-                FName     := P.RightFile;
+                strSource  := P.RPath;
+                strDest    := P.LPath;
+                SourceFile := P.RightFile;
+                DestFile   := P.LeftFile;
               End;
-            DoCopying(iFile + 1, strSource, strDest, FName.FileName);
+            DoCopying(iFile + 1, strSource, strDest, SourceFile.FileName);
             If Not SysUtils.DirectoryExists
-              (ExtractFilePath(strDest + FName.FileName)) Then
+              (ExtractFilePath(strDest + SourceFile.FileName)) Then
               If Not SysUtils.ForceDirectories
-                (ExtractFilePath(Expand(strDest + FName.FileName))) Then
+                (ExtractFilePath(Expand(strDest + SourceFile.FileName))) Then
                 Raise EFldrSyncException.CreateFmt('Can not create folder "%s".',
-                  [ExtractFilePath(strDest + FName.FileName)]);
-            If Not FileExists(strDest + FName.FileName) Then
-              boolSuccess := CopyFileContents(strSource + FName.FileName,
-                strDest + FName.FileName, FFiles, strErrmsg)
+                  [ExtractFilePath(strDest + SourceFile.FileName)]);
+            If Not FileExists(strDest + SourceFile.FileName) Then
+              boolSuccess := CopyFileContents(strSource + SourceFile.FileName,
+                strDest + SourceFile.FileName, FFiles, strErrmsg)
             Else
               Begin
-                iAttr := GetFileAttributes(PChar(Expand(strDest + FName.FileName)));
+                iAttr := GetFileAttributes(PChar(Expand(strDest + SourceFile.FileName)));
                 If iAttr And FILE_ATTRIBUTE_READONLY = 0 Then
-                  boolSuccess := CopyIndividualFile(strSource, strDest, FName, boolAll,
-                    False, strErrmsg, P.SyncOptions)
+                  boolSuccess := CopyIndividualFile(strSource, strDest, SourceFile,
+                    DestFile, FileActions, strErrmsg, P.SyncOptions)
                 Else
-                  boolSuccess := CopyIndividualFile(strSource, strDest, FName, boolROAll,
-                    True, strErrmsg, P.SyncOptions);
+                  boolSuccess := CopyIndividualFile(strSource, strDest, SourceFile,
+                    DestFile, FileActions, strErrmsg, P.SyncOptions);
               End;
-            Inc(FCopiedTotalSize, FName.Size);
+            Inc(FCopiedTotalSize, SourceFile.Size);
             If Not boolSuccess Then
               Inc(FErrors)
             Else
               Inc(iFile);
-            DoCopied(iFile, FName.Size, FCopiedTotalSize, boolSuccess, strErrmsg);
+            DoCopied(iFile, SourceFile.Size, FCopiedTotalSize, boolSuccess, strErrmsg);
           End;
       End;
   Finally
@@ -1919,18 +2219,18 @@ End;
   @precon  FName must be a valid instance.
   @postcon Copies an individual file after querying the user for a response.
 
-  @param   strSource    as a String
-  @param   strDest      as a String
-  @param   FName        as a TFileRecord
-  @param   boolAll      as a Boolean as a reference
-  @param   boolReadOnly as a Boolean
-  @param   strErrMsg    as a String as a reference
-  @param   SyncOps      as a TSyncOptions
+  @param   strSource   as a String
+  @param   strDest     as a String
+  @param   SourceFile  as a TFileRecord
+  @param   DestFile    as a TFileRecord
+  @param   FileActions as a TFileActions as a reference
+  @param   strErrmsg   as a String as a reference
+  @param   SyncOps     as a TSyncOptions
   @return  a Boolean
 
 **)
 Function TCompareFoldersCollection.CopyIndividualFile(strSource, strDest: String;
-  FName: TFileRecord; Var boolAll: Boolean; boolReadOnly: Boolean; Var strErrmsg: String;
+  SourceFile, DestFile: TFileRecord; Var FileActions : TFileActions; Var strErrmsg: String;
   SyncOps: TSyncOptions): Boolean;
 
 Var
@@ -1939,18 +2239,18 @@ Var
 
 Begin
   Result := False;
-  If Not boolAll Then
+  //: @bug Handle NO to ALL
+  If Not (faYesToAll In FileActions) Then
     FA := faUnknown
   Else
-    FA := faAll;
-  If Not boolReadOnly Then
-    DoCopyQuery(strSource + FName.FileName, strDest + FName.FileName, FA, SyncOps)
+    FA := faYesToAll;
+  If Not (faYesToAllRO In FileActions) Then
+    DoCopyQuery(strSource, strDest, SourceFile, DestFile, FA, SyncOps)
   Else
-    DoCopyReadOnlyQuery(strSource + FName.FileName, strDest + FName.FileName, FA,
-      SyncOps);
-  If FA = faAll Then
+    DoCopyReadOnlyQuery(strSource, strDest, SourceFile, DestFile, FA, SyncOps);
+  If FA = faYesToAll Then
     Begin
-      boolAll := True;
+      Include(FileActions, faYesToAll);
       FA      := faYes;
     End;
   Case FA Of
@@ -1961,14 +2261,14 @@ Begin
       End;
     faYes:
       Begin
-        iAttr := GetFileAttributes(PChar(Expand(strDest + FName.FileName)));
+        iAttr := GetFileAttributes(PChar(Expand(strDest + DestFile.FileName)));
         If iAttr And faReadOnly > 0 Then
           Begin
             iAttr := iAttr Xor FILE_ATTRIBUTE_READONLY;
-            SetFileAttributes(PChar(Expand(strDest + FName.FileName)), iAttr);
+            SetFileAttributes(PChar(Expand(strDest + DestFile.FileName)), iAttr);
           End;
-        Result := CopyFileContents(strSource + FName.FileName, strDest + FName.FileName,
-          FFiles, strErrmsg);
+        Result := CopyFileContents(strSource + SourceFile.FileName,
+          strDest + DestFile.FileName, FFiles, strErrmsg);
       End;
     faCancel:
       Abort;
@@ -2051,12 +2351,11 @@ End;
 Procedure TCompareFoldersCollection.DeleteFiles;
 
 Var
-  boolAll  : Boolean;
-  boolROAll: Boolean;
   iCount   : Integer;
   i        : Integer;
   P        : TProcessItem;
   iFile    : Integer;
+  FileActions : TFileActions;
 
 Begin
   FCopiedTotalSize    := 0;
@@ -2069,8 +2368,7 @@ Begin
     FCopiedTotalSize := 0;
     If iCount = 0 Then
       Exit;
-    boolAll   := False;
-    boolROAll := False;
+    FileActions := [];
     iFile     := 1;
     For i     := 0 To ProcessCount - 1 Do
       Begin
@@ -2078,10 +2376,10 @@ Begin
         If P.FileOp = foDelete Then
           Begin
             If P.LeftFile <> Nil Then
-              DeleteIndividualFile(P.LPath, P.LeftFile, iFile, boolAll, boolROAll,
+              DeleteIndividualFile(P.LPath, P.LeftFile, iFile, FileActions,
                 P.SyncOptions);
             If P.RightFile <> Nil Then
-              DeleteIndividualFile(P.RPath, P.RightFile, iFile, boolAll, boolROAll,
+              DeleteIndividualFile(P.RPath, P.RightFile, iFile, FileActions,
                 P.SyncOptions);
             Inc(iFile);
           End;
@@ -2101,13 +2399,12 @@ End;
   @param   strPath     as a String
   @param   F           as a TFileRecord
   @param   iFile       as an Integer
-  @param   boolAll     as a Boolean as a reference
-  @param   boolROAll   as a Boolean as a reference
+  @param   FileActions as a TFileActions as a reference
   @param   SyncOps     as a TSyncOptions
 
 **)
 Procedure TCompareFoldersCollection.DeleteIndividualFile(strPath: String; F: TFileRecord;
-  iFile: Integer; Var boolAll, boolROAll: Boolean; SyncOps: TSyncOptions);
+  iFile: Integer; Var FileActions : TFileActions; SyncOps: TSyncOptions);
 
 Const
   strMsg = 'Deletion of file "%s" failed with message "%s".';
@@ -2120,24 +2417,25 @@ Var
 
 Begin
   boolResult := False;
+  //: @bug Handle NO to ALL
   DoDeleting(iFile, strPath + F.FileName);
-  If Not boolAll Then
+  If Not (faYesToAll In FileActions) Then
     FA := faUnknown
   Else
-    FA := faAll;
+    FA := faYesToAll;
   If F.Attributes And faReadOnly > 0 Then
     Begin
-      If Not boolROAll Then
+      If Not (faYesToAllRO In FileActions) Then
         FA := faUnknown;
-      DoDeleteReadOnlyQuery(strPath + F.FileName, FA, SyncOps);
-      If FA = faAll Then
-        boolROAll := True;
+      DoDeleteReadOnlyQuery(strPath, F, FA, SyncOps);
+      If FA = faYesToAll Then
+        Include(FileActions, faYesToAllRO);
     End
   Else
-    DoDeleteQuery(strPath + F.FileName, FA, SyncOps);
-  If FA = faAll Then
+    DoDeleteQuery(strPath, F, FA, SyncOps);
+  If FA = faYesToAll Then
     Begin
-      boolAll := True;
+      Include(FileActions, faYesToAll);
       FA      := faYes;
     End;
   Case FA Of
@@ -2290,19 +2588,21 @@ End;
   @precon  None.
   @postcon Fires the CopyQuery event if the event has a handler installed.
 
-  @param   strSourceFile as a String
-  @param   strDestFile   as a String
+  @param   strSourcePath as a String
+  @param   strDestPath   as a String
+  @param   SourceFile    as a TFileRecord
+  @param   DestFile      as a TFileRecord
   @param   Option        as a TFileAction as a reference
   @param   SyncOptions   as a TSyncOptions
 
 **)
-Procedure TCompareFoldersCollection.DoCopyQuery(strSourceFile, strDestFile: String;
-  Var Option: TFileAction; SyncOptions: TSyncOptions);
+Procedure TCompareFoldersCollection.DoCopyQuery(strSourcePath, strDestPath: String;
+  SourceFile, DestFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
 
 Begin
   If Not CanByPassQuery(SyncOptions, False, Option) Then
     If Assigned(FCopyQueryNotifier) Then
-      FCopyQueryNotifier(strSourceFile, strDestFile, Option);
+      FCopyQueryNotifier(strSourcePath, strDestPath, SourceFile, DestFile, Option);
 End;
 
 (**
@@ -2312,19 +2612,22 @@ End;
   @precon  None.
   @postcon Fires the CopyReadOnlyQuery event if the event has a handler installed.
 
-  @param   strSourceFile as a String
-  @param   strDestFile   as a String
+  @param   strSourcePath as a String
+  @param   strDestPath   as a String
+  @param   SourceFile    as a TFileRecord
+  @param   DestFile      as a TFileRecord
   @param   Option        as a TFileAction as a reference
   @param   SyncOptions   as a TSyncOptions
 
 **)
-Procedure TCompareFoldersCollection.DoCopyReadOnlyQuery(strSourceFile,
-  strDestFile: String; Var Option: TFileAction; SyncOptions: TSyncOptions);
+Procedure TCompareFoldersCollection.DoCopyReadOnlyQuery(strSourcePath,
+  strDestPath: String; SourceFile, DestFile : TFileRecord; Var Option: TFileAction;
+  SyncOptions: TSyncOptions);
 
 Begin
   If Not CanByPassQuery(SyncOptions, True, Option) Then
     If Assigned(FCopyReadOnlyQueryNotifier) Then
-      FCopyReadOnlyQueryNotifier(strSourceFile, strDestFile, Option);
+      FCopyReadOnlyQueryNotifier(strSourcePath, strDestPath, SourceFile, DestFile, Option);
 End;
 
 (**
@@ -2418,6 +2721,58 @@ End;
 
 (**
 
+  This method calls the FExceeedsSizeLimit is it has been assigned.
+
+  @precon  None.
+  @postcon Calls the FExceeedsSizeLimit is it has been assigned.
+
+  @param   strLPath    as a String
+  @param   strRPath    as a String
+  @param   strFileName as a String
+
+**)
+Procedure TCompareFoldersCollection.DoExceedsSizeLimit(strLPath, strRPath,
+  strFileName: String);
+
+Begin
+  If Assigned(FExceedsSizeLimitNotifier) Then
+    FExceedsSizeLimitNotifier(strLPAth, strRPath, strFileName);
+End;
+
+(**
+
+  This method calls the FExceeedsSizeLimitEnd is it has been assigned.
+
+  @precon  None.
+  @postcon Calls the FExceeedsSizeLimitEnd is it has been assigned.
+
+**)
+Procedure TCompareFoldersCollection.DoExceedsSizeLimitEnd;
+
+Begin
+  If Assigned(FExceedsSizeLimitEndNotifier) Then
+    FExceedsSizeLimitEndNotifier();
+End;
+
+(**
+
+  This method calls the FExceeedsSizeLimitStart is it has been assigned.
+
+  @precon  None.
+  @postcon Calls the FExceeedsSizeLimitStart is it has been assigned.
+
+  @param   iFileCount as an Integer
+
+**)
+Procedure TCompareFoldersCollection.DoExceedsSizeLimitStart(iFileCount: Integer);
+
+Begin
+  If Assigned(FExceedsSizeLimitStartNotifier) Then
+    FExceedsSizeLimitStartNotifier(iFileCount);
+End;
+
+(**
+
   This method fires the Deleted event if the event has a handler installed.
 
   @precon  None.
@@ -2463,18 +2818,19 @@ End;
   @precon  None.
   @postcon Fires the DeleteQuery event if the event has a handler installed.
 
-  @param   strFileName as a String
+  @param   strFilePath as a String
+  @param   DeleteFile  as a TFileRecord
   @param   Option      as a TFileAction as a reference
   @param   SyncOptions as a TSyncOptions
 
 **)
-Procedure TCompareFoldersCollection.DoDeleteQuery(strFileName: String;
-  Var Option: TFileAction; SyncOptions: TSyncOptions);
+Procedure TCompareFoldersCollection.DoDeleteQuery(strFilePath: String;
+  DeleteFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
 
 Begin
   If Not CanByPassQuery(SyncOptions, False, Option) Then
     If Assigned(FDeleteQueryNotifier) Then
-      FDeleteQueryNotifier(strFileName, Option);
+      FDeleteQueryNotifier(strFilePath, DeleteFile, Option);
 End;
 
 (**
@@ -2484,18 +2840,19 @@ End;
   @precon  None.
   @postcon Fires the DeleteReadOnlyQuery event if the event has a handler installed.
 
-  @param   strFileName as a String
+  @param   strFilePath as a String
+  @param   DeleteFile  as a TFileRecord
   @param   Option      as a TFileAction as a reference
   @param   SyncOptions as a TSyncOptions
 
 **)
-Procedure TCompareFoldersCollection.DoDeleteReadOnlyQuery(strFileName: String;
-  Var Option: TFileAction; SyncOptions: TSyncOptions);
+Procedure TCompareFoldersCollection.DoDeleteReadOnlyQuery(strFilePath: String;
+  DeleteFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
 
 Begin
   If Not CanByPassQuery(SyncOptions, True, Option) Then
     If Assigned(FDeleteReadOnlyQueryNotifier) Then
-      FDeleteReadOnlyQueryNotifier(strFileName, Option);
+      FDeleteReadOnlyQueryNotifier(strFilePath, DeleteFile, Option);
 End;
 
 (**
@@ -2650,6 +3007,42 @@ Procedure TCompareFoldersCollection.DoNothingToDoStart(iFileCount: Integer);
 Begin
   If Assigned(FNothingToDoStartNotifier) Then
     FNothingToDoStartNotifier(iFileCount);
+End;
+
+(**
+
+  This method processes the files which are labelled as exceeding the size limit.
+
+  @precon  None.
+  @postcon Processes the files which are labelled as exceeding the size limit.
+
+**)
+Procedure TCompareFoldersCollection.DoSizeLimit;
+
+Var
+  iSize : Int64;
+  iCount: Integer;
+  i     : Integer;
+  P     : TProcessItem;
+  strFileName : String;
+
+Begin
+  iSize  := 0;
+  iCount := CountFileOps([foExceedsSizeLimit], iSize);
+  DoExceedsSizeLimitStart(iCount);
+  For i := 0 To ProcessCount - 1 Do
+    Begin
+      P := Process[i];
+      If P.FileOp In [foExceedsSizeLimit] Then
+        Begin
+          If P.LeftFile <> Nil   Then
+            strFileName := P.LeftFile.FileName
+          Else
+            strFileName := P.RightFile.FileName;
+          DoExceedsSizeLimit(P.LPath, P.RPath, strFileName);
+        End;
+    End;
+  DoExceedsSizeLimitEnd();
 End;
 
 (**
@@ -2812,10 +3205,10 @@ Begin
         End;
       stOlder:
         Result := foLeftToRight;
-      stSame:
+      stSame..stDiffSize:
         Result := foNothing;
-      stDiffSize:
-        Result := foNothing;
+      stTooLarge:
+        Result := foExceedsSizeLimit;
     End
   Else
     Case LeftFile.Status Of
@@ -2827,10 +3220,10 @@ Begin
         End;
       stOlder:
         Result := foRightToLeft;
-      stSame:
+      stSame..stDiffSize:
         Result := foNothing;
-      stDiffSize:
-        Result := foNothing;
+      stTooLarge:
+        Result := foExceedsSizeLimit;
     End;
   boolROLeft  := False;
   boolRORight := False;
@@ -2870,6 +3263,7 @@ Begin
   CopyFiles;
   DifferentSize;
   DoNothing;
+  DoSizeLimit;
 End;
 
 (**
@@ -2879,25 +3273,23 @@ End;
   @precon  slFolders must contain pairs folders fld1=fld2 etc.
   @postcon Creates an instance of the compare folder classes for each pairing.
 
-  @param   slFolders     as a TStringList
+  @param   Folders       as a TFolders
   @param   strExclusions as a String
   @return  a Boolean
 
 **)
-Function TCompareFoldersCollection.ProcessFolders(slFolders: TStringList;
+Function TCompareFoldersCollection.ProcessFolders(Folders: TFolders;
   strExclusions: String): Boolean;
 
 Var
   i  : Integer;
   CP : TCompareFolders;
-  FOA: TFolderOptionsAdapter;
 
 Begin
   FStatistics.Clear;
-  For i := 0 To slFolders.Count - 1 Do
+  For i := 0 To Folders.Count - 1 Do
     Begin
-      FOA.FOBjData := slFolders.Objects[i];
-      If soEnabled In FOA.FSyncOptions Then
+      If soEnabled In Folders.Folder[i].SyncOptions Then
         Begin
           CP := TCompareFolders.Create;
           FCompareFolders.Add(CP);
@@ -2907,9 +3299,15 @@ Begin
           CP.OnCompareStart := FCompareStartNotifier;
           CP.OnCompare      := FCompareNotifier;
           CP.OnCompareEnd   := FCompareEndNotifier;
-          CP.SearchFolders(ExtractFilePath(slFolders.Names[i]),
-            ExtractFilePath(slFolders.ValueFromIndex[i]),
-            ExtractFileName(slFolders.Names[i]), strExclusions, i, FOA.FSyncOptions);
+          CP.SearchFolders(
+            ExtractFilePath(Folders.Folder[i].LeftFldr),
+            ExtractFilePath(Folders.Folder[i].RightFldr),
+            ExtractFileName(Folders.Folder[i].Patterns),
+            strExclusions,
+            i,
+            Folders.Folder[i].SyncOptions,
+            Folders.Folder[i].MaxFileSize
+          );
         End;
     End;
   BuildMatchLists;
