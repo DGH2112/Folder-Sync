@@ -160,7 +160,6 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     ModalResult = 6
     NumGlyphs = 2
     TabOrder = 0
-    ExplicitTop = 104
   end
   object btnNo: TBitBtn
     Left = 239
@@ -190,7 +189,6 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     ModalResult = 7
     NumGlyphs = 2
     TabOrder = 1
-    ExplicitTop = 104
   end
   object btnAll: TBitBtn
     Left = 320
@@ -201,7 +199,6 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     Kind = bkAll
     NumGlyphs = 2
     TabOrder = 2
-    ExplicitTop = 104
   end
   object btnCancel: TBitBtn
     Left = 401
@@ -212,6 +209,5 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     Kind = bkCancel
     NumGlyphs = 2
     TabOrder = 3
-    ExplicitTop = 104
   end
 end

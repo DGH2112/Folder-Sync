@@ -4,7 +4,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    01 Mar 2013
+  @Date    03 Mar 2013
 
 **)
 Unit ConfirmationDlg;
@@ -81,7 +81,7 @@ Begin
       Top := iTop;
       lblMessage.Caption := strMsg;
       lblLabelLine1.Caption := 'Source:';
-      lblInformation1.Caption := strSrcPath + Source.FileName;
+      lblInformation1.Caption := ExtractFilepath(strSrcPath + Source.FileName);
       lblSourceInfo.Caption := 'Source: ' + Format('%1.0n bytes, %s', [
         Int(Source.Size),
         FormatDateTime('ddd dd/mmm/yyyy @ hh:nn:ss', FileDateToDateTime(Source.DateTime))
@@ -89,9 +89,9 @@ Begin
       If strDestPath <> '' Then
         Begin
           lblLabelLine2.Caption := 'Destination:';
-          lblInformation2.Caption := strDestPath;
+          lblInformation2.Caption := ExtractFilePath(strDestPath + Dest.FileName);
           lblLabelLine3.Caption := 'Filename:';
-          lblInformation3.Caption := Dest.FileName;
+          lblInformation3.Caption := ExtractFileName(Dest.FileName);
           lblDestInfo.Caption := 'Destination: ' + Format('%1.0n bytes, %s', [
             Int(Dest.Size),
             FormatDateTime('ddd dd/mmm/yyyy @ hh:nn:ss', FileDateToDateTime(Dest.DateTime))
@@ -99,7 +99,7 @@ Begin
         End Else
         Begin
           lblLabelLine2.Caption := 'Filename:';
-          lblInformation2.Caption := Source.FileName;
+          lblInformation2.Caption := ExtractFileName(Source.FileName);
           lblLabelLine3.Caption := '';
           lblInformation3.Caption := '';
           lblDestInfo.Caption := '';
