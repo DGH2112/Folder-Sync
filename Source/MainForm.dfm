@@ -272,7 +272,7 @@ object frmMainForm: TfrmMainForm
     Left = 33
     Top = 151
     Bitmap = {
-      494C01010F001300C00010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010F001300C40010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -932,6 +932,9 @@ object frmMainForm: TfrmMainForm
               item
                 Action = actToolsOptions
                 ImageIndex = 13
+              end
+              item
+                Action = actToolsConfigMemMon
               end>
             Caption = '&Tools'
           end
@@ -1158,6 +1161,14 @@ object frmMainForm: TfrmMainForm
       Category = 'Edit'
       Caption = 'Clear &log'
       OnExecute = actEditClearLogExecute
+    end
+    object actToolsConfigMemMon: TAction
+      Category = 'Tools'
+      Caption = 'Configure &Memory Monitor...'
+      Hint = 
+        'Configure Memory Monitor|Configure the options of the memory mon' +
+        'itor...'
+      OnExecute = actToolsConfigMemMonExecute
     end
   end
 end

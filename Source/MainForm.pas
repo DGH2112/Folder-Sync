@@ -92,6 +92,7 @@ Type
     actEditClearLog: TAction;
     actHelpContents: TAction;
     redtOutputResults: TMemo;
+    actToolsConfigMemMon: TAction;
     Procedure actHelpAboutExecute(Sender: TObject);
     Procedure actFileExitExecute(Sender: TObject);
     Procedure FormResize(Sender: TObject);
@@ -116,6 +117,7 @@ Type
     procedure stbrStatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
       const Rect: TRect);
     procedure actEditFileOperationsUpdate(Sender: TObject);
+    procedure actToolsConfigMemMonExecute(Sender: TObject);
   Strict Private
     { Private declarations }
     FFolders        : TFolders;
@@ -244,7 +246,7 @@ Uses
   CheckForUpdates,
   DGHLibrary,
   ConfirmationDlg,
-  Themes;
+  Themes, MemoryMonitorOptionsForm;
 
 {$R *.DFM}
 
@@ -385,6 +387,36 @@ Begin
       End;
       FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|', #13#10,
         [rfReplaceAll]);
+      DGHMemoryMonitor.UpdateInterval := ReadInteger('MemoryMonitor', 'UpdateInterval',
+        DGHMemoryMonitor.UpdateInterval);
+      DGHMemoryMonitor.BackColour := StringToColor(ReadString('MemoryMonitor',
+        'BackColour', ColorToString(DGHMemoryMonitor.BackColour)));
+      DGHMemoryMonitor.BackFontColour := StringToColor(ReadString('MemoryMonitor',
+        'BackFontColour', ColorToString(DGHMemoryMonitor.BackFontColour)));
+      DGHMemoryMonitor.HighColour := StringToColor(ReadString('MemoryMonitor',
+        'HighColour', ColorToString(DGHMemoryMonitor.HighColour)));
+      DGHMemoryMonitor.HalfColour := StringToColor(ReadString('MemoryMonitor',
+        'HalfColour', ColorToString(DGHMemoryMonitor.HalfColour)));
+      DGHMemoryMonitor.LowColour := StringToColor(ReadString('MemoryMonitor',
+        'LowColour', ColorToString(DGHMemoryMonitor.LowColour)));
+      DGHMemoryMonitor.HighFontColour := StringToColor(ReadString('MemoryMonitor',
+        'HighFontColour', ColorToString(DGHMemoryMonitor.HighFontColour)));
+      DGHMemoryMonitor.HalfFontColour := StringToColor(ReadString('MemoryMonitor',
+        'HalfFontColour', ColorToString(DGHMemoryMonitor.HalfFontColour)));
+      DGHMemoryMonitor.LowFontColour := StringToColor(ReadString('MemoryMonitor',
+        'LowFontColour', ColorToString(DGHMemoryMonitor.LowFontColour)));
+      DGHMemoryMonitor.LowPoint := ReadInteger('MemoryMonitor', 'LowPoint', 
+        DGHMemoryMonitor.LowPoint);
+      DGHMemoryMonitor.HalfPoint := ReadInteger('MemoryMonitor', 'HalfPoint', 
+        DGHMemoryMonitor.HalfPoint);
+      DGHMemoryMonitor.HighPoint := ReadInteger('MemoryMonitor', 'HighPoint', 
+        DGHMemoryMonitor.HighPoint);
+      DGHMemoryMonitor.Font.Name := ReadString('MemoryMonitor', 'FontName', 
+        DGHMemoryMonitor.Font.Name);
+      DGHMemoryMonitor.Font.Size := ReadInteger('MemoryMonitor', 'FontSize', 
+        DGHMemoryMonitor.Font.Size);
+      DGHMemoryMonitor.Font.Style := TFontStyles(Byte(ReadInteger('MemoryMonitor', 'FontStyle', 
+        Byte(DGHMemoryMonitor.Font.Style))));
     Finally
       Free;
     End;
@@ -910,6 +942,23 @@ Begin
       WriteString('Setup', 'Exclusions', StringReplace(FExclusions, #13#10, '|',
           [rfReplaceAll]));
       WriteString('Setup', 'Theme', TStyleManager.ActiveStyle.Name);
+      FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|', #13#10,
+        [rfReplaceAll]);
+      WriteInteger('MemoryMonitor', 'UpdateInterval', DGHMemoryMonitor.UpdateInterval);
+      WriteString('MemoryMonitor', 'BackColour', ColorToString(DGHMemoryMonitor.BackColour));
+      WriteString('MemoryMonitor', 'BackFontColour', ColorToString(DGHMemoryMonitor.BackFontColour));
+      WriteString('MemoryMonitor', 'HighColour', ColorToString(DGHMemoryMonitor.HighColour));
+      WriteString('MemoryMonitor', 'HalfColour', ColorToString(DGHMemoryMonitor.HalfColour));
+      WriteString('MemoryMonitor', 'LowColour', ColorToString(DGHMemoryMonitor.LowColour));
+      WriteString('MemoryMonitor', 'HighFontColour', ColorToString(DGHMemoryMonitor.HighFontColour));
+      WriteString('MemoryMonitor', 'HalfFontColour', ColorToString(DGHMemoryMonitor.HalfFontColour));
+      WriteString('MemoryMonitor', 'LowFontColour', ColorToString(DGHMemoryMonitor.LowFontColour));
+      WriteInteger('MemoryMonitor', 'LowPoint', DGHMemoryMonitor.LowPoint);
+      WriteInteger('MemoryMonitor', 'HalfPoint', DGHMemoryMonitor.HalfPoint);
+      WriteInteger('MemoryMonitor', 'HighPoint', DGHMemoryMonitor.HighPoint);
+      WriteString('MemoryMonitor', 'FontName', DGHMemoryMonitor.Font.Name);
+      WriteInteger('MemoryMonitor', 'FontSize', DGHMemoryMonitor.Font.Size);
+      WriteInteger('MemoryMonitor', 'FontStyle', Byte(DGHMemoryMonitor.Font.Style));
       UpdateFile;
     Finally
       Free;
@@ -1399,6 +1448,23 @@ Begin
   S                           := lvFileList.Selected;
   (Sender As TAction).Enabled := (S <> Nil) And FileExists(FCompareEXE) And
     FileExists(S.SubItems[iLDisplayCol - 1]) And FileExists(S.SubItems[iRDisplayCol - 1]);
+End;
+
+(**
+
+  This is an on execute event handler for the ConfigMemMon action.
+
+  @precon  None.
+  @postcon Displays a configuration form that allows you to edit the colours, fonts and
+           positions of the memory monitor information.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actToolsConfigMemMonExecute(Sender: TObject);
+
+Begin
+  TfrmMemoryMonitorOptions.Execute(DGHMemoryMonitor);
 End;
 
 (**
