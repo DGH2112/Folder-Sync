@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    31 Dec 2012
+  @Date    10 Mar 2013
   @Author  David Hoyle
 
 **)
@@ -118,7 +118,7 @@ Type
     procedure actEditFileOperationsUpdate(Sender: TObject);
   Strict Private
     { Private declarations }
-    FFolders        : TStringList;
+    FFolders        : TFolders;
     FExclusions     : String;
     FIconFiles      : TStringList;
     FProgressForm   : TfrmProgress;
@@ -135,6 +135,7 @@ Type
     FStartTimer     : TTimer;
     FDeleteForm     : TfrmDeleteProgress;
     FCopyForm       : TfrmCopyProgress;
+    FDialogueBottom : Integer;
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure ApplicationHint(Sender: TObject);
@@ -162,26 +163,32 @@ Type
     Procedure DeletingProc(iFile : Integer; strFileName: String);
     Procedure DeletedProc(iFile: Integer; iSize: int64; boolSuccess: Boolean;
       strErrMsg: String);
-    Procedure DeleteQueryProc(strFileName: String; Var Option: TFileAction);
-    Procedure DeleteReadOnlyQueryProc(strFileName: String; Var Option: TFileAction);
+    Procedure DeleteQueryProc(strFilePath: String; DeleteFile : TFileRecord;
+      Var Option: TFileAction);
+    Procedure DeleteReadOnlyQueryProc(strFilePath: String; DeleteFile : TFileRecord;
+      Var Option: TFileAction);
     Procedure DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
     Procedure CopyStartProc(iTotalCount: Integer; iTotalSize: int64);
     Procedure CopyContentsProc(iCopiedSize, iTotalSize: int64);
     Procedure CopyingProc(iFile : Integer; strSource, strDest, strFileName: String);
     Procedure CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
       iCopiedTotalSize: int64; boolSuccess: Boolean; strErrMsg: String);
-    Procedure CopyQueryProc(strSourceFile, strDestFile: String; Var Option: TFileAction);
-    Procedure CopyReadOnlyQueryProc(strSourceFile, strDestFile: String;
-      Var Option: TFileAction);
+    Procedure CopyQueryProc(strSourcePath, strDestPath: String; SourceFile,
+      DestFile : TFileRecord; Var Option: TFileAction);
+    Procedure CopyReadOnlyQueryProc(strSourcePath, strDestPath: String; SourceFile,
+      DestFile : TFileRecord;  Var Option: TFileAction);
     Procedure CopyEndProc(iCopied, iSkipped, iError: Integer);
-    Procedure FileQuery(strMsg, strSource, strDest, strFilename: String;
-      Var Option: TFileAction);
+    Procedure FileQuery(strMsg, strSourcePath, strDestPath: String; SourceFile,
+      DestFile : TFileRecord; Var Option: TFileAction);
     Procedure DiffSizeStart(iFileCount : Integer);
     Procedure DiffSize(strLPath, strRPath, strFileName : String);
     Procedure DiffSizeEnd();
     Procedure NothingToDoStart(iFileCount : Integer);
     Procedure NothingToDo(strLPath, strRPath, strFileName : String);
     Procedure NothingToDoEnd();
+    Procedure ExceedsSizeLimitStart(iFileCount : Integer);
+    Procedure ExceedsSizeLimit(strLPath, strRPath, strFileName : String);
+    Procedure ExceedsSizeLimitEnd();
     Procedure UpdateTaskBar(ProgressType: TTaskbarProgressType; iPosition: Integer = 0;
       iMaxPosition: Integer = 100);
     Procedure UpdateProgress(iPosition, iMaxPosition: Integer);
@@ -230,6 +237,7 @@ Var
 Implementation
 
 Uses
+  CodeSiteLogging,
   FileCtrl,
   ShellAPI,
   AboutForm,
@@ -239,6 +247,20 @@ Uses
   Themes;
 
 {$R *.DFM}
+
+Type
+  (** A record for convert an Int64 into Word portions for storage in the INI file
+      (INI file can only store signed DWORDS) **)
+  TInt64Ex = Record 
+    Case Integer Of
+      1: (Value : Int64);
+      2: (
+        iFirst  : Word;
+        iSecond : Word;
+        iThird  : Word;
+        iFourth : Word;
+      );
+  End;
 
 (**
 
@@ -297,9 +319,11 @@ Procedure TfrmMainForm.LoadSettings;
 Var
   sl : TStringList;
   i  : Integer;
-  FOA: TFolderOptionsAdapter;
   j  : TFldrSyncOption;
   strLog : String;
+  iSyncOptions : TSyncOptions;
+  strMaxValue : String;
+  iMaxValue : TInt64Ex;
 
 Begin
   With TMemIniFile.Create(FRootKey) Do
@@ -338,13 +362,23 @@ Begin
         ReadSection('Folders', sl);
         For i := 0 To sl.Count - 1 Do
           Begin
-            FOA.FRAWData     := 0;
-            FOA.FSyncOptions := [soEnabled];
-            FOA.FSyncOptions :=
-              TSyncOptions(Byte(ReadInteger('FolderStatus', sl[i],
-                  Byte(FOA.FSyncOptions))));
-            FFolders.AddObject(sl[i] + '=' + ReadString('Folders', sl[i], ''),
-              FOA.FOBjData);
+            iSyncOptions := TSyncOptions(Byte(ReadInteger('FolderStatus', sl[i],
+                  Byte(iSyncOptions))));
+            strMaxValue := ReadString('FolderMaxFileSize', sl[i], '0,0,0,0');
+            iMaxValue.Value := 0;
+            iMaxValue.iFirst := StrToInt(GetField(strMaxValue, ',', 1));
+            iMaxValue.iSecond := StrToInt(GetField(strMaxValue, ',', 2));
+            iMaxValue.iThird := StrToInt(GetField(strMaxValue, ',', 3));
+            iMaxValue.iFourth := StrToInt(GetField(strMaxValue, ',', 4));
+            FFolders.Add(
+              TFolder.Create(
+                ExtractFilePath(sl[i]),
+                ExtractFilePath(ReadString('Folders', sl[i], '')),
+                ExtractFileName(sl[i]),
+                iSyncOptions,
+                iMaxValue.Value
+              )
+            );
           End;
       Finally
         sl.Free;
@@ -829,7 +863,7 @@ Var
   i         : Integer;
   recWndPlmt: TWindowPlacement;
   j         : TFldrSyncOption;
-  FOA       : TFolderOptionsAdapter;
+  iMaxValue : TInt64Ex;
 
 Begin
   With TMemIniFile.Create(FRootKey) Do
@@ -863,9 +897,15 @@ Begin
       EraseSection('Folders');
       For i := 0 To FFolders.Count - 1 Do
         Begin
-          WriteString('Folders', FFolders.Names[i], FFolders.ValueFromIndex[i]);
-          FOA.FOBjData := FFolders.Objects[i];
-          WriteInteger('FolderStatus', FFolders.Names[i], Byte(FOA.FSyncOptions));
+          WriteString('Folders',
+            FFolders.Folder[i].LeftFldr + FFolders.Folder[i].Patterns,
+            FFolders.Folder[i].RightFldr + FFolders.Folder[i].Patterns);
+          WriteInteger('FolderStatus', FFolders.Folder[i].LeftFldr,
+            Byte(FFolders.Folder[i].SyncOptions));
+          iMaxValue.Value := FFolders.Folder[i].MaxFileSize;
+          WriteString('FolderMaxFileSize', FFolders.Folder[i].LeftFldr,
+            Format('%d,%d,%d,%d', [iMaxValue.iFirst, iMaxValue.iSecond,
+              iMaxValue.iThird, iMaxValue.iFourth]));
         End;
       WriteString('Setup', 'Exclusions', StringReplace(FExclusions, #13#10, '|',
           [rfReplaceAll]));
@@ -904,7 +944,7 @@ Begin
   DGHMemoryMonitor.LowPoint       := 80;
   DGHMemoryMonitor.UpdateInterval := 500;
   FRootKey                        := BuildRootKey(FParams, ExceptionProc);
-  FFolders                       := TStringList.Create;
+  FFolders                       := TFolders.Create;
   FProgressForm                  := TfrmProgress.Create(Self);
   FProgressForm.OnUpdateProgress := UpdateProgress;
   Application.HelpFile := ExtractFilePath(ParamStr(0)) + 'FldrSync.chm';
@@ -920,36 +960,40 @@ Begin
   {$ELSE}
   Caption := Caption + ' [32-bit]';
   {$ENDIF}
-  Caption                           := Format('%s: %s', [Caption, FRootKey]);
-  FSyncModule                       := TCompareFoldersCollection.Create;
-  FSyncModule.OnSearchStart         := SearchStartProc;
-  FSyncModule.OnSearch              := SearchProc;
-  FSyncModule.OnSearchEnd           := SearchEndProc;
-  FSyncModule.OnCompareStart        := CompareStartProc;
-  FSyncModule.OnCompare             := CompareProc;
-  FSyncModule.OnCompareEnd          := CompareEndProc;
-  FSyncModule.OnMatchListStart      := MatchListStartProc;
-  FSyncModule.OnMatchList           := MatchListProc;
-  FSyncModule.OnMatchListEnd        := MatchListEndProc;
-  FSyncModule.OnDeleteStart         := DeleteStartProc;
-  FSyncModule.OnDeleting            := DeletingProc;
-  FSyncModule.OnDeleted             := DeletedProc;
-  FSyncModule.OnDeleteQuery         := DeleteQueryProc;
-  FSyncModule.OnDeleteReadOnlyQuery := DeleteReadOnlyQueryProc;
-  FSyncModule.OnDeleteEnd           := DeleteEndProc;
-  FSyncModule.OnCopyStart           := CopyStartProc;
-  FSyncModule.OnCopying             := CopyingProc;
-  FSyncModule.OnCopyContents        := CopyContentsProc;
-  FSyncModule.OnCopied              := CopiedProc;
-  FSyncModule.OnCopyQuery           := CopyQueryProc;
-  FSyncModule.OnCopyReadOnlyQuery   := CopyReadOnlyQueryProc;
-  FSyncModule.OnCopyEnd             := CopyEndProc;
-  FSyncModule.OnDiffSizeStart := DiffSizeStart;
-  FSyncModule.OnDiffSize := DiffSize;
-  FSyncModule.OnDiffSizeEnd := DiffSizeEnd;
-  FSyncModule.OnNothingToDoStart := NothingToDoStart;
-  FSyncModule.OnNothingToDo := NothingToDo;
-  FSyncModule.OnNothingToDoEnd := NothingToDoEnd;
+  Caption                             := Format('%s: %s', [Caption, FRootKey]);
+  FDialogueBottom                     := 0;
+  FSyncModule                         := TCompareFoldersCollection.Create;
+  FSyncModule.OnSearchStart           := SearchStartProc;
+  FSyncModule.OnSearch                := SearchProc;
+  FSyncModule.OnSearchEnd             := SearchEndProc;
+  FSyncModule.OnCompareStart          := CompareStartProc;
+  FSyncModule.OnCompare               := CompareProc;
+  FSyncModule.OnCompareEnd            := CompareEndProc;
+  FSyncModule.OnMatchListStart        := MatchListStartProc;
+  FSyncModule.OnMatchList             := MatchListProc;
+  FSyncModule.OnMatchListEnd          := MatchListEndProc;
+  FSyncModule.OnDeleteStart           := DeleteStartProc;
+  FSyncModule.OnDeleting              := DeletingProc;
+  FSyncModule.OnDeleted               := DeletedProc;
+  FSyncModule.OnDeleteQuery           := DeleteQueryProc;
+  FSyncModule.OnDeleteReadOnlyQuery   := DeleteReadOnlyQueryProc;
+  FSyncModule.OnDeleteEnd             := DeleteEndProc;
+  FSyncModule.OnCopyStart             := CopyStartProc;
+  FSyncModule.OnCopying               := CopyingProc;
+  FSyncModule.OnCopyContents          := CopyContentsProc;
+  FSyncModule.OnCopied                := CopiedProc;
+  FSyncModule.OnCopyQuery             := CopyQueryProc;
+  FSyncModule.OnCopyReadOnlyQuery     := CopyReadOnlyQueryProc;
+  FSyncModule.OnCopyEnd               := CopyEndProc;
+  FSyncModule.OnDiffSizeStart         := DiffSizeStart;
+  FSyncModule.OnDiffSize              := DiffSize;
+  FSyncModule.OnDiffSizeEnd           := DiffSizeEnd;
+  FSyncModule.OnNothingToDoStart      := NothingToDoStart;
+  FSyncModule.OnNothingToDo           := NothingToDo;
+  FSyncModule.OnNothingToDoEnd        := NothingToDoEnd;
+  FSyncModule.OnExceedsSizeLimitStart := ExceedsSizeLimitStart;
+  FSyncModule.OnExceedsSizeLimit      := ExceedsSizeLimit;
+  FSyncModule.OnExceedsSizeLimitEnd   := ExceedsSizeLimitEnd;
   FTaskbarList  := Nil;
   FTaskbarList3 := Nil;
   If CheckWin32Version(6, 1) Then
@@ -1023,7 +1067,6 @@ Procedure TfrmMainForm.actFileCompareExecute(Sender: TObject);
 Var
   iEnabledFolders: Integer;
   i              : Integer;
-  FOA            : TFolderOptionsAdapter;
   boolSuccess    : Boolean;
 
 Begin
@@ -1038,8 +1081,7 @@ Begin
       iEnabledFolders := 0;
       For i           := 0 To FFolders.Count - 1 Do
         Begin
-          FOA.FOBjData := FFolders.Objects[i];
-          If soEnabled In FOA.FSyncOptions Then
+          If soEnabled In FFolders.Folder[i].SyncOptions Then
             Inc(iEnabledFolders);
         End;
       FProgressForm.RegisterSections(iEnabledFolders * 3 + 2);
@@ -1246,14 +1288,15 @@ Var
   iOutputSize   : Integer;
 
 Begin
+  Result := -1;
   strExt := LowerCase(ExtractFileExt(strFileName));
-  // Get Icon information from Registry
-  strClassName := GetRegStringValue(strExt, '');
-  If FIconFiles.Find(strClassName, iIndex) Then
+  If FIconFiles.Find(strExt, iIndex) Then
     Begin
       Result := NativeInt(FIconFiles.Objects[iIndex]);
       Exit;
     End;
+  // Get Icon information from Registry
+  strClassName := GetRegStringValue(strExt, '');
   If strClassName <> '' Then
     Begin
       strFName := GetRegStringValue(strExt + '\DefaultIcon', '');
@@ -1302,8 +1345,16 @@ Begin
   Finally
     objIcon.Free;
   End;
-  If (strClassName <> '') And (strExt <> '.exe') Then
-    FIconFiles.AddObject(strClassName, TObject(Result));
+  If {: @debug (strClassName <> '') And} (strExt <> '.exe') Then
+    FIconFiles.AddObject(strExt, TObject(Result));
+  //-------------------------------------------------------------------------------------
+  If (Result < 0) And (strExt <> '.exe') Then
+    Begin
+      CodeSite.Send('Ext', strExt);
+      CodeSite.Send('Extension List', FIconFiles);
+      CodeSite.Send('Class', strClassName);
+      CodeSite.Send(strFileName, Result);
+    End;
 End;
 
 (**
@@ -1445,7 +1496,7 @@ Begin
                 If lvFileList.Items[Item.Index].SubItems[iRDisplayCol - 1] = '' Then
                   boolEnabled := False;
             End;
-            Item := lvFileList.GetNextItem(Item, sdBelow, [isSelected]);
+            Item := lvFileList.GetNextItem(Item, sdAll, [isSelected]);
           End; 
         Enabled := boolEnabled;
       End;        
@@ -1723,6 +1774,56 @@ End;
 
 (**
 
+  This is an on exceeeds size limit event handler.
+
+  @precon  None.
+  @postcon Outputs the given file to the log.
+
+  @param   strLPath    as a String
+  @param   strRPath    as a String
+  @param   strFileName as a String
+
+**)
+Procedure TfrmMainForm.ExceedsSizeLimit(strLPath, strRPath, strFileName: String);
+
+Begin
+  OutputResultLn(Format('  %s => %s%s', [strLPath, strRPath, strFileName]));
+End;
+
+(**
+
+  This is an on exceeds size limit end event handler.
+
+  @precon  None.
+  @postcon Does nothing.
+
+**)
+Procedure TfrmMainForm.ExceedsSizeLimitEnd;
+
+Begin
+  // Do nothing
+End;
+
+(**
+
+  This is an on exceeds size limit start event handler.
+
+  @precon  None.
+  @postcon Outputs a header for the list of over sizeed files in the log.
+
+  @param   iFileCount as an Integer
+
+**)
+Procedure TfrmMainForm.ExceedsSizeLimitStart(iFileCount: Integer);
+
+Begin
+  If iFileCount > 0 Then
+    OutputResultLn(Format('There are %1.0n files marked as exceeding the size limit',
+      [Int(iFileCount)]));
+End;
+
+(**
+
   This is an exception handling message for the BuildRootKey method.
 
   @precon  None.
@@ -1751,20 +1852,31 @@ End;
 **)
 Procedure TfrmMainForm.actFileProcessFilesExecute(Sender: TObject);
 
+Var
+  boolAbort : Boolean;
+  
 Begin
   OutputResultLn('Processing started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
     Now()));
   Try
     DisableActions;
     Try
-      FSyncModule.ProcessFiles;
+      Try
+        boolAbort := False;
+        FSyncModule.ProcessFiles;
+      Except
+        On E : EAbort Do
+          boolAbort := True;
+      End;
     Finally
       EnableActions(True);
     End;
+    actFileProcessFiles.Enabled := Not boolAbort
   Finally
     OutputResultLn();
   End;
-  actFileCompareExecute(Self);
+  If Not boolAbort Then
+    actFileCompareExecute(Self);
 End;
 
 (**
@@ -1899,10 +2011,10 @@ Var
 
 Begin
   For i := 0 To FFolders.Count - 1 Do
-    If Boolean(FFolders.Objects[i]) Then
+    If Boolean(soEnabled In FFolders.Folder[i].SyncOptions) Then
       Begin
-        CheckAndCreateFolder(FFolders.Names[i]);
-        CheckAndCreateFolder(FFolders.ValueFromIndex[i]);
+        CheckAndCreateFolder(FFolders.Folder[i].LeftFldr);
+        CheckAndCreateFolder(FFolders.Folder[i].RightFldr);
       End;
   Result := True;
 End;
@@ -2083,20 +2195,21 @@ End;
   @postcon Displays a confirmation dialogue to the user to ask whether the file should be
            overwritten.
 
-  @param   strSourceFile as a String
-  @param   strDestFile   as a String
+  @param   strSourcePath as a String
+  @param   strDestPath   as a String
+  @param   SourceFile    as a TFileRecord
+  @param   DestFile      as a TFileRecord
   @param   Option        as a TFileAction as a reference
 
 **)
-Procedure TfrmMainForm.CopyQueryProc(strSourceFile, strDestFile: String;
-  Var Option: TFileAction);
+Procedure TfrmMainForm.CopyQueryProc(strSourcePath, strDestPath: String;
+  SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
 
 Const
   strMsg = 'Are you sure you want to overwrite the following file?';
 
 Begin
-  FileQuery(strMsg, ExtractFilePath(strSourceFile), ExtractFilePath(strDestFile),
-    ExtractFileName(strDestFile), Option);
+  FileQuery(strMsg, strSourcePath, strDestPath, SourceFile, DestFile, Option);
 End;
 
 (**
@@ -2107,20 +2220,21 @@ End;
   @postcon Displays a confirmation dialogue to the user to ask whether the read only file
            should be overwritten.
 
-  @param   strSourceFile as a String
-  @param   strDestFile   as a String
+  @param   strSourcePath as a String
+  @param   strDestPath   as a String
+  @param   SourceFile    as a TFileRecord
+  @param   DestFile      as a TFileRecord
   @param   Option        as a TFileAction as a reference
 
 **)
-Procedure TfrmMainForm.CopyReadOnlyQueryProc(strSourceFile, strDestFile: String;
-  Var Option: TFileAction);
+Procedure TfrmMainForm.CopyReadOnlyQueryProc(strSourcePath, strDestPath: String;
+  SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
 
 Const
   strMsg = 'Are you sure you want to overwrite the following READ-ONLY file?';
 
 Begin
-  FileQuery(strMsg, ExtractFilePath(strSourceFile), ExtractFilePath(strDestFile),
-        ExtractFileName(strDestFile), Option);
+  FileQuery(strMsg, strSourcePath, strDestPath, SourceFile, DestFile, Option);
 End;
 
 (**
@@ -2144,39 +2258,42 @@ Begin
       FCopyForm                  := TfrmCopyProgress.Create(Nil);
       FCopyForm.OnUpdateProgress := UpdateProgress;
       FCopyForm.Initialise(iTotalCount, iTotalSize);
+      FDialogueBottom := FCopyForm.Top + FCopyForm.Height;
     End;
 End;
 
 (**
 
-  This method displays a dialogue asking the user to confirm the file action they wish to
-  take based on the message displayed. The answer to the dialogue is returned to the sync
+  This method displays a dialogue asking the user to confirm the file action they wish to 
+  take based on the message displayed. The answer to the dialogue is returned to the sync 
   module.
 
   @precon  None.
   @postcon The users response to the query is passed back to the sync module.
 
-  @param   strMsg      as a String
-  @param   strSource   as a String
-  @param   strDest     as a String
-  @param   strFilename as a String
-  @param   Option      as a TFileAction as a reference
+  @param   strMsg        as a String
+  @param   strSourcePath as a String
+  @param   strDestPath   as a String
+  @param   SourceFile    as a TFileRecord
+  @param   DestFile      as a TFileRecord
+  @param   Option        as a TFileAction as a reference
 
 **)
-Procedure TfrmMainForm.FileQuery(strMsg, strSource, strDest, strFilename: String;
-  Var Option: TFileAction);
+Procedure TfrmMainForm.FileQuery(strMsg, strSourcePath, strDestPath: String;
+  SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
 
 Begin
-  If Option <> faAll Then
+  If Option <> faYesToAll Then //: @bug Handle no to all
     Begin
       UpdateTaskBar(ptError, 0, 1);
-      Case TfrmConfirmationDlg.Execute(strMsg, strSource, strDest, strFilename) Of
+      Case TfrmConfirmationDlg.Execute(Self, strMsg, strSourcePath, strDestPath,
+        SourceFile, DestFile, FDialogueBottom) Of
         mrYes:
           Option := faYes;
         mrNo:
           Option := faNo;
         mrAll:
-          Option := faAll;
+          Option := faYesToAll;
       Else
         Option := faCancel;
       End;
@@ -2238,18 +2355,19 @@ End;
   @postcon Displays a confirmation dialogue to the user asking whether the file should be
            deleted.
 
-  @param   strFileName as a String
+  @param   strFilePath as a String
+  @param   DeleteFile  as a TFileRecord
   @param   Option      as a TFileAction as a reference
 
 **)
-Procedure TfrmMainForm.DeleteQueryProc(strFileName: String; Var Option: TFileAction);
+Procedure TfrmMainForm.DeleteQueryProc(strFilePath: String; DeleteFile : TFileRecord;
+  Var Option: TFileAction);
 
 Const
   strMsg = 'Are you sure you want to delete the file?';
 
 Begin
-  FileQuery(strMsg, ExtractFilePath(strFileName), '', ExtractFileName(strFileName),
-    Option);
+  FileQuery(strMsg, strFilePath, '', DeleteFile, Nil, Option);
 End;
 
 (**
@@ -2260,19 +2378,19 @@ End;
   @postcon Displays a confirmation dialogue to the user asking whether the read only file
            should be deleted.
 
-  @param   strFileName as a String
+  @param   strFilePath as a String
+  @param   DeleteFile  as a TFileRecord
   @param   Option      as a TFileAction as a reference
 
 **)
-Procedure TfrmMainForm.DeleteReadOnlyQueryProc(strFileName: String;
-  Var Option: TFileAction);
+Procedure TfrmMainForm.DeleteReadOnlyQueryProc(strFilePath: String;
+  DeleteFile : TFileRecord; Var Option: TFileAction);
 
 Const
   strMsg = 'Are you sure you want to delete the READ-ONLY file?';
 
 Begin
-  FileQuery(strMsg, ExtractFilePath(strFileName), '', ExtractFileName(strFileName),
-    Option);
+  FileQuery(strMsg, strFilePath, '', DeleteFile, Nil, Option);
 End;
 
 (**
@@ -2296,6 +2414,7 @@ Begin
       FDeleteForm                  := TfrmDeleteProgress.Create(Nil);
       FDeleteForm.OnUpdateProgress := UpdateProgress;
       FDeleteForm.Initialise(iFileCount, iTotalSize);
+      FDialogueBottom := FDeleteForm.Top + FDeleteForm.Height;
     End;
 End;
 
@@ -2454,5 +2573,3 @@ Begin
 End;
 
 End.
-
-
