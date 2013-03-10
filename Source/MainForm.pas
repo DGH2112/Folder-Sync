@@ -138,6 +138,8 @@ Type
     FDeleteForm     : TfrmDeleteProgress;
     FCopyForm       : TfrmCopyProgress;
     FDialogueBottom : Integer;
+    FInterfaceFonts : TInterfaceFontInfo;
+    FFileOpFonts    : TFileOperationFontInfo;
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure ApplicationHint(Sender: TObject);
@@ -322,6 +324,7 @@ Var
   sl : TStringList;
   i  : Integer;
   j  : TFldrSyncOption;
+  k : TFileOpFont;
   strLog : String;
   iSyncOptions : TSyncOptions;
   strMaxValue : String;
@@ -342,11 +345,30 @@ Begin
       lvFileList.Column[iRAttrCol].Width := ReadInteger('ColumnWidths', 'RAttr', 50);
       lvFileList.Column[iRSizeCol].Width := ReadInteger('ColumnWidths', 'RSize', 85);
       lvFileList.Column[iRDateCol].Width := ReadInteger('ColumnWidths', 'RDate', 150);
-      lvFileList.Font.Name               := ReadString('ListViewFont', 'Name', 'Tahoma');
-      lvFileList.Font.Size               := ReadInteger('ListViewFont', 'Size', 9);
-      lvFileList.Font.Style := TFontStyles(Byte(ReadInteger('ListViewFont', 'Style', 0)));
-      redtOutputResults.Font.Name        := ReadString('LogFont', 'Name', 'Courier New');
-      redtOutputResults.Font.Size        := ReadInteger('LogFont', 'Size', 10);
+      FInterfaceFonts[ifTableFont].FFontName :=
+        ReadString('ListViewFont', 'Name', InterfaceFontDefaults[ifTableFont].FFontName);
+      lvFileList.Font.Name               := FInterfaceFonts[ifTableFont].FFontName;
+      FInterfaceFonts[ifTableFont].FFontSize := 
+        ReadInteger('ListViewFont', 'Size', InterfaceFontDefaults[ifTableFont].FFontSize);
+      lvFileList.Font.Size               := FInterfaceFonts[ifTableFont].FFontSize;
+      FInterfaceFonts[ifLogFont].FFontName :=
+        ReadString('LogFont', 'Name', InterfaceFontDefaults[ifLogFont].FFontName);
+      redtOutputResults.Font.Name        := FInterfaceFonts[ifLogFont].FFontName;
+      FInterfaceFonts[ifLogFont].FFontSize :=
+        ReadInteger('LogFont', 'Size', InterfaceFontDefaults[ifLogFont].FFontSize);
+      redtOutputResults.Font.Size        := FInterfaceFonts[ifLogFont].FFontSize;
+      For k := Low(TFileOpFont) To High(TFileOpFont) Do
+        Begin
+          FFileOpFonts[k].FFontColour := StringToColor(
+            ReadString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Colour',
+              ColorToString(FileOperationFontDefaults[k].FFontColour)));
+          FFileOpFonts[k].FBGFontColour := StringToColor(
+            ReadString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'BGColour',
+              ColorToString(FileOperationFontDefaults[k].FBGFontColour)));
+          FFileOpFonts[k].FFontStyle := TFontStyles(Byte(
+            ReadInteger('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Style',
+              Byte(FileOperationFontDefaults[k].FFontStyle))));
+        End;
       strLog := ChangeFileExt(FRootKey, '_log.txt');
       If FileExists(strLog) Then
         redtOutputResults.Lines.LoadFromFile(strLog);
@@ -464,6 +486,7 @@ Var
   Buffer    : Array [0 .. MAX_PATH * 2] Of Char;
   Ops       : Integer;
   iBufferLen: Integer;
+  iFileOp   : TFileOp;
 
   (**
 
@@ -516,9 +539,11 @@ Var
     Else
       Begin
         If (Pos('R', Item.SubItems[iColumn - 1]) > 0) Then
-          Sender.Canvas.Brush.Color := $BBBBFF
-        Else If TFileOp(Item.StateIndex) = foNothing Then
-          Sender.Canvas.Brush.Color := clSilver;
+          Sender.Canvas.Brush.Color :=
+            StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour)
+        Else
+          Sender.Canvas.Brush.Color :=
+            StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
       End;
     If Background = bgLeft Then
       R := GetSubItemRect(iLDateCol - 1)
@@ -545,11 +570,9 @@ Var
   Procedure SetTextAttributes;
 
   Begin
-    //Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);
-    If TFileOp(Item.StateIndex) = foNothing Then
-      Sender.Canvas.Font.Color := clGray;
-    If TFileOp(Item.StateIndex) = foDelete Then
-      Sender.Canvas.Font.Style := Sender.Canvas.Font.Style + [fsStrikeout];
+    Sender.Canvas.Font.Color :=
+      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
+    Sender.Canvas.Font.Style := FFileOpFonts[TFileOpFont(iFileOp)].FFontStyle;
     If Item.Selected Then
       Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
   End;
@@ -623,8 +646,10 @@ Var
   Procedure SetTextFontBackground;
 
   Begin
-    Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clWindow);
-    Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);
+    Sender.Canvas.Brush.Color :=
+      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
+    Sender.Canvas.Font.Color :=
+      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
     If Item.Selected Then
       Begin
         Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
@@ -635,25 +660,19 @@ Var
           Begin
             If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
               Begin
-                Sender.Canvas.Brush.Color := $BBBBFF;
-                Sender.Canvas.Font.Color := clBlack;
-              End
-            Else If TFileOp(Item.StateIndex) = foNothing Then
-              Begin
-                Sender.Canvas.Brush.Color := clSilver;
-                Sender.Canvas.Font.Color := clGray;
+                Sender.Canvas.Brush.Color :=
+                  StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
+                Sender.Canvas.Font.Color := 
+                  StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
               End;
           End  Else
           Begin
             If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
               Begin
-                Sender.Canvas.Brush.Color := $BBBBFF;
-                Sender.Canvas.Font.Color := clBlack;
-              End
-            Else If TFileOp(Item.StateIndex) = foNothing Then
-              Begin
-                Sender.Canvas.Brush.Color := clSilver;
-                Sender.Canvas.Font.Color := clGray;
+                Sender.Canvas.Brush.Color := 
+                  StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
+                Sender.Canvas.Font.Color := 
+                  StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
               End;
           End;
       End;
@@ -678,13 +697,33 @@ Var
       Begin
         StrPCopy(Buffer, Item.SubItems[iLFullFileNameCol - 1]);
         iBufferLen               := Length(Item.SubItems[iLFullFileNameCol - 1]);
-        Sender.Canvas.Font.Color := clGray;
+        If Item.Selected Then
+          Begin
+            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
+          End Else
+          Begin
+            Sender.Canvas.Font.Color := 
+              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
+            Sender.Canvas.Brush.Color := 
+              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FBGFontColour);
+          End;
       End
     Else If (iSubItem = 4) And (Item.SubItems[iSubItem] = '') Then
       Begin
         StrPCopy(Buffer, Item.SubItems[iRFullFileNameCol - 1]);
         iBufferLen               := Length(Item.SubItems[iRFullFileNameCol - 1]);
-        Sender.Canvas.Font.Color := clGray;
+        If Item.Selected Then
+          Begin
+            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
+          End Else
+          Begin
+            Sender.Canvas.Font.Color := 
+              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
+            Sender.Canvas.Brush.Color := 
+              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FBGFontColour);
+          End;
       End
     Else
       SetTextAttributes;
@@ -692,6 +731,7 @@ Var
 
 Begin
   DefaultDraw := False;
+  iFileOp := TFileOp(Item.StateIndex);
   DrawBackground(iLAttrCol, bgLeft);
   DrawBackground(iRAttrCol, bgRight);
   R := Item.DisplayRect(drBounds);
@@ -896,6 +936,7 @@ Var
   recWndPlmt: TWindowPlacement;
   j         : TFldrSyncOption;
   iMaxValue : TInt64Ex;
+  k: TFileOpFont;
 
 Begin
   With TMemIniFile.Create(FRootKey) Do
@@ -914,11 +955,19 @@ Begin
       WriteInteger('ColumnWidths', 'RAttr', lvFileList.Column[iRAttrCol].Width);
       WriteInteger('ColumnWidths', 'RSize', lvFileList.Column[iRSizeCol].Width);
       WriteInteger('ColumnWidths', 'RDate', lvFileList.Column[iRDateCol].Width);
-      WriteString('ListViewFont', 'Name', lvFileList.Font.Name);
-      WriteInteger('ListViewFont', 'Size', lvFileList.Font.Size);
-      WriteInteger('ListViewFont', 'Style', Byte(lvFileList.Font.Style));
-      WriteString('LogFont', 'Name', redtOutputResults.Font.Name);
-      WriteInteger('LogFont', 'Size', redtOutputResults.Font.Size);
+      WriteString('ListViewFont', 'Name', FInterfaceFonts[ifTableFont].FFontName);
+      WriteInteger('ListViewFont', 'Size', FInterfaceFonts[ifTableFont].FFontSize);
+      WriteString('LogFont', 'Name', FInterfaceFonts[ifLogFont].FFontName);
+      WriteInteger('LogFont', 'Size', FInterfaceFonts[ifLogFont].FFontSize);
+      For k := Low(TFileOpFont) To High(TFileOpFont) Do
+        Begin
+          WriteString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Colour',
+            ColorToString(FFileOpFonts[k].FFontColour));
+          WriteString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'BGColour',
+            ColorToString(FFileOpFonts[k].FBGFontColour));
+          WriteInteger('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Style',
+            Byte(FFileOpFonts[k].FFontStyle));
+        End;
       redtOutputResults.Lines.SaveToFile(ChangeFileExt(FRootKey, '_log.txt'));
       WriteInteger('Setup', 'WindowState', Byte(WindowState));
       WriteInteger('Setup', 'OutputResultsHeight', redtOutputResults.Height);
@@ -1483,9 +1532,17 @@ Var
   strTheme : String;
   
 Begin
-  If TfrmOptions.Execute(FFolders, FExclusions, FCompareEXE, FRootKey, lvFileList.Font,
-    redtOutputResults.Font, FFldrSyncOptions, strTheme) Then
+  FInterfaceFonts[ifTableFont].FFontName := lvFileList.Font.Name;
+  FInterfaceFonts[ifTableFont].FFontSize :=lvFileList.Font.Size;
+  FInterfaceFonts[ifLogFont].FFontName := redtOutputResults.Font.Name;
+  FInterfaceFonts[ifLogFont].FFontSize := redtOutputResults.Font.Size;
+  If TfrmOptions.Execute(FFolders, FExclusions, FCompareEXE, FRootKey, FInterfaceFonts,
+    FFileOpFonts, FFldrSyncOptions, strTheme) Then
     Begin
+      lvFileList.Font.Name := FInterfaceFonts[ifTableFont].FFontName;
+      lvFileList.Font.Size:= FInterfaceFonts[ifTableFont].FFontSize;
+      redtOutputResults.Font.Name := FInterfaceFonts[ifLogFont].FFontName;
+      redtOutputResults.Font.Size := FInterfaceFonts[ifLogFont].FFontSize;
       If CompareText(strTheme, TStyleManager.ActiveStyle.Name) <> 0 Then
         TStyleManager.SetStyle(strTheme);
       actFileCompareExecute(Self);
