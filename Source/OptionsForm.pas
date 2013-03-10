@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    06 Dec 2012
+  @Date    23 Jan 2013
   @Version 1.0
   @Author  David Hoyle
 
@@ -44,13 +44,13 @@ Type
     btnCheckforUpdates: TBitBtn;
     btnTableFont: TBitBtn;
     dlgFont: TFontDialog;
-    lbxFldrSyncOps: TCheckListBox;
     lblExclusions: TLabel;
     ilStatus: TImageList;
     btnHelp: TBitBtn;
     btnLogFont: TBitBtn;
     cbxThemes: TComboBox;
     lblThemes: TLabel;
+    lbxFldrSyncOps: TListView;
     Procedure lvFoldersResize(Sender: TObject);
     Procedure btnAddClick(Sender: TObject);
     Procedure btnEditClick(Sender: TObject);
@@ -72,7 +72,7 @@ Type
     FRightWidth : Integer;
     FLeftWidth  : Integer;
     FINIFileName: String;
-    FFolderList : TStringList;
+    FFolders    : TFolders;
     FTableFont  : TFont;
     FLogFont    : TFont;
     Procedure SetLeftWidth(Const Value: Integer);
@@ -94,10 +94,9 @@ Type
     Property LeftWidth: Integer Read FLeftWidth Write SetLeftWidth;
   Public
     { Public declarations }
-    Class Function Execute(Var slFolders: TStringList;
-      Var strExclusions, strCompareEXE: String; strINIFileName: String;
-      TableFont, LogFont: TFont; Var FldrSyncOps: TFldrSyncOptions;
-      var strTheme : String): Boolean;
+    Class Function Execute(Folders: TFolders; Var strExclusions, strCompareEXE: String;
+      strINIFileName: String; TableFont, LogFont: TFont;
+      Var FldrSyncOps: TFldrSyncOptions; var strTheme : String): Boolean;
     Constructor CreateWithRootKey(AOwner: TComponent; strRootKey: String); Virtual;
   End;
 
@@ -158,7 +157,7 @@ Uses
   @postcon Returns true with the updated options in the var variables else returns false 
            if the dialogue is cancelled.
 
-  @param   slFolders      as a TStringList as a reference
+  @param   Folders        as a TFolders
   @param   strExclusions  as a String as a reference
   @param   strCompareEXE  as a String as a reference
   @param   strINIFileName as a String
@@ -169,14 +168,14 @@ Uses
   @return  a Boolean
 
 **)
-Class Function TfrmOptions.Execute(Var slFolders: TStringList;
+Class Function TfrmOptions.Execute(Folders: TFolders;
   Var strExclusions, strCompareEXE: String; strINIFileName: String;
   TableFont, LogFont: TFont; Var FldrSyncOps: TFldrSyncOptions;
   var strTheme : String): Boolean;
 
 Var
   i     : TFldrSyncOption;
-  iIndex: Integer;
+  Item: TListItem;
 
 Begin
   Result := False;
@@ -184,7 +183,7 @@ Begin
     Try
       FTableFont.Assign(TableFont);
       FLogFont.Assign(LogFont);
-      FFolderList.Assign(slFolders);
+      FFolders.Assign(Folders);
       PopulateFolderList;
       lvFoldersResize(Nil);
       lvFoldersSelectItem(Nil, Nil, False);
@@ -192,17 +191,18 @@ Begin
       edtCompareEXE.Text := strCompareEXE;
       For i              := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
         Begin
-          iIndex := lbxFldrSyncOps.Items.Add(strFldrSyncOptions[i].FDescription);
-          lbxFldrSyncOps.Checked[iIndex] := i In FldrSyncOps;
+          Item := lbxFldrSyncOps.Items.Add;
+          Item.Caption := strFldrSyncOptions[i].FDescription;
+          lbxFldrSyncOps.Items[Integer(i)].Checked := i In FldrSyncOps;
         End;
       If ShowModal = mrOK Then
         Begin
-          slFolders.Assign(FFolderList);
+          Folders.Assign(FFolders);
           strExclusions := edtExclusions.Text;
           strCompareEXE := edtCompareEXE.Text;
           FldrSyncOps   := [];
           For i         := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
-            If lbxFldrSyncOps.Checked[Integer(i)] Then
+            If lbxFldrSyncOps.Items[Integer(i)].Checked Then
               Include(FldrSyncOps, i);
           TableFont.Assign(FTableFont);
           LogFont.Assign(FLogFont);
@@ -244,7 +244,7 @@ Begin
     End;
   FTableFont  := TFont.Create;
   FLogFont    := TFont.Create;
-  FFolderList := TStringList.Create;
+  FFolders    := TFolders.Create;
   For i := Low(TStyleManager.StyleNames) To High(TStyleManager.StyleNames) Do
     cbxThemes.Items.Add(TStyleManager.StyleNames[i]);
   cbxThemes.ItemIndex := cbxThemes.Items.IndexOf(TStyleManager.ActiveStyle.Name);
@@ -273,7 +273,7 @@ Begin
     Finally
       Free;
     End;
-  FFolderList.Free;
+  FFolders.Free;
   FTableFont.Free;
   FLogFont.Free;
 End;
@@ -292,17 +292,21 @@ End;
 Procedure TfrmOptions.btnAddClick(Sender: TObject);
 
 Var
-  strLeft, strRight: String;
-  FOA              : TFolderOptionsAdapter;
+  Folder, F        : TFolder;
 
 Begin
-  FOA.FRAWData := 0;
-  Include(FOA.FSyncOptions, soEnabled);
-  If TfrmFolderPaths.Execute(strLeft, strRight, FINIFileName, FOA.FSyncOptions) Then
-    Begin
-      FFolderList.AddObject(Format('%s=%s', [strLeft, strRight]), FOA.FOBjData);
-      PopulateFolderList;
-    End;
+  Folder := TFolder.Create('', '', '', [soEnabled], 0);
+  Try
+    If TfrmFolderPaths.Execute(Folder, FINIFileName) Then
+      Begin
+        F := TFolder.Create('', '', '', [], 0);
+        F.Assign(Folder);
+        FFolders.Add(F);
+        PopulateFolderList;
+      End;
+  Finally
+    Folder.Free;
+  End;
 End;
 
 (**
@@ -316,6 +320,7 @@ End;
 
 **)
 Procedure TfrmOptions.btnBrowseClick(Sender: TObject);
+
 Begin
   If dlgOpen.Execute Then
     edtCompareEXE.Text := dlgOpen.FileName;
@@ -333,6 +338,7 @@ End;
 
 **)
 Procedure TfrmOptions.btnCheckforUpdatesClick(Sender: TObject);
+
 Begin
   TfrmCheckForUpdatesOptions.Execute(FINIFileName);
 End;
@@ -350,22 +356,21 @@ End;
 Procedure TfrmOptions.btnEditClick(Sender: TObject);
 
 Var
-  strLeft, strRight: String;
-  FOA              : TFolderOptionsAdapter;
-  iIndex           : Integer;
+  Folder           : TFolder;
 
 Begin
-  iIndex       := lvFolders.ItemIndex;
-  strLeft      := lvFolders.Selected.Caption;
-  strRight     := lvFolders.Selected.SubItems[0];
-  FOA.FOBjData := FFolderList.Objects[iIndex];
-  If TfrmFolderPaths.Execute(strLeft, strRight, FINIFileName, FOA.FSyncOptions) Then
-    Begin
-      FFolderList[iIndex]         := Format('%s=%s', [strLeft, strRight]);
-      FFolderList.Objects[iIndex] := FOA.FOBjData;
-      PopulateFolderList;
-      lvFoldersResize(Sender);
-    End;
+  Folder := TFolder.Create('', '', '', [], 0);
+  Try
+    Folder.Assign(FFolders.Folder[lvFolders.ItemIndex]);
+    If TfrmFolderPaths.Execute(Folder, FINIFileName) Then
+      Begin
+        FFolders.Folder[lvFolders.ItemIndex].Assign(Folder);
+        PopulateFolderList;
+        lvFoldersResize(Sender);
+      End;
+  Finally
+    Folder.Free;
+  End;
 End;
 
 (**
@@ -456,7 +461,7 @@ End;
 Procedure TfrmOptions.btnDeleteClick(Sender: TObject);
 
 Begin
-  FFolderList.Delete(lvFolders.ItemIndex);
+  FFolders.Delete(lvFolders.ItemIndex);
   PopulateFolderList;
 End;
 
@@ -475,16 +480,13 @@ End;
 Procedure TfrmOptions.lvFoldersChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
 
-Var
-  FOA: TFolderOptionsAdapter;
-
 Begin
-  FOA.FOBjData := FFolderList.Objects[Item.Index];
   If Item.Checked Then
-    Include(FOA.FSyncOptions, soEnabled)
+    FFolders.Folder[Item.Index].SyncOptions :=
+      FFolders.Folder[Item.Index].SyncOptions + [soEnabled]
   Else
-    Exclude(FOA.FSyncOptions, soEnabled);
-  FFolderList.Objects[Item.Index] := FOA.FOBjData;
+    FFolders.Folder[Item.Index].SyncOptions :=
+      FFolders.Folder[Item.Index].SyncOptions - [soEnabled];
 End;
 
 (**
@@ -596,6 +598,7 @@ End;
 
 **)
 Procedure TfrmOptions.lvFoldersDblClick(Sender: TObject);
+
 Begin
   btnEditClick(Self);
 End;
@@ -660,7 +663,6 @@ Const
 Var
   i        : Integer;
   Item     : TListItem;
-  FOA      : TFolderOptionsAdapter;
   j        : TSyncOption;
   strOps   : String;
   iSelected: Integer;
@@ -672,17 +674,16 @@ Begin
       lvFolders.Items.EndUpdate;
       iSelected := lvFolders.ItemIndex;
       lvFolders.Clear;
-      For i := 0 To FFolderList.Count - 1 Do
+      For i := 0 To FFolders.Count - 1 Do
         Begin
           Item         := lvFolders.Items.Add;
-          Item.Caption := FFolderList.Names[i];
-          Item.SubItems.Add(FFolderList.ValueFromIndex[i]);
-          FOA.FOBjData := FFolderList.Objects[i];
-          Item.Checked := soEnabled In FOA.FSyncOptions;
+          Item.Caption := FFolders.Folder[i].LeftFldr + FFolders.Folder[i].Patterns;
+          Item.SubItems.Add(FFolders.Folder[i].RightFldr + FFolders.Folder[i].Patterns);
+          Item.Checked := soEnabled In FFolders.Folder[i].SyncOptions;
           strOps       := '';
           For j        := Succ(Low(TSyncOption)) To High(TSyncOption) Do
             Begin
-              If j In FOA.FSyncOptions Then
+              If j In FFolders.Folder[i].SyncOptions Then
                 Begin
                   If strOps <> '' Then
                     strOps := strOps + ', ';
@@ -693,7 +694,7 @@ Begin
             End;
           Item.SubItems.Add(strOps);
         End;
-      If iSelected >= FFolderList.Count Then
+      If iSelected >= FFolders.Count Then
         Dec(iSelected);
       lvFolders.ItemIndex := iSelected;
     Finally
@@ -715,6 +716,7 @@ End;
 
 **)
 Procedure TfrmOptions.SetLeftWidth(Const Value: Integer);
+
 Begin
   If Value > FLeftWidth Then
     FLeftWidth := Value;
@@ -731,6 +733,7 @@ End;
 
 **)
 Procedure TfrmOptions.SetRightWidth(Const Value: Integer);
+
 Begin
   If Value > FRightWidth Then
     FRightWidth := Value;
