@@ -5,7 +5,7 @@
 
   @Version 1.5
   @Author  David Hoyle
-  @Date    22 Dec 2012
+  @Date    10 Mar 2013
 
 **)
 Unit CommandLineProcess;
@@ -53,6 +53,7 @@ Type
     FReadOnlyColour      : TColor;
     FExceptionColour     : TColor;
     FHeaderColour        : TColor;
+    FMaxFileSize         : Int64;
   Strict Protected
     Procedure ExceptionProc(strMsg: String);
     Function GetPause: Boolean;
@@ -75,20 +76,24 @@ Type
     Procedure DeletingProc(iFile : Integer; strFileName: String);
     Procedure DeletedProc(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
       strErrMsg: String);
-    Procedure DeleteQueryProc(strFileName: String; Var Option: TFileAction);
-    Procedure DeleteReadOnlyQueryProc(strFileName: String; Var Option: TFileAction);
+    Procedure DeleteQueryProc(strFilePath: String; DeleteFile : TFileRecord;
+      Var Option: TFileAction);
+    Procedure DeleteReadOnlyQueryProc(strFilePath: String; DeleteFile : TFileRecord;
+      Var Option: TFileAction);
     Procedure DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
     Procedure CopyStartProc(iTotalCount: Integer; iTotalSize: Int64);
     Procedure CopyContentsProc(iCopiedSize, iTotalSize: Int64);
     Procedure CopyingProc(iFile : Integer; strSource, strDest, strFileName: String);
     Procedure CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
       iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrMsg: String);
-    Procedure CopyQueryProc(strSourceFile, strDestFile: String; Var Option: TFileAction);
-    Procedure CopyReadOnlyQueryProc(strSourceFile, strDestFile: String;
-      Var Option: TFileAction);
+    Procedure CopyQueryProc(strSourcePath, strDestPath: String; SourceFile,
+      DestFile : TFileRecord; Var Option: TFileAction);
+    Procedure CopyReadOnlyQueryProc(strSourcePath, strDestPath: String; SourceFile,
+      DestFile : TFileRecord; Var Option: TFileAction);
     Procedure CopyEndProc(iCopied, iSkipped, iError: Integer);
     Function GetConsoleCharacter(Characters: TCharArray): Char;
-    Procedure DeleteQuery(strMsg, strFileName: String; Var Option: TFileAction);
+    Procedure DeleteQuery(strMsg, strFilePath: String; DeleteFile : TFileRecord;
+      Var Option: TFileAction);
     Procedure CopyQuery(strMsg, strFileName: String; Var Option: TFileAction);
     Procedure DiffSizeStart(iFileCount: Integer);
     Procedure DiffSize(strLPath, strRPath, strFileName: String);
@@ -97,6 +102,10 @@ Type
     Procedure NothingToDo(strLPath, strRPath, strFileName: String);
     Procedure NothingToDoEnd();
     Procedure OutputStats(CFC : TCompareFoldersCollection);
+    Procedure ParseSizeLimit(strOption : String);
+    Procedure ExceedsSizeLimitStart(iFileCount: Integer);
+    Procedure ExceedsSizeLimit(strLPath, strRPath, strFileName: String);
+    Procedure ExceedsSizeLimitEnd();
   Public
     Constructor Create;
     Destructor Destroy; Override;
@@ -351,8 +360,9 @@ Procedure TCommandLineProcessing.CopyQuery(strMsg, strFileName: String;
 
 Var
   C: Char;
+  
 Begin
-  If Option <> faAll Then
+  If Option <> faYesToAll Then //: @bug Handle No to ALL
     Begin
       OutputToConsole(FStd, strMsg, FInputColour);
       C := GetConsoleCharacter(['a', 'A', 'y', 'Y', 'n', 'N', 'c', 'C']);
@@ -362,7 +372,7 @@ Begin
         'n', 'N':
           Option := faNo;
         'a', 'A':
-          Option := faAll;
+          Option := faYesToAll;
         'c', 'C':
           Option := faCancel;
       Else
@@ -379,16 +389,18 @@ End;
   @precon  None.
   @postcon Queries the user for the action to be taken
 
-  @param   strSourceFile as a String
-  @param   strDestFile   as a String
+  @param   strSourcePath as a String
+  @param   strDestPath   as a String
+  @param   SourceFile    as a TFileRecord
+  @param   DestFile      as a TFileRecord
   @param   Option        as a TFileAction as a reference
 
 **)
-Procedure TCommandLineProcessing.CopyQueryProc(strSourceFile, strDestFile: String;
-  Var Option: TFileAction);
+Procedure TCommandLineProcessing.CopyQueryProc(strSourcePath, strDestPath: String;
+  SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
 
 Begin
-  CopyQuery(' Overwrite (Y/N/A/C)? ', strDestFile, Option)
+  CopyQuery(' Overwrite (Y/N/A/C)? ', strDestPath + DestFile.FileName, Option)
 End;
 
 (**
@@ -398,16 +410,18 @@ End;
   @precon  None.
   @postcon Queries the user for the action to be taken
 
-  @param   strSourceFile as a String
-  @param   strDestFile   as a String
+  @param   strSourcePath as a String
+  @param   strDestPath   as a String
+  @param   SourceFile    as a TFileRecord
+  @param   DestFile      as a TFileRecord
   @param   Option        as a TFileAction as a reference
 
 **)
-Procedure TCommandLineProcessing.CopyReadOnlyQueryProc(strSourceFile, strDestFile: String;
-  Var Option: TFileAction);
+Procedure TCommandLineProcessing.CopyReadOnlyQueryProc(strSourcePath, strDestPath: String;
+  SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
 
 Begin
-  CopyQuery(' Overwrite READONLY (Y/N/A/C)? ', strDestFile, Option)
+  CopyQuery(' Overwrite READONLY (Y/N/A/C)? ', strDestPath + DestFile.FileName, Option)
 End;
 
 (**
@@ -445,6 +459,7 @@ Begin
   FParams      := TStringList.Create;
   FINIFileName := BuildRootKey(FParams, ExceptionProc);
   Include(FSyncOptions, soEnabled);
+  FMaxFileSize := 0;
   LoadSettings;
 End;
 
@@ -517,25 +532,26 @@ End;
 
 (**
 
-  This method queries the user via the command line as to the action to be take for the
+  This method queries the user via the command line as to the action to be take for the 
   deletion of a file.
 
   @precon  None.
   @postcon Prompts the user for action is the var parameter is not set to faAll.
 
   @param   strMsg      as a String
-  @param   strFileName as a String
+  @param   strFilePath as a String
+  @param   DeleteFile  as a TFileRecord
   @param   Option      as a TFileAction as a reference
 
 **)
-Procedure TCommandLineProcessing.DeleteQuery(strMsg, strFileName: String;
-  Var Option: TFileAction);
+Procedure TCommandLineProcessing.DeleteQuery(strMsg, strFilePath: String;
+  DeleteFile : TFileRecord; Var Option: TFileAction);
 
 Var
   C: Char;
 
 Begin
-  If Option <> faAll Then
+  If Option <> faYesToAll Then //: @bug Handle No to ALL
     Begin
       OutputToConsole(FStd, strMsg, FInputColour);
       C := GetConsoleCharacter(['a', 'A', 'y', 'Y', 'n', 'N', 'c', 'C']);
@@ -545,7 +561,7 @@ Begin
         'n', 'N':
           Option := faNo;
         'a', 'A':
-          Option := faAll;
+          Option := faYesToAll;
         'c', 'C':
           Option := faCancel;
       Else
@@ -562,15 +578,16 @@ End;
   @precon  None.
   @postcon Queries the user for action.
 
-  @param   strFileName as a String
+  @param   strFilePath as a String
+  @param   DeleteFile  as a TFileRecord
   @param   Option      as a TFileAction as a reference
 
 **)
-Procedure TCommandLineProcessing.DeleteQueryProc(strFileName: String;
-  Var Option: TFileAction);
+Procedure TCommandLineProcessing.DeleteQueryProc(strFilePath: String;
+  DeleteFile : TFileRecord; Var Option: TFileAction);
 
 Begin
-  DeleteQuery(' Delete (Y/N/A/C)? ', strFileName, Option)
+  DeleteQuery(' Delete (Y/N/A/C)? ', strFilePath, DeleteFile, Option)
 End;
 
 (**
@@ -580,15 +597,16 @@ End;
   @precon  None.
   @postcon Queries the user for action.
 
-  @param   strFileName as a String
+  @param   strFilePath as a String
+  @param   DeleteFile  as a TFileRecord
   @param   Option      as a TFileAction as a reference
 
 **)
-Procedure TCommandLineProcessing.DeleteReadOnlyQueryProc(strFileName: String;
-  Var Option: TFileAction);
+Procedure TCommandLineProcessing.DeleteReadOnlyQueryProc(strFilePath: String;
+  DeleteFile : TFileRecord; Var Option: TFileAction);
 
 Begin
-  DeleteQuery(' Delete READONLY (Y/N/A/C)? ', strFileName, Option);
+  DeleteQuery(' Delete READONLY (Y/N/A/C)? ', strFilePath, DeleteFile, Option);
 End;
 
 (**
@@ -726,6 +744,74 @@ End;
 
 (**
 
+  This is an on Exceeds Size Limit event handler.
+
+  @precon  None.
+  @postcon Outputs a line of information for each file considered as too large for
+           copying.
+
+  @param   strLPath    as a String
+  @param   strRPath    as a String
+  @param   strFileName as a String
+
+**)
+Procedure TCommandLineProcessing.ExceedsSizeLimit(strLPath, strRPath,
+  strFileName: String);
+
+Begin
+  If Not IsRO(strLPath + strFileName) Then
+    OutputToConsole(FStd, #32#32 + strLPath, FPathColour)
+  Else
+    OutputToConsole(FStd, #32#32 + strLPath, FReadOnlyColour);
+  OutputToConsole(FStd, ' => ');
+  If Not IsRO(strRPath + strFileName) Then
+    Begin
+      OutputToConsole(FStd, strRPath, FPathColour);
+      OutputToConsoleLn(FStd, strFileName, FExistsColour);
+    End
+  Else
+    Begin
+      OutputToConsole(FStd, strRPath, FReadOnlyColour);
+      OutputToConsoleLn(FStd, strFileName, FReadOnlyColour);
+    End;
+End;
+
+(**
+
+  This is an on Exceeds Size Limirt End Event handler.
+
+  @precon  None.
+  @postcon Does nothing.
+
+**)
+Procedure TCommandLineProcessing.ExceedsSizeLimitEnd;
+
+Begin
+  // Do Nothing
+End;
+
+(**
+
+  This is an on exceeds size limit start event handler.
+
+  @precon  None.
+  @postcon Outputs a headers to the list of files that are considered too large for
+           copying.
+
+  @param   iFileCount as an Integer
+
+**)
+Procedure TCommandLineProcessing.ExceedsSizeLimitStart(iFileCount: Integer);
+
+Begin
+  FTotalFiles := iFileCount;
+  If iFileCount > 0 Then
+    OutputToConsoleLn(FStd, Format('%1.0n Files exceeding Size Limit...', [Int(iFileCount)]
+        ), FHeaderColour);
+End;
+
+(**
+
   This is an on exception handler for the BuildRootKey method.
 
   @precon  None.
@@ -760,8 +846,7 @@ Const
 
 Var
   CFC      : TCompareFoldersCollection;
-  slFolders: TStringList;
-  FOA      : TFolderOptionsAdapter;
+  Folders  : TFolders;
 
 Begin
   FStd := iStd;
@@ -791,41 +876,43 @@ Begin
   OutputToConsoleLn(FStd);
   CFC := TCompareFoldersCollection.Create;
   Try
-    slFolders := TStringList.Create;
+    Folders := TFolders.Create;
     Try
-      FOA.FRAWData     := 0;
-      FOA.FSyncOptions := FSyncOptions;
-      slFolders.AddObject(FSourceDir + FFilePatterns + '=' + FDestDir + FFilePatterns,
-        FOA.FObjData);
-      CFC.OnSearchStart         := SearchStartProc;
-      CFC.OnSearch              := SearchProc;
-      CFC.OnSearchEnd           := SearchEndProc;
-      CFC.OnCompareStart        := CompareStartProc;
-      CFC.OnCompare             := CompareProc;
-      CFC.OnCompareEnd          := CompareEndProc;
-      CFC.OnMatchListStart      := MatchListStartProc;
-      CFC.OnMatchList           := MatchListProc;
-      CFC.OnMatchListEnd        := MatchListEndProc;
-      CFC.OnDeleteStart         := DeleteStartProc;
-      CFC.OnDeleting            := DeletingProc;
-      CFC.OnDeleted             := DeletedProc;
-      CFC.OnDeleteQuery         := DeleteQueryProc;
-      CFC.OnDeleteReadOnlyQuery := DeleteReadOnlyQueryProc;
-      CFC.OnDeleteEnd           := DeleteEndProc;
-      CFC.OnCopyStart           := CopyStartProc;
-      CFC.OnCopying             := CopyingProc;
-      CFC.OnCopyContents        := CopyContentsProc;
-      CFC.OnCopied              := CopiedProc;
-      CFC.OnCopyQuery           := CopyQueryProc;
-      CFC.OnCopyReadOnlyQuery   := CopyReadOnlyQueryProc;
-      CFC.OnCopyEnd             := CopyEndProc;
-      CFC.OnDiffSizeStart       := DiffSizeStart;
-      CFC.OnDiffSize            := DiffSize;
-      CFC.OnDiffSizeEnd         := DiffSizeEnd;
-      CFC.OnNothingToDoStart    := NothingToDoStart;
-      CFC.OnNothingToDo         := NothingToDo;
-      CFC.OnNothingToDoEnd      := NothingToDoEnd;
-      CFC.ProcessFolders(slFolders, FExclusions);
+      //: @bug Need to get max file size.
+      Folders.Add(TFolder.Create(FSourceDir, FDestDir, FFilePatterns, FSyncOptions,
+        FMaxFileSize));
+      CFC.OnSearchStart           := SearchStartProc;
+      CFC.OnSearch                := SearchProc;
+      CFC.OnSearchEnd             := SearchEndProc;
+      CFC.OnCompareStart          := CompareStartProc;
+      CFC.OnCompare               := CompareProc;
+      CFC.OnCompareEnd            := CompareEndProc;
+      CFC.OnMatchListStart        := MatchListStartProc;
+      CFC.OnMatchList             := MatchListProc;
+      CFC.OnMatchListEnd          := MatchListEndProc;
+      CFC.OnDeleteStart           := DeleteStartProc;
+      CFC.OnDeleting              := DeletingProc;
+      CFC.OnDeleted               := DeletedProc;
+      CFC.OnDeleteQuery           := DeleteQueryProc;
+      CFC.OnDeleteReadOnlyQuery   := DeleteReadOnlyQueryProc;
+      CFC.OnDeleteEnd             := DeleteEndProc;
+      CFC.OnCopyStart             := CopyStartProc;
+      CFC.OnCopying               := CopyingProc;
+      CFC.OnCopyContents          := CopyContentsProc;
+      CFC.OnCopied                := CopiedProc;
+      CFC.OnCopyQuery             := CopyQueryProc;
+      CFC.OnCopyReadOnlyQuery     := CopyReadOnlyQueryProc;
+      CFC.OnCopyEnd               := CopyEndProc;
+      CFC.OnDiffSizeStart         := DiffSizeStart;
+      CFC.OnDiffSize              := DiffSize;
+      CFC.OnDiffSizeEnd           := DiffSizeEnd;
+      CFC.OnNothingToDoStart      := NothingToDoStart;
+      CFC.OnNothingToDo           := NothingToDo;
+      CFC.OnNothingToDoEnd        := NothingToDoEnd;
+      CFC.OnExceedsSizeLimitStart := ExceedsSizeLimitStart;
+      CFC.OnExceedsSizeLimit      := ExceedsSizeLimit;
+      CFC.OnExceedsSizeLimitEnd   := ExceedsSizeLimitEnd;
+      CFC.ProcessFolders(Folders, FExclusions);
       OutputStats(CFC);
       Try
         CFC.ProcessFiles;
@@ -834,7 +921,7 @@ Begin
           {Do nothing};
       End;
     Finally
-      slFolders.Free;
+      Folders.Free;
     End;
   Finally
     CFC.Free;
@@ -1064,6 +1151,60 @@ End;
 
 (**
 
+  This method parses the size limit command line argument. If an incorrect specification
+  an exception is raised.
+
+  @precon  None.
+  @postcon Sets the size limit for copying files else raises an exception.
+
+  @param   strOption as a String
+
+**)
+Procedure TCommandLineProcessing.ParseSizeLimit(strOption: String);
+
+Const
+  strMultipliers = ['k', 'K', 'm', 'M', 'g', 'G', 't', 'T'];
+
+Var
+  strValue   : String;
+  cM       : Char;
+  iSizeLimit : Int64;
+  iErrorCode : Integer;
+  
+Begin
+  strValue := strOption;
+  Delete(strValue, 1, 9);
+  If Copy(strValue, 1, 1) = '=' Then
+    Begin
+      Delete(strValue, 1, 1);
+      If (Length(strValue) > 0) Then
+        Begin
+          If (Not CharInSet(strValue[Length(strValue)], ['0'..'0']))
+            And (CharInSet(strValue[Length(strValue)], strMultipliers)) Then
+            Begin
+              cM := strValue[Length(strValue)];
+              Delete(strValue, Length(strValue), 1);
+              Val(strValue, iSizeLimit, iErrorCode);
+              If iErrorCode > 0 Then
+                Raise EFldrSyncException.Create('Invalid SizeLimit Number');
+              Case cM Of
+                'k', 'K': FMaxFileSize := iSizeLimit * 1024;
+                'm', 'M': FMaxFileSize := iSizeLimit * 1024 * 1024;
+                'g', 'G': FMaxFileSize := iSizeLimit * 1024 * 1024 * 1024;
+                't', 'T': FMaxFileSize := iSizeLimit * 1024 * 1024 * 1024 * 1024;
+              Else  
+                FMaxFileSize := iSizeLimit;
+              End;
+            End Else
+              Raise EFldrSyncException.Create('Invalid SizeLimit Multiplier');
+        End Else
+          Raise EFldrSyncException.Create('Missing SizeLimit Specification');
+    End Else
+      Raise EFldrSyncException.Create('= expected after SizeLimit');
+End;
+
+(**
+
   This method processes the command line parameters of the console application and sets up
   the applications internal variables based on those settings.
 
@@ -1114,6 +1255,8 @@ Begin
             End
           Else If CompareText(strOption, 'NoRecursion') = 0 Then
             Include(FSyncOptions, soNoRecursion)
+          Else If CompareText(Copy(strOption, 1, 9), 'SizeLimit') = 0 Then
+            ParseSizeLimit(strOption)
           Else
             Raise EFldrSyncException.CreateFmt('Invalid command line option "%s".',
               [FParams[i]]);
