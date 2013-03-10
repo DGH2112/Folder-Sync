@@ -3,7 +3,7 @@
   A class to define a form for editing the Folder Paths.
 
   @Version 1.0
-  @date    29 Sep 2012
+  @date    23 Jan 2013
   @Author  David Hoyle.
 
 **)
@@ -23,7 +23,7 @@ Uses
   Buttons,
   StdCtrls,
   SyncModule,
-  CheckLst;
+  CheckLst, Vcl.ComCtrls;
 
 Type
   (** A class to represent a dialogue for editing the folder paths. **)
@@ -36,9 +36,11 @@ Type
     btnBrowseRight: TButton;
     btnOK: TBitBtn;
     btnCancel: TBitBtn;
-    lbxSyncOptions: TCheckListBox;
-    lblFldrSyncOptions: TLabel;
     btnHelp: TBitBtn;
+    lblMaxFileSize: TLabel;
+    edtMaxFileSize: TEdit;
+    cbxMaxFileSize: TComboBox;
+    lbxSyncOptions: TListView;
     Procedure FolderPathChange(Sender: TObject);
     Procedure btnBrowseLeftClick(Sender: TObject);
     Procedure btnBrowseRightClick(Sender: TObject);
@@ -51,8 +53,7 @@ Type
     FRootKey: String;
   Public
     { Public declarations }
-    Class Function Execute(Var strLeftFolder, strRightFolder: String; strRootKey: String;
-      Var SyncOptions: TSyncOptions): Boolean;
+    Class Function Execute(Folder : TFolder; strRootKey: String): Boolean;
     Constructor CreateWithRootKey(AOwner: TComponent; strRootKey: String);
   End;
 
@@ -82,39 +83,56 @@ Const
   @postcon The function returns true is the dialogue was confirmed with the
            altered fodler paths in the var variables else returns false.
 
-  @param   strLeftFolder  as a String as a reference
-  @param   strRightFolder as a String as a reference
-  @param   strRootKey     as a String
-  @param   SyncOptions    as a TSyncOptions as a reference
+  @param   Folder     as a TFolder
+  @param   strRootKey as a String
   @return  a Boolean
 
 **)
-Class Function TfrmFolderPaths.Execute(Var strLeftFolder, strRightFolder: String;
-  strRootKey: String; Var SyncOptions: TSyncOptions): Boolean;
+Class Function TfrmFolderPaths.Execute(Folder : TFolder; strRootKey: String): Boolean;
 
 Var
   i     : TSyncOption;
-  iIndex: Integer;
+  iMaxFileSize: Int64;
+  Item : TListItem;
 
 Begin
   With TfrmFolderPaths.CreateWithRootKey(Nil, strRootKey) Do
     Try
       Result              := False;
-      edtLeftFolder.Text  := strLeftFolder;
-      edtRightFolder.Text := strRightFolder;
+      edtLeftFolder.Text  := Folder.LeftFldr + Folder.Patterns;
+      edtRightFolder.Text := Folder.RightFldr + Folder.Patterns;
       For i               := Low(TSyncOption) To High(TSyncOption) Do
         Begin
-          iIndex                         := lbxSyncOptions.Items.Add(SyncOps[i]);
-          lbxSyncOptions.Checked[iIndex] := i In SyncOptions;
+          Item := lbxSyncOptions.Items.Add;
+          Item.Caption := SyncOps[i];
+          Item.Checked := i In Folder.SyncOptions;
         End;
+      iMaxFileSize := Folder.MaxFileSize;
+      cbxMaxFileSize.ItemIndex := 0;
+      While iMaxFileSize Mod 1024 = 0 Do
+        Begin
+          iMaxFileSize := iMaxFileSize Div 1024;
+          cbxMaxFileSize.ItemIndex := cbxMaxFileSize.ItemIndex + 1;
+          If cbxMaxFileSize.ItemIndex >= cbxMaxFileSize.Items.Count - 1 Then
+            Break;
+        End;
+      edtMaxFileSize.Text := IntToStr(iMaxFileSize);
       If ShowModal = mrOK Then
         Begin
-          strLeftFolder  := edtLeftFolder.Text;
-          strRightFolder := edtRightFolder.Text;
-          SyncOptions    := [];
+          Folder.LeftFldr  := ExtractFilePath(edtLeftFolder.Text);
+          Folder.RightFldr := ExtractFilePath(edtRightFolder.Text);
+          Folder.Patterns := ExtractFileName(edtLeftFolder.Text);
+          Folder.SyncOptions := [];
           For i          := Low(TSyncOption) To High(TSyncOption) Do
-            If lbxSyncOptions.Checked[Integer(i)] Then
-              Include(SyncOptions, i);
+            If lbxSyncOptions.Items[Integer(i)].Checked Then
+              Folder.SyncOptions := Folder.SyncOptions + [i];
+          Folder.MaxFileSize := StrToInt64(edtMaxFileSize.Text);
+          Case cbxMaxFileSize.ItemIndex Of
+            1: Folder.MaxFileSize := Folder.MaxFileSize * 1024;
+            2: Folder.MaxFileSize := Folder.MaxFileSize * 1024 * 1024;
+            3: Folder.MaxFileSize := Folder.MaxFileSize * 1024 * 1024 * 1024;
+            4: Folder.MaxFileSize := Folder.MaxFileSize * 1024 * 1024 * 1024 * 1024;
+          End;
           Result := True;
         End;
     Finally
@@ -222,14 +240,14 @@ Var
 
 Begin
   i := TSyncOption(lbxSyncOptions.ItemIndex);
-  If (i In [soPrimaryLeft]) And lbxSyncOptions.Checked[SyncOpInts[i]] Then
-    lbxSyncOptions.Checked[SyncOpInts[soPrimaryRight]] := False;
-  If (i In [soPrimaryRight]) And lbxSyncOptions.Checked[SyncOpInts[i]] Then
-    lbxSyncOptions.Checked[SyncOpInts[soPrimaryLeft]] := False;
-  If (i In [soConfirmYes]) And lbxSyncOptions.Checked[SyncOpInts[i]] Then
-    lbxSyncOptions.Checked[SyncOpInts[soConfirmNo]] := False;
-  If (i In [soConfirmNo]) And lbxSyncOptions.Checked[SyncOpInts[i]] Then
-    lbxSyncOptions.Checked[SyncOpInts[soConfirmYes]] := False;
+  If (i In [soPrimaryLeft]) And lbxSyncOptions.Items[SyncOpInts[i]].Checked Then
+    lbxSyncOptions.Items[SyncOpInts[soPrimaryRight]].Checked := False;
+  If (i In [soPrimaryRight]) And lbxSyncOptions.Items[SyncOpInts[i]].Checked Then
+    lbxSyncOptions.Items[SyncOpInts[soPrimaryLeft]].Checked := False;
+  If (i In [soConfirmYes]) And lbxSyncOptions.Items[SyncOpInts[i]].Checked Then
+    lbxSyncOptions.Items[SyncOpInts[soConfirmNo]].Checked := False;
+  If (i In [soConfirmNo]) And lbxSyncOptions.Items[SyncOpInts[i]].Checked Then
+    lbxSyncOptions.Items[SyncOpInts[soConfirmYes]].Checked := False;
 End;
 
 (**
