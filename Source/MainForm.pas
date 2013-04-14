@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    10 Mar 2013
+  @Date    14 Apr 2013
   @Author  David Hoyle
 
 **)
@@ -140,6 +140,7 @@ Type
     FDialogueBottom : Integer;
     FInterfaceFonts : TInterfaceFontInfo;
     FFileOpFonts    : TFileOperationFontInfo;
+    FLastFolder     : String;
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure ApplicationHint(Sender: TObject);
@@ -154,7 +155,8 @@ Type
     Procedure ExceptionProc(strExceptionMsg: String);
     Procedure CloseTimerEvent(Sender: TObject);
     Procedure SearchStartProc(strFolder: String);
-    Procedure SearchProc(strFolder, strFileName: String; iCount: Integer);
+    Procedure SearchProc(strFolder, strFileName: String; iCount: Integer;
+      Update : TUpdateType);
     Procedure SearchEndProc(iFileCount: Integer; iTotalSize: int64);
     Procedure CompareStartProc(strLeftFldr, strRightFldr: String);
     Procedure CompareProc(strLeftFldr, strRightFldr, strFileName: String;
@@ -193,6 +195,9 @@ Type
     Procedure ExceedsSizeLimitStart(iFileCount : Integer);
     Procedure ExceedsSizeLimit(strLPath, strRPath, strFileName : String);
     Procedure ExceedsSizeLimitEnd();
+    Procedure ErrorMessageStart(iFileCount : Integer);
+    Procedure ErrorMessage(strErrorMsg : String);
+    Procedure ErrorMessageEnd();
     Procedure UpdateTaskBar(ProgressType: TTaskbarProgressType; iPosition: Integer = 0;
       iMaxPosition: Integer = 100);
     Procedure UpdateProgress(iPosition, iMaxPosition: Integer);
@@ -242,13 +247,17 @@ Implementation
 
 Uses
   CodeSiteLogging,
+  {$IFDEF PROFILECODE}
+  Profiler,
+  {$ENDIF}
   FileCtrl,
   ShellAPI,
   AboutForm,
   CheckForUpdates,
   DGHLibrary,
   ConfirmationDlg,
-  Themes, MemoryMonitorOptionsForm;
+  Themes,
+  MemoryMonitorOptionsForm;
 
 {$R *.DFM}
 
@@ -487,6 +496,7 @@ Var
   Ops       : Integer;
   iBufferLen: Integer;
   iFileOp   : TFileOp;
+  //T: ICodeSiteTimer;
 
   (**
 
@@ -505,6 +515,9 @@ Var
     j: Integer;
 
   Begin
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Start('GetSubItemRect');
+    {$ENDIF}
     Result := Item.DisplayRect(drBounds);
     For j  := 0 To iIndex Do
       Begin
@@ -515,6 +528,9 @@ Var
     Inc(Result.Bottom, 2); // Padding / Margin
     Inc(Result.Left, 6);   // Padding / Margin
     Dec(Result.Right, 6);  // Padding / Margin
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Stop;
+    {$ENDIF}
   End;
 
   (**
@@ -533,6 +549,9 @@ Var
   Procedure DrawBackground(iColumn: Integer; Background: TBackground);
 
   Begin
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Start('DrawBackground');
+    {$ENDIF}
     Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clWindow);
     If Item.Selected Then
       Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight)
@@ -548,13 +567,16 @@ Var
     If Background = bgLeft Then
       R := GetSubItemRect(iLDateCol - 1)
     Else
-      R   := GetSubItemRect(iRDisplayCol - 1);
+      R := GetSubItemRect(iRDisplayCol - 1);
     ItemR := Item.DisplayRect(drBounds);
     If Background = bgLeft Then
       ItemR.Right := R.Right + 6
     Else
       ItemR.Left := R.Left - 6;
     Sender.Canvas.FillRect(ItemR);
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Stop;
+    {$ENDIF}
   End;
 
   (**
@@ -570,11 +592,17 @@ Var
   Procedure SetTextAttributes;
 
   Begin
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Start('SetTextAttributes');
+    {$ENDIF}
     Sender.Canvas.Font.Color :=
       StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
     Sender.Canvas.Font.Style := FFileOpFonts[TFileOpFont(iFileOp)].FFontStyle;
     If Item.Selected Then
       Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Stop;
+    {$ENDIF}
   End;
 
   (**
@@ -590,6 +618,9 @@ Var
   Procedure SetTextDrawingOptions;
 
   Begin
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Start('SetTextDrawingOptions');
+    {$ENDIF}
     Case iSubItem Of
       0, 4:
         Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS Or DT_NOPREFIX;
@@ -598,6 +629,9 @@ Var
     Else
       Ops := DT_LEFT;
     End;
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Stop;
+    {$ENDIF}
   End;
 
   (**
@@ -619,6 +653,9 @@ Var
     boolEnabled: Boolean;
 
   Begin
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Start('DrawFileIcon');
+    {$ENDIF}
     Result := GetSubItemRect(iSubItem);
     If iSubItem In [0, 4] Then
       Begin
@@ -633,6 +670,9 @@ Var
         ilFileTypeIcons.Draw(Sender.Canvas, Result.Left, Result.Top, iImage, boolEnabled);
         Inc(Result.Left, 16 + 3);
       End;
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Stop;
+    {$ENDIF}
   End;
 
   (**
@@ -646,6 +686,9 @@ Var
   Procedure SetTextFontBackground;
 
   Begin
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Start('SetTextFontBackground');
+    {$ENDIF}
     Sender.Canvas.Brush.Color :=
       StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
     Sender.Canvas.Font.Color :=
@@ -676,6 +719,9 @@ Var
               End;
           End;
       End;
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Stop;
+    {$ENDIF}
   End;
 
   (**
@@ -693,6 +739,9 @@ Var
   Procedure FixUpEmptyFilePaths;
 
   Begin
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Start('FixUpEmptyFilePaths');
+    {$ENDIF}
     If (iSubItem = 0) And (Item.SubItems[iSubItem] = '') Then
       Begin
         StrPCopy(Buffer, Item.SubItems[iLFullFileNameCol - 1]);
@@ -727,27 +776,50 @@ Var
       End
     Else
       SetTextAttributes;
+    {$IFDEF PROFILECODE}
+    CodeProfiler.Stop;
+    {$ENDIF}
   End;
 
 Begin
+  {$IFDEF PROFILECODE}
+  CodeProfiler.Start('TfrmMainForm.lvFileListCustomDrawItem');
+  {$ENDIF}
   DefaultDraw := False;
   iFileOp := TFileOp(Item.StateIndex);
+  //T := CodeSite.Timer('DrawBackground', tfMilliseconds);
   DrawBackground(iLAttrCol, bgLeft);
   DrawBackground(iRAttrCol, bgRight);
+  //T.Stop;
+  //T := CodeSite.Timer('ilActionImages.Draw', tfMilliseconds);
   R := Item.DisplayRect(drBounds);
   ilActionImages.Draw(Sender.Canvas, R.Left + lvFileList.Column[0].Width Div 2 - 8, R.Top,
     Item.StateIndex, True);
+  //T.Stop;
   For iSubItem := 0 To iRDateCol - 1 Do
     Begin
+      //T := CodeSite.Timer('SetTextDrawingOptions', tfMilliseconds);
       SetTextDrawingOptions;
+      //T.Stop;
+      //T := CodeSite.Timer('DrawFileIcon', tfMilliseconds);
       R := DrawFileIcon;
+      //T.Stop;
+      //T := CodeSite.Timer('SetTextFontBackground', tfMilliseconds);
       SetTextFontBackground;
+      //T.Stop;
       StrPCopy(Buffer, Item.SubItems[iSubItem]);
       iBufferLen := Length(Item.SubItems[iSubItem]);
+      //T := CodeSite.Timer('FixUpEmptyFilePaths', tfMilliseconds);
       FixUpEmptyFilePaths;
+      //T.Stop;
       Sender.Canvas.Refresh;
+      //T := CodeSite.Timer('DrawText', tfMilliseconds);
       DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
+      //T.Stop;
     End;
+  {$IFDEF PROFILECODE}
+  CodeProfiler.Stop;
+  {$ENDIF}
 End;
 
 (**
@@ -830,7 +902,6 @@ end;
 procedure TfrmMainForm.NothingToDoEnd;
 
 begin
-  // Do nothing.
 end;
 
 (**
@@ -1092,6 +1163,9 @@ Begin
   FSyncModule.OnExceedsSizeLimitStart := ExceedsSizeLimitStart;
   FSyncModule.OnExceedsSizeLimit      := ExceedsSizeLimit;
   FSyncModule.OnExceedsSizeLimitEnd   := ExceedsSizeLimitEnd;
+  FSyncModule.OnErrorMsgsStart        := ErrorMessageStart;
+  FSyncModule.OnErrorMsgs             := ErrorMessage;
+  FSyncModule.OnErrorMsgsEnd          := ErrorMessageEnd;
   FTaskbarList  := Nil;
   FTaskbarList3 := Nil;
   If CheckWin32Version(6, 1) Then
@@ -1386,7 +1460,9 @@ Var
   iOutputSize   : Integer;
 
 Begin
+  {$HINTS OFF}
   Result := -1;
+  {$HINTS ON}
   strExt := LowerCase(ExtractFileExt(strFileName));
   If FIconFiles.Find(strExt, iIndex) Then
     Begin
@@ -1446,7 +1522,7 @@ Begin
   If {: @debug (strClassName <> '') And} (strExt <> '.exe') Then
     FIconFiles.AddObject(strExt, TObject(Result));
   //-------------------------------------------------------------------------------------
-  If (Result < 0) And (strExt <> '.exe') Then
+  If (Result < 0) {: @debug And (strExt <> '.exe')} Then
     Begin
       CodeSite.Send('Ext', strExt);
       CodeSite.Send('Extension List', FIconFiles);
@@ -1649,20 +1725,26 @@ End;
   This is an on search event handler for the sync module.
 
   @precon  None.
-  @postcon Updates the progress dialogue with the current number of files found and
-           the current folder and filename being searched.
+  @postcon Updates the progress dialogue with the current number of files found and the 
+           current folder and filename being searched.
 
   @param   strFolder   as a String
   @param   strFileName as a String
   @param   iCount      as an Integer
+  @param   Update      as a TUpdateType
 
 **)
-Procedure TfrmMainForm.SearchProc(strFolder, strFileName: String; iCount: Integer);
+Procedure TfrmMainForm.SearchProc(strFolder, strFileName: String; iCount: Integer;
+  Update : TUpdateType);
 
 Begin
-  If iCount Mod 10 = 0 Then
-    FProgressForm.Progress(FProgressSection, 0, Format('Searching: %s... %1.0n',
-        [strFolder, Int(iCount)]), strFileName);
+  If strFolder = FLastFolder Then
+    Begin
+      If (iCount Mod 10 = 0) Or (Update = utImmediate) Then
+        FProgressForm.Progress(FProgressSection, 0, Format('Searching: %s... %1.0n',
+            [strFolder, Int(iCount)]), strFileName);
+    End Else
+      FLastFolder := strFolder;
 End;
 
 (**
@@ -1897,6 +1979,56 @@ End;
 
 (**
 
+  This is an on error message event handler for outputting error message from the deleting
+  ans copying process.
+
+  @precon  None.
+  @postcon Outputs an error message to the log file.
+
+  @param   strErrorMsg as a String
+
+**)
+Procedure TfrmMainForm.ErrorMessage(strErrorMsg : String);
+
+Begin
+  OutputResultLn(Format('  %s', [strErrorMsg]));
+End;
+
+(**
+
+  This is an on error message end event handler for the outputting of error messages from
+  the deleting and copying processes.
+
+  @precon  None.
+  @postcon Does nothing.
+
+**)
+Procedure TfrmMainForm.ErrorMessageEnd;
+
+Begin
+End;
+
+(**
+
+  This is an on error message start event handler for the outputting of error messages
+  from the deleting and copyin processes.
+
+  @precon  None.
+  @postcon Ouputs an error message header to the log file if there are errors to output.
+
+  @param   iFileCount as an Integer
+
+**)
+Procedure TfrmMainForm.ErrorMessageStart(iFileCount: Integer);
+
+Begin
+  If iFileCount > 0 Then
+    OutputResultLn(Format('There are %1.0n files that have had errors:',
+      [Int(iFileCount)]));
+End;
+
+(**
+
   This is an on exceeeds size limit event handler.
 
   @precon  None.
@@ -1924,7 +2056,6 @@ End;
 Procedure TfrmMainForm.ExceedsSizeLimitEnd;
 
 Begin
-  // Do nothing
 End;
 
 (**
@@ -2589,7 +2720,6 @@ end;
 procedure TfrmMainForm.DiffSizeEnd;
 
 begin
-  // Do nothing
 end;
 
 (**
@@ -2696,3 +2826,6 @@ Begin
 End;
 
 End.
+
+
+

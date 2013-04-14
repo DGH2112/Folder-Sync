@@ -61,6 +61,8 @@ object frmMainForm: TfrmMainForm
         Width = 125
       end>
     OnDrawPanel = stbrStatusBarDrawPanel
+    ExplicitTop = 735
+    ExplicitWidth = 770
   end
   object ambMenuBar: TActionMainMenuBar
     Left = 0
@@ -86,6 +88,7 @@ object frmMainForm: TfrmMainForm
     Font.Style = []
     PersistentHotKeys = True
     Spacing = 0
+    ExplicitHeight = 28
   end
   object pnlTop: TPanel
     Left = 0
@@ -99,6 +102,7 @@ object frmMainForm: TfrmMainForm
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
+    ExplicitTop = 28
     object DGHMemoryMonitor: TDGHMemoryMonitor
       Left = 767
       Top = 0
@@ -153,11 +157,13 @@ object frmMainForm: TfrmMainForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 3
+    ExplicitTop = 60
+    ExplicitHeight = 675
     object splOutputResults: TSplitter
       Left = 0
       Top = 559
       Width = 948
-      Height = 4
+      Height = 3
       Cursor = crVSplit
       Margins.Left = 4
       Margins.Top = 4
@@ -166,7 +172,6 @@ object frmMainForm: TfrmMainForm
       Align = alBottom
       MinSize = 50
       ResizeStyle = rsUpdate
-      ExplicitTop = 551
     end
     object lvFileList: TListView
       Left = 0
@@ -246,9 +251,9 @@ object frmMainForm: TfrmMainForm
     end
     object redtOutputResults: TMemo
       Left = 0
-      Top = 563
+      Top = 562
       Width = 948
-      Height = 119
+      Height = 120
       Margins.Left = 4
       Margins.Top = 4
       Margins.Right = 4
@@ -272,7 +277,7 @@ object frmMainForm: TfrmMainForm
     Left = 33
     Top = 151
     Bitmap = {
-      494C01010F001300C40010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010F001300C80010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
