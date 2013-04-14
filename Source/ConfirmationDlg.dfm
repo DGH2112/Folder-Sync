@@ -133,6 +133,15 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     AutoSize = False
     Caption = 'lblSourceInfo'
   end
+  object imgIcon: TImage
+    Left = 8
+    Top = 121
+    Width = 48
+    Height = 48
+    Anchors = [akLeft, akBottom]
+    Center = True
+    Stretch = True
+  end
   object btnYes: TBitBtn
     Left = 158
     Top = 144

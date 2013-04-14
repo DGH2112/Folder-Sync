@@ -4,7 +4,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    03 Mar 2013
+  @Date    14 Apr 2013
 
 **)
 Unit ConfirmationDlg;
@@ -23,7 +23,7 @@ Uses
   Vcl.Dialogs,
   Vcl.StdCtrls,
   Vcl.Buttons,
-  SyncModule;
+  SyncModule, Vcl.ExtCtrls;
 
 Type
   (** A class to represent the form interface. **)
@@ -41,6 +41,7 @@ Type
     btnCancel: TBitBtn;
     lblSourceInfo: TLabel;
     lblDestInfo: TLabel;
+    imgIcon: TImage;
   Private
     { Private declarations }
   Public
@@ -74,6 +75,9 @@ Implementation
 Class Function TfrmConfirmationDlg.Execute(ParentForm : TForm; strMsg, strSrcPath,
   strDestPath : String; Source, Dest : TFileRecord; iTop : Integer) : TModalResult;
 
+Var
+  AIcon : TIcon;
+  
 Begin
   With TfrmConfirmationDlg.Create(Nil) Do
     Try
@@ -88,6 +92,17 @@ Begin
       ]);
       If strDestPath <> '' Then
         Begin
+          AIcon := TIcon.Create;
+          Try
+            If (Dest <> Nil) And (
+              (Source.DateTime < Dest.DateTime) Or (Dest.Attributes And faReadOnly <> 0)) Then
+              AIcon.Handle := LoadIcon(AIcon.Handle, IDI_WARNING)
+             Else
+              AIcon.Handle := LoadIcon(AIcon.Handle, IDI_QUESTION);
+            imgIcon.Picture.Icon := AIcon;
+          Finally
+            AIcon.Free;
+          End;
           lblLabelLine2.Caption := 'Destination:';
           lblInformation2.Caption := ExtractFilePath(strDestPath + Dest.FileName);
           lblLabelLine3.Caption := 'Filename:';
@@ -98,6 +113,16 @@ Begin
           ]);
         End Else
         Begin
+          AIcon := TIcon.Create;
+          Try
+            If (Source <> Nil) And (Source.Attributes And faReadOnly <> 0) Then
+              AIcon.Handle := LoadIcon(AIcon.Handle, IDI_WARNING)
+             Else
+              AIcon.Handle := LoadIcon(AIcon.Handle, IDI_QUESTION);
+            imgIcon.Picture.Icon := AIcon;
+          Finally
+            AIcon.Free;
+          End;
           lblLabelLine2.Caption := 'Filename:';
           lblInformation2.Caption := ExtractFileName(Source.FileName);
           lblLabelLine3.Caption := '';
