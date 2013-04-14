@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    23 Jan 2013
+  @Date    14 Apr 2013
   @Version 1.0
   @Author  David Hoyle
 
@@ -28,6 +28,37 @@ Uses
   ImgList;
 
 Type
+  (** An enumerate to describe the Interface fonts that can be modified. **)
+  TInterfaceFont = (ifTableFont, ifLogFont);
+  
+  (** A record to describe the attributes of the interface fonts that can be modified. **)
+  TInterfaceFontRecord = Record
+    FFontName : String;
+    FFontSize : Integer;
+  End;
+
+  (** A record to describe the file operation font attributes that can be modified. **)
+  TFileOperationFontRecord = Record
+    FININame      : String;
+    FFontColour   : TColor;
+    FBGFontColour : TColor;
+    FFontStyle    : TFontStyles;
+  End;
+
+  (** A type to define the Interface font data that can be editied by this dialogue. **)
+  TInterfaceFontInfo = Array[Low(TInterfaceFont)..High(TInterfaceFont)] Of
+    TInterfaceFontRecord;
+
+  (** An enumerate to define the File Operation font that can be editied (more than the
+      file operations alone). **)
+  TFileOpFont = (fofNothing, fofLeftToRight, fofRightToLeft, fofDelete, fofSizeDiff,
+    fofExceedsSizeLimit, fofReadOnly, fofMissingFile);
+
+  (** A type to define the File Operation font data that can be editied by this
+      dialogue. **)
+  TFileOperationFontInfo = Array[Low(TFileOpFont)..High(TFileOpFont)] Of
+    TFileOperationFontRecord;
+
   (** This is a class to represent **)
   TfrmOptions = Class(TForm)
     btnOK: TBitBtn;
@@ -42,15 +73,23 @@ Type
     btnBrowse: TButton;
     dlgOpen: TOpenDialog;
     btnCheckforUpdates: TBitBtn;
-    btnTableFont: TBitBtn;
-    dlgFont: TFontDialog;
     lblExclusions: TLabel;
     ilStatus: TImageList;
     btnHelp: TBitBtn;
-    btnLogFont: TBitBtn;
     cbxThemes: TComboBox;
     lblThemes: TLabel;
     lbxFldrSyncOps: TListView;
+    pagPages: TPageControl;
+    tabFolders: TTabSheet;
+    tabFonts: TTabSheet;
+    tabGlobalOptions: TTabSheet;
+    tabExclusions: TTabSheet;
+    lblInterfaceFonts: TLabel;
+    lbxInterfaceFonts: TListBox;
+    lblFileOperationFonts: TLabel;
+    lbxFileOperationFonts: TListBox;
+    btnInterfaceFontEdit: TBitBtn;
+    btnFileOperationFontEdit: TBitBtn;
     Procedure lvFoldersResize(Sender: TObject);
     Procedure btnAddClick(Sender: TObject);
     Procedure btnEditClick(Sender: TObject);
@@ -62,19 +101,24 @@ Type
     Procedure btnCheckforUpdatesClick(Sender: TObject);
     Procedure lvFoldersSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
     Procedure lvFoldersChange(Sender: TObject; Item: TListItem; Change: TItemChange);
-    Procedure btnTableFontClick(Sender: TObject);
     Procedure lvFoldersCustomDrawItem(Sender: TCustomListView; Item: TListItem;
       State: TCustomDrawState; Var DefaultDraw: Boolean);
     Procedure btnHelpClick(Sender: TObject);
-    Procedure btnLogFontClick(Sender: TObject);
+    procedure lbxInterfaceFontsDrawItem(Control: TWinControl; Index: Integer; Rect: TRect;
+      State: TOwnerDrawState);
+    procedure lbxFileOperationFontsDrawItem(Control: TWinControl; Index: Integer;
+      Rect: TRect; State: TOwnerDrawState);
+    procedure btnInterfaceFontEditClick(Sender: TObject);
+    procedure tabFontsResize(Sender: TObject);
+    procedure btnFileOperationFontEditClick(Sender: TObject);
   Private
     { Private declarations }
-    FRightWidth : Integer;
-    FLeftWidth  : Integer;
-    FINIFileName: String;
-    FFolders    : TFolders;
-    FTableFont  : TFont;
-    FLogFont    : TFont;
+    FRightWidth     : Integer;
+    FLeftWidth      : Integer;
+    FINIFileName    : String;
+    FFolders        : TFolders;
+    FInterfaceFonts : TInterfaceFontInfo;
+    FFileOpFonts    : TFileOperationFontInfo;
     Procedure SetLeftWidth(Const Value: Integer);
     Procedure SetRightWidth(Const Value: Integer);
     Procedure PopulateFolderList;
@@ -95,8 +139,9 @@ Type
   Public
     { Public declarations }
     Class Function Execute(Folders: TFolders; Var strExclusions, strCompareEXE: String;
-      strINIFileName: String; TableFont, LogFont: TFont;
-      Var FldrSyncOps: TFldrSyncOptions; var strTheme : String): Boolean;
+      strINIFileName: String; var InterfaceFonts : TInterfaceFontInfo;
+      var FileOpFonts : TFileOperationFontInfo; Var FldrSyncOps: TFldrSyncOptions;
+      var strTheme : String): Boolean;
     Constructor CreateWithRootKey(AOwner: TComponent; strRootKey: String); Virtual;
   End;
 
@@ -136,6 +181,30 @@ Const
     FDescription
     : 'Start processing the files after comparison automatically (DANGEROUS!).';
     FDefault: False));
+  (** A constant array of strings that name of the Interface fonts. **)
+  strInterfaceFonts : Array[Low(TInterfaceFont)..High(TInterfaceFont)] Of String = (
+    'Table Font', 'Log Font');
+  (** A constant array of default options for the interface fonts. **)
+  InterfaceFontDefaults : Array[Low(TInterfaceFont)..High(TInterfaceFont)] Of TInterfaceFontRecord = (
+    (FFontName: 'Tahoma'; FFontSize: 9),
+    (FFontName: 'Courier New'; FFontSize: 9)
+  );
+  (** A constant array of strings that name of the File Operation fonts. **)
+  strFileOperationFonts : Array[Low(TFileOpFont)..High(TFileOpFont)] Of String = (
+    'Do Nothing', 'Copy Left to Right', 'Copy Right to Left', 'Delete', 'Size Different',
+    'Exceeds Maximum Size', 'Read Only', 'Missing File');
+  (** A constant array of default options for the file operation fonts. **)
+  FileOperationFontDefaults : Array[Low(TFileOpFont)..High(TFileOpFont)] Of
+    TFileOperationFontRecord = (
+    (FININame: 'DoNothingFont';   FFontColour: clGray;       FBGFontColour: clSilver; FFontStyle: []),
+    (FININame: 'LeftRightFont';   FFontColour: clWindowText; FBGFontColour: clWindow; FFontStyle: []),
+    (FININame: 'RightLeftFont';   FFontColour: clWindowText; FBGFontColour: clWindow; FFontStyle: []),
+    (FININame: 'DeleteFont';      FFontColour: clMaroon;     FBGFontColour: clWindow; FFontStyle: [fsStrikeOut]),
+    (FININame: 'SizeDiffFont';    FFontColour: clWindowText; FBGFontColour: clWindow; FFontStyle: [fsItalic]),
+    (FININame: 'ExceedMaxFont';   FFontColour: clGray;       FBGFontColour: clWindow; FFontStyle: []),
+    (FININame: 'ReadOnlyFont';    FFontColour: clBlack;      FBGFontColour: $BBBBFF;  FFontStyle: []),
+    (FININame: 'MissingFileFont'; FFontColour: clSilver;     FBGFontColour: clWindow; FFontStyle: [])
+  );
 
 Implementation
 
@@ -143,7 +212,8 @@ Uses
   FolderPathsForm,
   IniFiles,
   CheckForUpdatesOptionsForm,
-  Themes;
+  Themes,
+  InterfaceFontForm, OperationsFontForm;
   
 {$R *.DFM}
 
@@ -161,8 +231,8 @@ Uses
   @param   strExclusions  as a String as a reference
   @param   strCompareEXE  as a String as a reference
   @param   strINIFileName as a String
-  @param   TableFont      as a TFont
-  @param   LogFont        as a TFont
+  @param   InterfaceFonts as a TInterfaceFontInfo as a reference
+  @param   FileOpFonts    as a TFileOperationFontInfo as a reference
   @param   FldrSyncOps    as a TFldrSyncOptions as a reference
   @param   strTheme       as a String as a reference
   @return  a Boolean
@@ -170,8 +240,8 @@ Uses
 **)
 Class Function TfrmOptions.Execute(Folders: TFolders;
   Var strExclusions, strCompareEXE: String; strINIFileName: String;
-  TableFont, LogFont: TFont; Var FldrSyncOps: TFldrSyncOptions;
-  var strTheme : String): Boolean;
+  var InterfaceFonts : TInterfaceFontInfo; var FileOpFonts : TFileOperationFontInfo;
+  Var FldrSyncOps: TFldrSyncOptions; var strTheme : String): Boolean;
 
 Var
   i     : TFldrSyncOption;
@@ -181,8 +251,8 @@ Begin
   Result := False;
   With TfrmOptions.CreateWithRootKey(Nil, strINIFileName) Do
     Try
-      FTableFont.Assign(TableFont);
-      FLogFont.Assign(LogFont);
+      FInterfaceFonts := InterfaceFonts;
+      FFileOpFonts := FileOpFonts;
       FFolders.Assign(Folders);
       PopulateFolderList;
       lvFoldersResize(Nil);
@@ -204,8 +274,8 @@ Begin
           For i         := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
             If lbxFldrSyncOps.Items[Integer(i)].Checked Then
               Include(FldrSyncOps, i);
-          TableFont.Assign(FTableFont);
-          LogFont.Assign(FLogFont);
+          InterfaceFonts := FInterfaceFonts;
+          FileOpFonts := FFileOpFonts;
           strTheme := cbxThemes.Text;
           Result := True;
         End;
@@ -229,6 +299,8 @@ Procedure TfrmOptions.FormCreate(Sender: TObject);
 
 Var
   i : Integer;
+  j : TInterfaceFont;
+  k : TFileOpFont;
   
 Begin
   FRightWidth := 1;
@@ -242,12 +314,15 @@ Begin
     Finally
       Free;
     End;
-  FTableFont  := TFont.Create;
-  FLogFont    := TFont.Create;
   FFolders    := TFolders.Create;
   For i := Low(TStyleManager.StyleNames) To High(TStyleManager.StyleNames) Do
     cbxThemes.Items.Add(TStyleManager.StyleNames[i]);
   cbxThemes.ItemIndex := cbxThemes.Items.IndexOf(TStyleManager.ActiveStyle.Name);
+  For j := Low(TInterfaceFont) To High(TinterfaceFont) Do
+    lbxInterfaceFonts.Items.Add(strInterfaceFonts[j]);
+  For k := Low(TFileOpFont) To High(TFileOpFont) Do
+    lbxFileOperationFonts.Items.Add(strFileOperationFonts[k]);
+  pagPages.ActivePageIndex := 0;
 End;
 
 (**
@@ -274,8 +349,6 @@ Begin
       Free;
     End;
   FFolders.Free;
-  FTableFont.Free;
-  FLogFont.Free;
 End;
 
 (**
@@ -375,6 +448,40 @@ End;
 
 (**
 
+  This is an on click event handler for the File operation Font button.
+
+  @precon  None.
+  @postcon Displays the File Operations Font editing dialogue.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmOptions.btnFileOperationFontEditClick(Sender: TObject);
+
+Var
+  iFontColour, iBackColour : TColor;
+  iStyles : TFontStyles;
+  iIndex : TFileOpFont;
+  
+Begin
+  If lbxFileOperationFonts.ItemIndex > -1 Then
+    Begin
+      iIndex := TFileOpFont(lbxFileOperationFonts.ItemIndex);
+      iFontColour := FFileOpFonts[iIndex].FFontColour;
+      iBackColour := FFileOpFonts[iIndex].FBGFontColour;
+      iStyles := FFileOpFonts[iIndex].FFontStyle;
+      If TfrmOperationsFonts.Execute(iFontColour, iBackColour, iStyles) Then
+        Begin
+          FFileOpFonts[iIndex].FFontColour := iFontColour;
+          FFileOpFonts[iIndex].FBGFontColour := iBackColour;
+          FFileOpFonts[iIndex].FFontStyle := iStyles;
+          lbxFileOperationFonts.Invalidate;
+        End;
+    End;
+End;
+
+(**
+
   This is an on click event handler for the Help button.
 
   @precon  None.
@@ -391,42 +498,32 @@ End;
 
 (**
 
-  This is an on click event handler for the Table Font button.
+  This is an on click event handler for the Interface Font Edit button.
 
   @precon  None.
-  @postcon Displays a dialogue from which the user can change the font anme, size and
-           style to be used in the table.
+  @postcon Displays the Interface Font dialogue for editing the fonts of the interface.
 
   @param   Sender as a TObject
 
 **)
-Procedure TfrmOptions.btnLogFontClick(Sender: TObject);
+Procedure TfrmOptions.btnInterfaceFontEditClick(Sender: TObject);
 
+Var
+  strFontName : string;
+  iFontSize   : Integer;
+  
 Begin
-  dlgFont.Font.Assign(FLogFont);
-  dlgFont.Options := [fdForceFontExist, fdNoStyleSel];
-  If dlgFont.Execute(Application.Handle) Then
-    FLogFont.Assign(dlgFont.Font);
-End;
-
-(**
-
-  This is an on click event handler for the Table Font button.
-
-  @precon  None.
-  @postcon Displays a dialogue from which the user can change the font anme, size and
-           style to be used in the table.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmOptions.btnTableFontClick(Sender: TObject);
-
-Begin
-  dlgFont.Font.Assign(FTableFont);
-  dlgFont.Options := [fdForceFontExist];
-  If dlgFont.Execute(Application.Handle) Then
-    FTableFont.Assign(dlgFont.Font);
+  If lbxInterfaceFonts.ItemIndex > -1 Then
+    Begin
+      strFontName := FInterfaceFonts[TInterfaceFont(lbxInterfaceFonts.ItemIndex)].FFontName;
+      iFontSize := FInterfaceFonts[TInterfaceFont(lbxInterfaceFonts.ItemIndex)].FFontSize;
+      If TfrmInterfaceFonts.Execute(strFontName, iFontSize) Then
+        Begin
+          FInterfaceFonts[TInterfaceFont(lbxInterfaceFonts.ItemIndex)].FFontName := strFontName;
+          FInterfaceFonts[TInterfaceFont(lbxInterfaceFonts.ItemIndex)].FFontSize := iFontSize;
+          lbxInterfaceFonts.Invalidate;
+        End;
+    End;
 End;
 
 (**
@@ -463,6 +560,86 @@ Procedure TfrmOptions.btnDeleteClick(Sender: TObject);
 Begin
   FFolders.Delete(lvFolders.ItemIndex);
   PopulateFolderList;
+End;
+
+(**
+
+  This is an on draw items event handler for the File Operation listbox.
+
+  @precon  None.
+  @postcon Draws the file operations items in their specific font colours and styles.
+
+  @param   Control as a TWinControl
+  @param   Index   as an Integer
+  @param   Rect    as a TRect
+  @param   State   as a TOwnerDrawState
+
+**)
+Procedure TfrmOptions.lbxFileOperationFontsDrawItem(Control: TWinControl; Index: Integer;
+  Rect: TRect; State: TOwnerDrawState);
+
+Var
+  lbx: TListBox;
+
+Begin
+  lbx                  := Control As TListBox;
+  lbx.Canvas.Font.Name := FInterfaceFonts[ifTableFont].FFontName;
+  lbx.Canvas.Font.Size := FInterfaceFonts[ifTableFont].FFontSize;
+  If odSelected In State Then
+    Begin
+      lbx.Canvas.Font.Color  := StyleServices.GetSystemColor(clHighlightText);
+      lbx.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
+    End
+  Else
+    Begin
+      lbx.Canvas.Font.Color  :=
+        StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(Index)].FFontColour);
+      lbx.Canvas.Brush.Color :=
+        StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(Index)].FBGFontColour);
+    End;
+  lbx.Canvas.Font.Style := FFileOpFonts[TFileOpFont(Index)].FFontStyle;
+  lbx.Canvas.FillRect(Rect);
+  lbx.Canvas.Refresh;
+  DrawText(lbx.Canvas.Handle, PChar(lbx.Items[Index]), Length(lbx.Items[Index]), Rect,
+    DT_CENTER Or DT_VCENTER Or DT_SINGLELINE);
+End;
+
+(**
+
+  This is an on draw item event handler for the Interface Font list box.
+
+  @precon  None.
+  @postcon Draws the interface fonts in their font name and size.
+
+  @param   Control as a TWinControl
+  @param   Index   as an Integer
+  @param   Rect    as a TRect
+  @param   State   as a TOwnerDrawState
+
+**)
+Procedure TfrmOptions.lbxInterfaceFontsDrawItem(Control: TWinControl; Index: Integer;
+  Rect: TRect; State: TOwnerDrawState);
+
+Var
+  lbx : TListbox;
+  
+Begin
+  lbx := Control As TListbox;
+  lbx.Canvas.Font.Name := FInterfaceFonts[TInterfaceFont(Index)].FFontName;
+  lbx.Canvas.Font.Size := FInterfaceFonts[TInterfaceFont(Index)].FFontSize;
+  If odSelected In State Then
+    Begin
+      lbx.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+      lbx.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
+    End Else
+    Begin
+      lbx.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);
+      lbx.Canvas.Brush.Color := StyleServices.GetSystemColor(clWindow);
+    End;
+  lbx.Canvas.Refresh;
+  lbx.Canvas.FillRect(Rect);
+  DrawText(lbx.Canvas.Handle, PChar(lbx.Items[Index]), Length(lbx.Items[Index]), Rect,
+    DT_CENTER Or DT_VCENTER Or DT_SINGLELINE);
 End;
 
 (**
@@ -659,6 +836,7 @@ Procedure TfrmOptions.PopulateFolderList;
 Const
   SyncOps: Array [Succ(Low(TSyncOption)) .. High(TSyncOption)
     ] Of String = ('Left', 'Right', 'Overwrite', 'Yes', 'No', 'No Recursion');
+  strMultiplers : Array[0..5] of String = ('B', 'KB', 'MB', 'GB', 'TB', 'PB');
 
 Var
   i        : Integer;
@@ -666,6 +844,8 @@ Var
   j        : TSyncOption;
   strOps   : String;
   iSelected: Integer;
+  iMax     : Int64;
+  iIndex: Integer;
 
 Begin
   Try
@@ -691,6 +871,21 @@ Begin
                 End;
               If (j = soPrimaryRight) And (strOps = '') Then
                 strOps := 'Synchronise';
+            End;
+          iMax := FFolders.Folder[i].MaxFileSize;
+          If iMax > 0 Then
+            Begin
+              iIndex := 0;
+              While iMax Mod 1024 = 0 Do
+                Begin
+                  iMax := iMax Div 1024;
+                  iIndex := iIndex + 1;
+                  If iIndex >= High(strMultiplers) Then
+                    Break;
+                End;
+              If strOps <> '' Then
+                strOps := strOps + ', ';
+              strOps := strOps + 'Max ' + IntToStr(iMax) + strMultiplers[iIndex];            
             End;
           Item.SubItems.Add(strOps);
         End;
@@ -737,6 +932,23 @@ Procedure TfrmOptions.SetRightWidth(Const Value: Integer);
 Begin
   If Value > FRightWidth Then
     FRightWidth := Value;
+End;
+
+(**
+
+  Force the Font list boxes to redraw when the dialogue is resized.
+
+  @precon  None.
+  @postcon Re-draws the list boxes containing the interface fonts.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmOptions.tabFontsResize(Sender: TObject);
+
+Begin
+  lbxInterfaceFonts.Invalidate;
+  lbxFileOperationFonts.Invalidate;
 End;
 
 End.

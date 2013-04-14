@@ -1,18 +1,17 @@
 object frmOptions: TfrmOptions
   Left = 502
   Top = 310
-  ActiveControl = lvFolders
   Caption = 'Folder Sync Options'
-  ClientHeight = 491
+  ClientHeight = 446
   ClientWidth = 632
   Color = clBtnFace
-  Constraints.MinHeight = 525
+  Constraints.MinHeight = 480
   Constraints.MinWidth = 640
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
@@ -20,66 +19,28 @@ object frmOptions: TfrmOptions
   OnDestroy = FormDestroy
   DesignSize = (
     632
-    491)
+    446)
   PixelsPerInch = 96
   TextHeight = 13
-  object lblCompareFiles: TLabel
-    Left = 7
-    Top = 388
-    Width = 66
-    Height = 13
-    Anchors = [akLeft, akBottom]
-    Caption = 'Compare &EXE'
-    ExplicitTop = 362
-  end
-  object lblExclusions: TLabel
-    Left = 8
-    Top = 226
-    Width = 87
-    Height = 13
-    Caption = 'Exclusion &Patterns'
-  end
-  object lblThemes: TLabel
-    Left = 7
-    Top = 432
-    Width = 33
-    Height = 13
-    Margins.Left = 2
-    Margins.Top = 2
-    Margins.Right = 2
-    Margins.Bottom = 2
-    Anchors = [akLeft, akBottom]
-    Caption = '&Theme'
-    FocusControl = cbxThemes
-    ExplicitTop = 406
-  end
   object btnOK: TBitBtn
-    Left = 468
-    Top = 457
+    Left = 465
+    Top = 412
     Width = 75
-    Height = 26
+    Height = 25
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akRight, akBottom]
     Kind = bkOK
     NumGlyphs = 2
-    TabOrder = 12
-    ExplicitTop = 431
-  end
-  object btnCancel: TBitBtn
-    Left = 549
-    Top = 457
-    Width = 75
-    Height = 26
-    Anchors = [akRight, akBottom]
-    Kind = bkCancel
-    NumGlyphs = 2
-    TabOrder = 13
-    ExplicitTop = 431
+    TabOrder = 2
   end
   object btnCheckforUpdates: TBitBtn
-    Left = 221
-    Top = 457
-    Width = 150
-    Height = 26
+    Left = 7
+    Top = 412
+    Width = 151
+    Height = 25
     Margins.Left = 2
     Margins.Top = 2
     Margins.Right = 2
@@ -95,206 +56,336 @@ object frmOptions: TfrmOptions
       CDDDDCDC1CDDCDCDCDCDDCD9CCCCCCCCCDDDDDDD1DDDDDDDDDDDDDD91DDDDDA2
       DDDDDDD91DDDDDAA2DDDDDDD91DDDAAAA2DDDDDDD91DDA2DAA2DDDDDD91DAADD
       DAA2D91119DDADDDDDAADD999DDDDDDDDDDADDDDDDDDDDDDDDDD}
-    TabOrder = 11
-    OnClick = btnCheckforUpdatesClick
-    ExplicitTop = 431
-  end
-  object lvFolders: TListView
-    Left = 8
-    Top = 8
-    Width = 616
-    Height = 197
-    Anchors = [akLeft, akTop, akRight]
-    Checkboxes = True
-    Columns = <
-      item
-        Caption = 'Left Folder'
-        Width = 300
-      end
-      item
-        Caption = 'Right Folder'
-        Width = 300
-      end
-      item
-        Caption = 'Sync Option'
-        Width = 100
-      end>
-    ReadOnly = True
-    RowSelect = True
-    TabOrder = 0
-    ViewStyle = vsReport
-    OnChange = lvFoldersChange
-    OnCustomDrawItem = lvFoldersCustomDrawItem
-    OnDblClick = lvFoldersDblClick
-    OnResize = lvFoldersResize
-    OnSelectItem = lvFoldersSelectItem
-  end
-  object btnAdd: TBitBtn
-    Left = 386
-    Top = 211
-    Width = 76
-    Height = 25
-    Anchors = [akTop, akRight]
-    Caption = '&Add'
     TabOrder = 1
-    OnClick = btnAddClick
-  end
-  object btnEdit: TBitBtn
-    Left = 468
-    Top = 211
-    Width = 75
-    Height = 25
-    Anchors = [akTop, akRight]
-    Caption = '&Edit'
-    TabOrder = 2
-    OnClick = btnEditClick
-  end
-  object btnDelete: TBitBtn
-    Left = 549
-    Top = 211
-    Width = 75
-    Height = 25
-    Anchors = [akTop, akRight]
-    Caption = '&Delete'
-    TabOrder = 3
-    OnClick = btnDeleteClick
-  end
-  object edtExclusions: TMemo
-    Left = 8
-    Top = 242
-    Width = 616
-    Height = 70
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    ScrollBars = ssBoth
-    TabOrder = 4
-    WordWrap = False
-  end
-  object btnBrowse: TButton
-    Left = 548
-    Top = 405
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = '&Browse'
-    TabOrder = 7
-    OnClick = btnBrowseClick
-    ExplicitTop = 379
-  end
-  object edtCompareEXE: TEdit
-    Left = 7
-    Top = 407
-    Width = 535
-    Height = 21
-    Anchors = [akLeft, akRight, akBottom]
-    TabOrder = 6
-    Text = 'edtCompareEXE'
-    ExplicitTop = 381
-  end
-  object btnTableFont: TBitBtn
-    Left = 115
-    Top = 457
-    Width = 101
-    Height = 26
-    Anchors = [akLeft, akBottom]
-    Caption = 'Table &Font'
-    Glyph.Data = {
-      F6000000424DF600000000000000760000002800000010000000100000000100
-      0400000000008000000000000000000000001000000000000000000000000000
-      80000080000000808000800000008000800080800000C0C0C000808080000000
-      FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00AAAAAAAAAAAA
-      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4444AAA444444AAAA84AAAAA844
-      8AAAAAA44AAAA844AAAAAAA84AAAA448AAAAAAAA4444444AAAAAAAAA84AA448A
-      AAAAAAAAA44A44AAAAAAAAAAA84448AAAAAAAAAAAA444AAAAAAAAAAAAA848AAA
-      AAAAAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA}
-    TabOrder = 10
-    OnClick = btnTableFontClick
-    ExplicitTop = 431
+    OnClick = btnCheckforUpdatesClick
   end
   object btnHelp: TBitBtn
-    Left = 387
-    Top = 457
+    Left = 382
+    Top = 412
     Width = 75
-    Height = 26
+    Height = 25
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akRight, akBottom]
     Kind = bkHelp
     NumGlyphs = 2
-    TabOrder = 14
+    TabOrder = 3
     OnClick = btnHelpClick
-    ExplicitTop = 431
   end
-  object btnLogFont: TBitBtn
+  object pagPages: TPageControl
     Left = 8
-    Top = 457
-    Width = 101
-    Height = 26
-    Anchors = [akLeft, akBottom]
-    Caption = 'Log &Font'
-    Glyph.Data = {
-      F6000000424DF600000000000000760000002800000010000000100000000100
-      0400000000008000000000000000000000001000000000000000000000000000
-      80000080000000808000800000008000800080800000C0C0C000808080000000
-      FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00AAAAAAAAAAAA
-      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4444AAA444444AAAA84AAAAA844
-      8AAAAAA44AAAA844AAAAAAA84AAAA448AAAAAAAA4444444AAAAAAAAA84AA448A
-      AAAAAAAAA44A44AAAAAAAAAAA84448AAAAAAAAAAAA444AAAAAAAAAAAAA848AAA
-      AAAAAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA}
-    TabOrder = 9
-    OnClick = btnLogFontClick
-    ExplicitTop = 431
-  end
-  object cbxThemes: TComboBox
-    Left = 46
-    Top = 432
-    Width = 577
-    Height = 21
-    Margins.Left = 2
-    Margins.Top = 2
-    Margins.Right = 2
-    Margins.Bottom = 2
-    Anchors = [akLeft, akRight, akBottom]
-    TabOrder = 8
-    Text = 'cbxThemes'
-    ExplicitTop = 406
-  end
-  object lbxFldrSyncOps: TListView
-    Left = 7
-    Top = 318
+    Top = 10
     Width = 616
-    Height = 63
-    Anchors = [akLeft, akRight, akBottom]
-    Checkboxes = True
-    Columns = <
-      item
-        AutoSize = True
-        Caption = 'Global Folder Synchronisation Options'
-      end>
-    HideSelection = False
-    ReadOnly = True
-    RowSelect = True
-    TabOrder = 5
-    ViewStyle = vsReport
+    Height = 397
+    ActivePage = tabFonts
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    TabOrder = 0
+    object tabFolders: TTabSheet
+      Caption = '&Folders'
+      DesignSize = (
+        608
+        369)
+      object btnAdd: TBitBtn
+        Left = 4
+        Top = 340
+        Width = 75
+        Height = 25
+        Margins.Left = 4
+        Margins.Top = 4
+        Margins.Right = 4
+        Margins.Bottom = 4
+        Anchors = [akLeft, akBottom]
+        Caption = '&Add'
+        TabOrder = 1
+        OnClick = btnAddClick
+      end
+      object btnDelete: TBitBtn
+        Left = 170
+        Top = 340
+        Width = 75
+        Height = 25
+        Margins.Left = 4
+        Margins.Top = 4
+        Margins.Right = 4
+        Margins.Bottom = 4
+        Anchors = [akLeft, akBottom]
+        Caption = '&Delete'
+        TabOrder = 2
+        OnClick = btnDeleteClick
+      end
+      object btnEdit: TBitBtn
+        Left = 87
+        Top = 340
+        Width = 75
+        Height = 25
+        Margins.Left = 4
+        Margins.Top = 4
+        Margins.Right = 4
+        Margins.Bottom = 4
+        Anchors = [akLeft, akBottom]
+        Caption = '&Edit'
+        TabOrder = 3
+        OnClick = btnEditClick
+      end
+      object lvFolders: TListView
+        Left = 4
+        Top = 4
+        Width = 600
+        Height = 328
+        Margins.Left = 4
+        Margins.Top = 4
+        Margins.Right = 4
+        Margins.Bottom = 4
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Checkboxes = True
+        Columns = <
+          item
+            Caption = 'Left Folder'
+            Width = 369
+          end
+          item
+            Caption = 'Right Folder'
+            Width = 369
+          end
+          item
+            Caption = 'Sync Option'
+            Width = 123
+          end>
+        ReadOnly = True
+        RowSelect = True
+        TabOrder = 0
+        ViewStyle = vsReport
+        OnChange = lvFoldersChange
+        OnCustomDrawItem = lvFoldersCustomDrawItem
+        OnDblClick = lvFoldersDblClick
+        OnResize = lvFoldersResize
+        OnSelectItem = lvFoldersSelectItem
+      end
+    end
+    object tabGlobalOptions: TTabSheet
+      Caption = '&Global Options'
+      ImageIndex = 2
+      DesignSize = (
+        608
+        369)
+      object lblThemes: TLabel
+        Left = 2
+        Top = 346
+        Width = 32
+        Height = 13
+        Margins.Left = 2
+        Margins.Top = 2
+        Margins.Right = 2
+        Margins.Bottom = 2
+        Anchors = [akLeft, akBottom]
+        Caption = '&Theme'
+        FocusControl = cbxThemes
+        ExplicitTop = 332
+      end
+      object lblCompareFiles: TLabel
+        Left = 2
+        Top = 316
+        Width = 64
+        Height = 13
+        Margins.Left = 4
+        Margins.Top = 4
+        Margins.Right = 4
+        Margins.Bottom = 4
+        Anchors = [akLeft, akBottom]
+        Caption = 'Compare &EXE'
+        FocusControl = edtCompareEXE
+        ExplicitTop = 302
+      end
+      object lbxFldrSyncOps: TListView
+        Left = 4
+        Top = 4
+        Width = 600
+        Height = 301
+        Margins.Left = 4
+        Margins.Top = 4
+        Margins.Right = 4
+        Margins.Bottom = 4
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Checkboxes = True
+        Columns = <
+          item
+            AutoSize = True
+            Caption = 'Global Folder Synchronisation Options'
+          end>
+        HideSelection = False
+        ReadOnly = True
+        RowSelect = True
+        TabOrder = 0
+        ViewStyle = vsReport
+      end
+      object btnBrowse: TButton
+        Left = 529
+        Top = 311
+        Width = 75
+        Height = 25
+        Margins.Left = 4
+        Margins.Top = 4
+        Margins.Right = 4
+        Margins.Bottom = 4
+        Anchors = [akRight, akBottom]
+        Caption = '&Browse'
+        TabOrder = 1
+        OnClick = btnBrowseClick
+      end
+      object edtCompareEXE: TEdit
+        Left = 108
+        Top = 313
+        Width = 413
+        Height = 21
+        Margins.Left = 4
+        Margins.Top = 4
+        Margins.Right = 4
+        Margins.Bottom = 4
+        Anchors = [akLeft, akRight, akBottom]
+        TabOrder = 2
+        Text = 'edtCompareEXE'
+      end
+      object cbxThemes: TComboBox
+        Left = 108
+        Top = 343
+        Width = 498
+        Height = 21
+        Margins.Left = 2
+        Margins.Top = 2
+        Margins.Right = 2
+        Margins.Bottom = 2
+        Anchors = [akLeft, akRight, akBottom]
+        TabOrder = 3
+        Text = 'cbxThemes'
+      end
+    end
+    object tabFonts: TTabSheet
+      Caption = 'F&onts'
+      ImageIndex = 1
+      OnResize = tabFontsResize
+      DesignSize = (
+        608
+        369)
+      object lblInterfaceFonts: TLabel
+        Left = 3
+        Top = 3
+        Width = 75
+        Height = 13
+        Caption = '&Interface Fonts'
+      end
+      object lblFileOperationFonts: TLabel
+        Left = 3
+        Top = 121
+        Width = 97
+        Height = 13
+        Caption = 'File &Operation Fonts'
+      end
+      object lbxInterfaceFonts: TListBox
+        Left = 3
+        Top = 22
+        Width = 602
+        Height = 62
+        Style = lbOwnerDrawFixed
+        Anchors = [akLeft, akTop, akRight]
+        ItemHeight = 22
+        TabOrder = 0
+        OnDblClick = btnInterfaceFontEditClick
+        OnDrawItem = lbxInterfaceFontsDrawItem
+      end
+      object lbxFileOperationFonts: TListBox
+        Left = 3
+        Top = 140
+        Width = 602
+        Height = 195
+        Style = lbOwnerDrawFixed
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        ItemHeight = 22
+        TabOrder = 2
+        OnDblClick = btnFileOperationFontEditClick
+        OnDrawItem = lbxFileOperationFontsDrawItem
+      end
+      object btnInterfaceFontEdit: TBitBtn
+        Left = 3
+        Top = 90
+        Width = 602
+        Height = 25
+        Anchors = [akLeft, akTop, akRight]
+        Caption = '&Edit Interface Font'
+        TabOrder = 1
+        OnClick = btnInterfaceFontEditClick
+      end
+      object btnFileOperationFontEdit: TBitBtn
+        Left = 3
+        Top = 341
+        Width = 603
+        Height = 25
+        Anchors = [akLeft, akRight, akBottom]
+        Caption = 'Edit &File Operation Font'
+        TabOrder = 3
+        OnClick = btnFileOperationFontEditClick
+      end
+    end
+    object tabExclusions: TTabSheet
+      Caption = '&Exclusions'
+      ImageIndex = 3
+      DesignSize = (
+        608
+        369)
+      object lblExclusions: TLabel
+        Left = 4
+        Top = 4
+        Width = 88
+        Height = 13
+        Margins.Left = 4
+        Margins.Top = 4
+        Margins.Right = 4
+        Margins.Bottom = 4
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Exclusion &Patterns'
+      end
+      object edtExclusions: TMemo
+        Left = 4
+        Top = 28
+        Width = 600
+        Height = 337
+        Margins.Left = 4
+        Margins.Top = 4
+        Margins.Right = 4
+        Margins.Bottom = 4
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        ScrollBars = ssBoth
+        TabOrder = 0
+        WordWrap = False
+      end
+    end
+  end
+  object btnCancel: TBitBtn
+    Left = 548
+    Top = 412
+    Width = 75
+    Height = 25
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
+    Anchors = [akRight, akBottom]
+    Kind = bkCancel
+    NumGlyphs = 2
+    TabOrder = 4
   end
   object dlgOpen: TOpenDialog
     Filter = 'Executables (*.exe)|*.exe'
     Title = 'Select Compare EXE'
-    Left = 181
-    Top = 76
-  end
-  object dlgFont: TFontDialog
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    Options = [fdForceFontExist]
-    Left = 61
-    Top = 76
+    Left = 184
+    Top = 391
   end
   object ilStatus: TImageList
-    Left = 281
-    Top = 77
+    Left = 232
+    Top = 390
     Bitmap = {
-      494C010102000500180010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000500200010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
