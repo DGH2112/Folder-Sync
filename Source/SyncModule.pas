@@ -4,7 +4,7 @@
   files.
 
   @Version 1.5
-  @Date    29 Mar 2013
+  @Date    14 Apr 2013
   @Author  David Hoyle
 
 **)
@@ -2209,7 +2209,6 @@ Var
   P                 : TProcessItem;
   strSource, strDest: String;
   SourceFile, DestFile : TFileRecord;
-  iAttr             : Cardinal;
   strErrmsg         : String;
   boolSuccess       : Boolean;
 
@@ -2256,15 +2255,8 @@ Begin
               boolSuccess := CopyFileContents(strSource + SourceFile.FileName,
                 strDest + SourceFile.FileName, FFiles, strErrmsg)
             Else
-              Begin
-                iAttr := GetFileAttributes(PChar(Expand(strDest + SourceFile.FileName)));
-                If iAttr And FILE_ATTRIBUTE_READONLY = 0 Then
-                  boolSuccess := CopyIndividualFile(strSource, strDest, SourceFile,
-                    DestFile, FileActions, strErrmsg, P.SyncOptions)
-                Else
-                  boolSuccess := CopyIndividualFile(strSource, strDest, SourceFile,
-                    DestFile, FileActions, strErrmsg, P.SyncOptions);
-              End;
+              boolSuccess := CopyIndividualFile(strSource, strDest, SourceFile,
+                DestFile, FileActions, strErrmsg, P.SyncOptions);
             Inc(FCopiedTotalSize, SourceFile.Size);
             If Not boolSuccess Then
               Inc(FErrors)
@@ -2310,7 +2302,7 @@ Begin
     FA := faUnknown
   Else
     FA := faYesToAll;
-  If Not (faYesToAllRO In FileActions) Then
+  If DestFile.Attributes And faReadOnly = 0 Then
     DoCopyQuery(strSource, strDest, SourceFile, DestFile, FA, SyncOps)
   Else
     DoCopyReadOnlyQuery(strSource, strDest, SourceFile, DestFile, FA, SyncOps);
@@ -2327,9 +2319,9 @@ Begin
       End;
     faYes:
       Begin
-        iAttr := GetFileAttributes(PChar(Expand(strDest + DestFile.FileName)));
-        If iAttr And faReadOnly > 0 Then
+        If DestFile.Attributes And faReadOnly > 0 Then
           Begin
+            iAttr := GetFileAttributes(PChar(Expand(strDest + DestFile.FileName)));
             iAttr := iAttr Xor FILE_ATTRIBUTE_READONLY;
             SetFileAttributes(PChar(Expand(strDest + DestFile.FileName)), iAttr);
           End;
