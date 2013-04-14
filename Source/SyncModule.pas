@@ -4,7 +4,7 @@
   files.
 
   @Version 1.5
-  @Date    06 Mar 2013
+  @Date    29 Mar 2013
   @Author  David Hoyle
 
 **)
@@ -78,10 +78,14 @@ Type
     Property Status: TStatus Read FStatus Write SetStatus;
   End;
 
+  (** An enumerate to define the type of update. **)
+  TUpdateType = (utDelayed, utImmediate);
+
   (** An event signature for the start of a search. **)
   TSearchStartNotifier = Procedure(strFolder: String) Of Object;
   (** A event signature for feeding back progress during searching for files. **)
-  TSearchNotifier = Procedure(strFolder, strFileName: String; iCount: Integer) Of Object;
+  TSearchNotifier = Procedure(strFolder, strFileName: String; iCount: Integer;
+    Update : TUpdateType) Of Object;
   (** An event signature for the end of a search. **)
   TSearchEndNotifier = Procedure(iFileCount: Integer; iTotalSize: Int64) Of Object;
 
@@ -152,6 +156,12 @@ Type
   TExceedsSizeLimitNotifier = Procedure(strLPath, strRPath, strFileName: String) Of Object;
   (** An event signature for the end of the Size Limit Process. **)
   TExceedsSizeLimitEndNotifier = Procedure() Of Object;
+  (** An event signature for the start of the Error Message Process. **)
+  TErrorMsgsStartNotifier = Procedure(iFileCount: Integer) Of Object;
+  (** An event signature for each error in the Error Message Process. **)
+  TErrorMsgsNotifier = Procedure(strErrorMsg: String) Of Object;
+  (** An event signature for the end of the Error Message Process. **)
+  TErrorMsgsEndNotifier = Procedure() Of Object;
 
   (** An event signature for updating the taskbar from a progress dialogue. **)
   TUpdateProgress = Procedure(iPosition, iMaxPosition: Integer) Of Object;
@@ -292,7 +302,8 @@ Type
     Function GetCount: Integer;
     Function GetFiles(iIndex: Integer): TFileRecord;
     Procedure RecurseFolder(strFolderPath: String); Virtual;
-    Procedure DoSearch(strFolder, strFile: String; iCount: Integer);
+    Procedure DoSearch(strFolder, strFile: String; iCount: Integer;
+      Update : TUpdateType);
     Procedure DoSearchStart(strFolder: String);
     Procedure DoSearchEnd(iFileCount: Integer; iTotalSize: Int64);
   Public
@@ -565,12 +576,16 @@ Type
     FExceedsSizeLimitStartNotifier : TExceedsSizeLimitStartNotifier;
     FExceedsSizeLimitNotifier      : TExceedsSizeLimitNotifier;
     FExceedsSizeLimitEndNotifier   : TExceedsSizeLimitEndNotifier;
+    FErrorMsgsStartNotifier        : TErrorMsgsStartNotifier;
+    FErrorMsgsNotifier             : TErrorMsgsNotifier;
+    FErrorMsgsEndNotifier          : TErrorMsgsEndNotifier;
     FProcessList                   : TObjectList;
     FCopiedTotalSize               : Int64;
     FFiles                         : Integer;
     FSkipped                       : Integer;
     FErrors                        : Integer;
     FStatistics                    : TStringList;
+    FErrorMsgs                     : TStringList;
   Strict Protected
     Function GetCount: Integer;
     Function GetCompareFolders(iIndex: Integer): TCompareFolders;
@@ -612,6 +627,9 @@ Type
     Procedure DoExceedsSizeLimitStart(iFileCount: Integer);
     Procedure DoExceedsSizeLimit(strLPath, strRPath, strFileName: String);
     Procedure DoExceedsSizeLimitEnd;
+    Procedure DoErrorsMsgsStart(iErrorCount: Integer);
+    Procedure DoErrorMsgs(strErrorMsg: String);
+    Procedure DoErrorMsgsEnd;
     Procedure DeleteFiles;
     Procedure CopyFiles;
     Procedure DifferentSize;
@@ -627,6 +645,8 @@ Type
       SyncOps: TSyncOptions): Boolean;
     Function CanByPassQuery(SyncOps: TSyncOptions; boolReadOnly : Boolean;
       Var Option: TFileAction): Boolean;
+    Procedure AddToErrors(strErrorMsg : String);
+    Procedure DoErrorMessages;
     (**
       This property returns an indexed CompareFolders class.
       @precon  The index but be between 0 and Count - 1.
@@ -649,7 +669,7 @@ Type
     Function ProcessFolders(Folders: TFolders; strExclusions: String): Boolean;
     Procedure ProcessFiles;
     Procedure Clear;
-    Procedure BuildStats;
+    Procedure BuildStats;    
     (**
       This property returns the number of files to process in the internal process list.
       @precon  None.
@@ -925,6 +945,30 @@ Type
     Property OnExceedsSizeLimitEnd: TExceedsSizeLimitEndNotifier
       Read FExceedsSizeLimitEndNotifier Write FExceedsSizeLimitEndNotifier;
     (**
+      This is an event handler that is fired at the start of the error messages output.
+      @precon  None.
+      @postcon Event handler that is fired at the start of the error messages output.
+      @return  a TErrorMsgsStartNotifier
+    **)
+    Property OnErrorMsgsStart: TErrorMsgsStartNotifier Read FErrorMsgsStartNotifier
+      Write FErrorMsgsStartNotifier;
+    (**
+      This is an event handler that is fired for each file in the error message output.
+      @precon  None.
+      @postcon Event handler that is fired for each file in the error message output.
+      @return  a TErrorMsgsNotifier
+    **)
+    Property OnErrorMsgs: TErrorMsgsNotifier Read FErrorMsgsNotifier
+      Write FErrorMsgsNotifier;
+    (**
+      This is an event handler that is fired at the end of the error message output.
+      @precon  None.
+      @postcon Event handler that is fired at the end of the error message output.
+      @return  a TErrorMsgsEndNotifier
+    **)
+    Property OnErrorMsgsEnd: TErrorMsgsEndNotifier Read FErrorMsgsEndNotifier
+      Write FErrorMsgsEndNotifier;
+    (**
       This property provides access to the list of statistics stored in a string list.
       @precon  None.
       @postcon Get the string list of statistics.
@@ -957,7 +1001,8 @@ Uses
   CodeSiteLogging,
   FileCtrl,
   DGHLibrary,
-  Math;
+  Math,
+  ShlwAPI;
 
 (**
 
@@ -1290,22 +1335,23 @@ End;
 
 (**
 
-  This method updates the progress event method hooked with the current progress
-  .
+  This method updates the progress event method hooked with the current progress .
 
   @precon  None.
   @postcon Fires the progress event if the event handler is hooked.
 
-  @param   strFolder  as a String
-  @param   iCount     as an Integer
-  @param   strFile    as a String
+  @param   strFolder as a String
+  @param   strFile   as a String
+  @param   iCount    as an Integer
+  @param   Update    as a TUpdateType
 
 **)
-Procedure TFileList.DoSearch(strFolder, strFile: String; iCount: Integer);
+Procedure TFileList.DoSearch(strFolder, strFile: String; iCount: Integer;
+  Update : TUpdateType);
 
 Begin
   If Assigned(FSearchNotifier) Then
-    FSearchNotifier(strFolder, strFile, iCount);
+    FSearchNotifier(strFolder, strFile, iCount, Update);
 End;
 
 (**
@@ -1440,6 +1486,8 @@ Var
   iFilter               : Integer;
 
 Begin
+  DoSearch(FFolderPath, Copy(strFolderPath, Length(FFolderPath) + 1,
+    Length(strFolderPath)), Count, utImmediate);
   If Not InExclusions(strFolderPath) Then
     Begin
       // Search for files
@@ -1477,7 +1525,7 @@ Begin
                               rec.Attr, rec.Time, stNewer));
                           {$WARN SYMBOL_DEPRECATED ON}
                           Inc(FTotalSize, rec.Size);
-                          DoSearch(FFolderPath, Files[iFirst].FileName, Count);
+                          DoSearch(FFolderPath, Files[iFirst].FileName, Count, utDelayed);
                         End;
                     End;
                 iRes := FindNext(rec);
@@ -1880,6 +1928,22 @@ End;
 
 (**
 
+  This method adds an error message to the error list.
+
+  @precon  None.
+  @postcon Adds an error message to the error list.
+
+  @param   strErrorMsg as a String
+
+**)
+Procedure TCompareFoldersCollection.AddToErrors(strErrorMsg: String);
+
+Begin
+  FErrorMsgs.Add(strErrorMsg);
+End;
+
+(**
+
   This method builds a list (ProcessItems) based on the information in the Left and Right
   folders and the SyncOptions producing a list of file actions.
 
@@ -2114,9 +2178,11 @@ Begin
     Begin
       If Not CopyFileEx(PChar(Expand(strSourceFile)), PChar(Expand(strDestFile)),
         @CopyCallback, Self, Nil, 0) Then
-        strErrMsg := Format('Could not copy file "%s" (%s)',
-          [strSourceFile, SysErrorMessage(GetLastError)])
-      Else
+        Begin
+          strErrMsg := Format('Could not copy file "%s" (%s)',
+            [strSourceFile, SysErrorMessage(GetLastError)]);
+          AddToErrors(strErrMsg);
+        End Else
         Begin
           Result := True;
           Inc(iCopied);
@@ -2186,7 +2252,7 @@ Begin
                 (ExtractFilePath(Expand(strDest + SourceFile.FileName))) Then
                 Raise EFldrSyncException.CreateFmt('Can not create folder "%s".',
                   [ExtractFilePath(strDest + SourceFile.FileName)]);
-            If Not FileExists(strDest + SourceFile.FileName) Then
+            If DestFile = Nil Then
               boolSuccess := CopyFileContents(strSource + SourceFile.FileName,
                 strDest + SourceFile.FileName, FFiles, strErrmsg)
             Else
@@ -2338,6 +2404,7 @@ Begin
   FCompareFolders := TObjectList.Create(True);
   FProcessList    := TObjectList.Create(True);
   FStatistics     := TStringList.Create;
+  FErrorMsgs      := TStringList.Create;
 End;
 
 (**
@@ -2451,8 +2518,11 @@ Begin
           End;
         Inc(FCopiedTotalSize, F.Size);
         If Not DeleteFile(PChar(Expand(strPath + F.FileName))) Then
-          strErrmsg := Format(strMsg, [strPath + F.FileName,
-              SysErrorMessage(GetLastError)])
+          Begin
+            strErrMsg := Format(strMsg, [strPath + F.FileName,
+              SysErrorMessage(GetLastError)]);
+            AddToErrors(strErrMsg);
+          End
         Else
           Begin
             boolResult := True;
@@ -2479,6 +2549,7 @@ End;
 Destructor TCompareFoldersCollection.Destroy;
 
 Begin
+  FErrorMsgs.Free;
   FStatistics.Free;
   FProcessList.Free;
   FCompareFolders.Free;
@@ -2717,6 +2788,76 @@ Procedure TCompareFoldersCollection.DoDiffSizeStart(iFileCount: Integer);
 Begin
   If Assigned(FDiffSizeStartNotifier) Then
     FDiffSizeStartNotifier(iFileCount);
+End;
+
+(**
+
+  This method outputs the error messages for the file operations using the assigned call
+  back procedure.
+
+  @precon  None.
+  @postcon Outputs the error messages for the file operations
+
+**)
+Procedure TCompareFoldersCollection.DoErrorMessages;
+
+Var
+  i          : Integer;
+
+Begin
+  DoErrorsMsgsStart(FErrorMsgs.Count);
+  For i := 0 To FErrorMsgs.Count - 1 Do
+    DoErrorMsgs(FErrorMsgs[i]);
+  DoErrorMsgsEnd();
+End;
+
+(**
+
+  This method calls the On Error Msgs event handler if it is assigned.
+
+  @precon  None.
+  @postcon Calls the On Error Msgs event handler if it is assigned.
+
+  @param   strErrorMsg as a String
+
+**)
+Procedure TCompareFoldersCollection.DoErrorMsgs(strErrorMsg: String);
+
+Begin
+  If Assigned(FErrorMsgsNotifier) Then
+    FErrorMsgsNotifier(strErrorMsg);
+End;
+
+(**
+
+  This method calls the On Error Msgs End event handler if it is assigned.
+
+  @precon  None.
+  @postcon Calls the On Error Msgs End event handler if it is assigned.
+
+**)
+Procedure TCompareFoldersCollection.DoErrorMsgsEnd;
+
+Begin
+  If Assigned(FErrorMsgsEndNotifier) Then
+    FErrorMsgsEndNotifier;
+End;
+
+(**
+
+  This method calls the On Error Msgs Start event handler if it is assigned.
+
+  @precon  None.
+  @postcon Calls the On Error Msgs Start event handler if it is assigned.
+
+  @param   iErrorCount as an Integer
+
+**)
+Procedure TCompareFoldersCollection.DoErrorsMsgsStart(iErrorCount: Integer);
+
+Begin
+  If Assigned(FErrorMsgsStartNotifier) Then
+    FErrorMsgsStartNotifier(iErrorCount);
 End;
 
 (**
@@ -3264,6 +3405,7 @@ Begin
   DifferentSize;
   DoNothing;
   DoSizeLimit;
+  DoErrorMessages;
 End;
 
 (**
