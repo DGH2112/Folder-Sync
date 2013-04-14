@@ -5,7 +5,7 @@
 
   @Version 1.5
   @Author  David Hoyle
-  @Date    10 Mar 2013
+  @Date    14 Apr 2013
 
 **)
 Unit CommandLineProcess;
@@ -62,7 +62,8 @@ Type
     Procedure ProcessCommandLine;
     Procedure DisplayHelp;
     Procedure SearchStartProc(strFolder: String);
-    Procedure SearchProc(strFolder, strFileName: String; iCount: Integer);
+    Procedure SearchProc(strFolder, strFileName: String; iCount: Integer;
+      Update : TUpdateType);
     Procedure SearchEndProc(iFileCount: Integer; iTotalSize: Int64);
     Procedure CompareStartProc(strLeftFldr, strRightFldr: String);
     Procedure CompareProc(strLeftFldr, strRightFldr, strFileName: String;
@@ -106,6 +107,9 @@ Type
     Procedure ExceedsSizeLimitStart(iFileCount: Integer);
     Procedure ExceedsSizeLimit(strLPath, strRPath, strFileName: String);
     Procedure ExceedsSizeLimitEnd();
+    Procedure ErrorMsgsStart(iErrorCount: Integer);
+    Procedure ErrorMsgs(strErrorMsg : String);
+    Procedure ErrorMsgsEnd();
   Public
     Constructor Create;
     Destructor Destroy; Override;
@@ -203,11 +207,12 @@ Procedure TCommandLineProcessing.CompareProc(strLeftFldr, strRightFldr,
 
 Begin
   If Not(cloQuiet In FCommandLineOptions) Then
-    Begin
-      ClearLine;
-      OutputToConsole(FStd, Format('%1.1n%%: %s',
+    If iPosition Mod 100 = 0 Then
+      Begin
+        ClearLine;
+        OutputToConsole(FStd, Format('%1.1n%%: %s',
           [Int(iPosition) / Int(iMaxItems) * 100.0, strFileName]), clNone, clNone, False);
-    End;
+      End;
 End;
 
 (**
@@ -320,25 +325,17 @@ Var
   iColour: TColor;
 
 Begin
+  OutputToConsole(FStd, #32#32 + strSource, FPathColour);
+  OutputToConsole(FStd, ' => ');
+  OutputToConsole(FStd, strDest, FPathColour);
   If FileExists(strDest + strFileName) Then
     iColour := FExistsColour
   Else
     iColour := FNotExistsColour;
   If Not IsRO(strSource + strFileName) Then
-    OutputToConsole(FStd, #32#32 + strSource, FPathColour)
+    OutputToConsole(FStd, strFileName, iColour)
   Else
-    OutputToConsole(FStd, #32#32 + strSource, FReadOnlyColour);
-  OutputToConsole(FStd, ' => ');
-  If Not IsRO(strSource + strFileName) Then
-    Begin
-      OutputToConsole(FStd, strDest, FPathColour);
-      OutputToConsole(FStd, strFileName, iColour);
-    End
-  Else
-    Begin
-      OutputToConsole(FStd, strDest, FReadOnlyColour);
-      OutputToConsole(FStd, strFileName, FReadOnlyColour);
-    End;
+    OutputToConsole(FStd, strFileName, FReadOnlyColour);
 End;
 
 (**
@@ -659,21 +656,13 @@ End;
 Procedure TCommandLineProcessing.DiffSize(strLPath, strRPath, strFileName: String);
 
 Begin
-  If Not IsRO(strLPath + strFileName) Then
-    OutputToConsole(FStd, #32#32 + strLPath, FPathColour)
-  Else
-    OutputToConsole(FStd, #32#32 + strLPath, FReadOnlyColour);
+  OutputToConsole(FStd, #32#32 + strLPath, FPathColour);
   OutputToConsole(FStd, ' => ');
+  OutputToConsole(FStd, strRPath, FPathColour);
   If Not IsRO(strRPath + strFileName) Then
-    Begin
-      OutputToConsole(FStd, strRPath, FPathColour);
-      OutputToConsoleLn(FStd, strFileName, FExistsColour);
-    End
+    OutputToConsoleLn(FStd, strFileName, FExistsColour)
   Else
-    Begin
-      OutputToConsole(FStd, strRPath, FReadOnlyColour);
-      OutputToConsoleLn(FStd, strFileName, FReadOnlyColour);
-    End;
+    OutputToConsoleLn(FStd, strFileName, FReadOnlyColour);
 End;
 
 (**
@@ -744,6 +733,57 @@ End;
 
 (**
 
+  This is an on error message event handler for outputting errors messages from the delete
+  and copying process.
+
+  @precon  None.
+  @postcon Outputs an error message to the log file.
+
+  @param   strErrorMsg as a String
+
+**)
+Procedure TCommandLineProcessing.ErrorMsgs(strErrorMsg: String);
+
+Begin
+  OutputToConsoleLn(FStd, #32#32 + strErrorMsg, FExceptionColour);
+End;
+
+(**
+
+  This is an on error message end event handler for outputting the error messages.
+
+  @precon  None.
+  @postcon Does nothing.
+
+**)
+Procedure TCommandLineProcessing.ErrorMsgsEnd;
+
+Begin
+End;
+
+(**
+
+  This is an on error message start event handler for the outputting of error messaeges
+  from the deleting and copying process.
+
+  @precon  None.
+  @postcon Outputs a header for error messages to the log file if there are any errors
+           reported.
+
+  @param   iErrorCount as an Integer
+
+**)
+Procedure TCommandLineProcessing.ErrorMsgsStart(iErrorCount: Integer);
+
+Begin
+  FTotalFiles := iErrorCount;
+  If iErrorCount > 0 Then
+    OutputToConsoleLn(FStd, Format('%1.0n Files had errors...', [Int(iErrorCount)]
+        ), FHeaderColour);
+End;
+
+(**
+
   This is an on Exceeds Size Limit event handler.
 
   @precon  None.
@@ -759,21 +799,13 @@ Procedure TCommandLineProcessing.ExceedsSizeLimit(strLPath, strRPath,
   strFileName: String);
 
 Begin
-  If Not IsRO(strLPath + strFileName) Then
-    OutputToConsole(FStd, #32#32 + strLPath, FPathColour)
-  Else
-    OutputToConsole(FStd, #32#32 + strLPath, FReadOnlyColour);
+  OutputToConsole(FStd, #32#32 + strLPath, FPathColour);
   OutputToConsole(FStd, ' => ');
+  OutputToConsole(FStd, strRPath, FPathColour);
   If Not IsRO(strRPath + strFileName) Then
-    Begin
-      OutputToConsole(FStd, strRPath, FPathColour);
-      OutputToConsoleLn(FStd, strFileName, FExistsColour);
-    End
+    OutputToConsoleLn(FStd, strFileName, FExistsColour)
   Else
-    Begin
-      OutputToConsole(FStd, strRPath, FReadOnlyColour);
-      OutputToConsoleLn(FStd, strFileName, FReadOnlyColour);
-    End;
+    OutputToConsoleLn(FStd, strFileName, FReadOnlyColour);
 End;
 
 (**
@@ -863,12 +895,14 @@ Begin
     End;
   OutputToConsoleLn(FStd, 'Synchronising folders:', FHeaderColour);
   If Not DirectoryExists(FSourceDir) Then
-    Raise EFldrSyncException.CreateFmt('The source directory "%s" does not exists.',
-      [FSourceDir]);
+    If Not ForceDirectories(FSourceDir) Then
+      Raise EFldrSyncException.CreateFmt('Could not create the directory "%s".',
+        [FSourceDir]);
   OutputToConsoleLn(FStd, #32#32 + 'Source:   ' + FSourceDir);
   If Not DirectoryExists(FDestDir) Then
-    Raise EFldrSyncException.CreateFmt('The destination directory "%s" does not exists.',
-      [FDestDir]);
+    If Not ForceDirectories(FDestDir) Then
+      Raise EFldrSyncException.CreateFmt('Could not create the directory "%s".',
+        [FDestDir]);
   OutputToConsoleLn(FStd, #32#32 + 'Dest:     ' + FDestDir);
   If FFilePatterns = '' Then
     FFilePatterns := '*.*';
@@ -878,7 +912,6 @@ Begin
   Try
     Folders := TFolders.Create;
     Try
-      //: @bug Need to get max file size.
       Folders.Add(TFolder.Create(FSourceDir, FDestDir, FFilePatterns, FSyncOptions,
         FMaxFileSize));
       CFC.OnSearchStart           := SearchStartProc;
@@ -912,6 +945,9 @@ Begin
       CFC.OnExceedsSizeLimitStart := ExceedsSizeLimitStart;
       CFC.OnExceedsSizeLimit      := ExceedsSizeLimit;
       CFC.OnExceedsSizeLimitEnd   := ExceedsSizeLimitEnd;
+      CFC.OnErrorMsgsStart        := ErrorMsgsStart;
+      CFC.OnErrorMsgs             := ErrorMsgs;
+      CFC.OnErrorMsgsEnd          := ErrorMsgsEnd;
       CFC.ProcessFolders(Folders, FExclusions);
       OutputStats(CFC);
       Try
@@ -1036,7 +1072,8 @@ Procedure TCommandLineProcessing.MatchListProc(iPosition, iMaxItems: Integer);
 Begin
   If Not(cloQuiet In FCommandLineOptions) Then
     Begin
-      OutputToConsole(FStd, Format('Processing Item %1.0n of %1.0n (%1.0n%%)...',
+      If iPosition Mod 100 = 0 Then
+        OutputToConsole(FStd, Format('Processing Item %1.0n of %1.0n (%1.0n%%)...',
           [Int(iPosition), Int(iMaxItems), Int(iPosition) / Int(iMaxItems) * 100.0]),
         clNone, clNone, False);
     End;
@@ -1071,21 +1108,13 @@ End;
 Procedure TCommandLineProcessing.NothingToDo(strLPath, strRPath, strFileName: String);
 
 Begin
-  If Not IsRO(strLPath + strFileName) Then
-    OutputToConsole(FStd, #32#32 + strLPath, FPathColour)
-  Else
-    OutputToConsole(FStd, #32#32 + strLPath, FReadOnlyColour);
+  OutputToConsole(FStd, #32#32 + strLPath, FPathColour);
   OutputToConsole(FStd, ' => ');
+  OutputToConsole(FStd, strRPath, FPathColour);
   If Not IsRO(strRPath + strFileName) Then
-    Begin
-      OutputToConsole(FStd, strRPath, FPathColour);
-      OutputToConsoleLn(FStd, strFileName, FExistsColour);
-    End
+    OutputToConsoleLn(FStd, strFileName, FExistsColour)
   Else
-    Begin
-      OutputToConsole(FStd, strRPath, FReadOnlyColour);
-      OutputToConsoleLn(FStd, strFileName, FReadOnlyColour);
-    End;
+    OutputToConsoleLn(FStd, strFileName, FReadOnlyColour);
 End;
 
 (**
@@ -1331,16 +1360,17 @@ End;
   @param   strFolder   as a String
   @param   strFileName as a String
   @param   iCount      as an Integer
+  @param   Update      as a TUpdateType
 
 **)
 Procedure TCommandLineProcessing.SearchProc(strFolder, strFileName: String;
-  iCount: Integer);
+  iCount: Integer; Update : TUpdateType);
 
 Begin
   If strFolder = FLastFolder Then
     Begin
       If Not(cloQuiet In FCommandLineOptions) Then
-        If iCount Mod FOutputUpdateInterval = 0 Then
+        If (iCount Mod FOutputUpdateInterval = 0) Or (Update = utImmediate) Then
           Begin
             ClearLine;
             OutputToConsole(FStd, Format('%1.0n\%s', [Int(iCount), strFileName]), clNone,
