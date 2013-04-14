@@ -185,7 +185,7 @@ Type
       DestFile : TFileRecord;  Var Option: TFileAction);
     Procedure CopyEndProc(iCopied, iSkipped, iError: Integer);
     Procedure FileQuery(strMsg, strSourcePath, strDestPath: String; SourceFile,
-      DestFile : TFileRecord; Var Option: TFileAction);
+      DestFile : TFileRecord; Var Option: TFileAction; boolReadOnly : Boolean);
     Procedure DiffSizeStart(iFileCount : Integer);
     Procedure DiffSize(strLPath, strRPath, strFileName : String);
     Procedure DiffSizeEnd();
@@ -1430,6 +1430,7 @@ Begin
   ImageIndexes(strLPath, strRPath, LeftFile, RightFile, Item);
 End;
 
+{$HINTS OFF}
 (**
 
   This method retrieves from the system the icon for the specified file, places
@@ -1460,9 +1461,7 @@ Var
   iOutputSize   : Integer;
 
 Begin
-  {$HINTS OFF}
   Result := -1;
-  {$HINTS ON}
   strExt := LowerCase(ExtractFileExt(strFileName));
   If FIconFiles.Find(strExt, iIndex) Then
     Begin
@@ -1530,6 +1529,7 @@ Begin
       CodeSite.Send(strFileName, Result);
     End;
 End;
+{$HINTS ON}
 
 (**
 
@@ -2463,7 +2463,7 @@ Const
   strMsg = 'Are you sure you want to overwrite the following file?';
 
 Begin
-  FileQuery(strMsg, strSourcePath, strDestPath, SourceFile, DestFile, Option);
+  FileQuery(strMsg, strSourcePath, strDestPath, SourceFile, DestFile, Option, False);
 End;
 
 (**
@@ -2488,7 +2488,7 @@ Const
   strMsg = 'Are you sure you want to overwrite the following READ-ONLY file?';
 
 Begin
-  FileQuery(strMsg, strSourcePath, strDestPath, SourceFile, DestFile, Option);
+  FileQuery(strMsg, strSourcePath, strDestPath, SourceFile, DestFile, Option, True);
 End;
 
 (**
@@ -2531,13 +2531,15 @@ End;
   @param   SourceFile    as a TFileRecord
   @param   DestFile      as a TFileRecord
   @param   Option        as a TFileAction as a reference
+  @param   boolReadOnly  as a Boolean
 
 **)
 Procedure TfrmMainForm.FileQuery(strMsg, strSourcePath, strDestPath: String;
-  SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
+  SourceFile, DestFile : TFileRecord; Var Option: TFileAction; boolReadOnly : Boolean);
 
 Begin
-  If Option <> faYesToAll Then //: @bug Handle no to all
+  If ((Option <> faYesToAll) And Not boolReadOnly) Or
+     ((Option <> faYesToAllRO) And boolReadOnly) Then //: @bug Handle no to all
     Begin
       UpdateTaskBar(ptError, 0, 1);
       Case TfrmConfirmationDlg.Execute(Self, strMsg, strSourcePath, strDestPath,
@@ -2547,7 +2549,10 @@ Begin
         mrNo:
           Option := faNo;
         mrAll:
-          Option := faYesToAll;
+          If Not boolReadOnly Then
+            Option := faYesToAll
+          Else
+            Option := faYesToAllRO;
       Else
         Option := faCancel;
       End;
@@ -2621,7 +2626,7 @@ Const
   strMsg = 'Are you sure you want to delete the file?';
 
 Begin
-  FileQuery(strMsg, strFilePath, '', DeleteFile, Nil, Option);
+  FileQuery(strMsg, strFilePath, '', DeleteFile, Nil, Option, False);
 End;
 
 (**
@@ -2644,7 +2649,7 @@ Const
   strMsg = 'Are you sure you want to delete the READ-ONLY file?';
 
 Begin
-  FileQuery(strMsg, strFilePath, '', DeleteFile, Nil, Option);
+  FileQuery(strMsg, strFilePath, '', DeleteFile, Nil, Option, True);
 End;
 
 (**

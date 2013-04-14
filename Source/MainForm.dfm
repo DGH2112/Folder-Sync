@@ -61,8 +61,6 @@ object frmMainForm: TfrmMainForm
         Width = 125
       end>
     OnDrawPanel = stbrStatusBarDrawPanel
-    ExplicitTop = 735
-    ExplicitWidth = 770
   end
   object ambMenuBar: TActionMainMenuBar
     Left = 0
@@ -88,7 +86,6 @@ object frmMainForm: TfrmMainForm
     Font.Style = []
     PersistentHotKeys = True
     Spacing = 0
-    ExplicitHeight = 28
   end
   object pnlTop: TPanel
     Left = 0
@@ -102,7 +99,6 @@ object frmMainForm: TfrmMainForm
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitTop = 28
     object DGHMemoryMonitor: TDGHMemoryMonitor
       Left = 767
       Top = 0
@@ -157,8 +153,6 @@ object frmMainForm: TfrmMainForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 3
-    ExplicitTop = 60
-    ExplicitHeight = 675
     object splOutputResults: TSplitter
       Left = 0
       Top = 559
@@ -277,7 +271,7 @@ object frmMainForm: TfrmMainForm
     Left = 33
     Top = 151
     Bitmap = {
-      494C01010F001300C80010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010F001300CC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
