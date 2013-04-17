@@ -3,8 +3,8 @@
   This module defines classes for handling and comparing two directories of
   files.
 
-  @Version 1.5
-  @Date    14 Apr 2013
+  @Version 1.6
+  @Date    17 Apr 2013
   @Author  David Hoyle
 
 **)
@@ -2297,19 +2297,41 @@ Var
 
 Begin
   Result := False;
-  //: @bug Handle NO to ALL
-  If Not (faYesToAll In FileActions) Then
-    FA := faUnknown
-  Else
-    FA := faYesToAll;
-  If DestFile.Attributes And faReadOnly = 0 Then
-    DoCopyQuery(strSource, strDest, SourceFile, DestFile, FA, SyncOps)
-  Else
-    DoCopyReadOnlyQuery(strSource, strDest, SourceFile, DestFile, FA, SyncOps);
-  If FA = faYesToAll Then
+  FA := faUnknown;
+  If (DestFile = Nil) Or (DestFile.Attributes And faReadOnly = 0) Then
     Begin
-      Include(FileActions, faYesToAll);
-      FA      := faYes;
+      If (faYesToAll In FileActions) Then
+        FA := faYesToAll
+      Else If (faNoToAll In FileActions) Then
+        FA := faNoToAll;
+      DoCopyQuery(strSource, strDest, SourceFile, DestFile, FA, SyncOps);
+      If FA = faYesToAll Then
+        Begin
+          Include(FileActions, faYesToAll);
+          FA := faYes;
+        End
+      Else If FA = faNoToAll Then
+        Begin
+          Include(FileActions, faNoToAll);
+          FA := faNo;
+        End;
+    End Else
+    Begin
+      If (faYesToAllRO In FileActions) Then
+        FA := faYesToAllRO
+      Else If (faNoToAllRO In FileActions) Then
+        FA := faNoToAllRO;
+      DoCopyReadOnlyQuery(strSource, strDest, SourceFile, DestFile, FA, SyncOps);
+      If FA = faYesToAllRO Then
+        Begin
+          Include(FileActions, faYesToAllRO);
+          FA := faYes;
+        End
+      Else If FA = faNoToAllRO Then
+        Begin
+          Include(FileActions, faNoToAllRO);
+          FA := faNo;
+        End;
     End;
   Case FA Of
     faNo:
@@ -2476,26 +2498,42 @@ Var
 
 Begin
   boolResult := False;
-  //: @bug Handle NO to ALL
   DoDeleting(iFile, strPath + F.FileName);
-  If Not (faYesToAll In FileActions) Then
-    FA := faUnknown
-  Else
-    FA := faYesToAll;
-  If F.Attributes And faReadOnly > 0 Then
+  FA := faUnknown;
+  If (F.Attributes And faReadOnly = 0) Then
     Begin
-      If Not (faYesToAllRO In FileActions) Then
-        FA := faUnknown;
-      DoDeleteReadOnlyQuery(strPath, F, FA, SyncOps);
+      If (faYesToAll In FileActions) Then
+        FA := faYesToAll
+      Else If (faNoToAll In FileActions) Then
+        FA := faNoToAll;
+      DoDeleteQuery(strPath, F, FA, SyncOps);
       If FA = faYesToAll Then
-        Include(FileActions, faYesToAllRO);
-    End
-  Else
-    DoDeleteQuery(strPath, F, FA, SyncOps);
-  If FA = faYesToAll Then
+        Begin
+          Include(FileActions, faYesToAll);
+          FA := faYes;
+        End
+      Else If FA = faNoToAll Then
+        Begin
+          Include(FileActions, faNoToAll);
+          FA := faNo;
+        End;
+    End Else
     Begin
-      Include(FileActions, faYesToAll);
-      FA      := faYes;
+      If (faYesToAllRO In FileActions) Then
+        FA := faYesToAllRO
+      Else If (faNoToAllRO In FileActions) Then
+        FA := faNoToAllRO;
+      DoDeleteReadOnlyQuery(strPath, F, FA, SyncOps);
+      If FA = faYesToAllRO Then
+        Begin
+          Include(FileActions, faYesToAllRO);
+          FA := faYes;
+        End
+      Else If FA = faNoToAllRO Then
+        Begin
+          Include(FileActions, faNoToAllRO);
+          FA := faNo;
+        End;
     End;
   Case FA Of
     faCancel:
@@ -2514,8 +2552,7 @@ Begin
             strErrMsg := Format(strMsg, [strPath + F.FileName,
               SysErrorMessage(GetLastError)]);
             AddToErrors(strErrMsg);
-          End
-        Else
+          End Else
           Begin
             boolResult := True;
             Inc(FFiles);
