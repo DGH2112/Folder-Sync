@@ -3,9 +3,9 @@
   This module contains a class for processing the command line and synchronising the
   files associated with the information.
 
-  @Version 1.5
+  @Version 1.6
   @Author  David Hoyle
-  @Date    14 Apr 2013
+  @Date    17 Apr 2013
 
 **)
 Unit CommandLineProcess;
@@ -93,10 +93,8 @@ Type
       DestFile : TFileRecord; Var Option: TFileAction);
     Procedure CopyEndProc(iCopied, iSkipped, iError: Integer);
     Function GetConsoleCharacter(Characters: TCharArray): Char;
-    Procedure DeleteQuery(strMsg, strFilePath: String; DeleteFile : TFileRecord;
+    Procedure FileQuery(strMsg, strFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction; boolReadOnly : Boolean);
-    Procedure CopyQuery(strMsg, strFileName: String; Var Option: TFileAction;
-      boolReadOnly : Boolean);
     Procedure DiffSizeStart(iFileCount: Integer);
     Procedure DiffSize(strLPath, strRPath, strFileName: String);
     Procedure DiffSizeEnd();
@@ -341,52 +339,6 @@ End;
 
 (**
 
-  This method is determines via input from the keyboard whether a file should be 
-  overwritten.
-
-  @precon  None.
-  @postcon If the var option is not set to faAll, queries the user via the console as to 
-           the action to be take.
-
-  @param   strMsg       as a String
-  @param   strFileName  as a String
-  @param   Option       as a TFileAction as a reference
-  @param   boolReadOnly as a Boolean
-
-**)
-Procedure TCommandLineProcessing.CopyQuery(strMsg, strFileName: String;
-  Var Option: TFileAction; boolReadOnly : Boolean);
-
-Var
-  C: Char;
-  
-Begin
-  If (Not boolReadOnly And (Option <> faYesToAll)) Or
-     (boolReadOnly And (Option <> faYesToAllRO)) Then //: @bug Handle No to ALL
-    Begin
-      OutputToConsole(FStd, strMsg, FInputColour);
-      C := GetConsoleCharacter(['a', 'A', 'y', 'Y', 'n', 'N', 'c', 'C']);
-      Case C Of
-        'y', 'Y':
-          Option := faYes;
-        'n', 'N':
-          Option := faNo;
-        'a', 'A':
-          If Not boolReadOnly Then
-            Option := faYesToAll
-          Else
-            Option := faYesToAll;
-        'c', 'C':
-          Option := faCancel;
-      Else
-        Option := faUnknown;
-      End;
-      OutputToConsole(FStd, strFileOptions[Option], FInputColour);
-    End;
-End;
-
-(**
-
   This method is called for each file that requires to be overwritten.
 
   @precon  None.
@@ -403,7 +355,8 @@ Procedure TCommandLineProcessing.CopyQueryProc(strSourcePath, strDestPath: Strin
   SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
 
 Begin
-  CopyQuery(' Overwrite (Y/N/A/C)? ', strDestPath + DestFile.FileName, Option, False)
+  FileQuery(' Overwrite (Y/N/A/O/C)? ', strDestPath + DestFile.FileName, SourceFile, Option,
+    False)
 End;
 
 (**
@@ -424,8 +377,8 @@ Procedure TCommandLineProcessing.CopyReadOnlyQueryProc(strSourcePath, strDestPat
   SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
 
 Begin
-  CopyQuery(' Overwrite READONLY (Y/N/A/C)? ', strDestPath + DestFile.FileName, Option,
-    True)
+  FileQuery(' Overwrite READONLY (Y/N/A/O/C)? ', strDestPath + DestFile.FileName,
+    SourceFile, Option, True)
 End;
 
 (**
@@ -536,52 +489,6 @@ End;
 
 (**
 
-  This method queries the user via the command line as to the action to be take for the 
-  deletion of a file.
-
-  @precon  None.
-  @postcon Prompts the user for action is the var parameter is not set to faAll.
-
-  @param   strMsg       as a String
-  @param   strFilePath  as a String
-  @param   DeleteFile   as a TFileRecord
-  @param   Option       as a TFileAction as a reference
-  @param   boolReadOnly as a Boolean
-
-**)
-Procedure TCommandLineProcessing.DeleteQuery(strMsg, strFilePath: String;
-  DeleteFile : TFileRecord; Var Option: TFileAction; boolReadOnly : Boolean);
-
-Var
-  C: Char;
-
-Begin
-  If (Not boolReadOnly And (Option <> faYesToAll)) Or
-     (boolReadOnly And (Option <> faYesToAllRO)) Then //: @bug Handle No to ALL
-    Begin
-      OutputToConsole(FStd, strMsg, FInputColour);
-      C := GetConsoleCharacter(['a', 'A', 'y', 'Y', 'n', 'N', 'c', 'C']);
-      Case C Of
-        'y', 'Y':
-          Option := faYes;
-        'n', 'N':
-          Option := faNo;
-        'a', 'A':
-          If Not boolReadOnly Then
-            Option := faYesToAll
-          Else
-            Option := faYesToAll;
-        'c', 'C':
-          Option := faCancel;
-      Else
-        Option := faUnknown;
-      End;
-      OutputToConsole(FStd, strFileOptions[Option], FInputColour);
-    End;
-End;
-
-(**
-
   This method is called for each file that requires deletion.
 
   @precon  None.
@@ -596,7 +503,7 @@ Procedure TCommandLineProcessing.DeleteQueryProc(strFilePath: String;
   DeleteFile : TFileRecord; Var Option: TFileAction);
 
 Begin
-  DeleteQuery(' Delete (Y/N/A/C)? ', strFilePath, DeleteFile, Option, False)
+  FileQuery(' Delete (Y/N/A/O/C)? ', strFilePath, DeleteFile, Option, False);
 End;
 
 (**
@@ -615,7 +522,7 @@ Procedure TCommandLineProcessing.DeleteReadOnlyQueryProc(strFilePath: String;
   DeleteFile : TFileRecord; Var Option: TFileAction);
 
 Begin
-  DeleteQuery(' Delete READONLY (Y/N/A/C)? ', strFilePath, DeleteFile, Option, True);
+  FileQuery(' Delete READONLY (Y/N/A/O/C)? ', strFilePath, DeleteFile, Option, True);
 End;
 
 (**
@@ -974,6 +881,57 @@ Begin
   Finally
     CFC.Free;
   End;
+End;
+
+(**
+
+  This method queries the user via the command line as to the action to be take for the 
+  deletion of a file.
+
+  @precon  None.
+  @postcon Prompts the user for action is the var parameter is not set to faAll.
+
+  @param   strMsg       as a String
+  @param   strFilePath  as a String
+  @param   DeleteFile   as a TFileRecord
+  @param   Option       as a TFileAction as a reference
+  @param   boolReadOnly as a Boolean
+
+**)
+Procedure TCommandLineProcessing.FileQuery(strMsg, strFilePath: String;
+  DeleteFile : TFileRecord; Var Option: TFileAction; boolReadOnly : Boolean);
+
+Var
+  C: Char;
+
+Begin
+  If (Not boolReadOnly And Not (Option In [faYesToAll, faNoToAll])) Or
+     (    boolReadOnly And Not (Option In [faYesToAllRO, faNoToAllRO])) Then
+    Begin
+      OutputToConsole(FStd, strMsg, FInputColour);
+      C := GetConsoleCharacter(['a', 'A', 'y', 'Y', 'n', 'N', 'o', 'O', 'c', 'C']);
+      Case C Of
+        'y', 'Y':
+          Option := faYes;
+        'n', 'N':
+          Option := faNo;
+        'a', 'A':
+          If Not boolReadOnly Then
+            Option := faYesToAll
+          Else
+            Option := faYesToAllRO;
+        'o', 'O':
+          If Not boolReadOnly Then
+            Option := faNoToAll
+          Else
+            Option := faNoToAllRO;
+        'c', 'C':
+          Option := faCancel;
+      Else
+        Option := faUnknown;
+      End;
+      OutputToConsole(FStd, strFileOptions[Option], FInputColour);
+    End;
 End;
 
 (**
