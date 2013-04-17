@@ -3,8 +3,8 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   Top = 0
   BorderIcons = []
   Caption = 'Please confirm the action'
-  ClientHeight = 177
-  ClientWidth = 484
+  ClientHeight = 181
+  ClientWidth = 492
   Color = clBtnFace
   Constraints.MaxHeight = 215
   Constraints.MaxWidth = 500
@@ -20,14 +20,14 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   OldCreateOrder = False
   Position = poDesigned
   DesignSize = (
-    484
-    177)
+    492
+    181)
   PixelsPerInch = 96
   TextHeight = 13
   object lblMessage: TLabel
     Left = 8
     Top = 8
-    Width = 468
+    Width = 476
     Height = 29
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
@@ -55,7 +55,7 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   object lblInformation1: TLabel
     Left = 85
     Top = 43
-    Width = 391
+    Width = 399
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
@@ -80,7 +80,7 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   object lblInformation2: TLabel
     Left = 85
     Top = 62
-    Width = 391
+    Width = 399
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
@@ -105,7 +105,7 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   object lblInformation3: TLabel
     Left = 85
     Top = 81
-    Width = 391
+    Width = 399
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
@@ -116,35 +116,38 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   object lblSourceInfo: TLabel
     Left = 85
     Top = 100
-    Width = 391
+    Width = 399
     Height = 13
     Alignment = taRightJustify
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     Caption = 'lblSourceInfo'
+    ExplicitWidth = 391
   end
   object lblDestInfo: TLabel
     Left = 85
     Top = 119
-    Width = 391
+    Width = 399
     Height = 13
     Alignment = taRightJustify
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     Caption = 'lblSourceInfo'
+    ExplicitWidth = 391
   end
   object imgIcon: TImage
     Left = 8
-    Top = 121
+    Top = 125
     Width = 48
     Height = 48
     Anchors = [akLeft, akBottom]
     Center = True
     Stretch = True
+    ExplicitTop = 121
   end
   object btnYes: TBitBtn
-    Left = 158
-    Top = 144
+    Left = 65
+    Top = 148
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -171,52 +174,56 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     TabOrder = 0
   end
   object btnNo: TBitBtn
-    Left = 239
-    Top = 144
+    Left = 146
+    Top = 148
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
-    Caption = '&No'
-    Default = True
-    Glyph.Data = {
-      DE010000424DDE01000000000000760000002800000024000000120000000100
-      0400000000006801000000000000000000001000000000000000000000000000
-      80000080000000808000800000008000800080800000C0C0C000808080000000
-      FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333333333
-      3333333333333FFFFF333333000033333388888833333333333F888888FFF333
-      000033338811111188333333338833FFF388FF33000033381119999111833333
-      38F338888F338FF30000339119933331111833338F388333383338F300003391
-      13333381111833338F8F3333833F38F3000039118333381119118338F38F3338
-      33F8F38F000039183333811193918338F8F333833F838F8F0000391833381119
-      33918338F8F33833F8338F8F000039183381119333918338F8F3833F83338F8F
-      000039183811193333918338F8F833F83333838F000039118111933339118338
-      F3833F83333833830000339111193333391833338F33F8333FF838F300003391
-      11833338111833338F338FFFF883F83300003339111888811183333338FF3888
-      83FF83330000333399111111993333333388FFFFFF8833330000333333999999
-      3333333333338888883333330000333333333333333333333333333333333333
-      0000}
-    ModalResult = 7
+    Kind = bkNo
     NumGlyphs = 2
     TabOrder = 1
   end
-  object btnAll: TBitBtn
-    Left = 320
-    Top = 144
-    Width = 75
+  object btnYesToAll: TBitBtn
+    Left = 227
+    Top = 148
+    Width = 85
     Height = 25
     Anchors = [akRight, akBottom]
+    Caption = 'Yes to &All'
     Kind = bkAll
     NumGlyphs = 2
     TabOrder = 2
   end
   object btnCancel: TBitBtn
-    Left = 401
-    Top = 144
+    Left = 409
+    Top = 148
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
     Kind = bkCancel
     NumGlyphs = 2
+    TabOrder = 4
+  end
+  object btnNoToAll: TBitBtn
+    Left = 318
+    Top = 148
+    Width = 85
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Caption = 'N&o to All'
+    Glyph.Data = {
+      4E010000424D4E01000000000000760000002800000012000000120000000100
+      040000000000D8000000130B0000130B00001000000010000000000000000000
+      80000080000000808000800000008000800080800000C0C0C000808080000000
+      FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333388888
+      8333330000003333388111111883330000003333888888891118330000003338
+      8111111881118300000033811199991118118300000039119933331111811800
+      0000391133333811118918000000911833338111911818000000918333381119
+      3918180000009183338111933918180000009183381119333918180000009183
+      8111933339188300000091181119333391188300000039111193333391883300
+      0000391118333381118333000000339111888811183333000000333991111119
+      933333000000333339999993333333000000}
+    ModalResult = 5
     TabOrder = 3
   end
 end

@@ -4,7 +4,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    14 Apr 2013
+  @Date    17 Apr 2013
 
 **)
 Unit ConfirmationDlg;
@@ -37,11 +37,12 @@ Type
     lblInformation3: TLabel;
     btnYes: TBitBtn;
     btnNo: TBitBtn;
-    btnAll: TBitBtn;
+    btnYesToAll: TBitBtn;
     btnCancel: TBitBtn;
     lblSourceInfo: TLabel;
     lblDestInfo: TLabel;
     imgIcon: TImage;
+    btnNoToAll: TBitBtn;
   Private
     { Private declarations }
   Public
