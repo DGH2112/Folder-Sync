@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    14 Apr 2013
+  @Date    17 Apr 2013
   @Author  David Hoyle
 
 **)
@@ -93,6 +93,7 @@ Type
     actHelpContents: TAction;
     redtOutputResults: TMemo;
     actToolsConfigMemMon: TAction;
+    Splitter: TSplitter;
     Procedure actHelpAboutExecute(Sender: TObject);
     Procedure actFileExitExecute(Sender: TObject);
     Procedure FormResize(Sender: TObject);
@@ -208,6 +209,7 @@ Type
     Procedure EnableActions(boolSuccess: Boolean);
     Procedure LogSize;
     Procedure OutputStats;
+    Procedure MemoryPopupMenu(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
   End;
 
   (** This is a custon exception for folders not found or created. **)
@@ -448,6 +450,8 @@ Begin
         DGHMemoryMonitor.Font.Size);
       DGHMemoryMonitor.Font.Style := TFontStyles(Byte(ReadInteger('MemoryMonitor', 'FontStyle', 
         Byte(DGHMemoryMonitor.Font.Style))));
+      DGHMemoryMonitor.Width := ReadInteger('MemoryMonitor', 'Width',
+        DGHMemoryMonitor.Width);
     Finally
       Free;
     End;
@@ -833,7 +837,7 @@ End;
 Procedure TfrmMainForm.MatchListEndProc;
 
 Begin
-  OutputResultLn(' Done!');
+  OutputResultLn('  Done!');
   FProgressForm.Progress(FProgressSection, 100, 'Done!', '');
 End;
 
@@ -870,6 +874,25 @@ Begin
   OutputResult('Matching files');
   Inc(FProgressSection);
   FProgressForm.InitialiseSection(FProgressSection, 1, 100);
+End;
+
+(**
+
+  This is an on context popup event handler for the memory monitor graphics control.
+
+  @precon  None.
+  @postcon Invokes the dialogue to editing the configuration of the Memory Monitor.
+
+  @param   Sender   as a TObject
+  @param   MousePos as a TPoint
+  @param   Handled  as a Boolean as a reference
+
+**)
+Procedure TfrmMainForm.MemoryPopupMenu(Sender: TObject; MousePos: TPoint;
+  Var Handled: Boolean);
+
+Begin
+  actToolsConfigMemMonExecute(Sender);
 End;
 
 (**
@@ -1079,6 +1102,7 @@ Begin
       WriteString('MemoryMonitor', 'FontName', DGHMemoryMonitor.Font.Name);
       WriteInteger('MemoryMonitor', 'FontSize', DGHMemoryMonitor.Font.Size);
       WriteInteger('MemoryMonitor', 'FontStyle', Byte(DGHMemoryMonitor.Font.Style));
+      WriteInteger('MemoryMonitor', 'Width', DGHMemoryMonitor.Width);
       UpdateFile;
     Finally
       Free;
@@ -1178,6 +1202,7 @@ Begin
   actEditCopyLeftToRight.Tag := Integer(foLeftToRight);
   actEditDelete.Tag := Integer(foDelete);
   actEditDoNothing.Tag := Integer(foNothing);
+  DGHMemoryMonitor.OnContextPopup := MemoryPopupMenu;
   FStartTimer.Enabled := True;
 End;
 
@@ -1716,7 +1741,7 @@ Procedure TfrmMainForm.SearchEndProc(iFileCount: Integer; iTotalSize: int64);
 
 Begin
   FProgressForm.Progress(FProgressSection, 1, ' Done!', '');
-  OutputResultLn(Format(' Found %1.0n files (%1.0n bytes)',
+  OutputResultLn(Format('  Found %1.0n files (%1.0n bytes)',
       [Int(iFileCount), Int(iTotalSize)]));
 End;
 
@@ -2408,7 +2433,7 @@ End;
 Procedure TfrmMainForm.CopyEndProc(iCopied, iSkipped, iError: Integer);
 
 Begin
-  OutputResult(Format(' Copied %1.0n (Skipped %1.0n', [Int(iCopied), Int(iSkipped)]));
+  OutputResult(Format('  Copied %1.0n (Skipped %1.0n', [Int(iCopied), Int(iSkipped)]));
   If iError > 0 Then
     OutputResult(Format(', Errored %1.0n', [Int(iError)]));
   OutputResultLn(')');
@@ -2538,8 +2563,8 @@ Procedure TfrmMainForm.FileQuery(strMsg, strSourcePath, strDestPath: String;
   SourceFile, DestFile : TFileRecord; Var Option: TFileAction; boolReadOnly : Boolean);
 
 Begin
-  If ((Option <> faYesToAll) And Not boolReadOnly) Or
-     ((Option <> faYesToAllRO) And boolReadOnly) Then //: @bug Handle no to all
+  If (Not (Option In [faYesToAll, faNoToAll])     And Not boolReadOnly) Or
+     (Not (Option In [faYesToAllRO, faNoToAllRO]) And     boolReadOnly) Then
     Begin
       UpdateTaskBar(ptError, 0, 1);
       Case TfrmConfirmationDlg.Execute(Self, strMsg, strSourcePath, strDestPath,
@@ -2553,6 +2578,11 @@ Begin
             Option := faYesToAll
           Else
             Option := faYesToAllRO;
+        mrIgnore:
+          If Not boolReadOnly Then
+            Option := faNoToAll
+          Else
+            Option := faNoToAllRO;
       Else
         Option := faCancel;
       End;
@@ -2599,7 +2629,7 @@ End;
 Procedure TfrmMainForm.DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
 
 Begin
-  OutputResult(Format(' Deleted %1.0n (Skipped %1.0n', [Int(iDeleted), Int(iSkipped)]));
+  OutputResult(Format('  Deleted %1.0n (Skipped %1.0n', [Int(iDeleted), Int(iSkipped)]));
   If iErrors > 0 Then
     OutputResult(Format(', Errored %1.0n', [Int(iErrors)]));
   OutputResultLn(')');
@@ -2831,6 +2861,3 @@ Begin
 End;
 
 End.
-
-
-
