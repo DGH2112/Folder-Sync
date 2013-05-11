@@ -4,7 +4,7 @@
   files.
 
   @Version 1.6
-  @Date    17 Apr 2013
+  @Date    11 May 2013
   @Author  David Hoyle
 
 **)
@@ -178,7 +178,7 @@ Type
 
   (** This is an enumerate for synchronisation options on a pair of folders. **)
   TSyncOption = (soEnabled, soPrimaryLeft, soPrimaryRight, soOverwriteReadOnlyFiles,
-    soConfirmYes, soConfirmNo, soNoRecursion);
+    soConfirmYes, soConfirmNo, soNoRecursion, soTempDisabled);
 
   (** A set of sync options. **)
   TSyncOptions = Set Of TSyncOption;
