@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    14 Apr 2013
+  @Date    11 May 2013
   @Version 1.0
   @Author  David Hoyle
 
@@ -835,7 +835,8 @@ Procedure TfrmOptions.PopulateFolderList;
 
 Const
   SyncOps: Array [Succ(Low(TSyncOption)) .. High(TSyncOption)
-    ] Of String = ('Left', 'Right', 'Overwrite', 'Yes', 'No', 'No Recursion');
+    ] Of String = ('Left', 'Right', 'Overwrite', 'Yes', 'No', 'No Recursion',
+    'Temp Disabled');
   strMultiplers : Array[0..5] of String = ('B', 'KB', 'MB', 'GB', 'TB', 'PB');
 
 Var
