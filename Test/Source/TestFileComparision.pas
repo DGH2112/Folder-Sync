@@ -132,7 +132,7 @@ end;
 
 procedure TestTCompareFolders.SetUp;
 begin
-  FCompareFolders := TCompareFolders.Create;
+  FCompareFolders := TCompareFolders.Create(Nil);
   FCompareFolders.SearchFolders('.\Test Compare Folders\Left Folder\',
     '.\Test Compare Folders\Right Folder\', '*.*', '', 0, [], $FFFFFFFF);
 end;
