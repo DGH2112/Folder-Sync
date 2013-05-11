@@ -494,13 +494,11 @@ Type
   TBackground = (bgLeft, bgRight);
 
 Var
-  iSubItem  : Integer;
   R, ItemR  : TRect;
   Buffer    : Array [0 .. MAX_PATH * 2] Of Char;
   Ops       : Integer;
   iBufferLen: Integer;
   iFileOp   : TFileOp;
-  //T: ICodeSiteTimer;
 
   (**
 
@@ -611,15 +609,17 @@ Var
 
   (**
 
-    This procedure sets the text drawing options (alignment, etc) for the
-    different columns to be displayed.
+    This procedure sets the text drawing options (alignment, etc) for the different 
+    columns to be displayed.
 
     @precon  None.
-    @postcon Sets the text drawing options (alignment, etc) for the
-    different columns to be displayed.
+    @postcon Sets the text drawing options (alignment, etc) for the different columns to 
+             be displayed.
+
+    @param   iSubItem as an Integer
 
   **)
-  Procedure SetTextDrawingOptions;
+  Procedure SetTextDrawingOptions(iSubItem : Integer);
 
   Begin
     {$IFDEF PROFILECODE}
@@ -640,17 +640,18 @@ Var
 
   (**
 
-    This procedure returns the display rectangle (adjusted for file icon  image)
-    for the text to be displayed in the report column.
+    This procedure returns the display rectangle (adjusted for file icon image) for the 
+    text to be displayed in the report column.
 
     @precon  None.
-    @postcon Returns the display rectangle (adjusted for file icon  image)
-    for the text to be displayed in the report column.
+    @postcon Returns the display rectangle (adjusted for file icon image) for the text to
+             be displayed in the report column.
 
+    @param   iSubItem as an Integer
     @return  a TRect
 
   **)
-  Function DrawFileIcon: TRect;
+  Function DrawFileIcon(iSubItem : Integer): TRect;
 
   Var
     iImage     : Integer;
@@ -686,8 +687,10 @@ Var
     @precon  None.
     @postcon Sets the text background for the columns of information.
 
+    @param   FileSide as a TBackground
+
   **)
-  Procedure SetTextFontBackground;
+  Procedure SetTextFontBackground(FileSide : TBackground);
 
   Begin
     {$IFDEF PROFILECODE}
@@ -703,7 +706,7 @@ Var
         Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
       End Else
       Begin
-        If iSubItem In [iLDisplayCol - 1 .. iLDateCol - 1] Then
+        If FileSide = bgLeft Then
           Begin
             If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
               Begin
@@ -730,17 +733,19 @@ Var
 
   (**
 
-    This procedure displays a grayed out destination path for files which don`t
-    have a destination file, else sets up the font colours and style attributes
-    for displaying the text.
+    This procedure displays a grayed out destination path for files which don`t have a 
+    destination file, else sets up the font colours and style attributes for displaying 
+    the text.
 
     @precon  None.
-    @postcon Displays a grayed out destination path for files which don`t
-    have a destination file, else sets up the font colours and style
-    attributes for displaying the text.
+    @postcon Displays a grayed out destination path for files which don`t have a 
+             destination file, else sets up the font colours and style attributes for 
+             displaying the text.
+
+    @param   iSubItem as an Integer
 
   **)
-  Procedure FixUpEmptyFilePaths;
+  Procedure FixUpEmptyFilePaths(iSubItem : Integer);
 
   Begin
     {$IFDEF PROFILECODE}
@@ -785,41 +790,43 @@ Var
     {$ENDIF}
   End;
 
+Var
+  iSubItem  : Integer;
+
 Begin
   {$IFDEF PROFILECODE}
   CodeProfiler.Start('TfrmMainForm.lvFileListCustomDrawItem');
   {$ENDIF}
   DefaultDraw := False;
   iFileOp := TFileOp(Item.StateIndex);
-  //T := CodeSite.Timer('DrawBackground', tfMilliseconds);
   DrawBackground(iLAttrCol, bgLeft);
   DrawBackground(iRAttrCol, bgRight);
-  //T.Stop;
-  //T := CodeSite.Timer('ilActionImages.Draw', tfMilliseconds);
   R := Item.DisplayRect(drBounds);
   ilActionImages.Draw(Sender.Canvas, R.Left + lvFileList.Column[0].Width Div 2 - 8, R.Top,
     Item.StateIndex, True);
-  //T.Stop;
-  For iSubItem := 0 To iRDateCol - 1 Do
+  // Draw Left File
+  SetTextFontBackground(bgLeft);
+  For iSubItem := iLDisplayCol - 1 To iLDateCol - 1 Do
     Begin
-      //T := CodeSite.Timer('SetTextDrawingOptions', tfMilliseconds);
-      SetTextDrawingOptions;
-      //T.Stop;
-      //T := CodeSite.Timer('DrawFileIcon', tfMilliseconds);
-      R := DrawFileIcon;
-      //T.Stop;
-      //T := CodeSite.Timer('SetTextFontBackground', tfMilliseconds);
-      SetTextFontBackground;
-      //T.Stop;
+      SetTextDrawingOptions(iSubItem);
+      R := DrawFileIcon(iSubItem);
       StrPCopy(Buffer, Item.SubItems[iSubItem]);
       iBufferLen := Length(Item.SubItems[iSubItem]);
-      //T := CodeSite.Timer('FixUpEmptyFilePaths', tfMilliseconds);
-      FixUpEmptyFilePaths;
-      //T.Stop;
+      FixUpEmptyFilePaths(iSubItem);
       Sender.Canvas.Refresh;
-      //T := CodeSite.Timer('DrawText', tfMilliseconds);
       DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
-      //T.Stop;
+    End;
+  // Draw Left File
+  SetTextFontBackground(bgRight);
+  For iSubItem := iRDisplayCol - 1 To iRDateCol - 1 Do
+    Begin
+      SetTextDrawingOptions(iSubItem);
+      R := DrawFileIcon(iSubItem);
+      StrPCopy(Buffer, Item.SubItems[iSubItem]);
+      iBufferLen := Length(Item.SubItems[iSubItem]);
+      FixUpEmptyFilePaths(iSubItem);
+      Sender.Canvas.Refresh;
+      DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
     End;
   {$IFDEF PROFILECODE}
   CodeProfiler.Stop;
@@ -1549,10 +1556,10 @@ Begin
   Finally
     objIcon.Free;
   End;
-  If {: @debug (strClassName <> '') And} (strExt <> '.exe') Then
+  If strExt <> '.exe' Then
     FIconFiles.AddObject(strExt, TObject(Result));
   //-------------------------------------------------------------------------------------
-  If (Result < 0) {: @debug And (strExt <> '.exe')} Then
+  If Result < 0 Then
     Begin
       CodeSite.Send('Ext', strExt);
       CodeSite.Send('Extension List', FIconFiles);
