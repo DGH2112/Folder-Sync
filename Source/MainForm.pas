@@ -1267,6 +1267,7 @@ Var
   iEnabledFolders: Integer;
   i              : Integer;
   boolSuccess    : Boolean;
+  iCount         : Integer;
 
 Begin
   OutputResultLn('Comparison started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
@@ -1296,8 +1297,11 @@ Begin
         boolSuccess := FSyncModule.ProcessFolders(FFolders, FExclusions);
         FixUpPanes;
         FormResize(Sender);
-        If (fsoCloseIFNoFilesAfterComparison In FFldrSyncOptions) And
-          (lvFileList.Items.Count = 0) Then
+        iCount := 0;
+        For i := 0 To lvFileList.Items.Count - 1 Do
+          If lvFileList.Items[i].StateIndex <> Integer(fofExceedsSizeLimit) Then
+            Inc(iCount);
+        If (fsoCloseIFNoFilesAfterComparison In FFldrSyncOptions) And (iCount = 0) Then
           Begin
             FProgressForm.InitialiseSection(FProgressSection, 0, 1);
             FProgressForm.Progress(FProgressSection, 1, 'Auto-exiting application...',
