@@ -3,7 +3,7 @@
   A class to define a form for editing the Folder Paths.
 
   @Version 1.0
-  @date    23 Jan 2013
+  @date    11 May 2013
   @Author  David Hoyle.
 
 **)
@@ -70,7 +70,7 @@ Const
   SyncOps: Array [Low(TSyncOption) .. High(TSyncOption)
     ] Of String = ('Enable Folder Comparison', 'Primary Left Folder',
     'Primary Right Folder', 'Overwrite Read Only Files', 'Confirm Yes', 'Confirm No',
-    'No Recursion');
+    'No Recursion', 'Temporarily Disabled');
 
 { TfrmFolderPaths }
 
@@ -233,7 +233,7 @@ Procedure TfrmFolderPaths.lbxSyncOptionsClick(Sender: TObject);
 
 Const
   SyncOpInts: Array [Low(TSyncOption) .. High(TSyncOption)] Of Integer =
-    (0, 1, 2, 3, 4, 5, 6);
+    (0, 1, 2, 3, 4, 5, 6, 7);
 
 Var
   i: TSyncOption;

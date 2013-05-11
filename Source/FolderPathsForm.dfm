@@ -2,12 +2,12 @@ object frmFolderPaths: TfrmFolderPaths
   Left = 499
   Top = 388
   Caption = 'Folder Paths'
-  ClientHeight = 286
-  ClientWidth = 632
+  ClientHeight = 356
+  ClientWidth = 778
   Color = clBtnFace
-  Constraints.MaxHeight = 320
-  Constraints.MinHeight = 320
-  Constraints.MinWidth = 640
+  Constraints.MaxHeight = 485
+  Constraints.MinHeight = 394
+  Constraints.MinWidth = 788
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,124 +19,168 @@ object frmFolderPaths: TfrmFolderPaths
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
-    632
-    286)
+    778
+    356)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 16
   object lblLeftFolder: TLabel
-    Left = 8
-    Top = 8
-    Width = 50
-    Height = 13
+    Left = 10
+    Top = 10
+    Width = 63
+    Height = 16
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Caption = '&Left Folder'
     FocusControl = edtLeftFolder
   end
   object lblRightFolder: TLabel
-    Left = 8
-    Top = 52
-    Width = 57
-    Height = 13
+    Left = 10
+    Top = 64
+    Width = 73
+    Height = 16
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Caption = '&Right Folder'
     FocusControl = edtRightFolder
   end
   object lblMaxFileSize: TLabel
-    Left = 8
-    Top = 258
-    Width = 62
-    Height = 13
+    Left = 10
+    Top = 322
+    Width = 79
+    Height = 16
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akBottom]
     Caption = 'Ma&x File Size'
     FocusControl = edtMaxFileSize
-    ExplicitTop = 246
+    ExplicitTop = 318
   end
   object edtLeftFolder: TEdit
-    Left = 8
-    Top = 25
-    Width = 577
-    Height = 21
+    Left = 10
+    Top = 31
+    Width = 710
+    Height = 24
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
     OnChange = FolderPathChange
   end
   object edtRightFolder: TEdit
-    Left = 8
-    Top = 69
-    Width = 577
-    Height = 21
+    Left = 10
+    Top = 85
+    Width = 710
+    Height = 24
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 2
     OnChange = FolderPathChange
   end
   object btnBrowseLeft: TButton
-    Left = 591
-    Top = 23
-    Width = 33
-    Height = 25
+    Left = 727
+    Top = 28
+    Width = 41
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akTop, akRight]
     Caption = '...'
     TabOrder = 1
     OnClick = btnBrowseLeftClick
   end
   object btnBrowseRight: TButton
-    Left = 591
-    Top = 67
-    Width = 33
-    Height = 25
+    Left = 727
+    Top = 82
+    Width = 41
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akTop, akRight]
     Caption = '...'
     TabOrder = 3
     OnClick = btnBrowseRightClick
   end
   object btnOK: TBitBtn
-    Left = 468
-    Top = 253
-    Width = 75
-    Height = 25
+    Left = 576
+    Top = 315
+    Width = 92
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akRight, akBottom]
     Kind = bkOK
     NumGlyphs = 2
     TabOrder = 8
-    ExplicitTop = 241
   end
   object btnCancel: TBitBtn
-    Left = 549
-    Top = 253
-    Width = 75
-    Height = 25
+    Left = 676
+    Top = 315
+    Width = 92
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akRight, akBottom]
     Kind = bkCancel
     NumGlyphs = 2
     TabOrder = 9
-    ExplicitTop = 241
   end
   object btnHelp: TBitBtn
-    Left = 387
-    Top = 253
-    Width = 75
-    Height = 25
+    Left = 476
+    Top = 315
+    Width = 93
+    Height = 31
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akRight, akBottom]
     Kind = bkHelp
     NumGlyphs = 2
     TabOrder = 7
     OnClick = btnHelpClick
-    ExplicitTop = 241
   end
   object edtMaxFileSize: TEdit
-    Left = 85
-    Top = 255
-    Width = 100
-    Height = 21
+    Left = 105
+    Top = 318
+    Width = 123
+    Height = 24
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akBottom]
     NumbersOnly = True
     TabOrder = 5
     Text = 'edtMaxFileSize'
-    ExplicitTop = 243
   end
   object cbxMaxFileSize: TComboBox
-    Left = 191
-    Top = 255
-    Width = 82
-    Height = 21
+    Left = 235
+    Top = 318
+    Width = 101
+    Height = 24
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Style = csDropDownList
     Anchors = [akLeft, akBottom]
     TabOrder = 6
@@ -146,13 +190,16 @@ object frmFolderPaths: TfrmFolderPaths
       'MBytes'
       'GBytes'
       'TBytes')
-    ExplicitTop = 243
   end
   object lbxSyncOptions: TListView
-    Left = 8
-    Top = 96
-    Width = 616
-    Height = 151
+    Left = 10
+    Top = 118
+    Width = 758
+    Height = 190
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Anchors = [akLeft, akTop, akRight, akBottom]
     Checkboxes = True
     Columns = <
@@ -166,6 +213,5 @@ object frmFolderPaths: TfrmFolderPaths
     TabOrder = 4
     ViewStyle = vsReport
     OnClick = lbxSyncOptionsClick
-    ExplicitHeight = 139
   end
 end
