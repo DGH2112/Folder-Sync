@@ -3,11 +3,11 @@ object frmMainForm: TfrmMainForm
   Top = 289
   ActiveControl = lvFileList
   Caption = 'Folder Sync'
-  ClientHeight = 616
-  ClientWidth = 770
+  ClientHeight = 758
+  ClientWidth = 948
   Color = clBtnFace
-  Constraints.MinHeight = 480
-  Constraints.MinWidth = 640
+  Constraints.MinHeight = 591
+  Constraints.MinWidth = 788
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -45,12 +45,16 @@ object frmMainForm: TfrmMainForm
   OnDestroy = FormDestroy
   OnResize = FormResize
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 16
   object stbrStatusBar: TStatusBar
     Left = 0
-    Top = 597
-    Width = 770
+    Top = 739
+    Width = 948
     Height = 19
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Panels = <
       item
         Style = psOwnerDraw
@@ -61,8 +65,8 @@ object frmMainForm: TfrmMainForm
   object ambMenuBar: TActionMainMenuBar
     Left = 0
     Top = 0
-    Width = 770
-    Height = 23
+    Width = 948
+    Height = 25
     Margins.Left = 2
     Margins.Top = 2
     Margins.Right = 2
@@ -70,12 +74,14 @@ object frmMainForm: TfrmMainForm
     UseSystemFont = False
     ActionManager = amActions
     Caption = 'ambMenuBar'
-    ColorMap.HighlightColor = 15660791
-    ColorMap.BtnSelectedColor = clBtnFace
-    ColorMap.UnusedColor = 15660791
+    Color = clMenuBar
+    ColorMap.DisabledFontColor = 7171437
+    ColorMap.HighlightColor = clWhite
+    ColorMap.BtnSelectedFont = clBlack
+    ColorMap.UnusedColor = clWhite
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -11
+    Font.Color = clBlack
+    Font.Height = -13
     Font.Name = 'Tahoma'
     Font.Style = []
     PersistentHotKeys = True
@@ -83,38 +89,48 @@ object frmMainForm: TfrmMainForm
   end
   object pnlTop: TPanel
     Left = 0
-    Top = 23
-    Width = 770
-    Height = 26
+    Top = 25
+    Width = 948
+    Height = 32
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
     object DGHMemoryMonitor: TDGHMemoryMonitor
-      Left = 588
+      Left = 724
       Top = 0
-      Width = 182
-      Height = 26
-      Constraints.MinWidth = 30
+      Width = 224
+      Height = 32
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
+      Constraints.MinWidth = 37
       UpdateInterval = 500
       HighPoint = 100
       Align = alRight
       BevelOuter = bvLowered
     end
     object Splitter: TSplitter
-      Left = 585
+      Left = 720
       Top = 0
-      Height = 26
+      Width = 4
+      Height = 32
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
       Align = alRight
       ResizeStyle = rsUpdate
-      ExplicitLeft = 524
-      ExplicitTop = 9
-      ExplicitHeight = 100
     end
     object atbToolbar: TActionToolBar
       Left = 0
       Top = 0
-      Width = 585
-      Height = 26
+      Width = 720
+      Height = 32
       Margins.Left = 2
       Margins.Top = 2
       Margins.Right = 2
@@ -122,12 +138,14 @@ object frmMainForm: TfrmMainForm
       ActionManager = amActions
       Align = alClient
       Caption = 'atbToolbar'
-      ColorMap.HighlightColor = 15660791
-      ColorMap.BtnSelectedColor = clBtnFace
-      ColorMap.UnusedColor = 15660791
+      Color = clMenuBar
+      ColorMap.DisabledFontColor = 7171437
+      ColorMap.HighlightColor = clWhite
+      ColorMap.BtnSelectedFont = clBlack
+      ColorMap.UnusedColor = clWhite
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -9
+      Font.Color = clBlack
+      Font.Height = -12
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
@@ -138,28 +156,40 @@ object frmMainForm: TfrmMainForm
   end
   object pnlMainArea: TPanel
     Left = 0
-    Top = 49
-    Width = 770
-    Height = 548
+    Top = 57
+    Width = 948
+    Height = 682
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 3
     object splOutputResults: TSplitter
       Left = 0
-      Top = 448
-      Width = 770
-      Height = 3
+      Top = 559
+      Width = 948
+      Height = 4
       Cursor = crVSplit
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
       Align = alBottom
       MinSize = 50
       ResizeStyle = rsUpdate
-      ExplicitTop = 454
+      ExplicitTop = 551
     end
     object lvFileList: TListView
       Left = 0
       Top = 0
-      Width = 770
-      Height = 448
+      Width = 948
+      Height = 559
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
       Align = alClient
       Columns = <
         item
@@ -171,46 +201,46 @@ object frmMainForm: TfrmMainForm
         item
           Caption = 'Filename'
           MinWidth = 50
-          Width = 100
+          Width = 123
         end
         item
           Caption = 'Attr'
-          Width = 40
+          Width = 49
         end
         item
           Alignment = taRightJustify
           Caption = 'Size'
-          Width = 69
+          Width = 85
         end
         item
           Alignment = taRightJustify
           Caption = 'Date'
-          Width = 122
+          Width = 150
         end
         item
           Caption = 'Filename'
           MinWidth = 50
-          Width = 100
+          Width = 123
         end
         item
           Caption = 'Attr'
-          Width = 40
+          Width = 49
         end
         item
           Alignment = taRightJustify
           Caption = 'Size'
-          Width = 69
+          Width = 85
         end
         item
           Alignment = taRightJustify
           Caption = 'Date'
-          Width = 122
+          Width = 150
         end>
       ColumnClick = False
       DoubleBuffered = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
+      Font.Height = -13
       Font.Name = 'MS Sans Serif'
       Font.Style = []
       HideSelection = False
@@ -229,14 +259,18 @@ object frmMainForm: TfrmMainForm
     end
     object redtOutputResults: TMemo
       Left = 0
-      Top = 451
-      Width = 770
-      Height = 97
+      Top = 563
+      Width = 948
+      Height = 119
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
       Align = alBottom
-      Constraints.MinHeight = 30
+      Constraints.MinHeight = 37
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
-      Font.Height = -13
+      Font.Height = -16
       Font.Name = 'Courier New'
       Font.Style = []
       MaxLength = 268435455
@@ -251,7 +285,7 @@ object frmMainForm: TfrmMainForm
     Left = 33
     Top = 151
     Bitmap = {
-      494C01010F001300CC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010F001300D00010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

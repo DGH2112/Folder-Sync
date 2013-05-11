@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    17 Apr 2013
+  @Date    11 May 2013
   @Author  David Hoyle
 
 **)
@@ -1031,6 +1031,7 @@ Var
   j         : TFldrSyncOption;
   iMaxValue : TInt64Ex;
   k: TFileOpFont;
+  Ops: TSyncOptions;
 
 Begin
   With TMemIniFile.Create(FRootKey) Do
@@ -1075,8 +1076,9 @@ Begin
           WriteString('Folders',
             FFolders.Folder[i].LeftFldr + FFolders.Folder[i].Patterns,
             FFolders.Folder[i].RightFldr + FFolders.Folder[i].Patterns);
-          WriteInteger('FolderStatus', FFolders.Folder[i].LeftFldr,
-            Byte(FFolders.Folder[i].SyncOptions));
+          Ops := FFolders.Folder[i].SyncOptions;
+          Exclude(Ops, soTempDisabled);
+          WriteInteger('FolderStatus', FFolders.Folder[i].LeftFldr, Byte(Ops));
           iMaxValue.Value := FFolders.Folder[i].MaxFileSize;
           WriteString('FolderMaxFileSize', FFolders.Folder[i].LeftFldr,
             Format('%d,%d,%d,%d', [iMaxValue.iFirst, iMaxValue.iSecond,
@@ -2260,28 +2262,44 @@ Function TfrmMainForm.CheckFolders: Boolean;
              exception if the folder could not be created.
 
     @param   strFolder as a String
+    @return  a Boolean
 
   **)
-  Procedure CheckAndCreateFolder(strFolder: String);
+  Function CheckAndCreateFolder(strFolder: String) : Boolean;
 
   Const
     strExcepMsg  = 'Could not create the folder "%s".';
     strCreateMsg = 'The folder "%s" does not exist. Would you like to create ' +
       'this folder?';
+    strDriveMsg = 'The drive "%s" for directory "%s" does not exist. Would you like ' +
+      'to ignore or cancel?';
 
   Var
     strPath: String;
+    strDrive: String;
 
   Begin
+    Result := False;
+    strDrive := ExtractFileDrive(strFolder);
     strPath := ExtractFilePath(strFolder);
+    If Not SysUtils.DirectoryExists(strDrive + '\') Then
+      Case MessageDlg(Format(strDriveMsg, [strDrive, strPath]), mtConfirmation,
+        [mbIgnore, mbCancel], 0) Of
+        mrIgnore:
+          Begin
+            Result := True;
+            Exit;
+          End;
+        mrCancel: Abort;
+      End;
     If Not SysUtils.DirectoryExists(strPath) Then
       Case MessageDlg(Format(strCreateMsg, [strPath]), mtConfirmation,
         [mbYes, mbNo, mbCancel], 0) Of
         mrYes:
           If Not SysUtils.ForceDirectories(strPath) Then
             Raise TFolderNotFoundException.CreateFmt(strExcepMsg, [strPath]);
-        mrCancel:
-          Abort;
+        mrIgnore: Result := True;
+        mrCancel: Abort;
       End;
   End;
 
@@ -2290,10 +2308,17 @@ Var
 
 Begin
   For i := 0 To FFolders.Count - 1 Do
-    If Boolean(soEnabled In FFolders.Folder[i].SyncOptions) Then
+    If [soEnabled, soTempDisabled] * FFolders.Folder[i].SyncOptions = [soEnabled] Then
       Begin
-        CheckAndCreateFolder(FFolders.Folder[i].LeftFldr);
-        CheckAndCreateFolder(FFolders.Folder[i].RightFldr);
+        If CheckAndCreateFolder(FFolders.Folder[i].LeftFldr) Then
+          Begin
+            FFolders.Folder[i].SyncOptions := FFolders.Folder[i].SyncOptions +
+              [soTempDisabled];
+            Continue;
+          End;
+        If CheckAndCreateFolder(FFolders.Folder[i].RightFldr) Then
+          FFolders.Folder[i].SyncOptions := FFolders.Folder[i].SyncOptions +
+            [soTempDisabled];
       End;
   Result := True;
 End;
