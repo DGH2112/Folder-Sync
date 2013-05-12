@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    11 May 2013
+  @Date    12 May 2013
   @Version 1.0
   @Author  David Hoyle
 
@@ -90,6 +90,8 @@ Type
     lbxFileOperationFonts: TListBox;
     btnInterfaceFontEdit: TBitBtn;
     btnFileOperationFontEdit: TBitBtn;
+    btnUp: TBitBtn;
+    btnDown: TBitBtn;
     Procedure lvFoldersResize(Sender: TObject);
     Procedure btnAddClick(Sender: TObject);
     Procedure btnEditClick(Sender: TObject);
@@ -111,6 +113,8 @@ Type
     procedure btnInterfaceFontEditClick(Sender: TObject);
     procedure tabFontsResize(Sender: TObject);
     procedure btnFileOperationFontEditClick(Sender: TObject);
+    procedure btnUpClick(Sender: TObject);
+    procedure btnDownClick(Sender: TObject);
   Private
     { Private declarations }
     FRightWidth     : Integer;
@@ -528,6 +532,24 @@ End;
 
 (**
 
+  This is an on click event handler for the Up button.
+
+  @precon  None.
+  @postcon Moves the selected folder up the list.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmOptions.btnUpClick(Sender: TObject);
+
+Begin
+  FFolders.Exchange(lvFolders.ItemIndex, lvFolders.ItemIndex - 1);
+  lvFolders.ItemIndex := lvFolders.ItemIndex - 1;
+  PopulateFolderList;
+End;
+
+(**
+
   This is the constructor method for the TfrmOptions class.
 
   @precon  None.
@@ -559,6 +581,24 @@ Procedure TfrmOptions.btnDeleteClick(Sender: TObject);
 
 Begin
   FFolders.Delete(lvFolders.ItemIndex);
+  PopulateFolderList;
+End;
+
+(**
+
+  This is an on click event handler for the Down button.
+
+  @precon  None.
+  @postcon Moves the selected folder down the list.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmOptions.btnDownClick(Sender: TObject);
+
+Begin
+  FFolders.Exchange(lvFolders.ItemIndex, lvFolders.ItemIndex + 1);
+  lvFolders.ItemIndex := lvFolders.ItemIndex + 1;
   PopulateFolderList;
 End;
 
@@ -821,6 +861,9 @@ Procedure TfrmOptions.lvFoldersSelectItem(Sender: TObject; Item: TListItem;
 Begin
   btnEdit.Enabled   := Selected;
   btnDelete.Enabled := Selected;
+  btnUp.Enabled     := (Item <> Nil) And (Item.Index > 0) And (lvFolders.Items.Count > 1);
+  btnDown.Enabled   := (Item <> Nil) And (Item.Index < lvFolders.Items.Count - 1) And
+    (lvFolders.Items.Count > 1);
 End;
 
 (**
