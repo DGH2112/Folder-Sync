@@ -81,7 +81,6 @@ object frmDeleteProgress: TfrmDeleteProgress
     Max = 1000000
     MarqueeInterval = 0
     TabOrder = 0
-    ExplicitWidth = 435
   end
   object btnCancel: TBitBtn
     Left = 192
@@ -93,7 +92,5 @@ object frmDeleteProgress: TfrmDeleteProgress
     NumGlyphs = 2
     TabOrder = 1
     OnClick = btnCancelClick
-    ExplicitTop = 70
-    ExplicitWidth = 75
   end
 end

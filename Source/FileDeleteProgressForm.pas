@@ -4,7 +4,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    04 Dec 2012
+  @Date    12 May 2013
 
 **)
 Unit FileDeleteProgressForm;
@@ -27,6 +27,8 @@ Uses
   SyncModule;
 
 Type
+  (** An enumerate to define the deletion type to be displayed **)
+  TDeleteType = (dtFiles, dtFolders);
   (** This class represents a form interface for displaying the progress of deleting
       files. **)
   TfrmDeleteProgress = Class(TForm)
@@ -50,8 +52,9 @@ Type
     Procedure DoUpdateProgress(iPosition, iMaxPosition: Integer);
   Public
     { Public declarations }
-    Procedure Initialise(iFileCount : Integer; iTotalSize: Int64);
-    Procedure InitialiseFileName(iFile : Integer; strFileName: String);
+    Procedure Initialise(iType : TDeleteType; iFileCount : Integer; iTotalSize: Int64);
+    Procedure InitialiseFileName(iType : TDeleteType; iFile : Integer;
+      strFileName: String);
     Procedure Progress(iFile : Integer; iSize: Int64);
     (**
       This property defines a call back event handler for getting the current progress
@@ -167,15 +170,25 @@ End;
   @precon  None.
   @postcon The progress dialogue is initialised.
 
+  @param   iType      as a TDeleteType
   @param   iFileCount as an Integer
   @param   iTotalSize as an Int64
 
 **)
-Procedure TfrmDeleteProgress.Initialise(iFileCount : Integer; iTotalSize: Int64);
+Procedure TfrmDeleteProgress.Initialise(iType : TDeleteType; iFileCount : Integer;
+  iTotalSize: Int64);
 
 Begin
   FFileCount := iFileCount;
   FTotalSize := iTotalSize;
+  If iType = dtFiles Then
+    FCaption := 'Deleting Files'
+  Else
+    FCaption := 'Deleting Folders';
+  If iType = dtFiles Then
+    lblFileLabel.Caption := 'Filename'
+  Else
+    lblFileLabel.Caption := 'Foldername';
   FCaption := Caption;
   Show;
   Application.ProcessMessages;
@@ -189,16 +202,25 @@ End;
   @precon  None.
   @postcon The filename and from labels are updated.
 
+  @param   iType       as a TDeleteType
   @param   iFile       as an Integer
   @param   strFileName as a String
 
 **)
-Procedure TfrmDeleteProgress.InitialiseFileName(iFile : Integer; strFileName: String);
+Procedure TfrmDeleteProgress.InitialiseFileName(iType : TDeleteType; iFile : Integer;
+  strFileName: String);
 
 Begin
   Caption := Format('%s (%1.0n of %1.0n)', [FCaption, Int(iFile), Int(FFileCount)]);
-  lblFrom.Caption     := ExtractFilePath(strFileName);
-  lblFilename.Caption := ExtractFileName(strFileName);
+  If iType = dtFiles Then
+    Begin
+      lblFrom.Caption     := ExtractFilePath(strFileName);
+      lblFilename.Caption := ExtractFileName(strFileName);
+    End Else
+    Begin
+      lblFrom.Caption     := ExtractFilePath(Copy(strFileName, 1, Length(strFileName) - 1));
+      lblFilename.Caption := ExtractFileName(Copy(strFileName, 1, Length(strFileName) - 1));
+    End;
   Application.ProcessMessages;
   CheckForCancel;
 End;
