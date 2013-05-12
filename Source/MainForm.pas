@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    11 May 2013
+  @Date    12 May 2013
   @Author  David Hoyle
 
 **)
@@ -199,6 +199,9 @@ Type
     Procedure ErrorMessageStart(iFileCount : Integer);
     Procedure ErrorMessage(strErrorMsg : String);
     Procedure ErrorMessageEnd();
+    Procedure DeleteFoldersStart(iFolderCount : Integer);
+    Procedure DeleteFolders(iFolder, iFolders : Integer; strFolder : String);
+    Procedure DeleteFoldersEnd();
     Procedure UpdateTaskBar(ProgressType: TTaskbarProgressType; iPosition: Integer = 0;
       iMaxPosition: Integer = 100);
     Procedure UpdateProgress(iPosition, iMaxPosition: Integer);
@@ -1199,6 +1202,9 @@ Begin
   FSyncModule.OnErrorMsgsStart        := ErrorMessageStart;
   FSyncModule.OnErrorMsgs             := ErrorMessage;
   FSyncModule.OnErrorMsgsEnd          := ErrorMessageEnd;
+  FSyncModule.OnDeleteFoldersStart    := DeleteFoldersStart;
+  FSyncModule.OnDeleteFolders         := DeleteFolders;
+  FSyncModule.OnDeleteFoldersEnd      := DeleteFoldersEnd;
   FTaskbarList  := Nil;
   FTaskbarList3 := Nil;
   If CheckWin32Version(6, 1) Then
@@ -2674,6 +2680,63 @@ End;
 
 (**
 
+  This is an on delete folders event handler.
+
+  @precon  None.
+  @postcon Outputs the folder to be deleted to the log and updates the progress.
+
+  @param   iFolder   as an Integer
+  @param   iFolders  as an Integer
+  @param   strFolder as a String
+
+**)
+Procedure TfrmMainForm.DeleteFolders(iFolder, iFolders : Integer; strFolder: String);
+
+Begin
+  FDeleteForm.Progress(iFolder, iFolders);
+  OutputResultLn(#32#32 + strFolder);
+End;
+
+(**
+
+  This is an on delete folders end event handler.
+
+  @precon  None.
+  @postcon Frees the memory used by the form.
+
+**)
+Procedure TfrmMainForm.DeleteFoldersEnd;
+
+Begin
+  FreeAndNil(FDeleteForm);
+End;
+
+(**
+
+  This is an on delete folders start event handler.
+
+  @precon  None.
+  @postcon Outputs the number of folders to be deleted to the log and initialises the
+           delete form.
+
+  @param   iFolderCount as an Integer
+
+**)
+Procedure TfrmMainForm.DeleteFoldersStart(iFolderCount: Integer);
+
+Begin
+  If iFolderCount > 0 Then
+    Begin
+      OutputResultLn('Deleting empty folders');
+      FDeleteForm                  := TfrmDeleteProgress.Create(Nil);
+      FDeleteForm.OnUpdateProgress := UpdateProgress;
+      FDeleteForm.Initialise(dtFolders, iFolderCount, iFolderCount);
+      FDialogueBottom := FDeleteForm.Top + FDeleteForm.Height;
+    End;
+End;
+
+(**
+
   This method is an on delete query event handler for the sync module.
 
   @precon  None.
@@ -2738,7 +2801,7 @@ Begin
     Begin
       FDeleteForm                  := TfrmDeleteProgress.Create(Nil);
       FDeleteForm.OnUpdateProgress := UpdateProgress;
-      FDeleteForm.Initialise(iFileCount, iTotalSize);
+      FDeleteForm.Initialise(dtFiles, iFileCount, iTotalSize);
       FDialogueBottom := FDeleteForm.Top + FDeleteForm.Height;
     End;
 End;
@@ -2757,7 +2820,7 @@ End;
 Procedure TfrmMainForm.DeletingProc(iFile : Integer; strFileName: String);
 
 Begin
-  FDeleteForm.InitialiseFileName(iFile, strFileName);
+  FDeleteForm.InitialiseFileName(dtFiles, iFile, strFileName);
   OutputResult(#32#32 + strFileName);
 End;
 
