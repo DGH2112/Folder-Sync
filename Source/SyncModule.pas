@@ -4,7 +4,7 @@
   files.
 
   @Version 1.6
-  @Date    11 May 2013
+  @Date    12 May 2013
   @Author  David Hoyle
 
 **)
@@ -162,6 +162,15 @@ Type
   TErrorMsgsNotifier = Procedure(strErrorMsg: String) Of Object;
   (** An event signature for the end of the Error Message Process. **)
   TErrorMsgsEndNotifier = Procedure() Of Object;
+  (** An event handler signature for the end of the deletion of empty folders. **)
+  TDeleteFoldersEndNotifier = Procedure() Of Object;
+  (** An event handler signature for the start of the deletion of empty folders. **)
+  TDeleteFoldersStartNotifier = Procedure(iFolderCount: Integer) Of Object;
+  (** An event handler signature for the deletion of each empty folder. **)
+  TDeleteFoldersNotifier = Procedure(iFolder, iFolders : Integer;
+    strFolder: String) Of Object;
+  (** An event handler signature for adding folders to the empty folder list. **)
+  TAddEmptyFolder = Procedure(strFolder : String) Of Object;
 
   (** An event signature for updating the taskbar from a progress dialogue. **)
   TUpdateProgress = Procedure(iPosition, iMaxPosition: Integer) Of Object;
@@ -267,6 +276,7 @@ Type
     Procedure Add(Folder : TFolder);
     Procedure Assign(Folders : TFolders);
     Procedure Delete(iIndex : Integer);
+    Procedure Exchange(iIndex1, iIndex2 : Integer);
     (**
       This property returns the indexed folder from the collection.
       @precon  iIndex must be between 0 and Count - 1.
@@ -297,6 +307,7 @@ Type
     FFileFilters        : TStringList;
     FSyncOptions        : TSyncOptions;
     FMaxFileSize        : Int64;
+    FAddEmptyFolder     : TAddEmptyFolder;
   Strict Protected
     Function InExclusions(strFileName: String): Boolean;
     Function GetCount: Integer;
@@ -306,6 +317,7 @@ Type
       Update : TUpdateType);
     Procedure DoSearchStart(strFolder: String);
     Procedure DoSearchEnd(iFileCount: Integer; iTotalSize: Int64);
+    Procedure DoAddEmptyFolder(strFolder : String);
   Public
     Constructor Create; Virtual;
     Destructor Destroy; Override;
@@ -364,6 +376,15 @@ Type
     **)
     Property OnSearchEnd: TSearchEndNotifier Read FSearchEndNotifier
       Write FSearchEndNotifier;
+    (**
+      This is an event handler for the addition of folders to the empty folder list.
+      @precon  None.
+      @postcon Returns the the event handler for the addition of folders to the empty
+               folders list.
+      @return  a TAddEmptyFolder
+    **)
+    Property OnAddEmptyFolder : TAddEmptyFolder Read FAddEmptyFolder
+      Write FAddEmptyFolder;
   End;
 
   (** A class to compare two lists of folder file. **)
@@ -390,7 +411,7 @@ Type
     Procedure SetSearchStartNotifier(SearchStartNotifier: TSearchStartNotifier);
     Procedure SetSearchEndNotifier(SearchEndNotifier: TSearchEndNotifier);
   Public
-    Constructor Create; Virtual;
+    Constructor Create(AddEmptyFolderProc : TAddEmptyFolder); Virtual;
     Destructor Destroy; Override;
     Procedure SearchFolders(strLeftFldr, strRightFldr, strPatterns: String;
       strExclusions: String; iSection: Integer; SyncOps: TSyncOptions;
@@ -579,6 +600,9 @@ Type
     FErrorMsgsStartNotifier        : TErrorMsgsStartNotifier;
     FErrorMsgsNotifier             : TErrorMsgsNotifier;
     FErrorMsgsEndNotifier          : TErrorMsgsEndNotifier;
+    FDeleteFoldersStartNotifier    : TDeleteFoldersStartNotifier;
+    FDeleteFoldersNotifier         : TDeleteFoldersNotifier;
+    FDeleteFoldersEndNotifier      : TDeleteFoldersEndNotifier;
     FProcessList                   : TObjectList;
     FCopiedTotalSize               : Int64;
     FFiles                         : Integer;
@@ -586,6 +610,7 @@ Type
     FErrors                        : Integer;
     FStatistics                    : TStringList;
     FErrorMsgs                     : TStringList;
+    FEmptyFolders                  : TStringList;
   Strict Protected
     Function GetCount: Integer;
     Function GetCompareFolders(iIndex: Integer): TCompareFolders;
@@ -630,6 +655,9 @@ Type
     Procedure DoErrorsMsgsStart(iErrorCount: Integer);
     Procedure DoErrorMsgs(strErrorMsg: String);
     Procedure DoErrorMsgsEnd;
+    Procedure DoDeleteFoldersStart(iFolderCount: Integer);
+    Procedure DoDeleteFolders(iFolder, iFolders : Integer; strFolder: String);
+    Procedure DoDeleteFoldersEnd;
     Procedure DeleteFiles;
     Procedure CopyFiles;
     Procedure DifferentSize;
@@ -647,6 +675,7 @@ Type
       Var Option: TFileAction): Boolean;
     Procedure AddToErrors(strErrorMsg : String);
     Procedure DoErrorMessages;
+    Procedure DeleteEmptyFolders;
     (**
       This property returns an indexed CompareFolders class.
       @precon  The index but be between 0 and Count - 1.
@@ -663,6 +692,10 @@ Type
       @return  an Integer
     **)
     Property Count: Integer Read GetCount;
+    Procedure AddEmptyFolder(strFolder : String);
+    Procedure IncrementFolder(strFolder : String);
+    Function  DecrementFolder(strFolder : String) : Boolean;
+    Function  FileCount(strFolder : String) : NativeUInt;
   Public
     Constructor Create; Virtual;
     Destructor Destroy; Override;
@@ -975,6 +1008,32 @@ Type
       @return  a TStringList
     **)
     Property Statistics : TStringList Read FStatistics;
+    (**
+      This property defines an event handler for the start of the deletion of empty
+      folders.
+      @precon  None.
+      @postcon Returns the event handler for the start of deletion of empty folders.
+      @return  a TDeleteFoldersStartNotifier
+    **)
+    Property OnDeleteFoldersStart : TDeleteFoldersStartNotifier
+      Read FDeleteFoldersStartNotifier Write FDeleteFoldersStartNotifier;
+    (**
+      This property defines an event for the deletion of empty folders.
+      @precon  None.
+      @postcon Returns the event handler for the deletion of each empty folders.
+      @return  a TDeleteFoldersNotifier
+    **)
+    Property OnDeleteFolders : TDeleteFoldersNotifier
+      Read FDeleteFoldersNotifier Write FDeleteFoldersNotifier;
+    (**
+      This property defines an event handler for the end of the deletion of empty
+      folders.
+      @precon  None.
+      @postcon Returns the event handler for the end of deletion of empty folders.
+      @return  a TDeleteFoldersEndNotifier
+    **)
+    Property OnDeleteFoldersEnd : TDeleteFoldersEndNotifier
+      Read FDeleteFoldersEndNotifier Write FDeleteFoldersEndNotifier;
   End;
 
   (** A custom exception for exception raised by FldrSync. **)
@@ -1205,6 +1264,23 @@ End;
 
 (**
 
+  This method exchanges the two indexed items in the folder list.
+
+  @precon  None.
+  @postcon The two index items are exchanged.
+
+  @param   iIndex1 as an Integer
+  @param   iIndex2 as an Integer
+
+**)
+Procedure TFolders.Exchange(iIndex1, iIndex2 : Integer);
+
+Begin
+  FFolders.Exchange(iIndex1, iIndex2);
+End;
+
+(**
+
   This is a getter method for the Count property.
 
   @precon  None.
@@ -1331,6 +1407,23 @@ Begin
   FFiles.Free;
   FExclusions.Free;
   Inherited;
+End;
+
+(**
+
+  This method invokes the OnAddEmptyFolder event handler if it is assigned.
+
+  @precon  None.
+  @postcon the OnAddEmptyFolder event is invoked if assigned.
+
+  @param   strFolder as a String
+
+**)
+Procedure TFileList.DoAddEmptyFolder(strFolder: String);
+
+Begin
+  If Assigned(FAddEmptyFolder) Then
+    FAddEmptyFolder(strFolder);
 End;
 
 (**
@@ -1488,6 +1581,7 @@ Var
 Begin
   DoSearch(FFolderPath, Copy(strFolderPath, Length(FFolderPath) + 1,
     Length(strFolderPath)), Count, utImmediate);
+  DoAddEmptyFolder(strFolderPath);
   If Not InExclusions(strFolderPath) Then
     Begin
       // Search for files
@@ -1729,12 +1823,16 @@ End;
   @precon  None.
   @postcon Creates an instance of TFileList for ther left and right folder.
 
+  @param   AddEmptyFolderProc as a TAddEmptyFolder
+
 **)
-Constructor TCompareFolders.Create;
+Constructor TCompareFolders.Create(AddEmptyFolderProc : TAddEmptyFolder);
 
 Begin
   FLeftFldr  := TFileList.Create;
+  FLeftFldr.OnAddEmptyFolder := AddEmptyFolderProc;
   FRightFldr := TFileList.Create;
+  FRightFldr.OnAddEmptyFolder := AddEmptyFolderProc;
 End;
 
 (**
@@ -1928,6 +2026,24 @@ End;
 
 (**
 
+  This method adds an empty folder with its number of files and sub folders to the empty
+  folder string list.
+
+  @precon  None.
+  @postcon An empty folder with its number of files and sub folders is added to the empty
+           folder string list.
+
+  @param   strFolder as a String
+
+**)
+Procedure TCompareFoldersCollection.AddEmptyFolder(strFolder: String);
+
+Begin
+  FEmptyFolders.AddObject(strFolder, TObject(FileCount(strFolder)));
+End;
+
+(**
+
   This method adds an error message to the error list.
 
   @precon  None.
@@ -2112,6 +2228,7 @@ Procedure TCompareFoldersCollection.Clear;
 Begin
   FCompareFolders.Clear;
   FProcessList.Clear;
+  FEmptyFolders.Clear;
 End;
 
 (**
@@ -2176,6 +2293,7 @@ Begin
     iTotalNumberOfBytes, @iTotalNumberOfFreeBytes);
   If (iSrcSize - iDestSize) < iTotalNumberOfFreeBytes Then
     Begin
+      IncrementFolder(ExtractFilePath(strDestFile));
       If Not CopyFileEx(PChar(Expand(strSourceFile)), PChar(Expand(strDestFile)),
         @CopyCallback, Self, Nil, 0) Then
         Begin
@@ -2419,6 +2537,86 @@ Begin
   FProcessList    := TObjectList.Create(True);
   FStatistics     := TStringList.Create;
   FErrorMsgs      := TStringList.Create;
+  FEmptyFolders   := TStringList.Create;
+  FEmptyFolders.Sorted := True;
+  FEmptyFolders.CaseSensitive := False;
+  FEmptyFolders.Duplicates := dupIgnore;
+End;
+
+(**
+
+  This method decrements the number of files and sub-folders associated with a folder in 
+  the empty folder collection.
+
+  @precon  None.
+  @postcon The number of files and sub-folders associated with the folder is decremented 
+           by 1.
+
+  @param   strFolder as a String
+  @return  a Boolean
+
+**)
+Function TCompareFoldersCollection.DecrementFolder(strFolder: String) : Boolean;
+
+Var
+  iIndex : Integer;
+  iFileCount: NativeUInt;
+  
+Begin
+  Result := False;
+  If FEmptyFolders.Find(strFolder, iIndex) Then
+    Begin
+      iFileCount := NativeUInt(FEmptyFolders.Objects[iIndex]) - 1;
+      FEmptyFolders.Objects[iIndex] := TObject(iFileCount);
+      Result := iFileCount = 0;
+    End Else
+      CodeSite.SendWarning('DecFldr: %s', [strFolder]);
+End;
+
+(**
+
+  This method cycles through the emprt folders string list backwards deleting an folder
+  with zero files and sub-folders.
+
+  @precon  None.
+  @postcon Any folder with zero files and sub-folders is deleted.
+
+**)
+Procedure TCompareFoldersCollection.DeleteEmptyFolders;
+
+Var
+  i : Integer;
+  iFileCount: NativeUInt;
+  iFolderCount : Integer;
+  iFolder : Integer;
+  
+Begin
+  iFolderCount := 0;
+  For i := 0 To FEmptyFolders.Count - 1 Do
+    Begin
+      iFileCount := NativeUInt(FEmptyFolders.Objects[i]);
+      If iFileCount = 0 Then
+        Inc(iFolderCount);
+    End;
+  DoDeleteFoldersStart(iFolderCount);
+  iFolder := 0;
+  For i := FEmptyFolders.Count - 1 DownTo 0 Do
+    Begin
+      iFileCount := NativeUInt(FEmptyFolders.Objects[i]);
+      If iFileCount = 0 Then
+        Begin
+          If DecrementFolder(ExtractFilePath(Copy(FEmptyFolders[i], 1,
+            Length(FEmptyFolders[i]) - 1))) Then
+            Inc(iFolderCount);
+          RemoveDir(FEmptyFolders[i]);
+          DoDeleteFolders(iFolder, iFolderCount, FEmptyFolders[i]);
+          Inc(iFolder);
+          iFileCount := FileCount(FEmptyFolders[i]);
+          If iFileCount > 0 Then
+            CodeSite.SendWarning('%d = %s', [iFileCount, FEmptyFolders[i]]);
+        End;
+    End;
+  DoDeleteFoldersEnd;
 End;
 
 (**
@@ -2547,6 +2745,7 @@ Begin
             SetFileAttributes(PChar(Expand(strPath + F.FileName)), iAttr);
           End;
         Inc(FCopiedTotalSize, F.Size);
+        DecrementFolder(strPath);
         If Not DeleteFile(PChar(Expand(strPath + F.FileName))) Then
           Begin
             strErrMsg := Format(strMsg, [strPath + F.FileName,
@@ -2578,6 +2777,7 @@ End;
 Destructor TCompareFoldersCollection.Destroy;
 
 Begin
+  FEmptyFolders.Free;
   FErrorMsgs.Free;
   FStatistics.Free;
   FProcessList.Free;
@@ -2983,6 +3183,58 @@ End;
 
 (**
 
+  This method invokes the OnDeleteFolders event handler if its assigned.
+
+  @precon  None.
+  @postcon the OnDeleteFolders event handler is invoked if assigned.
+
+  @param   iFolder   as an Integer
+  @param   iFolders  as an Integer
+  @param   strFolder as a String
+
+**)
+Procedure TCompareFoldersCollection.DoDeleteFolders(iFolder, iFolders : Integer;
+  strFolder: String);
+
+Begin
+  If Assigned(FDeleteFoldersNotifier) Then
+    FDeleteFoldersNotifier(iFolder, iFolders, strFolder);
+End;
+
+(**
+
+  This method invokes the OnDeleteFoldersEnd event handler if its assigned.
+
+  @precon  None.
+  @postcon the OnDeleteFoldersEnd event handler is invoked if assigned.
+
+**)
+Procedure TCompareFoldersCollection.DoDeleteFoldersEnd;
+
+Begin
+  If Assigned(FDeleteFoldersEndNotifier) Then
+    FDeleteFoldersEndNotifier;
+End;
+
+(**
+
+  This method invokes the OnDeleteFoldersStart event handler if its assigned.
+
+  @precon  None.
+  @postcon the OnDeleteFoldersStart event handler is invoked if assigned.
+
+  @param   iFolderCount as an Integer
+
+**)
+Procedure TCompareFoldersCollection.DoDeleteFoldersStart(iFolderCount: Integer);
+
+Begin
+  If Assigned(FDeleteFoldersStartNotifier) Then
+    FDeleteFoldersStartNotifier(iFolderCount);
+End;
+
+(**
+
   This method fires the DeleteQuery event if the event has a handler installed.
 
   @precon  None.
@@ -3217,6 +3469,38 @@ End;
 
 (**
 
+  This method counts the number of files and sub-folder within the given folder.
+
+  @precon  None.
+  @postcon Returns the number of files and sub-folders in the given folder.
+
+  @param   strFolder as a String
+  @return  a NativeUInt
+
+**)
+Function TCompareFoldersCollection.FileCount(strFolder: String): NativeUInt;
+
+Var
+  recSearch : TSearchRec;
+  iResult: Integer;
+  
+Begin
+  Result := 0;
+  iResult := FindFirst(strFolder + '*.*', faAnyFile, recSearch);
+  Try
+    While iResult = 0 Do
+      Begin
+        If (recSearch.Name <> '.') And (recSearch.Name <> '..') Then
+          Inc(Result);
+        iResult := FindNext(recSearch);
+      End;
+  Finally
+    SysUtils.FindClose(recSearch);
+  End;
+End;
+
+(**
+
   This method finds the next item in the file list that has not got the status
   of stSame and moved the iIndex value to the new position else return Count.
 
@@ -3313,6 +3597,36 @@ Function TCompareFoldersCollection.GetProcessItem(iIndex: Integer): TProcessItem
 
 Begin
   Result := FProcessList[iIndex] As TProcessItem;
+End;
+
+(**
+
+  This method increments the number of files and sub-folders associated with a folder
+  in the empty folder collection.
+
+  @precon  None.
+  @postcon The number of files and sub-folders associated with the folder is incremented
+           by 1.
+
+  @param   strFolder as a String
+
+**)
+Procedure TCompareFoldersCollection.IncrementFolder(strFolder: String);
+
+Var
+  iIndex : Integer;
+  iFileCount : Integer;
+  
+Begin
+  If FEmptyFolders.Find(strFolder, iIndex) Then
+    Begin
+      iFileCount := NativeUInt(FEmptyFolders.Objects[iIndex]) + 1;
+      FEmptyFolders.Objects[iIndex] := TObject(iFileCount);
+    End Else
+    Begin
+      AddEmptyFolder(strFolder);
+      IncrementFolder(strFolder);
+    End;
 End;
 
 (**
@@ -3435,6 +3749,7 @@ Begin
   DoNothing;
   DoSizeLimit;
   DoErrorMessages;
+  DeleteEmptyFolders;
 End;
 
 (**
@@ -3462,7 +3777,7 @@ Begin
     Begin
       If soEnabled In Folders.Folder[i].SyncOptions Then
         Begin
-          CP := TCompareFolders.Create;
+          CP := TCompareFolders.Create(AddEmptyFolder);
           FCompareFolders.Add(CP);
           CP.OnSearchStart  := FSearchStartNotifier;
           CP.OnSearch       := FSearchNotifier;
