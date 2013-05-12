@@ -92,6 +92,5 @@ object frmDeleteProgress: TfrmDeleteProgress
     NumGlyphs = 2
     TabOrder = 1
     OnClick = btnCancelClick
-    ExplicitTop = 60
   end
 end

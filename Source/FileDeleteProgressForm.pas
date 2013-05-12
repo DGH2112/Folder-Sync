@@ -55,7 +55,7 @@ Type
     Procedure Initialise(iType : TDeleteType; iFileCount : Integer; iTotalSize: Int64);
     Procedure InitialiseFileName(iType : TDeleteType; iFile : Integer;
       strFileName: String);
-    Procedure Progress(iFile : Integer; iSize: Int64);
+    Procedure Progress(iSize : Int64; iTotalSize : Int64 = 0);
     (**
       This property defines a call back event handler for getting the current progress
       position from the dialogue.
@@ -232,13 +232,15 @@ End;
   @precon  None.
   @postcon The progress bar on the dialogue is updated.
 
-  @param   iFile as an Integer
-  @param   iSize as an Int64
+  @param   iSize      as an Int64
+  @param   iTotalSize as an Int64
 
 **)
-Procedure TfrmDeleteProgress.Progress(iFile : Integer; iSize: Int64);
+Procedure TfrmDeleteProgress.Progress(iSize : Int64; iTotalSize : Int64 = 0);
 
 Begin
+  If iTotalSize > 0 Then
+    FTotalSize := iTotalSize;
   pbrOverall.Position := Trunc(Int(iSize) / Int(FTotalSize) * pbrOverall.Max);
   pbrOverall.Position := pbrOverall.Position - 1;
   pbrOverall.Position := pbrOverall.Position + 1;
