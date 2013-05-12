@@ -5,7 +5,7 @@
 
   @Version 1.6
   @Author  David Hoyle
-  @Date    17 Apr 2013
+  @Date    12 May 2013
 
 **)
 Unit CommandLineProcess;
@@ -109,6 +109,9 @@ Type
     Procedure ErrorMsgsStart(iErrorCount: Integer);
     Procedure ErrorMsgs(strErrorMsg : String);
     Procedure ErrorMsgsEnd();
+    Procedure DeleteFoldersEnd();
+    Procedure DeleteFoldersStart(iFolderCount: Integer);
+    Procedure DeleteFolders(iFolder, iFolders : Integer; strFolder: String);
   Public
     Constructor Create;
     Destructor Destroy; Override;
@@ -465,6 +468,56 @@ Begin
         FExceptionColour);
     End;
   OutputToConsoleLn(FStd, ').');
+End;
+
+(**
+
+  This is an on delete folders event handler.
+
+  @precon  None.
+  @postcon Outputs the folder being deleted.
+
+  @param   iFolder   as an Integer
+  @param   iFolders  as an Integer
+  @param   strFolder as a String
+
+**)
+Procedure TCommandLineProcessing.DeleteFolders(iFolder, iFolders: Integer;
+  strFolder: String);
+
+Begin
+  OutputToConsoleLn(FStd, #32#32 + strFolder);
+End;
+
+(**
+
+  This is an on Delete Folders End event handler.
+
+  @precon  None.
+  @postcon Do nothing.
+
+**)
+Procedure TCommandLineProcessing.DeleteFoldersEnd;
+
+Begin
+End;
+
+(**
+
+  This is an on delete folder start event handler.
+
+  @precon  None.
+  @postcon Outputs a header in the console for the list of deleted files.
+
+  @param   iFolderCount as an Integer
+
+**)
+Procedure TCommandLineProcessing.DeleteFoldersStart(iFolderCount: Integer);
+
+Begin
+  FTotalFiles := iFolderCount;
+  If iFolderCount > 0 Then
+    OutputToConsoleLn(FStd, 'Deleting empty folders...', FHeaderColour);
 End;
 
 (**
@@ -867,6 +920,9 @@ Begin
       CFC.OnErrorMsgsStart        := ErrorMsgsStart;
       CFC.OnErrorMsgs             := ErrorMsgs;
       CFC.OnErrorMsgsEnd          := ErrorMsgsEnd;
+      CFC.OnDeleteFoldersStart    := DeleteFoldersStart;
+      CFC.OnDeleteFolders         := DeleteFolders;
+      CFC.OnDeleteFoldersEnd      := DeleteFoldersEnd;
       CFC.ProcessFolders(Folders, FExclusions);
       OutputStats(CFC);
       Try
