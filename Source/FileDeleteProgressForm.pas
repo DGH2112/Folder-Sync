@@ -240,6 +240,8 @@ Procedure TfrmDeleteProgress.Progress(iFile : Integer; iSize: Int64);
 
 Begin
   pbrOverall.Position := Trunc(Int(iSize) / Int(FTotalSize) * pbrOverall.Max);
+  pbrOverall.Position := pbrOverall.Position - 1;
+  pbrOverall.Position := pbrOverall.Position + 1;
   DoUpdateProgress(pbrOverall.Position, pbrOverall.Max);
   Application.ProcessMessages;
   CheckForCancel;
