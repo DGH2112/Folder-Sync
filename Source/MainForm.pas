@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    12 May 2013
+  @Date    14 May 2013
   @Author  David Hoyle
 
 **)
@@ -2650,7 +2650,7 @@ Procedure TfrmMainForm.DeletedProc(iFile: Integer; iSize: int64; boolSuccess: Bo
 Begin
   If boolSuccess Then
     Begin
-      FDeleteForm.Progress(iFIle, iSize);
+      FDeleteForm.Progress(iSize);
       OutputResultLn();
     End Else
       OutputResultLn(#13#10#32#32#32#32 + strErrMsg);
