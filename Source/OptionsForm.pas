@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    12 May 2013
+  @Date    14 May 2013
   @Version 1.0
   @Author  David Hoyle
 
