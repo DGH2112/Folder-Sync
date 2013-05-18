@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    14 May 2013
+  @Date    18 May 2013
   @Author  David Hoyle
 
 **)
@@ -1294,7 +1294,7 @@ Begin
       iEnabledFolders := 0;
       For i           := 0 To FFolders.Count - 1 Do
         Begin
-          If soEnabled In FFolders.Folder[i].SyncOptions Then
+          If [soEnabled, soTempDisabled] * FFolders.Folder[i].SyncOptions = [soEnabled] Then
             Inc(iEnabledFolders);
         End;
       FProgressForm.RegisterSections(iEnabledFolders * 3 + 2);
