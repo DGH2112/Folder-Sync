@@ -144,6 +144,7 @@ Type
     FLastFolder     : String;
     Procedure LoadSettings();
     Procedure SaveSettings();
+    Procedure UpgradeINIFolderOptions(iniMemFile : TMemIniFile);
     Procedure ApplicationHint(Sender: TObject);
     Function GetImageIndex(strFileName: String): NativeInt;
     Procedure FixUpPanes;
@@ -343,9 +344,12 @@ Var
   iSyncOptions : TSyncOptions;
   strMaxValue : String;
   iMaxValue : TInt64Ex;
+  strLeftFldr, strRightFldr : String;
+  iniMemFile : TMemIniFile;
 
 Begin
-  With TMemIniFile.Create(FRootKey) Do
+  iniMemFile := TMemIniFile.Create(FRootKey);
+  With iniMemFile Do
     Try
       TStyleManager.SetStyle(ReadString('Setup', 'Theme',
         TStyleManager.ActiveStyle.Name));
@@ -395,24 +399,27 @@ Begin
         If ReadBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
           strFldrSyncOptions[j].fDefault) Then
           Include(FFldrSyncOptions, j);
+      UpgradeINIFolderOptions(iniMemFile);
       sl := TStringList.Create;
       Try
-        ReadSection('Folders', sl);
+        ReadSection('NewFolders', sl);
         For i := 0 To sl.Count - 1 Do
           Begin
-            iSyncOptions := TSyncOptions(Byte(ReadInteger('FolderStatus', sl[i],
-                  Byte(iSyncOptions))));
-            strMaxValue := ReadString('FolderMaxFileSize', sl[i], '0,0,0,0');
+            iSyncOptions := TSyncOptions(Byte(ReadInteger('NewFolderStatus', sl[i],
+              Byte(iSyncOptions))));
+            strMaxValue := ReadString('NewFolderMaxFileSize', sl[i], '0,0,0,0');
             iMaxValue.Value := 0;
             iMaxValue.iFirst := StrToInt(GetField(strMaxValue, ',', 1));
             iMaxValue.iSecond := StrToInt(GetField(strMaxValue, ',', 2));
             iMaxValue.iThird := StrToInt(GetField(strMaxValue, ',', 3));
             iMaxValue.iFourth := StrToInt(GetField(strMaxValue, ',', 4));
+            strLeftFldr := GetShortHint(ReadString('NewFolders', sl[i], ''));
+            strRightFldr := GetLongHint(ReadString('NewFolders', sl[i], ''));
             FFolders.Add(
               TFolder.Create(
-                ExtractFilePath(sl[i]),
-                ExtractFilePath(ReadString('Folders', sl[i], '')),
-                ExtractFileName(sl[i]),
+                ExtractFilePath(strLeftFldr),
+                ExtractFilePath(strRightFldr),
+                ExtractFileName(strLeftFldr),
                 iSyncOptions,
                 iMaxValue.Value
               )
@@ -1081,16 +1088,21 @@ Begin
         WriteBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
           j In FFldrSyncOptions);
       EraseSection('Folders');
+      EraseSection('FolderStatus');
+      EraseSection('FolderMaxFileSize');
+      EraseSection('NewFolders');
+      EraseSection('NewFolderStatus');
+      EraseSection('NewFolderMaxFileSize');
       For i := 0 To FFolders.Count - 1 Do
         Begin
-          WriteString('Folders',
-            FFolders.Folder[i].LeftFldr + FFolders.Folder[i].Patterns,
+          WriteString('NewFolders', Format('Folder%2.2d', [i]),
+            FFolders.Folder[i].LeftFldr + FFolders.Folder[i].Patterns + '|' +
             FFolders.Folder[i].RightFldr + FFolders.Folder[i].Patterns);
           Ops := FFolders.Folder[i].SyncOptions;
           Exclude(Ops, soTempDisabled);
-          WriteInteger('FolderStatus', FFolders.Folder[i].LeftFldr, Byte(Ops));
+          WriteInteger('NewFolderStatus', Format('Folder%2.2d', [i]), Byte(Ops));
           iMaxValue.Value := FFolders.Folder[i].MaxFileSize;
-          WriteString('FolderMaxFileSize', FFolders.Folder[i].LeftFldr,
+          WriteString('NewFolderMaxFileSize', Format('Folder%2.2d', [i]),
             Format('%d,%d,%d,%d', [iMaxValue.iFirst, iMaxValue.iSecond,
               iMaxValue.iThird, iMaxValue.iFourth]));
         End;
@@ -1942,6 +1954,46 @@ Begin
       If ProgressType In [ptNormal] Then
         FTaskbarList3.SetProgressValue(Application.Handle, iPosition, iMaxPosition);
     End;
+End;
+
+(**
+
+  This method upgrades the old limited Folder options in the INI file to more flexible 
+  options.
+
+  @precon  iniMemFile must be a valid instance.
+  @postcon Upgrades the old limited Folder options in the INI file to more flexible 
+           options.
+
+  @param   iniMemFile as a TMemIniFile
+
+**)
+Procedure TfrmMainForm.UpgradeINIFolderOptions(iniMemFile: TMemIniFile);
+
+Var
+  sl : TStringList;
+  i : Integer;
+  iSyncOptions : TSyncOptions;
+  
+Begin
+  If Not iniMemFile.SectionExists('Folders') Then
+    Exit;
+  sl := TStringList.Create;
+  Try
+    iniMemFile.ReadSection('Folders', sl);
+    For i := 0 To sl.Count - 1 Do
+      Begin
+        iniMemFile.WriteInteger('NewFolderStatus', Format('Folder%2.2d', [i]), 
+          iniMemFile.ReadInteger('FolderStatus', sl[i], Byte(iSyncOptions)));
+        iniMemFile.WriteString('NewFolderMaxFileSize', Format('Folder%2.2d', [i]), 
+          iniMemFile.ReadString('FolderMaxFileSize', sl[i], '0,0,0,0'));
+        iniMemFile.WriteString('NewFolders', Format('Folder%2.2d', [i]), 
+          sl[i] + '|' + iniMemFile.ReadString('Folders', sl[i], ''));
+      End;
+  Finally
+    sl.Free;
+  End;
+  iniMemFile.UpdateFile;
 End;
 
 (**
