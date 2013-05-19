@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    18 May 2013
+  @Date    19 May 2013
   @Author  David Hoyle
 
 **)
@@ -2323,18 +2323,20 @@ Function TfrmMainForm.CheckFolders: Boolean;
 
   (**
 
-    This is a local method to check and confirm the creation of a folder. It
-    raises an exception if the folder could not be created.
+    This is a local method to check and confirm the creation of a folder. It raises an 
+    exception if the folder could not be created. The drive of the folder mapping is
+    returned in the strDrive var parameter.
 
     @precon  None.
-    @postcon Checks and confirms the creation of a folder. It raises an
-             exception if the folder could not be created.
+    @postcon Checks and confirms the creation of a folder. It raises an exception if the 
+             folder could not be created.
 
     @param   strFolder as a String
+    @param   strDrive  as a String as a reference
     @return  a Boolean
 
   **)
-  Function CheckAndCreateFolder(strFolder: String) : Boolean;
+  Function CheckAndCreateFolder(strFolder: String;  var strDrive : String) : Boolean;
 
   Const
     strExcepMsg  = 'Could not create the folder "%s".';
@@ -2345,7 +2347,6 @@ Function TfrmMainForm.CheckFolders: Boolean;
 
   Var
     strPath: String;
-    strDrive: String;
 
   Begin
     Result := False;
@@ -2372,22 +2373,47 @@ Function TfrmMainForm.CheckFolders: Boolean;
       End;
   End;
 
+  (**
+
+    This method disabled all folder pairs with the given drive mapping.
+
+    @precon  None.
+    @postcon Disabled all folder pairs with the given drive mapping.
+
+    @param   strDrive as a String
+
+  **)
+  Procedure DisableDrive(strDrive : String);
+
+  Var
+    i : Integer;
+    F : TFolder;
+    
+  Begin
+    For i := 0 To FFolders.Count - 1 Do
+      Begin
+        F := FFolders.Folder[i];
+        If (CompareText(Copy(F.LeftFldr, 1, Length(strDrive)), strDrive) = 0) Or
+           (CompareText(Copy(F.RightFldr, 1, Length(strDrive)), strDrive) = 0) Then
+          F.SyncOptions := F.SyncOptions + [soTempDisabled];
+      End;
+  End;
+
 Var
   i: Integer;
+  strDrive: String;
 
 Begin
   For i := 0 To FFolders.Count - 1 Do
     If [soEnabled, soTempDisabled] * FFolders.Folder[i].SyncOptions = [soEnabled] Then
       Begin
-        If CheckAndCreateFolder(FFolders.Folder[i].LeftFldr) Then
+        If CheckAndCreateFolder(FFolders.Folder[i].LeftFldr, strDrive) Then
           Begin
-            FFolders.Folder[i].SyncOptions := FFolders.Folder[i].SyncOptions +
-              [soTempDisabled];
+            DisableDrive(strDrive);
             Continue;
           End;
-        If CheckAndCreateFolder(FFolders.Folder[i].RightFldr) Then
-          FFolders.Folder[i].SyncOptions := FFolders.Folder[i].SyncOptions +
-            [soTempDisabled];
+        If CheckAndCreateFolder(FFolders.Folder[i].RightFldr, strDrive) Then
+          DisableDrive(strDrive);
       End;
   Result := True;
 End;
