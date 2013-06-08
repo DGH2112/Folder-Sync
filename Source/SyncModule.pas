@@ -4,7 +4,7 @@
   files.
 
   @Version 1.6
-  @Date    12 May 2013
+  @Date    08 Jun 2013
   @Author  David Hoyle
 
 **)
@@ -273,7 +273,7 @@ Type
   Public
     Constructor Create;
     Destructor Destroy; Override;
-    Procedure Add(Folder : TFolder);
+    Function  Add(Folder : TFolder) : Integer;
     Procedure Assign(Folders : TFolders);
     Procedure Delete(iIndex : Integer);
     Procedure Exchange(iIndex1, iIndex2 : Integer);
@@ -1181,12 +1181,13 @@ End;
   @postcon Adds the passed folder to the folders collection.
 
   @param   Folder as a TFolder
+  @return  an Integer
 
 **)
-Procedure TFolders.Add(Folder: TFolder);
+Function TFolders.Add(Folder: TFolder) : Integer;
 
 Begin
-  FFolders.Add(Folder);
+  Result := FFolders.Add(Folder);
 End;
 
 (**
