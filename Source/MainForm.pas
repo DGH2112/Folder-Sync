@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    19 May 2013
+  @Date    08 Jun 2013
   @Author  David Hoyle
 
 **)
@@ -146,14 +146,12 @@ Type
     Procedure SaveSettings();
     Procedure UpgradeINIFolderOptions(iniMemFile : TMemIniFile);
     Procedure ApplicationHint(Sender: TObject);
-    Function GetImageIndex(strFileName: String): NativeInt;
+    Function GetImageIndex(ProcessItem : TProcessItem; strFileName: String): NativeInt;
     Procedure FixUpPanes;
-    Procedure InsertListItem(strLPath, strRPath: String; LeftFile, RightFile: TFileRecord;
-      SyncOptions: TSyncOptions; FileOp: TFileOp);
+    Procedure InsertListItem(ProcessItem : TProcessItem);
     Procedure SetFileOperation(FileOp: TFileOp);
     Function CheckFolders: Boolean;
-    Procedure ImageIndexes(strLPath, strRPath: String; LeftFile, RightFile: TFileRecord;
-      Item: TListItem);
+    Procedure ImageIndexes(ProcessItem : TProcessItem; Item: TListItem);
     Procedure ExceptionProc(strExceptionMsg: String);
     Procedure CloseTimerEvent(Sender: TObject);
     Procedure SearchStartProc(strFolder: String);
@@ -1342,6 +1340,11 @@ Begin
             FAutoProcessing := False;
           End;
       Finally
+        If Not boolSuccess Then
+          Begin
+            OutputResultLn;
+            OutputResultLn('Comparison cancelled by user!');
+          End;
         UpdateTaskBar(ptNone);
         If Not FCloseTimer.Enabled Then
           FProgressForm.Hide;
@@ -1379,8 +1382,7 @@ Begin
     For iProcessItem := 0 To FSyncModule.ProcessCount - 1 Do
       Begin
         P := FSyncModule.Process[iProcessItem];
-        InsertListItem(P.LPath, P.RPath, P.LeftFile, P.RightFile, P.SyncOptions,
-          P.FileOp);
+        InsertListItem(P);
         If iProcessItem Mod 10 = 0 Then
           FProgressForm.Progress(FProgressSection, iProcessItem,
             Format('Building ListView... %1.0n in %1.0n', [Int(iProcessItem),
@@ -1398,16 +1400,10 @@ End;
   @precon  None.
   @postcon Adds a pair of filenames with sizes and dates to the list view.
 
-  @param   strLPath    as a String
-  @param   strRPath    as a String
-  @param   LeftFile    as a TFileRecord
-  @param   RightFile   as a TFileRecord
-  @param   SyncOptions as a TSyncOptions
-  @param   FileOp      as a TFileOp
+  @param   ProcessItem as a TProcessItem
 
 **)
-Procedure TfrmMainForm.InsertListItem(strLPath, strRPath: String;
-  LeftFile, RightFile: TFileRecord; SyncOptions: TSyncOptions; FileOp: TFileOp);
+Procedure TfrmMainForm.InsertListItem(ProcessItem : TProcessItem);
 
   (**
 
@@ -1447,14 +1443,14 @@ Begin
   // Action
   Item.Caption := '';
   // Left File
-  If LeftFile <> Nil Then
+  If ProcessItem.LeftFile <> Nil Then
     Begin
-      Item.SubItems.Add(strLPath + LeftFile.FileName);
-      Item.SubItems.Add(GetAttributeString(LeftFile.Attributes));
-      Item.SubItems.Add(Format(strSize, [LeftFile.Size + 0.1]));
+      Item.SubItems.Add(ProcessItem.LPath + ProcessItem.LeftFile.FileName);
+      Item.SubItems.Add(GetAttributeString(ProcessItem.LeftFile.Attributes));
+      Item.SubItems.Add(Format(strSize, [ProcessItem.LeftFile.Size + 0.1]));
       Item.SubItems.Add(FormatDateTime('ddd dd/mmm/yyyy hh:mm:ss',
-          FileDateToDateTime(LeftFile.DateTime)));
-      strFileName := LeftFile.FileName;
+          FileDateToDateTime(ProcessItem.LeftFile.DateTime)));
+      strFileName := ProcessItem.LeftFile.FileName;
     End
   Else
     Begin
@@ -1464,14 +1460,14 @@ Begin
       Item.SubItems.Add('');
     End;
   // Right File
-  If RightFile <> Nil Then
+  If ProcessItem.RightFile <> Nil Then
     Begin
-      Item.SubItems.Add(strRPath + RightFile.FileName);
-      Item.SubItems.Add(GetAttributeString(RightFile.Attributes));
-      Item.SubItems.Add(Format(strSize, [RightFile.Size + 0.1]));
+      Item.SubItems.Add(ProcessItem.RPath + ProcessItem.RightFile.FileName);
+      Item.SubItems.Add(GetAttributeString(ProcessItem.RightFile.Attributes));
+      Item.SubItems.Add(Format(strSize, [ProcessItem.RightFile.Size + 0.1]));
       Item.SubItems.Add(FormatDateTime('ddd dd/mmm/yyyy hh:mm:ss',
-          FileDateToDateTime(RightFile.DateTime)));
-      strFileName := RightFile.FileName;
+          FileDateToDateTime(ProcessItem.RightFile.DateTime)));
+      strFileName := ProcessItem.RightFile.FileName;
     End
   Else
     Begin
@@ -1480,27 +1476,28 @@ Begin
       Item.SubItems.Add('');
       Item.SubItems.Add('');
     End;
-  Item.SubItems.Add(strLPath + strFileName);
-  Item.SubItems.Add(strRPath + strFileName);
-  Item.StateIndex := Integer(FileOp);
-  ImageIndexes(strLPath, strRPath, LeftFile, RightFile, Item);
+  Item.SubItems.Add(ProcessItem.LPath + strFileName);
+  Item.SubItems.Add(ProcessItem.RPath + strFileName);
+  Item.StateIndex := Integer(ProcessItem.FileOp);
+  ImageIndexes(ProcessItem, Item);
 End;
 
 {$HINTS OFF}
 (**
 
-  This method retrieves from the system the icon for the specified file, places
-  it in a list and returns the index of the index in the list.
+  This method retrieves from the system the icon for the specified file, places it in a 
+  list and returns the index of the index in the list.
 
   @precon  None.
-  @postcon Retrieves from the system the icon for the specified file, places
-           it in a list and returns the index of the index in the list
+  @postcon Retrieves from the system the icon for the specified file, places it in a list
+           and returns the index of the index in the list
 
+  @param   ProcessItem as a TProcessItem
   @param   strFileName as a String
-  @return  an NativeInt
+  @return  a NativeInt
 
 **)
-Function TfrmMainForm.GetImageIndex(strFileName: String): NativeInt;
+Function TfrmMainForm.GetImageIndex(ProcessItem : TProcessItem; strFileName: String): NativeInt;
 
 Var
   strExt        : String;
@@ -1583,6 +1580,13 @@ Begin
       CodeSite.Send('Extension List', FIconFiles);
       CodeSite.Send('Class', strClassName);
       CodeSite.Send(strFileName, Result);
+      CodeSite.Send('LPath', ProcessItem.LPath);
+      CodeSite.Send('RPath', ProcessItem.RPath);
+      CodeSite.Send('LeftFile', ProcessItem.LeftFile);
+      CodeSite.Send('RightFile', ProcessItem.RightFile);
+      CodeSite.SendEnum('FileOp', TypeInfo(TFileOp), Ord(ProcessItem.FileOp));
+      CodeSite.SendSet('SynvOptions', TypeInfo(TSyncOptions), ProcessItem.SyncOptions);
+      CodeSite.AddSeparator;
     End;
 End;
 {$HINTS ON}
@@ -2414,6 +2418,14 @@ Begin
           End;
         If CheckAndCreateFolder(FFolders.Folder[i].RightFldr, strDrive) Then
           DisableDrive(strDrive);
+      End Else
+      Begin
+        If soTempDisabled In FFolders.Folder[i].SyncOptions Then
+          Begin
+            If SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].LeftFldr) + '\') And
+             SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].RightFldr) + '\') Then
+             FFolders.Folder[i].SyncOptions := FFolders.Folder[i].SyncOptions - [soTempDisabled];
+          End;
       End;
   Result := True;
 End;
@@ -2973,47 +2985,43 @@ End;
 
 (**
 
-  This method updates the status images of the list view based on the filename
-  / extension of the file.
+  This method updates the status images of the list view based on the filename / extension
+  of the file.
 
   @precon  None.
-  @postcon Updates the status images of the list view based on the filename
-           / extension of the file.
+  @postcon Updates the status images of the list view based on the filename / extension 
+           of the file.
 
-  @param   strLPath     as a String
-  @param   strRPath     as a String
-  @param   LeftFile     as a TFileRecord
-  @param   RightFile    as a TFileRecord
-  @param   Item         as a TListItem
+  @param   ProcessItem as a TProcessItem
+  @param   Item        as a TListItem
 
 **)
-Procedure TfrmMainForm.ImageIndexes(strLPath, strRPath: String;
-  LeftFile, RightFile: TFileRecord; Item: TListItem);
+Procedure TfrmMainForm.ImageIndexes(ProcessItem : TProcessItem; Item: TListItem);
 
 Begin
-  If LeftFile <> Nil Then
+  If ProcessItem.LeftFile <> Nil Then
     Begin
-      If LeftFile <> Nil Then
+      If ProcessItem.LeftFile <> Nil Then
         Item.SubItemImages[iLDisplayCol - 1] :=
-          GetImageIndex(strLPath + LeftFile.FileName)
+          GetImageIndex(ProcessItem, ProcessItem.LPath + ProcessItem.LeftFile.FileName)
       Else
         Item.SubItemImages[iLDisplayCol - 1] := -1;
-      If RightFile <> Nil Then
+      If ProcessItem.RightFile <> Nil Then
         Item.SubItemImages[iRDisplayCol - 1] :=
-          GetImageIndex(strLPath + RightFile.FileName)
+          GetImageIndex(ProcessItem, ProcessItem.LPath + ProcessItem.RightFile.FileName)
       Else
         Item.SubItemImages[iRDisplayCol - 1] := -1;
     End
   Else
     Begin
-      If LeftFile <> Nil Then
+      If ProcessItem.LeftFile <> Nil Then
         Item.SubItemImages[iLDisplayCol - 1] :=
-          GetImageIndex(strRPath + LeftFile.FileName)
+          GetImageIndex(ProcessItem, ProcessItem.RPath + ProcessItem.LeftFile.FileName)
       Else
         Item.SubItemImages[iLDisplayCol - 1] := -1;
-      If RightFile <> Nil Then
+      If ProcessItem.RightFile <> Nil Then
         Item.SubItemImages[iRDisplayCol - 1] :=
-          GetImageIndex(strRPath + RightFile.FileName)
+          GetImageIndex(ProcessItem, ProcessItem.RPath + ProcessItem.RightFile.FileName)
       Else
         Item.SubItemImages[iRDisplayCol - 1] := -1;
     End;
