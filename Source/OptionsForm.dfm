@@ -35,8 +35,6 @@ object frmOptions: TfrmOptions
     Kind = bkOK
     NumGlyphs = 2
     TabOrder = 2
-    ExplicitLeft = 465
-    ExplicitTop = 412
   end
   object btnCheckforUpdates: TBitBtn
     Left = 7
@@ -60,7 +58,6 @@ object frmOptions: TfrmOptions
       DAA2D91119DDADDDDDAADD999DDDDDDDDDDADDDDDDDDDDDDDDDD}
     TabOrder = 1
     OnClick = btnCheckforUpdatesClick
-    ExplicitTop = 412
   end
   object btnHelp: TBitBtn
     Left = 374
@@ -76,8 +73,6 @@ object frmOptions: TfrmOptions
     NumGlyphs = 2
     TabOrder = 3
     OnClick = btnHelpClick
-    ExplicitLeft = 382
-    ExplicitTop = 412
   end
   object pagPages: TPageControl
     Left = 8
@@ -87,14 +82,8 @@ object frmOptions: TfrmOptions
     ActivePage = tabFolders
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
-    ExplicitWidth = 616
-    ExplicitHeight = 397
     object tabFolders: TTabSheet
       Caption = '&Folders'
-      ExplicitLeft = -65
-      ExplicitTop = 26
-      ExplicitWidth = 608
-      ExplicitHeight = 369
       DesignSize = (
         600
         365)
@@ -125,7 +114,6 @@ object frmOptions: TfrmOptions
         NumGlyphs = 2
         TabOrder = 1
         OnClick = btnAddClick
-        ExplicitTop = 340
       end
       object btnDelete: TBitBtn
         Left = 170
@@ -154,7 +142,6 @@ object frmOptions: TfrmOptions
         NumGlyphs = 2
         TabOrder = 3
         OnClick = btnDeleteClick
-        ExplicitTop = 340
       end
       object btnEdit: TBitBtn
         Left = 87
@@ -183,7 +170,6 @@ object frmOptions: TfrmOptions
         NumGlyphs = 2
         TabOrder = 2
         OnClick = btnEditClick
-        ExplicitTop = 340
       end
       object lvFolders: TListView
         Left = 4
@@ -218,8 +204,6 @@ object frmOptions: TfrmOptions
         OnDblClick = lvFoldersDblClick
         OnResize = lvFoldersResize
         OnSelectItem = lvFoldersSelectItem
-        ExplicitWidth = 600
-        ExplicitHeight = 328
       end
       object btnUp: TBitBtn
         Left = 252
@@ -244,7 +228,6 @@ object frmOptions: TfrmOptions
         NumGlyphs = 2
         TabOrder = 4
         OnClick = btnUpClick
-        ExplicitTop = 339
       end
       object btnDown: TBitBtn
         Left = 333
@@ -269,14 +252,30 @@ object frmOptions: TfrmOptions
         NumGlyphs = 2
         TabOrder = 5
         OnClick = btnDownClick
-        ExplicitTop = 339
+      end
+      object btnCopy: TBitBtn
+        Left = 414
+        Top = 335
+        Width = 75
+        Height = 25
+        Anchors = [akLeft, akBottom]
+        Caption = '&Copy'
+        Glyph.Data = {
+          F6000000424DF600000000000000760000002800000010000000100000000100
+          0400000000008000000000000000000000001000000000000000000000000000
+          80000080000000808000800000008000800080800000C0C0C000808080000000
+          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00777777777777
+          7777777777777777777777777744444444477777774FFFFFFF477777774F0000
+          0F470000004FFFFFFF470FFFFF4F00000F470F00004FFFFFFF470FFFFF4F00F4
+          44470F00004FFFF4F4770FFFFF4FFFF447770F00F044444477770FFFF0F07777
+          77770FFFF0077777777700000077777777777777777777777777}
+        TabOrder = 6
+        OnClick = btnCopyClick
       end
     end
     object tabGlobalOptions: TTabSheet
       Caption = '&Global Options'
       ImageIndex = 2
-      ExplicitWidth = 608
-      ExplicitHeight = 369
       DesignSize = (
         600
         365)
@@ -329,8 +328,6 @@ object frmOptions: TfrmOptions
         RowSelect = True
         TabOrder = 0
         ViewStyle = vsReport
-        ExplicitWidth = 600
-        ExplicitHeight = 301
       end
       object btnBrowse: TButton
         Left = 521
@@ -345,8 +342,6 @@ object frmOptions: TfrmOptions
         Caption = '&Browse'
         TabOrder = 1
         OnClick = btnBrowseClick
-        ExplicitLeft = 529
-        ExplicitTop = 311
       end
       object edtCompareEXE: TEdit
         Left = 108
@@ -360,8 +355,6 @@ object frmOptions: TfrmOptions
         Anchors = [akLeft, akRight, akBottom]
         TabOrder = 2
         Text = 'edtCompareEXE'
-        ExplicitTop = 313
-        ExplicitWidth = 413
       end
       object cbxThemes: TComboBox
         Left = 108
@@ -375,16 +368,12 @@ object frmOptions: TfrmOptions
         Anchors = [akLeft, akRight, akBottom]
         TabOrder = 3
         Text = 'cbxThemes'
-        ExplicitTop = 343
-        ExplicitWidth = 498
       end
     end
     object tabFonts: TTabSheet
       Caption = 'F&onts'
       ImageIndex = 1
       OnResize = tabFontsResize
-      ExplicitWidth = 608
-      ExplicitHeight = 369
       DesignSize = (
         600
         365)
@@ -413,7 +402,6 @@ object frmOptions: TfrmOptions
         TabOrder = 0
         OnDblClick = btnInterfaceFontEditClick
         OnDrawItem = lbxInterfaceFontsDrawItem
-        ExplicitWidth = 602
       end
       object lbxFileOperationFonts: TListBox
         Left = 3
@@ -426,8 +414,6 @@ object frmOptions: TfrmOptions
         TabOrder = 2
         OnDblClick = btnFileOperationFontEditClick
         OnDrawItem = lbxFileOperationFontsDrawItem
-        ExplicitWidth = 602
-        ExplicitHeight = 195
       end
       object btnInterfaceFontEdit: TBitBtn
         Left = 3
@@ -438,7 +424,6 @@ object frmOptions: TfrmOptions
         Caption = '&Edit Interface Font'
         TabOrder = 1
         OnClick = btnInterfaceFontEditClick
-        ExplicitWidth = 602
       end
       object btnFileOperationFontEdit: TBitBtn
         Left = 3
@@ -449,22 +434,18 @@ object frmOptions: TfrmOptions
         Caption = 'Edit &File Operation Font'
         TabOrder = 3
         OnClick = btnFileOperationFontEditClick
-        ExplicitTop = 341
-        ExplicitWidth = 603
       end
     end
     object tabExclusions: TTabSheet
       Caption = '&Exclusions'
       ImageIndex = 3
-      ExplicitWidth = 608
-      ExplicitHeight = 369
       DesignSize = (
         600
         365)
       object lblExclusions: TLabel
         Left = 4
         Top = 4
-        Width = 80
+        Width = 88
         Height = 13
         Margins.Left = 4
         Margins.Top = 4
@@ -472,7 +453,6 @@ object frmOptions: TfrmOptions
         Margins.Bottom = 4
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Exclusion &Patterns'
-        ExplicitWidth = 88
       end
       object edtExclusions: TMemo
         Left = 4
@@ -487,8 +467,6 @@ object frmOptions: TfrmOptions
         ScrollBars = ssBoth
         TabOrder = 0
         WordWrap = False
-        ExplicitWidth = 600
-        ExplicitHeight = 337
       end
     end
   end
@@ -505,8 +483,6 @@ object frmOptions: TfrmOptions
     Kind = bkCancel
     NumGlyphs = 2
     TabOrder = 4
-    ExplicitLeft = 548
-    ExplicitTop = 412
   end
   object dlgOpen: TOpenDialog
     Filter = 'Executables (*.exe)|*.exe'
@@ -518,7 +494,7 @@ object frmOptions: TfrmOptions
     Left = 232
     Top = 390
     Bitmap = {
-      494C0101020005002C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000500300010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

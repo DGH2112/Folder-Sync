@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    14 May 2013
+  @Date    08 Jun 2013
   @Version 1.0
   @Author  David Hoyle
 
@@ -92,6 +92,7 @@ Type
     btnFileOperationFontEdit: TBitBtn;
     btnUp: TBitBtn;
     btnDown: TBitBtn;
+    btnCopy: TBitBtn;
     Procedure lvFoldersResize(Sender: TObject);
     Procedure btnAddClick(Sender: TObject);
     Procedure btnEditClick(Sender: TObject);
@@ -115,6 +116,7 @@ Type
     procedure btnFileOperationFontEditClick(Sender: TObject);
     procedure btnUpClick(Sender: TObject);
     procedure btnDownClick(Sender: TObject);
+    procedure btnCopyClick(Sender: TObject);
   Private
     { Private declarations }
     FRightWidth     : Integer;
@@ -213,11 +215,13 @@ Const
 Implementation
 
 Uses
+  CodeSiteLogging,
   FolderPathsForm,
   IniFiles,
   CheckForUpdatesOptionsForm,
   Themes,
-  InterfaceFontForm, OperationsFontForm;
+  InterfaceFontForm,
+  OperationsFontForm;
   
 {$R *.DFM}
 
@@ -422,6 +426,31 @@ End;
 
 (**
 
+  This is an on click event handler for the Copy button.
+
+  @precon  None.
+  @postcon This method copies the selected folder pairing and adds it as a new item to the
+           end of the folder list.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmOptions.btnCopyClick(Sender: TObject);
+
+Var
+  F : TFolder;
+  iIndex: Integer;
+  
+Begin
+  F := FFolders.Folder[lvFolders.ItemIndex];
+  iIndex := FFolders.Add(TFolder.Create(F.LeftFldr, F.RightFldr, F.Patterns,
+    F.SyncOptions, F.MaxFileSize));
+  PopulateFolderList;
+  lvFolders.ItemIndex := iIndex;
+End;
+
+(**
+
   This is an on click event handler for the Edit button.
 
   @precon  None.
@@ -543,9 +572,14 @@ End;
 Procedure TfrmOptions.btnUpClick(Sender: TObject);
 
 Begin
-  FFolders.Exchange(lvFolders.ItemIndex, lvFolders.ItemIndex - 1);
-  lvFolders.ItemIndex := lvFolders.ItemIndex - 1;
-  PopulateFolderList;
+  lvFolders.OnChange := Nil;
+  Try
+    FFolders.Exchange(lvFolders.ItemIndex, lvFolders.ItemIndex - 1);
+    lvFolders.ItemIndex := lvFolders.ItemIndex - 1;
+    PopulateFolderList;
+  Finally
+    lvFolders.OnChange := lvFoldersChange;
+  End;
 End;
 
 (**
@@ -597,9 +631,14 @@ End;
 Procedure TfrmOptions.btnDownClick(Sender: TObject);
 
 Begin
-  FFolders.Exchange(lvFolders.ItemIndex, lvFolders.ItemIndex + 1);
-  lvFolders.ItemIndex := lvFolders.ItemIndex + 1;
-  PopulateFolderList;
+  lvFolders.OnChange := Nil;
+  Try
+    FFolders.Exchange(lvFolders.ItemIndex, lvFolders.ItemIndex + 1);
+    lvFolders.ItemIndex := lvFolders.ItemIndex + 1;
+    PopulateFolderList;
+  Finally
+    lvFolders.OnChange := lvFoldersChange;
+  End;
 End;
 
 (**
@@ -861,6 +900,7 @@ Procedure TfrmOptions.lvFoldersSelectItem(Sender: TObject; Item: TListItem;
 Begin
   btnEdit.Enabled   := Selected;
   btnDelete.Enabled := Selected;
+  btnCopy.Enabled   := Selected;
   btnUp.Enabled     := (Item <> Nil) And (Item.Index > 0) And (lvFolders.Items.Count > 1);
   btnDown.Enabled   := (Item <> Nil) And (Item.Index < lvFolders.Items.Count - 1) And
     (lvFolders.Items.Count > 1);
