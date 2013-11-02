@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    08 Jun 2013
+  @Date    13 Sep 2013
   @Author  David Hoyle
 
 **)
@@ -502,11 +502,12 @@ Type
   TBackground = (bgLeft, bgRight);
 
 Var
-  R, ItemR  : TRect;
-  Buffer    : Array [0 .. MAX_PATH * 2] Of Char;
-  Ops       : Integer;
-  iBufferLen: Integer;
-  iFileOp   : TFileOp;
+  R, ItemR     : TRect;
+  Buffer       : Array [0 .. MAX_PATH * 2] Of Char;
+  Ops          : Integer;
+  iBufferLen   : Integer;
+  iFileOp      : TFileOp;
+  SubItemRects : Array Of TRect;
 
   (**
 
@@ -515,29 +516,29 @@ Var
     @precon  iIndex must be a valid SubItem index..
     @postcon Returns display rectangle for the given indexed sub item.
 
-    @param   iIndex as an Integer
-    @return  a TRect
-
   **)
-  Function GetSubItemRect(iIndex: Integer): TRect;
+  Procedure GetSubItemRects;
 
   Var
+    R : TRect;
     j: Integer;
 
   Begin
     {$IFDEF PROFILECODE}
     CodeProfiler.Start('GetSubItemRect');
     {$ENDIF}
-    Result := Item.DisplayRect(drBounds);
-    For j  := 0 To iIndex Do
+    SetLength(SubItemRects, lvFileList.Columns.Count);
+    R := Item.DisplayRect(drBounds);
+    Inc(R.Top, 2);    // Padding / Margin
+    Inc(R.Bottom, 2); // Padding / Margin
+    For j  := 0 To lvFileList.Columns.Count - 1 - 1 Do
       Begin
-        Inc(Result.Left, Sender.Column[j].Width);
-        Result.Right := Result.Left + Sender.Column[j + 1].Width;
+        Inc(R.Left, Sender.Column[j].Width);
+        R.Right := R.Left + Sender.Column[j + 1].Width;
+        SubItemRects[j] := R;
+        Inc(SubItemRects[j].Left, 6);   // Padding / Margin
+        Dec(SubItemRects[j].Right, 6);  // Padding / Margin
       End;
-    Inc(Result.Top, 2);    // Padding / Margin
-    Inc(Result.Bottom, 2); // Padding / Margin
-    Inc(Result.Left, 6);   // Padding / Margin
-    Dec(Result.Right, 6);  // Padding / Margin
     {$IFDEF PROFILECODE}
     CodeProfiler.Stop;
     {$ENDIF}
@@ -562,22 +563,19 @@ Var
     {$IFDEF PROFILECODE}
     CodeProfiler.Start('DrawBackground');
     {$ENDIF}
-    Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clWindow);
     If Item.Selected Then
       Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight)
+    Else If (Pos('R', Item.SubItems[iColumn - 1]) > 0) Then
+      Sender.Canvas.Brush.Color :=
+        StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour)
     Else
-      Begin
-        If (Pos('R', Item.SubItems[iColumn - 1]) > 0) Then
-          Sender.Canvas.Brush.Color :=
-            StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour)
-        Else
-          Sender.Canvas.Brush.Color :=
-            StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-      End;
+      Sender.Canvas.Brush.Color :=
+        StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
+    //Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clWindow);
     If Background = bgLeft Then
-      R := GetSubItemRect(iLDateCol - 1)
+      R := SubItemRects[iLDateCol - 1]
     Else
-      R := GetSubItemRect(iRDisplayCol - 1);
+      R := SubItemRects[iRDisplayCol - 1];
     ItemR := Item.DisplayRect(drBounds);
     If Background = bgLeft Then
       ItemR.Right := R.Right + 6
@@ -669,18 +667,20 @@ Var
     {$IFDEF PROFILECODE}
     CodeProfiler.Start('DrawFileIcon');
     {$ENDIF}
-    Result := GetSubItemRect(iSubItem);
+    Result := SubItemRects[iSubItem];
     If iSubItem In [0, 4] Then
       Begin
         Dec(Result.Left, 3);
         iImage      := Item.SubItemImages[iSubItem];
         boolEnabled := (iImage > -1);
         If Not boolEnabled Then
-          If iSubItem = 0 Then
-            iImage := Item.SubItemImages[4]
-          Else
-            iImage := Item.SubItemImages[0];
-        ilFileTypeIcons.Draw(Sender.Canvas, Result.Left, Result.Top, iImage, boolEnabled);
+          Begin
+            If iSubItem = 0 Then
+              iImage := Item.SubItemImages[4]
+            Else
+              iImage := Item.SubItemImages[0];
+            ilFileTypeIcons.Draw(Sender.Canvas, Result.Left, Result.Top, iImage, boolEnabled);
+          End;
         Inc(Result.Left, 16 + 3);
       End;
     {$IFDEF PROFILECODE}
@@ -712,26 +712,24 @@ Var
       Begin
         Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
         Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-      End Else
+      End
+    Else If FileSide = bgLeft Then
       Begin
-        If FileSide = bgLeft Then
+        If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
           Begin
-            If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
-              Begin
-                Sender.Canvas.Brush.Color :=
-                  StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
-                Sender.Canvas.Font.Color := 
-                  StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
-              End;
-          End  Else
+            Sender.Canvas.Brush.Color :=
+              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
+            Sender.Canvas.Font.Color := 
+              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
+          End;
+      End  Else
+      Begin
+        If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
           Begin
-            If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
-              Begin
-                Sender.Canvas.Brush.Color := 
-                  StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
-                Sender.Canvas.Font.Color := 
-                  StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
-              End;
+            Sender.Canvas.Brush.Color := 
+              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
+            Sender.Canvas.Font.Color := 
+              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
           End;
       End;
     {$IFDEF PROFILECODE}
@@ -807,6 +805,7 @@ Begin
   {$ENDIF}
   DefaultDraw := False;
   iFileOp := TFileOp(Item.StateIndex);
+  GetSubItemRects;
   DrawBackground(iLAttrCol, bgLeft);
   DrawBackground(iRAttrCol, bgRight);
   R := Item.DisplayRect(drBounds);
@@ -2783,6 +2782,7 @@ End;
 Procedure TfrmMainForm.DeleteFolders(iFolder, iFolders : Integer; strFolder: String);
 
 Begin
+  FDeleteForm.InitialiseFileName(dtFiles, iFolder, strFolder);
   FDeleteForm.Progress(iFolder, iFolders);
   OutputResultLn(#32#32 + strFolder);
 End;
