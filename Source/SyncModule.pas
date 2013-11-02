@@ -4,7 +4,7 @@
   files.
 
   @Version 1.6
-  @Date    08 Jun 2013
+  @Date    13 Sep 2013
   @Author  David Hoyle
 
 **)
@@ -2567,8 +2567,12 @@ Begin
   Result := False;
   If FEmptyFolders.Find(strFolder, iIndex) Then
     Begin
-      iFileCount := NativeUInt(FEmptyFolders.Objects[iIndex]) - 1;
-      FEmptyFolders.Objects[iIndex] := TObject(iFileCount);
+      iFileCount := NativeUInt(FEmptyFolders.Objects[iIndex]);
+      If iFileCount > 0 Then
+        Begin
+          Dec(iFileCount);
+          FEmptyFolders.Objects[iIndex] := TObject(iFileCount);
+        End;
       Result := iFileCount = 0;
     End Else
       CodeSite.SendWarning('DecFldr: %s', [strFolder]);
