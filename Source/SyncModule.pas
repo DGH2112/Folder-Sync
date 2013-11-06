@@ -3987,7 +3987,7 @@ End;
 Function TDriveTotal.GetFreeAtFinish: Int64;
 
 Begin
-  Result := FFreeAtStart - FTotalDeletes + FTotalAdds;
+  Result := FFreeAtStart + FTotalDeletes - FTotalAdds;
 End;
 
 { TDriveTotals }
