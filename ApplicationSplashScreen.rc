@@ -1,0 +1,2 @@
+/* A resource for the application splash screen. */
+ApplicationSplashScreen BITMAP "Images\Splash Screen.bmp"
