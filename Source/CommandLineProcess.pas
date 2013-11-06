@@ -3,9 +3,9 @@
   This module contains a class for processing the command line and synchronising the
   files associated with the information.
 
-  @Version 1.6
+  @Version 2.0
   @Author  David Hoyle
-  @Date    12 May 2013
+  @Date    06 Nov 2013
 
 **)
 Unit CommandLineProcess;
@@ -847,10 +847,14 @@ Const
   strTitle =
     'Folder Sync %d.%d%s (Build %s) [%s] A command line tool to synchronise directories.';
   strSoftwareID = 'FldrSync';
+  strMsg = 'Drive "%s" is running low on disk space. Do you want to continue (Y/N)? ';
 
 Var
   CFC      : TCompareFoldersCollection;
   Folders  : TFolders;
+  iDrive : Integer;
+  D : TDriveTotal;
+  C : Char;
 
 Begin
   FStd := iStd;
@@ -926,6 +930,19 @@ Begin
       CFC.ProcessFolders(Folders, FExclusions);
       OutputStats(CFC);
       Try
+        For iDrive := 0 To CFC.Drives.Count - 1 Do
+          Begin
+            D := CFC.Drives.Drive[iDrive];
+            If D.FreeAtFinish / D.Total < dblDriveSpaceCheckPercentage Then
+              Begin
+                OutputToConsole(FStd, Format(strMsg, [D.Drive]), FInputColour);
+                C := GetConsoleCharacter(['y', 'Y', 'n', 'N']);
+                OutputToConsoleLn(FStd, C, FInputColour);
+                Case C Of
+                  'n', 'N': Exit;
+                End;
+              End;
+          End;
         CFC.ProcessFiles;
       Except
         On E : EAbort Do
@@ -1191,6 +1208,8 @@ Procedure TCommandLineProcessing.OutputStats(CFC : TCompareFoldersCollection);
 Var
   i : Integer;
   iPos : Integer;
+  iDrive : Integer;
+  strHeader : String;
 
 Begin
   OutputToConsoleLn(FStd, 'Statistics:', FHeaderColour);
@@ -1200,6 +1219,29 @@ Begin
       OutputToConsoleLn(FStd, Format('  %-20s: %40s', [
         Copy(CFC.Statistics[i], 1, iPos - 1),
         Copy(CFC.Statistics[i], iPos + 1, Length(CFC.Statistics[i]) - iPos)
+      ]));
+    End;
+  OutputToConsoleLn(FStd, 'Drive Space (in kbytes):',
+    FHeaderColour);
+  strHeader := Format(' %-25s | %16s | %16s | %16s | %16s | %16s ', [
+    'Drive',
+    'Total',
+    'Free at Start',
+    'Total Deletes',
+    'Total Adds',
+    'Free at Finish'
+  ]);
+  OutputToConsoleLn(FStd, strHeader);
+  OutputToConsoleLn(FStd, StringOfChar('-', Length(strHeader)));
+  For iDrive := 0 To CFC.Drives.Count -  1 Do
+    Begin
+      OutputToConsoleLn(FStd, Format(' %-25s | %16.1n | %16.1n | %16.1n | %16.1n | %16.1n', [
+        CFC.Drives.Drive[iDrive].Drive,
+        Int(CFC.Drives.Drive[iDrive].Total) / 1024,
+        Int(CFC.Drives.Drive[iDrive].FreeAtStart) / 1024,
+        Int(CFC.Drives.Drive[iDrive].TotalDeletes) / 1024,
+        Int(CFC.Drives.Drive[iDrive].TotalAdds) / 1024,
+        Int(CFC.Drives.Drive[iDrive].FreeAtFinish) / 1024
       ]));
     End;
 End;
