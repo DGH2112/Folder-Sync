@@ -3,8 +3,8 @@
   This module defines classes for handling and comparing two directories of
   files.
 
-  @Version 1.6
-  @Date    13 Sep 2013
+  @Version 2.0
+  @Date    06 Nov 2013
   @Author  David Hoyle
 
 **)
@@ -562,6 +562,93 @@ Type
     Property SyncOptions: TSyncOptions Read FSyncOptions;
   End;
 
+  (** A class to handle the disk space for a drive or mapping **)
+  TDriveTotal = Class
+  Strict Private
+    FDrive        : String;
+    FTotal        : Int64;
+    FFreeAtStart  : Int64;
+    FTotalDeletes : Int64;
+    FTotalAdds    : Int64;
+  Strict Protected
+    Function GetFreeAtFinish : Int64;
+  Public
+    Constructor Create(strDrive : String);
+    Procedure AddOption(iSize : Int64; FileOp : TFileOp);
+    (**
+      This property returns the name of the drive.
+      @precon  None.
+      @postcon Returns the name of the drive.
+      @return  a String
+    **)
+    Property Drive : String Read FDrive;
+    (**
+      This property returns the total disk space for the drive.
+      @precon  None.
+      @postcon Returns the total disk space for the drive.
+      @return  an Int64
+    **)
+    Property Total : Int64 Read FTotal;
+    (**
+      This property returns the free disk space before processing the files.
+      @precon  None.
+      @postcon Returns the free disk space before processing the files.
+      @return  an Int64
+    **)
+    Property FreeAtStart : Int64 Read FFreeAtStart;
+    (**
+      This property returns the number of bytes to be deleted.
+      @precon  None.
+      @postcon Returns the number of bytes to be deleted.
+      @return  an Int64
+    **)
+    Property TotalDeletes : Int64 Read FTotalDeletes;
+    (**
+      This property returns the number of bytes to be added.
+      @precon  None.
+      @postcon Returns the number of bytes to be added.
+      @return  an Int64
+    **)
+    Property TotalAdds : Int64 Read FTotalAdds;
+    (**
+      This property returns the free disk space after processing the files.
+      @precon  None.
+      @postcon Returns the free disk space after processing the files.
+      @return  an Int64
+    **)
+    Property FreeAtFinish : Int64 Read GetFreeAtFinish;
+  End;
+
+  (** A class to handle a collection of disk space totals. **)
+  TDriveTotals = Class
+  Strict Private
+    FDrives : TObjectList;
+  Strict Protected
+    Function GetCount : Integer;
+    Function GetDriveTotal(iIndex : Integer) : TDriveTotal;
+    Function Find(strPath : String) : Integer;
+  Public
+    Constructor Create;
+    Destructor Destroy; Override;
+    Procedure ProcessOp(ProcessItem : TProcessItem);
+    Procedure Sort;
+    (**
+      This property returns the number of items in the collection.
+      @precon  None.
+      @postcon Returns the number of items in the collection.
+      @return  an Integer
+    **)
+    Property Count : Integer Read GetCount;
+    (**
+      This property retuns the instance of the indexed drive total.
+      @precon  iIndex must be between 0 and Count - 1.
+      @postcon Retuns the instance of the indexed drive total.
+      @param   iIndex as an Integer
+      @return  a TDriveTotal
+    **)
+    Property Drive[iIndex : Integer] : TDriveTotal Read GetDriveTotal;
+  End;
+
   (** A class to represent a collection of TCompareFolders classes. **)
   TCompareFoldersCollection = Class
   Strict Private
@@ -611,6 +698,7 @@ Type
     FStatistics                    : TStringList;
     FErrorMsgs                     : TStringList;
     FEmptyFolders                  : TStringList;
+    FDrives                        : TDriveTotals;
   Strict Protected
     Function GetCount: Integer;
     Function GetCompareFolders(iIndex: Integer): TCompareFolders;
@@ -703,6 +791,7 @@ Type
     Procedure ProcessFiles;
     Procedure Clear;
     Procedure BuildStats;    
+    Procedure BuildTotals;
     (**
       This property returns the number of files to process in the internal process list.
       @precon  None.
@@ -718,6 +807,14 @@ Type
       @return  a TProcessItem
     **)
     Property Process[iIndex: Integer]: TProcessItem Read GetProcessItem;
+    (**
+      This property returns the drive total collection for inspecting available disk
+      space.
+      @precon  None.
+      @postcon Returns the drive total collection for inspecting available disk space.
+      @return  a TDriveTotals
+    **)
+    Property Drives : TDriveTotals Read FDrives;
     (**
       This is an event handler for the start of the searching for files process.
       @precon  None.
@@ -1053,6 +1150,8 @@ Const
     '[C]ancel',
     '[U]nknown'
   );
+  (** A double constant to define the limit below which a warning should be displayed. **)
+  dblDriveSpaceCheckPercentage : Double = 0.025; // 2.5%
 
 Implementation
 
@@ -2175,6 +2274,28 @@ Begin
   FStatistics.Add(Format('Total Left: %1.1n kbytes', [Int(iLeft) / 1024.0]));
   FStatistics.Add(Format('Total Right: %1.1n kbytes', [Int(iRight) / 1024.0]));
   FStatistics.Add(Format('Difference (L-R): %1.1n kbytes', [Int(iLEft - iRight) / 1024.0]));
+  BuildTotals;
+End;
+
+(**
+
+  This method processes all the process items and builds a list of drive totals to
+  calculate if there is enough disk space for copying.
+
+  @precon  None.
+  @postcon Processes all the process items and builds a list of drive totals to
+           calculate if there is enough disk space for copying.
+
+**)
+Procedure TCompareFoldersCollection.BuildTotals;
+
+Var
+  iProcessItem : Integer;
+
+Begin
+  For iProcessItem := 0 To ProcessCount - 1 Do
+    FDrives.ProcessOp(Process[iProcessItem]);
+  FDrives.Sort;
 End;
 
 (**
@@ -2542,6 +2663,7 @@ Begin
   FEmptyFolders.Sorted := True;
   FEmptyFolders.CaseSensitive := False;
   FEmptyFolders.Duplicates := dupIgnore;
+  FDrives := TDriveTotals.Create;
 End;
 
 (**
@@ -2782,6 +2904,7 @@ End;
 Destructor TCompareFoldersCollection.Destroy;
 
 Begin
+  FDrives.Free;
   FEmptyFolders.Free;
   FErrorMsgs.Free;
   FStatistics.Free;
@@ -3804,6 +3927,263 @@ Begin
   BuildMatchLists;
   BuildStats;
   Result := True;
+End;
+
+{ TDriveTotal }
+
+(**
+
+  This method adds a file operation to the drive totals.
+
+  @precon  None.
+  @postcon Adds a file operation to the drive totals.
+
+  @param   iSize  as an Int64
+  @param   FileOp as a TFileOp
+
+**)
+Procedure TDriveTotal.AddOption(iSize: Int64; FileOp: TFileOp);
+
+Begin
+  Case FileOp Of
+    foLeftToRight: Inc(FTotalAdds, iSize);
+    foRightToLeft: Inc(FTotalAdds, iSize);
+    foDelete:      Inc(FTotalDeletes, iSize);
+  End;
+End;
+
+(**
+
+  A constructor for the TDriveTotal class.
+
+  @precon  None.
+  @postcon Initialises the class with a drive mapping and this initial space.
+
+  @param   strDrive as a String
+
+**)
+Constructor TDriveTotal.Create(strDrive: String);
+
+Var
+  iTotalNumberOfFreeBytes: Int64;
+
+Begin
+  FDrive := strDrive;
+  GetDiskFreeSpaceEx(PChar(FDrive), FFreeAtStart, FTotal, @iTotalNumberOfFreeBytes);
+  FTotalDeletes := 0;
+  FTotalAdds := 0;
+End;
+
+(**
+
+  This is a getter method for the FreeAtFinish property.
+
+  @precon  None.
+  @postcon Calculates the free at finish value for the drive.
+
+  @return  an Int64
+
+**)
+Function TDriveTotal.GetFreeAtFinish: Int64;
+
+Begin
+  Result := FFreeAtStart - FTotalDeletes + FTotalAdds;
+End;
+
+{ TDriveTotals }
+
+(**
+
+  A constructor for the TDriveTotals class.
+
+  @precon  None.
+  @postcon Initialises the collection to empty.
+
+**)
+Constructor TDriveTotals.Create;
+
+Begin
+  FDrives := TObjectList.Create(True);
+End;
+
+(**
+
+  A destructor for the TDriveTotals class.
+
+  @precon  None.
+  @postcon Frees the memory used by the collection.
+
+**)
+Destructor TDriveTotals.Destroy;
+
+Begin
+  FDrives.Free;
+  Inherited Destroy;
+End;
+
+(**
+
+  This method find the drive mapping in the collection else creates a new one and returns
+  its index.
+
+  @precon  None.
+  @postcon Find the drive mapping in the collection else creates a new one and returns
+           its index.
+
+  @param   strPath as a String
+  @return  an Integer
+
+**)
+Function TDriveTotals.Find(strPath: String): Integer;
+
+Var
+  iDrive : Integer;
+  strDrive : String;
+  iPos: Integer;
+
+Begin
+  Result := -1;
+  If Like('*:\*', strPath) Then
+    strDrive := Copy(strPath, 1, 3)
+  Else
+    Begin
+      iPos := PosOfNthChar(strPath, '\', 4);
+      If iPos > 0 Then
+        strDrive := Copy(strPath, 1, iPos)
+      Else
+        strDrive := strPath;
+    End;
+  For iDrive := 0 To Count - 1 Do
+    If CompareText(Drive[iDrive].Drive, strDrive) = 0 Then
+      Begin
+        Result := iDrive;
+        Break;
+      End;
+  If Result = -1 Then
+    Result := FDrives.Add(TDriveTotal.Create(strDrive))
+End;
+
+(**
+
+  This is a getter method for the Count property.
+
+  @precon  None.
+  @postcon Returns the number of drives in the collection.
+
+  @return  an Integer
+
+**)
+Function TDriveTotals.GetCount: Integer;
+
+Begin
+  Result := FDrives.Count;
+End;
+
+(**
+
+  This is a getter method for the Drive property.
+
+  @precon  The index must be between 0 and Count - 1.
+  @postcon Returns the instance of the index drive total.
+
+  @param   iIndex as an Integer
+  @return  a TDriveTotal
+
+**)
+Function TDriveTotals.GetDriveTotal(iIndex: Integer): TDriveTotal;
+
+Begin
+  Result := FDrives[iIndex] As TDriveTotal;
+End;
+
+(**
+
+  This method processes the given process item and adds the information to the appropriate
+  drive total.
+
+  @precon  ProcessItem must be a vaild instance.
+  @postcon Processes the given process item and adds the information to the appropriate
+           drive total.
+
+  @param   ProcessItem as a TProcessItem
+
+**)
+Procedure TDriveTotals.ProcessOp(ProcessItem: TProcessItem);
+
+Var
+  iFileRight, iFileLeft : Int64;
+  iDrive : Integer;
+
+Begin
+  Case ProcessItem.FileOp Of
+    foLeftToRight:
+      Begin
+        iDrive := Find(ProcessItem.LPath);
+        Drive[iDrive].AddOption(0, foLeftToRight);
+        iFileLeft := ProcessItem.LeftFile.Size;
+        iFileRight := 0;
+        If ProcessItem.RightFile <> Nil Then
+          iFileRight := ProcessItem.RightFile.Size;
+        iDrive := Find(ProcessItem.RPath);
+        Drive[iDrive].AddOption(iFileLeft - iFileRight, foLeftToRight);
+      End;
+    foRightToLeft:
+      Begin
+        iDrive := Find(ProcessItem.RPath);
+        Drive[iDrive].AddOption(0, foRightToLeft);
+        iFileRight := ProcessItem.RightFile.Size;
+        iFileLeft := 0;
+        If ProcessItem.LeftFile <> Nil Then
+          iFileLeft := ProcessItem.LeftFile.Size;
+        iDrive := Find(ProcessItem.LPath);
+        Drive[iDrive].AddOption(iFileRight - iFileLeft, foRightToLeft);
+      End;
+    foDelete:
+      Begin
+        If ProcessItem.RightFile <> Nil Then
+          Begin
+            iDrive := Find(ProcessItem.RPath);
+            Drive[iDrive].AddOption(ProcessItem.RightFile.Size, foDelete);
+          End;
+        If ProcessItem.LeftFile <> Nil Then
+          Begin
+            iDrive := Find(ProcessItem.LPath);
+            Drive[iDrive].AddOption(ProcessItem.LeftFile.Size, foDelete);
+          End;
+      End;
+  End;
+End;
+
+(**
+
+  This function is an on compare function for sorting the drives.
+
+  @precon  None.
+  @postcon Returns the comparison between the item1 and item 2 drive names.
+
+  @param   Item1 as a Pointer
+  @param   Item2 as a Pointer
+  @return  an Integer
+
+**)
+Function DriveComparisonFunction(Item1, Item2 : Pointer) : Integer;
+
+Begin
+  Result := CompareText(TDriveTotal(Item1).Drive, TDriveTotal(Item2).Drive); 
+End;
+
+(**
+
+  This method sorts the collection by drive name.
+
+  @precon  None.
+  @postcon The collection is sorted by drive name.
+
+**)
+Procedure TDriveTotals.Sort;
+
+Begin
+  FDrives.Sort(DriveComparisonFunction);
 End;
 
 End.
