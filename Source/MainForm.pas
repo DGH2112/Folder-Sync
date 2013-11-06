@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    13 Sep 2013
+  @Date    06 Nov 2013
   @Author  David Hoyle
 
 **)
@@ -45,7 +45,8 @@ Uses
   ComObj,
   ShlObj,
   FileDeleteProgressForm,
-  FileCopyProgressForm;
+  FileCopyProgressForm,
+  DiskSpaceForm;
 
 Type
   (** This enumerate determines the type of progress to be shown in the taskbar in
@@ -2209,27 +2210,30 @@ Var
   boolAbort : Boolean;
   
 Begin
-  OutputResultLn('Processing started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
-    Now()));
-  Try
-    DisableActions;
-    Try
+  If TfrmDiskSpace.Execute(FSyncModule) Then
+    Begin
+      OutputResultLn('Processing started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
+        Now()));
       Try
-        boolAbort := False;
-        FSyncModule.ProcessFiles;
-      Except
-        On E : EAbort Do
-          boolAbort := True;
+        DisableActions;
+        Try
+          Try
+            boolAbort := False;
+            FSyncModule.ProcessFiles;
+          Except
+            On E : EAbort Do
+              boolAbort := True;
+          End;
+        Finally
+          EnableActions(True);
+        End;
+        actFileProcessFiles.Enabled := Not boolAbort
+      Finally
+        OutputResultLn();
       End;
-    Finally
-      EnableActions(True);
+      If Not boolAbort Then
+        actFileCompareExecute(Self);
     End;
-    actFileProcessFiles.Enabled := Not boolAbort
-  Finally
-    OutputResultLn();
-  End;
-  If Not boolAbort Then
-    actFileCompareExecute(Self);
 End;
 
 (**
