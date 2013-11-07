@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    06 Nov 2013
+  @Date    07 Nov 2013
 
 **)
 Unit CommandLineProcess;
@@ -75,8 +75,7 @@ Type
     Procedure ClearLine;
     Procedure DeleteStartProc(iFileCount: Integer; iTotalSize: Int64);
     Procedure DeletingProc(iFile : Integer; strFileName: String);
-    Procedure DeletedProc(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
-      strErrMsg: String);
+    Procedure DeletedProc(iFile: Integer; iSize: Int64; iSuccess: TProcessSuccess);
     Procedure DeleteQueryProc(strFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction);
     Procedure DeleteReadOnlyQueryProc(strFilePath: String; DeleteFile : TFileRecord;
@@ -86,7 +85,7 @@ Type
     Procedure CopyContentsProc(iCopiedSize, iTotalSize: Int64);
     Procedure CopyingProc(iFile : Integer; strSource, strDest, strFileName: String);
     Procedure CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
-      iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrMsg: String);
+      iCopiedTotalSize: Int64; iSuccess: TProcessSuccess);
     Procedure CopyQueryProc(strSourcePath, strDestPath: String; SourceFile,
       DestFile : TFileRecord; Var Option: TFileAction);
     Procedure CopyReadOnlyQueryProc(strSourcePath, strDestPath: String; SourceFile,
@@ -112,6 +111,10 @@ Type
     Procedure DeleteFoldersEnd();
     Procedure DeleteFoldersStart(iFolderCount: Integer);
     Procedure DeleteFolders(iFolder, iFolders : Integer; strFolder: String);
+    Procedure CopyError(strSource, strDest, strErrorMsg : String;
+      iLastError : Cardinal; var iResult : TDGHErrorResult);
+    Procedure DeleteError(strSource, strErrorMsg : String;
+      iLastError : Cardinal; var iResult : TDGHErrorResult);
   Public
     Constructor Create;
     Destructor Destroy; Override;
@@ -244,22 +247,20 @@ End;
   @param   iCopiedFiles         as an Integer
   @param   iCopiedFileTotalSize as an Int64
   @param   iCopiedTotalSize     as an Int64
-  @param   boolSuccess          as a Boolean
-  @param   strErrMsg            as a String
+  @param   iSuccess             as a TProcessSuccess
 
 **)
 Procedure TCommandLineProcessing.CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
-  iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrMsg: String);
+  iCopiedTotalSize: Int64; iSuccess: TProcessSuccess);
 
 Begin
-  If boolSuccess Then
-    OutputToConsoleLn(FStd, Format(' %1.1n%% Complete',
-        [Int64(iCopiedTotalSize) / Int64(FTotalSize) * 100.0]), FSuccessColour)
-  Else
-    Begin
-      OutputToConsoleLn(FStd);
-      OutputToConsoleLn(FErr, #32#32#32#32 + strErrMsg, FExceptionColour);
-    End;
+  Case iSuccess Of
+    psSuccessed: OutputToConsoleLn(FStd, Format(' %1.1n%% Complete',
+        [Int64(iCopiedTotalSize) / Int64(FTotalSize) * 100.0]), FSuccessColour);
+    psFailed: OutputToConsoleLn(FStd, ' Error Copying file (error type ignored).',
+      FExceptionColour);
+    //psIgnored: OutputToConsoleLn(FStd, ' Ignored Copying file.', FExceptionColour);
+  End;
 End;
 
 (**
@@ -305,6 +306,45 @@ Begin
         FExceptionColour);
     End;
   OutputToConsoleLn(FStd, ').', FSuccessColour);
+End;
+
+(**
+
+  This method displays an error message on the screen and ask the user to ignore or stop 
+  the processing.
+
+  @precon  None.
+  @postcon The iResult value is change depending upon the users answer to the question.
+
+  @param   strSource   as a String
+  @param   strDest     as a String
+  @param   strErrorMsg as a String
+  @param   iLastError  as a Cardinal
+  @param   iResult     as a TDGHErrorResult as a reference
+
+**)
+Procedure TCommandLineProcessing.CopyError(strSource, strDest, strErrorMsg: String;
+  iLastError : Cardinal; Var iResult: TDGHErrorResult);
+
+Var
+  Ch: Char;
+
+Begin
+  OutputToConsoleLn(FStd);
+  OutputToConsoleLn(FStd, '    An error has occurred during the copying of files:',
+    FExceptionColour);
+  OutputToConsoleLn(FStd, Format('      Source     : %s', [strSource]));
+  OutputToConsoleLn(FStd, Format('      Destination: %s', [strDest]));
+  OutputToConsoleLn(FStd, Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]),
+    FExceptionColour);
+  OutputToConsole(FStd, '    Do you want to [I]gnore the error or [S]top processing? ',
+    FInputColour);
+  Ch := GetConsoleCharacter(['i', 'I', 'S', 's']);
+  Case Ch Of
+    'i', 'I': iResult := derIgnore;
+    's', 'S': iResult := derStop;
+  End;
+  OutputToConsoleLn(FStd, Ch, FInputColour);
 End;
 
 (**
@@ -430,18 +470,22 @@ End;
   @precon  None.
   @postcon Output the percentage completion of the deletion process.
 
-  @param   iFile       as an Integer
-  @param   iSize       as an int64
-  @param   boolSuccess as a Boolean
-  @param   strErrMsg   as a String
+  @param   iFile    as an Integer
+  @param   iSize    as an Int64
+  @param   iSuccess as a TProcessSuccess
 
 **)
 Procedure TCommandLineProcessing.DeletedProc(iFile: Integer; iSize: Int64;
-  boolSuccess: Boolean; strErrMsg: String);
+  iSuccess: TProcessSuccess);
 
 Begin
-  OutputToConsoleLn(FStd, Format(' %1.1n%% Complete',
+  Case iSuccess Of
+    psSuccessed: OutputToConsoleLn(FStd, Format(' %1.1n%% Complete',
       [Int(iFile) / Int(FTotalFiles) * 100.0]), FSuccessColour);
+    psFailed: OutputToConsoleLn(FStd, ' Error Deleting file (error type ignored).',
+      FExceptionColour);
+    //psIgnored: OutputToConsoleLn(FStd, ' Ignored Copying file.', FExceptionColour);
+  End;
 End;
 
 (**
@@ -468,6 +512,43 @@ Begin
         FExceptionColour);
     End;
   OutputToConsoleLn(FStd, ').');
+End;
+
+(**
+
+  This method is displayed upon a deletion error and prompts the user as to whether they 
+  want to ignore the error or stop processing.
+
+  @precon  None.
+  @postcon The iResult value is changed depending upon the users answer.
+
+  @param   strSource   as a String
+  @param   strErrorMsg as a String
+  @param   iLastError  as a Cardinal
+  @param   iResult     as a TDGHErrorResult as a reference
+
+**)
+Procedure TCommandLineProcessing.DeleteError(strSource, strErrorMsg: String;
+  iLastError : Cardinal; Var iResult: TDGHErrorResult);
+
+Var
+  Ch : Char;
+  
+Begin
+  OutputToConsoleLn(FStd);
+  OutputToConsoleLn(FStd, '    An error has occurred during the deletion of files:',
+    FExceptionColour);
+  OutputToConsoleLn(FStd, Format('      Source     : %s', [strSource]));
+  OutputToConsoleLn(FStd, Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]),
+    FExceptionColour);
+  OutputToConsole(FStd, '    Do you want to [I]gnore the error or [S]top processing? ',
+    FInputColour);
+  Ch := GetConsoleCharacter(['i', 'I', 'S', 's']);
+  Case Ch Of
+    'i', 'I': iResult := derIgnore;
+    's', 'S': iResult := derStop;
+  End;
+  OutputToConsoleLn(FStd, Ch, FInputColour);
 End;
 
 (**
@@ -927,6 +1008,8 @@ Begin
       CFC.OnDeleteFoldersStart    := DeleteFoldersStart;
       CFC.OnDeleteFolders         := DeleteFolders;
       CFC.OnDeleteFoldersEnd      := DeleteFoldersEnd;
+      CFC.OnCopyError             := CopyError;
+      CFC.OnDeleteError           := DeleteError;
       CFC.ProcessFolders(Folders, FExclusions);
       OutputStats(CFC);
       Try
@@ -945,8 +1028,12 @@ Begin
           End;
         CFC.ProcessFiles;
       Except
-        On E : EAbort Do
-          {Do nothing};
+        On E : EAbort Do {Do nothing};
+        On E : Exception Do
+          Begin
+            OutputToConsoleLn(FStd);
+            OutputToConsoleLn(FStd, E.Message, FExceptionColour);
+          End;
       End;
     Finally
       Folders.Free;
