@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    06 Nov 2013
+  @Date    09 Nov 2013
   @Author  David Hoyle
 
 **)
@@ -80,6 +80,10 @@ Type
 
   (** An enumerate to define the type of update. **)
   TUpdateType = (utDelayed, utImmediate);
+  (** An enumerate to define the type of error result. **)
+  TDGHErrorResult = (derUnknown, derIgnore, derStop);
+  (** An enumerate to define the type of processing. **)
+  TProcessSuccess = (psUnknown, psSuccessed, psFailed, psIgnored);
 
   (** An event signature for the start of a search. **)
   TSearchStartNotifier = Procedure(strFolder: String) Of Object;
@@ -109,8 +113,8 @@ Type
   (** An event signature for the start of the deletion of an individual file. **)
   TDeletingNotifier = Procedure(iFile : Integer; strFileName: String) Of Object;
   (** An event signature for the end of the deletion of an individual file. **)
-  TDeletedNotifier = Procedure(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
-    strErrmsg: String) Of Object;
+  TDeletedNotifier = Procedure(iFile: Integer; iSize: Int64;
+    iSuccess : TProcessSuccess) Of Object;
   (** An event signature to prompt for the deletion of a file. **)
   TDeleteQueryNotifier = Procedure(strDeletePath: String; DeleteFile : TFileRecord;
     Var Option: TFileAction) Of Object;
@@ -129,7 +133,7 @@ Type
   TCopyContents = Procedure(iCopiedSize, iTotalSize: Int64) Of Object;
   (** An event signature for the end of the copying of an individual file. **)
   TCopiedNotifier = Procedure(iCopiedFiles: Integer; iCopiedFileTotalSize,
-    iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrmsg: String) Of Object;
+    iCopiedTotalSize: Int64; iSuccess : TProcessSuccess) Of Object;
   (** An event signature to prompt for the overwriting of a file. **)
   TCopyQueryNotifier = Procedure(strSrcPath, strDestPath : String; SourceFile,
     DestFile: TFileRecord; Var Option: TFileAction) Of Object;
@@ -171,6 +175,12 @@ Type
     strFolder: String) Of Object;
   (** An event handler signature for adding folders to the empty folder list. **)
   TAddEmptyFolder = Procedure(strFolder : String) Of Object;
+  (** An event handler signature for handling errors in copying. **)
+  TCopyErrorNotifier = Procedure(strSource, strDest, strErrorMsg : String;
+    iLastError : Cardinal; var iResult : TDGHErrorResult) Of Object;
+  (** An event handler signature for handling errors in deleting. **)
+  TDeleteErrorNotifier = Procedure(strSource, strErrorMsg : String; 
+    iLastError : Cardinal; var iResult : TDGHErrorResult) Of Object;
 
   (** An event signature for updating the taskbar from a progress dialogue. **)
   TUpdateProgress = Procedure(iPosition, iMaxPosition: Integer) Of Object;
@@ -649,6 +659,44 @@ Type
     Property Drive[iIndex : Integer] : TDriveTotal Read GetDriveTotal;
   End;
 
+  (** A type to define an array of integers. **)
+  TArrayOfInteger = Array Of Integer;
+
+  (** This class defined a sorted collection of integer values. **)
+  TSortedIntegerList = Class
+  Strict Private
+    FCount: Integer;
+    FSortedIntegerList : TArrayOfInteger;
+    Const
+      (** A constant value in the class to define the growth capacity of the collection. **)
+      iCAPACITY: Integer = 100;
+  Strict Protected
+    Function GetCount : Integer;                             
+    Function GetValue(iIndex : Integer) : Integer;
+    Function Find(iValue : Integer) : Integer;
+  Public                         
+    Constructor Create;
+    Destructor Destroy; Override;
+    Procedure Add(iValue : Integer);
+    Function  IsInList(iValue : Integer) : Boolean;
+    Procedure Clear;
+    (**
+      This property returns the number of items in the collection.
+      @precon  None.
+      @postcon Returns the number of items in the collection.
+      @return  an Integer
+    **)
+    Property Count : Integer Read GetCount;
+    (**
+      This property returns the indexed integer.
+      @precon  iIndex must be a valid inde between 1 and Count.
+      @postcon Returns the indexed integer.
+      @param   iIndex as an Integer
+      @return  an Integer
+    **)
+    Property Value[iIndex : Integer] : Integer Read GetValue;
+  End;
+
   (** A class to represent a collection of TCompareFolders classes. **)
   TCompareFoldersCollection = Class
   Strict Private
@@ -690,6 +738,8 @@ Type
     FDeleteFoldersStartNotifier    : TDeleteFoldersStartNotifier;
     FDeleteFoldersNotifier         : TDeleteFoldersNotifier;
     FDeleteFoldersEndNotifier      : TDeleteFoldersEndNotifier;
+    FCopyErrorNotifier             : TCopyErrorNotifier;
+    FDeleteErrorNotifier           : TDeleteErrorNotifier;
     FProcessList                   : TObjectList;
     FCopiedTotalSize               : Int64;
     FFiles                         : Integer;
@@ -699,6 +749,8 @@ Type
     FErrorMsgs                     : TStringList;
     FEmptyFolders                  : TStringList;
     FDrives                        : TDriveTotals;
+    FCopyErrors                    : TSortedIntegerList;
+    FDeleteErrors                  : TSortedIntegerList;
   Strict Protected
     Function GetCount: Integer;
     Function GetCompareFolders(iIndex: Integer): TCompareFolders;
@@ -715,8 +767,7 @@ Type
     Function GetProcessItem(iIndex: Integer): TProcessItem;
     Procedure DoDeleteStart(iFileCount: Integer; iTotalSize: Int64);
     Procedure DoDeleting(iFile : Integer; strFileName: String);
-    Procedure DoDeleted(iFile: Integer; iSize: Int64; boolSuccess: Boolean;
-      strErrmsg: String);
+    Procedure DoDeleted(iFile: Integer; iSize: Int64; iSuccess: TProcessSuccess);
     Procedure DoDeleteQuery(strFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction;  SyncOptions: TSyncOptions);
     Procedure DoDeleteReadOnlyQuery(strFilePath: String; DeleteFile : TFileRecord;
@@ -725,7 +776,7 @@ Type
     Procedure DoCopyStart(iTotalCount: Integer; iTotalSize: Int64);
     Procedure DoCopying(iFile : Integer; strSource, strDest, strFileName: String);
     Procedure DoCopied(iCopiedFiles: Integer; iCopiedFileTotalSize,
-      iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrmsg: String);
+      iCopiedTotalSize: Int64; iSuccess: TProcessSuccess);
     Procedure DoCopyQuery(strSourcePath, strDestPath: String; SourceFile,
       DestFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
     Procedure DoCopyReadOnlyQuery(strSourcePath, strDestPath: String; SourceFile,
@@ -751,14 +802,14 @@ Type
     Procedure DifferentSize;
     Procedure DoNothing;
     Procedure DoSizeLimit;
-    Function CopyFileContents(strSourceFile, strDestFile: String; Var iCopied: Integer;
-      Var strErrmsg: String): Boolean;
+    Function CopyFileContents(strSourceFile, strDestFile: String;
+      Var iCopied: Integer): TProcessSuccess;
     Function CountFileOps(FileOps: TFileOps; Var iSize: Int64): Integer;
     Procedure DeleteIndividualFile(strPath: String; F: TFileRecord; iFile: Integer;
       Var FileActions : TFileActions; SyncOps: TSyncOptions);
     Function CopyIndividualFile(strSource, strDest: String; SourceFile,
-      DestFile: TFileRecord; Var FileActions : TFileActions; Var strErrmsg: String;
-      SyncOps: TSyncOptions): Boolean;
+      DestFile: TFileRecord; Var FileActions : TFileActions; 
+      SyncOps: TSyncOptions): TProcessSuccess;
     Function CanByPassQuery(SyncOps: TSyncOptions; boolReadOnly : Boolean;
       Var Option: TFileAction): Boolean;
     Procedure AddToErrors(strErrorMsg : String);
@@ -1131,6 +1182,22 @@ Type
     **)
     Property OnDeleteFoldersEnd : TDeleteFoldersEndNotifier
       Read FDeleteFoldersEndNotifier Write FDeleteFoldersEndNotifier;
+    (**
+      This property defines the event handler for errors in copying files.
+      @precon  None.
+      @postcon Returns the event handler for handing errores in copying.
+      @return  a TCopyErrorNotifier
+    **)
+    Property OnCopyError : TCopyErrorNotifier Read FCopyErrorNotifier
+      Write FCopyErrorNotifier;
+    (**
+      This property defines the event handler for errors in deleting files.
+      @precon  None.
+      @postcon Returns the event handler for handing errores in deleting.
+      @return  a TDeleteErrorNotifier
+    **)
+    Property OnDeleteError : TDeleteErrorNotifier Read FDeleteErrorNotifier
+      Write FDeleteErrorNotifier;
   End;
 
   (** A custom exception for exception raised by FldrSync. **)
@@ -2358,18 +2425,17 @@ End;
   This method copies the contents of a files from the source to the destination.
 
   @precon  None.
-  @postcon Coppies the sourcefile to the destination file and increments the numver of
+  @postcon Coppies the sourcefile to the destination file and increments the numver of 
            files copied.
 
   @param   strSourceFile as a String
   @param   strDestFile   as a String
   @param   iCopied       as an Integer as a reference
-  @param   strErrMsg     as a String as a reference
-  @return  a Boolean
+  @return  a TProcessSuccess
 
 **)
 Function TCompareFoldersCollection.CopyFileContents(strSourceFile, strDestFile: String;
-  Var iCopied: Integer; Var strErrmsg: String): Boolean;
+  Var iCopied: Integer): TProcessSuccess;
 
   (**
 
@@ -2399,16 +2465,20 @@ Function TCompareFoldersCollection.CopyFileContents(strSourceFile, strDestFile: 
     End;
   End;
 
+Const
+  strExceptionMsg = 'Could not copy file "%s" to "%s" (%s)!';
+
 Var
   iSrcSize : Int64;
   iDestSize : Int64;
   iFreeBytesAvailableToCaller: Int64;
   iTotalNumberOfBytes: Int64;
   iTotalNumberOfFreeBytes: Int64;
+  iLastError : Cardinal;
+  strErrorMsg : String;
+  iResult : TDGHErrorResult;
 
 Begin
-  Result    := False;
-  strErrmsg := '';
   iSrcSize := GetFileSize(strSourceFile);
   iDestSize := GetFileSize(strDestFile);
   GetDiskFreeSpaceEx(PChar(ExtractFilePath(strDestFile)), iFreeBytesAvailableToCaller,
@@ -2419,16 +2489,38 @@ Begin
       If Not CopyFileEx(PChar(Expand(strSourceFile)), PChar(Expand(strDestFile)),
         @CopyCallback, Self, Nil, 0) Then
         Begin
-          strErrMsg := Format('Could not copy file "%s" (%s)',
-            [strSourceFile, SysErrorMessage(GetLastError)]);
-          AddToErrors(strErrMsg);
+          If Assigned(FCopyErrorNotifier) Then
+            Begin
+              Result := psFailed;
+              iLastError := GetLastError;
+              strErrorMsg := SysErrorMessage(iLastError);
+              If Not FCopyErrors.IsInList(iLastError) Then
+                Begin
+                  iResult := derUnknown;
+                  FCopyErrorNotifier(strSourceFile, strDestFile, strErrorMsg, iLastError,
+                    iResult);
+                  Case iResult Of
+                    derIgnore: FCopyErrors.Add(iLastError);
+                    derUnknown, derStop: Raise Exception.CreateFmt(strExceptionMsg,
+                        [strSourceFile, strDestFile, strErrorMsg]);
+                  End;
+                  Result := psIgnored;
+                End;
+              AddToErrors(Format(strExceptionMsg, [strSourceFile, strDestFile,
+                strErrorMsg]));
+            End Else
+            Begin
+              Raise Exception.CreateFmt(strExceptionMsg, [strSourceFile, strDestFile,
+               strErrorMsg]);
+            End;
         End Else
         Begin
-          Result := True;
+          Result := psSuccessed;
           Inc(iCopied);
         End;
     End Else
-      strErrMsg := 'There is not enough disk space at the destination to copy this file.';
+      Raise Exception.CreateFmt('There is not enough disk space at the destination to ' +
+        'copy this file "%s".', [strDestFile]);
 End;
 
 (**
@@ -2449,8 +2541,7 @@ Var
   P                 : TProcessItem;
   strSource, strDest: String;
   SourceFile, DestFile : TFileRecord;
-  strErrmsg         : String;
-  boolSuccess       : Boolean;
+  iSuccess          : TProcessSuccess;
 
 Begin
   FCopiedTotalSize := 0;
@@ -2492,17 +2583,17 @@ Begin
                 Raise EFldrSyncException.CreateFmt('Can not create folder "%s".',
                   [ExtractFilePath(strDest + SourceFile.FileName)]);
             If DestFile = Nil Then
-              boolSuccess := CopyFileContents(strSource + SourceFile.FileName,
-                strDest + SourceFile.FileName, FFiles, strErrmsg)
+              iSuccess := CopyFileContents(strSource + SourceFile.FileName,
+                strDest + SourceFile.FileName, FFiles)
             Else
-              boolSuccess := CopyIndividualFile(strSource, strDest, SourceFile,
-                DestFile, FileActions, strErrmsg, P.SyncOptions);
+              iSuccess := CopyIndividualFile(strSource, strDest, SourceFile,
+                DestFile, FileActions, P.SyncOptions);
             Inc(FCopiedTotalSize, SourceFile.Size);
-            If Not boolSuccess Then
+            If iSuccess In [psFailed, psIgnored] Then
               Inc(FErrors)
             Else
               Inc(iFile);
-            DoCopied(iFile, SourceFile.Size, FCopiedTotalSize, boolSuccess, strErrmsg);
+            DoCopied(iFile, SourceFile.Size, FCopiedTotalSize, iSuccess);
           End;
       End;
   Finally
@@ -2522,21 +2613,20 @@ End;
   @param   SourceFile  as a TFileRecord
   @param   DestFile    as a TFileRecord
   @param   FileActions as a TFileActions as a reference
-  @param   strErrmsg   as a String as a reference
   @param   SyncOps     as a TSyncOptions
-  @return  a Boolean
+  @return  a TProcessSuccess
 
 **)
 Function TCompareFoldersCollection.CopyIndividualFile(strSource, strDest: String;
-  SourceFile, DestFile: TFileRecord; Var FileActions : TFileActions; Var strErrmsg: String;
-  SyncOps: TSyncOptions): Boolean;
+  SourceFile, DestFile: TFileRecord; Var FileActions : TFileActions;
+  SyncOps: TSyncOptions): TProcessSuccess;
 
 Var
   FA   : TFileAction;
   iAttr: Cardinal;
 
 Begin
-  Result := False;
+  Result := psUnknown;
   FA := faUnknown;
   If (DestFile = Nil) Or (DestFile.Attributes And faReadOnly = 0) Then
     Begin
@@ -2577,7 +2667,7 @@ Begin
     faNo:
       Begin
         Inc(FSkipped);
-        Result := True;
+        Result := psSuccessed;
       End;
     faYes:
       Begin
@@ -2588,7 +2678,7 @@ Begin
             SetFileAttributes(PChar(Expand(strDest + DestFile.FileName)), iAttr);
           End;
         Result := CopyFileContents(strSource + SourceFile.FileName,
-          strDest + DestFile.FileName, FFiles, strErrmsg);
+          strDest + DestFile.FileName, FFiles);
       End;
     faCancel:
       Abort;
@@ -2664,6 +2754,8 @@ Begin
   FEmptyFolders.CaseSensitive := False;
   FEmptyFolders.Duplicates := dupIgnore;
   FDrives := TDriveTotals.Create;
+  FCopyErrors := TSortedIntegerList.Create;
+  FDeleteErrors := TSortedIntegerList.Create;
 End;
 
 (**
@@ -2813,16 +2905,18 @@ Procedure TCompareFoldersCollection.DeleteIndividualFile(strPath: String; F: TFi
   iFile: Integer; Var FileActions : TFileActions; SyncOps: TSyncOptions);
 
 Const
-  strMsg = 'Deletion of file "%s" failed with message "%s".';
+  strExceptionMsg = 'Deletion of file "%s" failed (%s)!';
 
 Var
   FA        : TFileAction;
   iAttr     : Cardinal;
-  boolResult: Boolean;
-  strErrmsg : String;
+  iSuccess  : TProcessSuccess;
+  iLastError: Cardinal;
+  strErrorMsg: String;
+  iResult: TDGHErrorResult;
 
 Begin
-  boolResult := False;
+  iSuccess := psUnknown;
   DoDeleting(iFile, strPath + F.FileName);
   FA := faUnknown;
   If (F.Attributes And faReadOnly = 0) Then
@@ -2875,22 +2969,41 @@ Begin
         DecrementFolder(strPath);
         If Not DeleteFile(PChar(Expand(strPath + F.FileName))) Then
           Begin
-            strErrMsg := Format(strMsg, [strPath + F.FileName,
-              SysErrorMessage(GetLastError)]);
-            AddToErrors(strErrMsg);
+            If Assigned(FDeleteErrorNotifier) Then
+              Begin
+                iLastError := GetLastError;
+                strErrorMsg := SysErrorMessage(iLastError);
+                If Not FDeleteErrors.IsInList(iLastError) Then
+                  Begin
+                    iResult := derUnknown;
+                    FDeleteErrorNotifier(strPath + F.FileName, strErrorMsg, iLastError,
+                      iResult);
+                    Case iResult Of
+                      derIgnore: FDeleteErrors.Add(iLastError);
+                      derUnknown, derStop: Raise Exception.CreateFmt(strExceptionMsg,
+                        [strPath + F.FileName, strErrorMsg]);
+                    End;
+                    AddToErrors(Format(strExceptionMsg, [strPath + F.FileName,
+                      strErrorMsg]));
+                  End;
+              End Else
+              Begin
+                Raise Exception.CreateFmt(strExceptionMsg, [strPath + F.FileName,
+                 strErrorMsg]);
+              End;
           End Else
           Begin
-            boolResult := True;
+            iSuccess := psSuccessed;
             Inc(FFiles);
           End;
       End;
     faNo:
       Begin
-        boolResult := True;
+        iSuccess := psSuccessed;
         Inc(FSkipped);
       End;
   End;
-  DoDeleted(iFile, FCopiedTotalSize, boolResult, strErrmsg);
+  DoDeleted(iFile, FCopiedTotalSize, iSuccess);
 End;
 
 (**
@@ -2904,6 +3017,8 @@ End;
 Destructor TCompareFoldersCollection.Destroy;
 
 Begin
+  FCopyErrors.Free;
+  FDeleteErrors.Free;
   FDrives.Free;
   FEmptyFolders.Free;
   FErrorMsgs.Free;
@@ -2954,17 +3069,15 @@ End;
   @param   iCopiedFiles         as an Integer
   @param   iCopiedFileTotalSize as an Int64
   @param   iCopiedTotalSize     as an Int64
-  @param   boolSuccess          as a Boolean
-  @param   strErrmsg            as a String
+  @param   iSuccess             as a TProcessSuccess
 
 **)
 Procedure TCompareFoldersCollection.DoCopied(iCopiedFiles: Integer; iCopiedFileTotalSize,
-  iCopiedTotalSize: Int64; boolSuccess: Boolean; strErrmsg: String);
+  iCopiedTotalSize: Int64; iSuccess: TProcessSuccess);
 
 Begin
   If Assigned(FCopiedNotifier) Then
-    FCopiedNotifier(iCopiedFiles, iCopiedFileTotalSize, iCopiedTotalSize, boolSuccess,
-      strErrmsg);
+    FCopiedNotifier(iCopiedFiles, iCopiedFileTotalSize, iCopiedTotalSize, iSuccess);
 End;
 
 (**
@@ -3276,18 +3389,17 @@ End;
   @precon  None.
   @postcon Fires the Deleted event if the event has a handler installed.
 
-  @param   iFile       as an Integer
-  @param   iSize       as an Int64
-  @param   boolSuccess as a Boolean
-  @param   strErrMsg   as a String
+  @param   iFile    as an Integer
+  @param   iSize    as an Int64
+  @param   iSuccess as a TProcessSuccess
 
 **)
 Procedure TCompareFoldersCollection.DoDeleted(iFile: Integer; iSize: Int64;
-  boolSuccess: Boolean; strErrmsg: String);
+  iSuccess: TProcessSuccess);
 
 Begin
   If Assigned(FDeletedNotifier) Then
-    FDeletedNotifier(iFile, iSize, boolSuccess, strErrmsg);
+    FDeletedNotifier(iFile, iSize, iSuccess);
 End;
 
 (**
@@ -3871,6 +3983,9 @@ End;
 Procedure TCompareFoldersCollection.ProcessFiles;
 
 Begin
+  FCopyErrors.Clear;
+  FDeleteErrors.Clear;
+  FErrorMsgs.Clear;
   DeleteFiles;
   CopyFiles;
   DifferentSize;
@@ -4184,6 +4299,175 @@ Procedure TDriveTotals.Sort;
 
 Begin
   FDrives.Sort(DriveComparisonFunction);
+End;
+
+{ TSortedIntegerList }
+
+(**
+
+  This method adds a integer to the collection.
+
+  @precon  None.
+  @postcon The given integer is added to the collection if it does not already exist.
+
+  @param   iValue as an Integer
+
+**)
+Procedure TSortedIntegerList.Add(iValue: Integer);
+
+Var
+  iIndex : Integer;
+  i: Integer;
+  tmp : TArrayOfInteger;
+  
+Begin
+  iIndex := Find(iValue);
+  Inc(FCount);
+  If FCount > Succ(High(FSortedIntegerList)) Then
+    Begin
+      SetLength(tmp, Succ(High(FSortedIntegerList)) + iCAPACITY);
+      For i := 1 To FCount - 1 Do
+        tmp[i] := FSortedIntegerList[i];
+      FSortedIntegerList := tmp;
+      tmp := Nil;
+    End;
+  If iIndex < 0 Then
+    Begin
+      For i := Abs(iIndex) To FCount - 1 Do
+        FSortedIntegerList[i] := FSortedIntegerList[i - 1];
+      FSortedIntegerList[Abs(iIndex) - 1] := iValue;
+    End;
+End;
+
+(**
+
+  This method clears the list of errors.
+
+  @precon  None.
+  @postcon Sets FCount to zero.
+
+**)
+Procedure TSortedIntegerList.Clear;
+
+Begin
+  FCount := 0;
+End;
+
+(**
+
+  A constructor for the TSortedIntegerList class.
+
+  @precon  None.
+  @postcon Initialises the class to empty.
+
+**)
+Constructor TSortedIntegerList.Create;
+
+Begin
+  SetLength(FSortedIntegerList, iCAPACITY);
+  FCount := 0;
+End;
+
+(**
+
+  A destructor for the TSortedIntegerList class.
+
+  @precon  None.
+  @postcon Frees the memory used by the collection.
+
+**)
+Destructor TSortedIntegerList.Destroy;
+
+Begin
+  FSortedIntegerList := Nil;
+  Inherited Destroy;
+End;
+
+(**
+
+  This method returns the index of the given integer in the colection if found else
+  returns the location where the integer should be inserted as a negative value.
+
+  @precon  None.
+  @postcon Returns the index of the given integer in the colection if found else
+           returns the location where the integer should be inserted as a negative value.
+
+  @param   iValue as an Integer
+  @return  an Integer
+
+**)
+Function TSortedIntegerList.Find(iValue: Integer): Integer;
+
+Var
+  iFirst, iMid, iLast : Integer;
+  
+Begin
+  iFirst := 1;
+  iLast := FCount;
+  While iFirst <= iLast Do
+    Begin
+      iMid := (iFirst + iLast) Div 2;
+      If iValue = FSortedIntegerList[iMid - 1] Then
+        Begin
+          Result := iMid;
+          Exit;
+        End;
+      If iValue < FSortedIntegerList[iMid - 1] Then
+        iLast := iMid - 1
+      Else
+        iFirst := iMid + 1;
+    End;
+  Result := -iFirst;
+End;
+
+(**
+
+  This is a getter method for the Count property.
+
+  @precon  None.
+  @postcon Returns the number of items in the collection.
+
+  @return  an Integer
+
+**)
+Function TSortedIntegerList.GetCount: Integer;
+
+Begin
+  Result := FCount;
+End;
+
+(**
+
+  This is a getter method for the Value property.
+
+  @precon  iIndex must be between 1 and Count.
+  @postcon Returns the integer from the collection at the index.
+
+  @param   iIndex as an Integer
+  @return  an Integer
+
+**)
+Function TSortedIntegerList.GetValue(iIndex: Integer): Integer;
+
+Begin
+  Result := FSortedIntegerList[iIndex];
+End;
+
+(**
+
+  This method returns whether the given integer is in the collection.
+
+  @precon  None.
+  @postcon Returns whether the given integer is in the collection.
+
+  @param   iValue as an Integer
+  @return  a Boolean
+
+**)
+Function TSortedIntegerList.IsInList(iValue: Integer): Boolean;
+
+Begin
+  Result := Find(iValue) > 0;
 End;
 
 End.
