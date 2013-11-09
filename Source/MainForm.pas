@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    06 Nov 2013
+  @Date    09 Nov 2013
   @Author  David Hoyle
 
 **)
@@ -143,6 +143,7 @@ Type
     FInterfaceFonts : TInterfaceFontInfo;
     FFileOpFonts    : TFileOperationFontInfo;
     FLastFolder     : String;
+    FTotalSize      : Int64;
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure UpgradeINIFolderOptions(iniMemFile : TMemIniFile);
@@ -168,8 +169,7 @@ Type
     Procedure MatchListEndProc;
     Procedure DeleteStartProc(iFileCount: Integer; iTotalSize: int64);
     Procedure DeletingProc(iFile : Integer; strFileName: String);
-    Procedure DeletedProc(iFile: Integer; iSize: int64; boolSuccess: Boolean;
-      strErrMsg: String);
+    Procedure DeletedProc(iFile: Integer; iSize: int64; iSuccess: TProcessSuccess);
     Procedure DeleteQueryProc(strFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction);
     Procedure DeleteReadOnlyQueryProc(strFilePath: String; DeleteFile : TFileRecord;
@@ -179,14 +179,14 @@ Type
     Procedure CopyContentsProc(iCopiedSize, iTotalSize: int64);
     Procedure CopyingProc(iFile : Integer; strSource, strDest, strFileName: String);
     Procedure CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
-      iCopiedTotalSize: int64; boolSuccess: Boolean; strErrMsg: String);
+      iCopiedTotalSize: int64; iSuccess: TProcessSuccess);
     Procedure CopyQueryProc(strSourcePath, strDestPath: String; SourceFile,
       DestFile : TFileRecord; Var Option: TFileAction);
     Procedure CopyReadOnlyQueryProc(strSourcePath, strDestPath: String; SourceFile,
       DestFile : TFileRecord;  Var Option: TFileAction);
     Procedure CopyEndProc(iCopied, iSkipped, iError: Integer);
-    Procedure FileQuery(strMsg, strSourcePath, strDestPath: String; SourceFile,
-      DestFile : TFileRecord; Var Option: TFileAction; boolReadOnly : Boolean);
+    Procedure FileQuery(strMsg, strConsoleMsg, strSourcePath, strDestPath: String;
+      SourceFile, DestFile : TFileRecord; Var Option: TFileAction; boolReadOnly : Boolean);
     Procedure DiffSizeStart(iFileCount : Integer);
     Procedure DiffSize(strLPath, strRPath, strFileName : String);
     Procedure DiffSizeEnd();
@@ -202,6 +202,10 @@ Type
     Procedure DeleteFoldersStart(iFolderCount : Integer);
     Procedure DeleteFolders(iFolder, iFolders : Integer; strFolder : String);
     Procedure DeleteFoldersEnd();
+    Procedure CopyError(strSource, strDest, strErrorMsg : String;
+      iLastError : Cardinal; var iResult : TDGHErrorResult);
+    Procedure DeleteError(strSource, strErrorMsg : String; 
+      iLastError : Cardinal; var iResult : TDGHErrorResult);
     Procedure UpdateTaskBar(ProgressType: TTaskbarProgressType; iPosition: Integer = 0;
       iMaxPosition: Integer = 100);
     Procedure UpdateProgress(iPosition, iMaxPosition: Integer);
@@ -262,7 +266,7 @@ Uses
   DGHLibrary,
   ConfirmationDlg,
   Themes,
-  MemoryMonitorOptionsForm;
+  MemoryMonitorOptionsForm, ProcessingErrorForm;
 
 {$R *.DFM}
 
@@ -852,7 +856,7 @@ End;
 Procedure TfrmMainForm.MatchListEndProc;
 
 Begin
-  OutputResultLn('  Done!');
+  OutputResultLn('Done.');
   FProgressForm.Progress(FProgressSection, 100, 'Done!', '');
 End;
 
@@ -886,7 +890,7 @@ End;
 Procedure TfrmMainForm.MatchListStartProc;
 
 Begin
-  OutputResult('Matching files');
+  OutputResult('Match Lists: ');
   Inc(FProgressSection);
   FProgressForm.InitialiseSection(FProgressSection, 1, 100);
 End;
@@ -937,10 +941,10 @@ end;
   @postcon None.
 
 **)
-procedure TfrmMainForm.NothingToDoEnd;
+Procedure TfrmMainForm.NothingToDoEnd;
 
-begin
-end;
+Begin
+End;
 
 (**
 
@@ -956,7 +960,7 @@ procedure TfrmMainForm.NothingToDoStart(iFileCount: Integer);
 
 begin
   If iFileCount > 0 Then
-    OutputResultLn(Format('There are %1.0n files marked as Do Nothing',
+    OutputResultLn(Format('%1.0n Files with Nothing to do...',
       [Int(iFileCount)]));
 end;
 
@@ -1215,6 +1219,8 @@ Begin
   FSyncModule.OnDeleteFoldersStart    := DeleteFoldersStart;
   FSyncModule.OnDeleteFolders         := DeleteFolders;
   FSyncModule.OnDeleteFoldersEnd      := DeleteFoldersEnd;
+  FSyncModule.OnCopyError             := CopyError;
+  FSyncModule.OnDeleteError           := DeleteError;
   FTaskbarList  := Nil;
   FTaskbarList3 := Nil;
   If CheckWin32Version(6, 1) Then
@@ -1776,7 +1782,7 @@ Procedure TfrmMainForm.SearchEndProc(iFileCount: Integer; iTotalSize: int64);
 
 Begin
   FProgressForm.Progress(FProgressSection, 1, ' Done!', '');
-  OutputResultLn(Format('  Found %1.0n files (%1.0n bytes)',
+  OutputResultLn(Format('%1.0n files in %1.0n bytes.',
       [Int(iFileCount), Int(iTotalSize)]));
 End;
 
@@ -1820,7 +1826,7 @@ End;
 Procedure TfrmMainForm.SearchStartProc(strFolder: String);
 
 Begin
-  OutputResult(Format('Search: %s', [strFolder]));
+  OutputResult(Format('Searching: %s', [strFolder]));
   Inc(FProgressSection);
   FProgressForm.InitialiseSection(FProgressSection, 0, 1);
 End;
@@ -2123,8 +2129,7 @@ Procedure TfrmMainForm.ErrorMessageStart(iFileCount: Integer);
 
 Begin
   If iFileCount > 0 Then
-    OutputResultLn(Format('There are %1.0n files that have had errors:',
-      [Int(iFileCount)]));
+    OutputResultLn(Format('%1.0n Files had errors...', [Int(iFileCount)]));
 End;
 
 (**
@@ -2172,8 +2177,7 @@ Procedure TfrmMainForm.ExceedsSizeLimitStart(iFileCount: Integer);
 
 Begin
   If iFileCount > 0 Then
-    OutputResultLn(Format('There are %1.0n files marked as exceeding the size limit',
-      [Int(iFileCount)]));
+    OutputResultLn(Format('%1.0n Files exceeding Size Limit...', [Int(iFileCount)]));
 End;
 
 (**
@@ -2215,14 +2219,14 @@ Begin
       OutputResultLn('Processing started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
         Now()));
       Try
+        boolAbort := False;
         DisableActions;
         Try
           Try
-            boolAbort := False;
             FSyncModule.ProcessFiles;
           Except
-            On E : EAbort Do
-              boolAbort := True;
+            On E : EAbort Do boolAbort := True;
+            On E : Exception Do MessageDlg(E.Message, mtError, [mbOK], 0);
           End;
         Finally
           EnableActions(True);
@@ -2460,8 +2464,8 @@ End;
 Procedure TfrmMainForm.CompareEndProc;
 
 Begin
-  FProgressForm.Progress(FProgressSection, 100, 'Done!', '');
-  OutputResultLn(' Done!');
+  FProgressForm.Progress(FProgressSection, 100, 'Done.', '');
+  OutputResultLn('Done.');
 End;
 
 (**
@@ -2503,7 +2507,7 @@ End;
 Procedure TfrmMainForm.CompareStartProc(strLeftFldr, strRightFldr: String);
 
 Begin
-  OutputResult(Format('Comparing %s to %s', [strLeftFldr, strRightFldr]));
+  OutputResult(Format('Comparing: ', [strLeftFldr, strRightFldr]));
   Inc(FProgressSection);
   FProgressForm.InitialiseSection(FProgressSection, 0, 100);
 End;
@@ -2518,22 +2522,21 @@ End;
   @param   iCopiedFiles         as an Integer
   @param   iCopiedFileTotalSize as an int64
   @param   iCopiedTotalSize     as an int64
-  @param   boolSuccess          as a Boolean
-  @param   strErrMsg            as a String
+  @param   iSuccess             as a TProcessSuccess
 
 **)
 Procedure TfrmMainForm.CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
-  iCopiedTotalSize: int64; boolSuccess: Boolean; strErrMsg: String);
+  iCopiedTotalSize: int64; iSuccess: TProcessSuccess);
 
 Begin
-  If boolSuccess Then
-    Begin
-      FCopyForm.Progress(iCopiedFileTotalSize, iCopiedFileTotalSize);
-      FCopyForm.ProgressOverall(iCopiedTotalSize);
-      OutputResultLn();
-    End
-  Else
-    OutputResultLn(#13#10#32#32#32#32 + strErrMsg);
+  FCopyForm.Progress(iCopiedFileTotalSize, iCopiedFileTotalSize);
+  FCopyForm.ProgressOverall(iCopiedTotalSize);
+  Case iSuccess Of
+    psSuccessed: OutputResultLn(Format(' %1.1n%% Complete', [Int64(iCopiedTotalSize) /
+      Int64(FTotalSize) * 100.0]));
+    psFailed: OutputResultLn(' Error Copying file (error type ignored).');
+    //psIgnored: OutputResultLn(' Ignored Copying file.');
+  End;
 End;
 
 (**
@@ -2568,11 +2571,51 @@ End;
 Procedure TfrmMainForm.CopyEndProc(iCopied, iSkipped, iError: Integer);
 
 Begin
-  OutputResult(Format('  Copied %1.0n (Skipped %1.0n', [Int(iCopied), Int(iSkipped)]));
+  OutputResult(Format('  Copied %1.0n (Skipped %1.0n file(s)',
+    [Int(iCopied), Int(iSkipped)]));
   If iError > 0 Then
-    OutputResult(Format(', Errored %1.0n', [Int(iError)]));
+    OutputResult(Format(', Errored %1.0n file(s)', [Int(iError)]));
   OutputResultLn(')');
   FreeAndNil(FCopyForm);
+End;
+
+(**
+
+  This is an on error copting event handler for the processing of the files.
+
+  @precon  None.
+  @postcon Displays the error message on the screen and asks the user what to do.
+
+  @param   strSource   as a String
+  @param   strDest     as a String
+  @param   strErrorMsg as a String
+  @param   iLastError  as a Cardinal
+  @param   iResult     as a TDGHErrorResult as a reference
+
+**)
+Procedure TfrmMainForm.CopyError(strSource, strDest, strErrorMsg: String;
+  iLastError: Cardinal; Var iResult: TDGHErrorResult);
+
+Begin
+  OutputResultLn();
+  OutputResultLn('    An error has occurred during the copying of files:');
+  OutputResultLn(Format('      Source     : %s', [strSource]));
+  OutputResultLn(Format('      Destination: %s', [strDest]));
+  OutputResultLn(Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]));
+  OutputResult('    Do you want to [I]gnore the error or [S]top processing? ');
+  Case TfrmErrorDlg.Execute('An error has occurred during the copying of files', 
+    strSource, strDest, Format('(%d) %s', [iLastError, strErrorMsg])) Of
+    mrIgnore:
+      Begin
+        iResult := derIgnore;
+        OutputResultLn('I');
+      End;
+    mrAbort:
+      Begin
+        iResult := derStop;
+        OutputResultLn('S');
+      End;
+  End;
 End;
 
 (**
@@ -2621,9 +2664,11 @@ Procedure TfrmMainForm.CopyQueryProc(strSourcePath, strDestPath: String;
 
 Const
   strMsg = 'Are you sure you want to overwrite the following file?';
+  strConsoleMsg = ' Overwrite (Y/N/A/O/C)? ';
 
 Begin
-  FileQuery(strMsg, strSourcePath, strDestPath, SourceFile, DestFile, Option, False);
+  FileQuery(strMsg, strConsoleMsg,strSourcePath, strDestPath, SourceFile, DestFile,
+    Option, False);
 End;
 
 (**
@@ -2646,9 +2691,11 @@ Procedure TfrmMainForm.CopyReadOnlyQueryProc(strSourcePath, strDestPath: String;
 
 Const
   strMsg = 'Are you sure you want to overwrite the following READ-ONLY file?';
+  strConsoleMsg = ' Overwrite READONLY (Y/N/A/O/C)? ';
 
 Begin
-  FileQuery(strMsg, strSourcePath, strDestPath, SourceFile, DestFile, Option, True);
+  FileQuery(strMsg, strConsoleMsg, strSourcePath, strDestPath, SourceFile, DestFile,
+    Option, True);
 End;
 
 (**
@@ -2665,6 +2712,7 @@ End;
 Procedure TfrmMainForm.CopyStartProc(iTotalCount: Integer; iTotalSize: int64);
 
 Begin
+  FTotalSize := iTotalSize;
   OutputResultLn(Format('Copying %1.0n files (%1.0n bytes)',
       [Int(iTotalCount), Int(iTotalSize)]));
   If iTotalCount > 0 Then
@@ -2686,6 +2734,7 @@ End;
   @postcon The users response to the query is passed back to the sync module.
 
   @param   strMsg        as a String
+  @param   strConsoleMsg as a String
   @param   strSourcePath as a String
   @param   strDestPath   as a String
   @param   SourceFile    as a TFileRecord
@@ -2694,13 +2743,15 @@ End;
   @param   boolReadOnly  as a Boolean
 
 **)
-Procedure TfrmMainForm.FileQuery(strMsg, strSourcePath, strDestPath: String;
-  SourceFile, DestFile : TFileRecord; Var Option: TFileAction; boolReadOnly : Boolean);
+Procedure TfrmMainForm.FileQuery(strMsg, strConsoleMsg, strSourcePath,
+  strDestPath: String; SourceFile, DestFile : TFileRecord; Var Option: TFileAction;
+  boolReadOnly : Boolean);
 
 Begin
   If (Not (Option In [faYesToAll, faNoToAll])     And Not boolReadOnly) Or
      (Not (Option In [faYesToAllRO, faNoToAllRO]) And     boolReadOnly) Then
     Begin
+      OutputResult(strConsoleMsg);
       UpdateTaskBar(ptError, 0, 1);
       Case TfrmConfirmationDlg.Execute(Self, strMsg, strSourcePath, strDestPath,
         SourceFile, DestFile, FDialogueBottom) Of
@@ -2721,6 +2772,7 @@ Begin
       Else
         Option := faCancel;
       End;
+      OutputResult(strFileOptions[Option]);
     End;
 End;
 
@@ -2731,22 +2783,22 @@ End;
   @precon  None.
   @postcon Updates the progress dialogue is successful or outputs an error message.
 
-  @param   iFile       as an Integer
-  @param   iSize       as an int64
-  @param   boolSuccess as a Boolean
-  @param   strErrMsg   as a String
+  @param   iFile    as an Integer
+  @param   iSize    as an int64
+  @param   iSuccess as a TProcessSuccess
 
 **)
-Procedure TfrmMainForm.DeletedProc(iFile: Integer; iSize: int64; boolSuccess: Boolean;
-  strErrMsg: String);
+Procedure TfrmMainForm.DeletedProc(iFile: Integer; iSize: int64;
+  iSuccess: TProcessSuccess);
 
 Begin
-  If boolSuccess Then
-    Begin
-      FDeleteForm.Progress(iSize);
-      OutputResultLn();
-    End Else
-      OutputResultLn(#13#10#32#32#32#32 + strErrMsg);
+  FDeleteForm.Progress(iSize);
+  Case iSuccess Of
+    psSuccessed: OutputResultLn(Format(' %1.1n%% Complete', [Int(iSize) /
+      Int(FTotalSize) * 100.0]));
+    psFailed: OutputResultLn(' Error Deleting file (error type ignored).');
+    //psIgnored: OutputResultLn(' Ignored Copying file.');
+  End;
 End;
 
 (**
@@ -2764,11 +2816,49 @@ End;
 Procedure TfrmMainForm.DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
 
 Begin
-  OutputResult(Format('  Deleted %1.0n (Skipped %1.0n', [Int(iDeleted), Int(iSkipped)]));
+  OutputResult(Format('  Deleted %1.0n file(s) (Skipped %1.0n file(s)', [Int(iDeleted),
+    Int(iSkipped)]));
   If iErrors > 0 Then
-    OutputResult(Format(', Errored %1.0n', [Int(iErrors)]));
-  OutputResultLn(')');
+    OutputResult(Format(', Errored %1.0n file(s)', [Int(iErrors)]));
+  OutputResultLn(').');
   FreeAndNil(FDeleteForm);
+End;
+
+(**
+
+  This is an on delete error event handler for the Sync Module.
+
+  @precon  None.
+  @postcon Displays the error message on the screen and asks the user what to do.
+
+  @param   strSource   as a String
+  @param   strErrorMsg as a String
+  @param   iLastError  as a Cardinal
+  @param   iResult     as a TDGHErrorResult as a reference
+
+**)
+Procedure TfrmMainForm.DeleteError(strSource, strErrorMsg: String; iLastError: Cardinal;
+  Var iResult: TDGHErrorResult);
+
+Begin
+  OutputResultLn();
+  OutputResultLn('    An error has occurred during the deleting of files:');
+  OutputResultLn(Format('      Source     : %s', [strSource]));
+  OutputResultLn(Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]));
+  OutputResult('    Do you want to [I]gnore the error or [S]top processing? ');
+  Case TfrmErrorDlg.Execute('An error has occurred during the deleting of files', 
+    strSource, '', Format('(%d) %s', [iLastError, strErrorMsg])) Of
+    mrIgnore:
+      Begin
+        iResult := derIgnore;
+        OutputResultLn('I');
+      End;
+    mrAbort:
+      Begin
+        iResult := derStop;
+        OutputResultLn('S');
+      End;
+  End;
 End;
 
 (**
@@ -2821,7 +2911,7 @@ Procedure TfrmMainForm.DeleteFoldersStart(iFolderCount: Integer);
 Begin
   If iFolderCount > 0 Then
     Begin
-      OutputResultLn('Deleting empty folders');
+      OutputResultLn('Deleting empty folders...');
       FDeleteForm                  := TfrmDeleteProgress.Create(Nil);
       FDeleteForm.OnUpdateProgress := UpdateProgress;
       FDeleteForm.Initialise(dtFolders, iFolderCount, iFolderCount);
@@ -2847,9 +2937,10 @@ Procedure TfrmMainForm.DeleteQueryProc(strFilePath: String; DeleteFile : TFileRe
 
 Const
   strMsg = 'Are you sure you want to delete the file?';
+  strConsoleMsg = ' Delete (Y/N/A/O/C)? ';
 
 Begin
-  FileQuery(strMsg, strFilePath, '', DeleteFile, Nil, Option, False);
+  FileQuery(strMsg, strConsoleMsg, strFilePath, '', DeleteFile, Nil, Option, False);
 End;
 
 (**
@@ -2870,9 +2961,10 @@ Procedure TfrmMainForm.DeleteReadOnlyQueryProc(strFilePath: String;
 
 Const
   strMsg = 'Are you sure you want to delete the READ-ONLY file?';
+  strConsoleMsg = ' Delete READONLY (Y/N/A/O/C)? ';
 
 Begin
-  FileQuery(strMsg, strFilePath, '', DeleteFile, Nil, Option, True);
+  FileQuery(strMsg, strConsoleMsg, strFilePath, '', DeleteFile, Nil, Option, True);
 End;
 
 (**
@@ -2889,7 +2981,8 @@ End;
 Procedure TfrmMainForm.DeleteStartProc(iFileCount: Integer; iTotalSize: int64);
 
 Begin
-  OutputResultLn(Format('Deleting %1.0n files (%1.0n bytes)',
+  FTotalSize := iTotalSize;
+  OutputResultLn(Format('Deleting %1.0n files (%1.0n bytes)...',
       [Int(iFileCount), Int(iTotalSize)]));
   If iFileCount > 0 Then
     Begin
@@ -2964,8 +3057,7 @@ procedure TfrmMainForm.DiffSizeStart(iFileCount: Integer);
 
 begin
   If iFileCount > 0 Then
-    OutputResultLn(Format('There are %1.0n file(s) with a size difference (same date)',
-      [Int(iFileCount)]));
+    OutputResultLn(Format('%1.0n File(s) with Differing Size...', [Int(iFileCount)]));
 end;
 
 (**
