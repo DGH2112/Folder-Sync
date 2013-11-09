@@ -1,10 +1,13 @@
 object frmDiskSpace: TfrmDiskSpace
   Left = 0
   Top = 0
+  BorderIcons = [biSystemMenu]
   Caption = 'Process Files'
-  ClientHeight = 194
-  ClientWidth = 642
+  ClientHeight = 187
+  ClientWidth = 624
   Color = clBtnFace
+  Constraints.MinHeight = 225
+  Constraints.MinWidth = 640
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -13,14 +16,14 @@ object frmDiskSpace: TfrmDiskSpace
   OldCreateOrder = False
   Position = poMainFormCenter
   DesignSize = (
-    642
-    194)
+    624
+    187)
   PixelsPerInch = 96
   TextHeight = 13
   object lblDiskSpace: TLabel
     Left = 8
     Top = 8
-    Width = 626
+    Width = 608
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
@@ -30,8 +33,8 @@ object frmDiskSpace: TfrmDiskSpace
   object lvDiskSpace: TListView
     Left = 8
     Top = 27
-    Width = 626
-    Height = 128
+    Width = 608
+    Height = 121
     Anchors = [akLeft, akTop, akRight, akBottom]
     Columns = <
       item
@@ -65,36 +68,36 @@ object frmDiskSpace: TfrmDiskSpace
       end>
     GridLines = True
     HideSelection = False
-    Items.ItemData = {}
     ReadOnly = True
     RowSelect = True
     TabOrder = 0
     ViewStyle = vsReport
     OnResize = lvDiskSpaceResize
-    ExplicitWidth = 490
+    ExplicitWidth = 626
+    ExplicitHeight = 128
   end
   object btnOK: TBitBtn
-    Left = 478
-    Top = 161
+    Left = 460
+    Top = 154
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
     Kind = bkOK
     NumGlyphs = 2
     TabOrder = 1
-    ExplicitLeft = 471
-    ExplicitTop = 304
+    ExplicitLeft = 478
+    ExplicitTop = 161
   end
   object btnCancel: TBitBtn
-    Left = 559
-    Top = 161
+    Left = 541
+    Top = 154
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
     Kind = bkCancel
     NumGlyphs = 2
     TabOrder = 2
-    ExplicitLeft = 552
-    ExplicitTop = 304
+    ExplicitLeft = 559
+    ExplicitTop = 161
   end
 end
