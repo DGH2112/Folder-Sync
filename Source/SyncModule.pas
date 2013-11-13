@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    09 Nov 2013
+  @Date    13 Nov 2013
   @Author  David Hoyle
 
 **)
@@ -642,6 +642,7 @@ Type
     Destructor Destroy; Override;
     Procedure ProcessOp(ProcessItem : TProcessItem);
     Procedure Sort;
+    Procedure Clear;
     (**
       This property returns the number of items in the collection.
       @precon  None.
@@ -2360,6 +2361,7 @@ Var
   iProcessItem : Integer;
 
 Begin
+  FDrives.Clear;
   For iProcessItem := 0 To ProcessCount - 1 Do
     FDrives.ProcessOp(Process[iProcessItem]);
   FDrives.Sort;
@@ -4106,6 +4108,20 @@ Begin
 End;
 
 { TDriveTotals }
+
+(**
+
+  This method clears the drive list of existing objects.
+
+  @precon  None.
+  @postcon The existing object in the list are freed.
+
+**)
+Procedure TDriveTotals.Clear;
+
+Begin
+  FDrives.Clear;
+End;
 
 (**
 
