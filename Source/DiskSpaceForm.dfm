@@ -66,15 +66,16 @@ object frmDiskSpace: TfrmDiskSpace
         Caption = 'Free at Finish'
         Width = 100
       end>
-    GridLines = True
     HideSelection = False
+    OwnerDraw = True
     ReadOnly = True
     RowSelect = True
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 0
     ViewStyle = vsReport
+    OnCustomDrawItem = lvDiskSpaceCustomDrawItem
     OnResize = lvDiskSpaceResize
-    ExplicitWidth = 626
-    ExplicitHeight = 128
   end
   object btnOK: TBitBtn
     Left = 460
@@ -85,8 +86,6 @@ object frmDiskSpace: TfrmDiskSpace
     Kind = bkOK
     NumGlyphs = 2
     TabOrder = 1
-    ExplicitLeft = 478
-    ExplicitTop = 161
   end
   object btnCancel: TBitBtn
     Left = 541
@@ -97,7 +96,5 @@ object frmDiskSpace: TfrmDiskSpace
     Kind = bkCancel
     NumGlyphs = 2
     TabOrder = 2
-    ExplicitLeft = 559
-    ExplicitTop = 161
   end
 end

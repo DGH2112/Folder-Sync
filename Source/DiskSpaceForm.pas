@@ -6,7 +6,7 @@
 
   @Author  Daviid Hoyle
   @Version 1.0
-  @Date    06 Nov 2013
+  @Date    16 Nov 2013
   
 **)
 Unit DiskSpaceForm;
@@ -36,8 +36,11 @@ Type
     btnOK: TBitBtn;
     btnCancel: TBitBtn;
     Procedure lvDiskSpaceResize(Sender: TObject);
+    procedure lvDiskSpaceCustomDrawItem(Sender: TCustomListView; Item: TListItem;
+      State: TCustomDrawState; var DefaultDraw: Boolean);
   Private
     { Private declarations }
+    FCFC : TCompareFoldersCollection;
   Public
     { Public declarations }
     Class Function Execute(CFC: TCompareFoldersCollection): Boolean;
@@ -46,6 +49,10 @@ Type
 Implementation
 
 {$R *.dfm}
+
+Uses
+  CodeSiteLogging,
+  dghlibrary;
 
 (**
 
@@ -69,6 +76,7 @@ Begin
   With TfrmDiskSpace.Create(Nil) Do
     Try
       Result := False;
+      FCFC := CFC;
       For iDrive := 0 To CFC.Drives.Count - 1 Do
         Begin
           Item := lvDiskSpace.Items.Add;
@@ -88,6 +96,66 @@ Begin
       Free;
     End;
 End;
+
+(**
+
+  This is an on custom draw item for the list view.
+
+  @precon  None.
+  @postcon Colours the items on a scale from clWindow, through Amber to red if the drive
+           space is between 5 and 0%.
+
+  @param   Sender      as a TCustomListView
+  @param   Item        as a TListItem
+  @param   State       as a TCustomDrawState
+  @param   DefaultDraw as a Boolean as a reference
+
+**)
+procedure TfrmDiskSpace.lvDiskSpaceCustomDrawItem(Sender: TCustomListView;
+  Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
+
+Var
+  R : Trect;
+  dblTotal, dblValue : Double;
+  D : TDriveTotal;
+  strText: String;
+  iSubItem: Integer;
+  i : Integer;
+  
+begin
+  DefaultDraw := False;
+  D := FCFC.Drives.Drive[Item.Index];
+  dblTotal := D.Total;
+  dblValue := D.FreeAtFinish;
+  R := Item.DisplayRect(drBounds);
+  If dblTotal <> 0 Then
+    dblValue := dblValue / dblTotal
+  Else
+    dblValue := 0;
+  Sender.Canvas.Brush.Color := CalcColour(dblValue, 0.0, 0.025, 0.05, clRed, $00CCFF,
+    clWindow);
+  Sender.Canvas.Font.Color := CalcColour(dblValue, 0.0, 0.025, 0.05, clBlack, clBlack,
+    clWindowText);
+  Sender.Canvas.FillRect(R);
+  R := Item.DisplayRect(drLabel);
+  Inc(R.Left, 2);
+  Dec(R.Right, 2);
+  strText := D.Drive;
+  DrawText(Sender.Canvas.Handle, PChar(strText), Length(strText), R,
+    DT_LEFT Or DT_VCENTER Or DT_END_ELLIPSIS);
+  For iSubItem := 0 To Item.SubItems.Count - 1 Do
+    Begin
+      R := Item.DisplayRect(drBounds);
+      For i := 0 To iSubItem Do
+        Inc(R.Left, Sender.Column[i].Width);
+      R.Right := R.Left + Sender.Column[iSubItem + 1].Width; 
+      Inc(R.Left, 2);
+      Dec(R.Right, 4);
+      strText := Item.SubItems[iSubItem];
+      DrawText(Sender.Canvas.Handle, PChar(strText), Length(strText), R,
+        DT_RIGHT Or DT_VCENTER Or DT_END_ELLIPSIS);
+    End;
+end;
 
 (**
 
