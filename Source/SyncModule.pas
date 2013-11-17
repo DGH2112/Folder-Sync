@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    13 Nov 2013
+  @Date    17 Nov 2013
   @Author  David Hoyle
 
 **)
@@ -1837,7 +1837,8 @@ Begin
   strFileName := LowerCase(strFileName);
   Result      := False;
   For i       := 0 To FExclusions.Count - 1 Do
-    Result    := Result Or (Pos(FExclusions[i], strFileName) > 0);
+    Result    := Result Or (Like(FExclusions[i], strFileName));
+    //Result    := Result Or (Pos(FExclusions[i], strFileName) > 0);
 End;
 
 { TCompareFolders }
