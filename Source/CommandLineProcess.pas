@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    07 Nov 2013
+  @Date    20 Nov 2013
 
 **)
 Unit CommandLineProcess;
@@ -1293,19 +1293,18 @@ End;
 Procedure TCommandLineProcessing.OutputStats(CFC : TCompareFoldersCollection);
 
 Var
-  i : Integer;
-  iPos : Integer;
+  i : TFileOpStat;
   iDrive : Integer;
   strHeader : String;
 
 Begin
   OutputToConsoleLn(FStd, 'Statistics:', FHeaderColour);
-  For i := 0 To CFC.Statistics.Count - 1 Do
+  For i := Low(TFileOpStat) To High(TFileOpStat) Do
     Begin
-      iPos := Pos(':', CFC.Statistics[i]);
-      OutputToConsoleLn(FStd, Format('  %-20s: %40s', [
-        Copy(CFC.Statistics[i], 1, iPos - 1),
-        Copy(CFC.Statistics[i], iPos + 1, Length(CFC.Statistics[i]) - iPos)
+      OutputToConsoleLn(FStd, Format('  %-20s: %1.0n files in %1.1n kbytes', [
+        CFC.Statistics[i].FName,
+        Int(CFC.Statistics[i].FCount),
+        Int(CFC.Statistics[i].FSize)
       ]));
     End;
   OutputToConsoleLn(FStd, 'Drive Space (in kbytes):',
