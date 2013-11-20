@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    17 Nov 2013
+  @Date    20 Nov 2013
   @Author  David Hoyle
 
 **)
@@ -698,6 +698,20 @@ Type
     Property Value[iIndex : Integer] : Integer Read GetValue;
   End;
 
+  (** An enumerate to define the File Operation Statistics that can be stored. **)
+  TFileOpStat = (fosDelete, fosCopy, fosSizeDiff, fosDoNothing, fosTotalLeft,
+    fosTotalRight, fosDifference);
+
+  (** A set of the above file operation statistics. **)
+  TFileOpStats = Set Of TFileOpStat;
+
+  (** A record to describe the data to be stored for each file statistic. **)
+  TFileOpStatRec = Record
+    FName  : String;
+    FCount : Int64;
+    FSize  : Int64;
+  End;
+
   (** A class to represent a collection of TCompareFolders classes. **)
   TCompareFoldersCollection = Class
   Strict Private
@@ -746,7 +760,7 @@ Type
     FFiles                         : Integer;
     FSkipped                       : Integer;
     FErrors                        : Integer;
-    FStatistics                    : TStringList;
+    FStatistics                    : Array[Low(TFileOpStat)..High(TFileOpStat)] Of TFileOpStatRec;
     FErrorMsgs                     : TStringList;
     FEmptyFolders                  : TStringList;
     FDrives                        : TDriveTotals;
@@ -836,6 +850,9 @@ Type
     Procedure IncrementFolder(strFolder : String);
     Function  DecrementFolder(strFolder : String) : Boolean;
     Function  FileCount(strFolder : String) : NativeUInt;
+    Procedure AddFileOpStat(FileOpStat : TFileOpStat; strName : String; iCount,
+      iSize : Int64);
+    Function GetStatistics(FileOpStat : TFileOpStat) : TFileOpStatRec;
   Public
     Constructor Create; Virtual;
     Destructor Destroy; Override;
@@ -1154,9 +1171,10 @@ Type
       This property provides access to the list of statistics stored in a string list.
       @precon  None.
       @postcon Get the string list of statistics.
-      @return  a TStringList
+      @param   FileOpStat as a TFileOpStat
+      @return  a TFileOpStatRec
     **)
-    Property Statistics : TStringList Read FStatistics;
+    Property Statistics[FileOpStat : TFileOpStat] : TFileOpStatRec Read GetStatistics;
     (**
       This property defines an event handler for the start of the deletion of empty
       folders.
@@ -2213,6 +2231,28 @@ End;
 
 (**
 
+  This method adds a set of file statistics to the given enumerate position.
+
+  @precon  None.
+  @postcon Adds a set of file statistics to the given enumerate position.
+
+  @param   FileOpStat as a TFileOpStat
+  @param   strName    as a String
+  @param   iCount     as an Int64
+  @param   iSize      as an Int64
+
+**)
+Procedure TCompareFoldersCollection.AddFileOpStat(FileOpStat: TFileOpStat;
+  strName: String; iCount, iSize: Int64);
+
+Begin
+  FStatistics[FileOpStat].FName := strName;
+  FStatistics[FileOpStat].FCount := iCount;
+  FStatistics[FileOpStat].FSize := iSize;
+End;
+
+(**
+
   This method adds an error message to the error list.
 
   @precon  None.
@@ -2310,9 +2350,6 @@ End;
 **)
 Procedure TCompareFoldersCollection.BuildStats;
 
-Const
-  strTemplate = '%s: %1.0n files in %1.1n kbytes';
-
 Var
   iCount : Integer;
   iSize  : Int64;
@@ -2320,19 +2357,18 @@ Var
   i : Integer;
 
 Begin
-  FStatistics.Clear;
   iSize := 0;
   iCount := CountFileOps([foDelete], iSize);
-  FStatistics.Add(Format(strTemplate, ['Delete', Int(iCount), Int(iSize) / 1024.0]));
+  AddFileOpStat(fosDelete, 'Delete', iCount, iSize);
   iSize := 0;
   iCount := CountFileOps([foLeftToRight, foRightToLeft], iSize);
-  FStatistics.Add(Format(strTemplate, ['Copy', Int(iCount), Int(iSize) / 1024.0]));
+  AddFileOpStat(fosCopy, 'Copy', iCount, iSize);
   iSize := 0;
   iCount := CountFileOps([foSizeDiff], iSize);
-  FStatistics.Add(Format(strTemplate, ['Size Diff', Int(iCount), Int(iSize) / 1024.0]));
+  AddFileOpStat(fosSizeDiff, 'Size Diff', iCount, iSize);
   iSize := 0;
   iCount := CountFileOps([foNothing], iSize);
-  FStatistics.Add(Format(strTemplate, ['Do Nothing', Int(iCount), Int(iSize) / 1024.0]));
+  AddFileOpStat(fosDoNothing, 'Do Nothing', iCount, iSize);
   iLeft := 0;
   iRight := 0;
   For i := 0 To FCompareFolders.Count - 1 Do
@@ -2340,9 +2376,9 @@ Begin
       Inc(iLeft, CompareFolders[i].LeftFldr.TotalSize);
       Inc(iRight, CompareFolders[i].RightFldr.TotalSize);
     End;
-  FStatistics.Add(Format('Total Left: %1.1n kbytes', [Int(iLeft) / 1024.0]));
-  FStatistics.Add(Format('Total Right: %1.1n kbytes', [Int(iRight) / 1024.0]));
-  FStatistics.Add(Format('Difference (L-R): %1.1n kbytes', [Int(iLEft - iRight) / 1024.0]));
+  AddFileOpStat(fosTotalLeft, 'Total Left', 0, iLeft);
+  AddFileOpStat(fosTotalRight, 'Total Right', 0, iRight);
+  AddFileOpStat(fosDifference, 'Difference (L-R)', 0, iLeft - iRight);
   BuildTotals;
 End;
 
@@ -2750,7 +2786,6 @@ Constructor TCompareFoldersCollection.Create();
 Begin
   FCompareFolders := TObjectList.Create(True);
   FProcessList    := TObjectList.Create(True);
-  FStatistics     := TStringList.Create;
   FErrorMsgs      := TStringList.Create;
   FEmptyFolders   := TStringList.Create;
   FEmptyFolders.Sorted := True;
@@ -3025,7 +3060,6 @@ Begin
   FDrives.Free;
   FEmptyFolders.Free;
   FErrorMsgs.Free;
-  FStatistics.Free;
   FProcessList.Free;
   FCompareFolders.Free;
   Inherited;
@@ -3844,6 +3878,23 @@ End;
 
 (**
 
+  This is a getter method for the Statistics property.
+
+  @precon  None.
+  @postcon Returns the enumerated file statistic.
+
+  @param   FileOpStat as a TFileOpStat
+  @return  a TFileOpStatRec
+
+**)
+Function TCompareFoldersCollection.GetStatistics(FileOpStat: TFileOpStat): TFileOpStatRec;
+
+Begin
+  Result := FStatistics[FileOpStat];
+End;
+
+(**
+
   This method increments the number of files and sub-folders associated with a folder
   in the empty folder collection.
 
@@ -4018,7 +4069,6 @@ Var
   CP : TCompareFolders;
 
 Begin
-  FStatistics.Clear;
   For i := 0 To Folders.Count - 1 Do
     Begin
       If soEnabled In Folders.Folder[i].SyncOptions Then
