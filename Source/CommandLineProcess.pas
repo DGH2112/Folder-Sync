@@ -1304,7 +1304,7 @@ Begin
       OutputToConsoleLn(FStd, Format('  %-20s: %1.0n files in %1.1n kbytes', [
         CFC.Statistics[i].FName,
         Int(CFC.Statistics[i].FCount),
-        Int(CFC.Statistics[i].FSize)
+        Int(CFC.Statistics[i].FSize / 1024.0)
       ]));
     End;
   OutputToConsoleLn(FStd, 'Drive Space (in kbytes):',
