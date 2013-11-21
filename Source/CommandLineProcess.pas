@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    20 Nov 2013
+  @Date    21 Nov 2013
 
 **)
 Unit CommandLineProcess;
@@ -337,11 +337,12 @@ Begin
   OutputToConsoleLn(FStd, Format('      Destination: %s', [strDest]));
   OutputToConsoleLn(FStd, Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]),
     FExceptionColour);
-  OutputToConsole(FStd, '    Do you want to [I]gnore the error or [S]top processing? ',
+  OutputToConsole(FStd, '    Do you want to [I]gnore once, Ignore [A]ll the errors or [S]top processing? ',
     FInputColour);
-  Ch := GetConsoleCharacter(['i', 'I', 'S', 's']);
+  Ch := GetConsoleCharacter(['i', 'I', 'a', 'A', 'S', 's']);
   Case Ch Of
-    'i', 'I': iResult := derIgnore;
+    'i', 'I': iResult := derIgnoreOnce;
+    'a', 'A': iResult := derIgnoreAll;
     's', 'S': iResult := derStop;
   End;
   OutputToConsoleLn(FStd, Ch, FInputColour);
@@ -541,11 +542,12 @@ Begin
   OutputToConsoleLn(FStd, Format('      Source     : %s', [strSource]));
   OutputToConsoleLn(FStd, Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]),
     FExceptionColour);
-  OutputToConsole(FStd, '    Do you want to [I]gnore the error or [S]top processing? ',
+  OutputToConsole(FStd, '    Do you want to [I]gnore Once, Ignore [A]ll the errors or [S]top processing? ',
     FInputColour);
-  Ch := GetConsoleCharacter(['i', 'I', 'S', 's']);
+  Ch := GetConsoleCharacter(['i', 'I', 'a', 'A', 'S', 's']);
   Case Ch Of
-    'i', 'I': iResult := derIgnore;
+    'i', 'I': iResult := derIgnoreOnce;
+    'a', 'A': iResult := derIgnoreAll;
     's', 'S': iResult := derStop;
   End;
   OutputToConsoleLn(FStd, Ch, FInputColour);
