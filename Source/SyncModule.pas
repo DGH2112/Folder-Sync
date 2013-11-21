@@ -81,9 +81,9 @@ Type
   (** An enumerate to define the type of update. **)
   TUpdateType = (utDelayed, utImmediate);
   (** An enumerate to define the type of error result. **)
-  TDGHErrorResult = (derUnknown, derIgnore, derStop);
+  TDGHErrorResult = (derUnknown, derIgnoreOnce, derIgnoreAll, derStop);
   (** An enumerate to define the type of processing. **)
-  TProcessSuccess = (psUnknown, psSuccessed, psFailed, psIgnored);
+  TProcessSuccess = (psUnknown, psSuccessed, psFailed, psIgnoreOnce, psIgnoreAll);
 
   (** An event signature for the start of a search. **)
   TSearchStartNotifier = Procedure(strFolder: String) Of Object;
@@ -2557,11 +2557,16 @@ Begin
                   FCopyErrorNotifier(strSourceFile, strDestFile, strErrorMsg, iLastError,
                     iResult);
                   Case iResult Of
-                    derIgnore: FCopyErrors.Add(iLastError);
+                    derIgnoreAll: FCopyErrors.Add(iLastError);
                     derUnknown, derStop: Raise Exception.CreateFmt(strExceptionMsg,
                         [strSourceFile, strDestFile, strErrorMsg]);
                   End;
-                  Result := psIgnored;
+                  Case iResult Of
+                    derIgnoreOnce: Result := psIgnoreOnce;
+                    derIgnoreAll : Result := psIgnoreAll;
+                  Else
+                    Result := psFailed;
+                  End;                  
                 End;
               AddToErrors(Format(strExceptionMsg, [strSourceFile, strDestFile,
                 strErrorMsg]));
@@ -2646,7 +2651,7 @@ Begin
               iSuccess := CopyIndividualFile(strSource, strDest, SourceFile,
                 DestFile, FileActions, P.SyncOptions);
             Inc(FCopiedTotalSize, SourceFile.Size);
-            If iSuccess In [psFailed, psIgnored] Then
+            If iSuccess In [psFailed, psIgnoreOnce, psIgnoreAll] Then
               Inc(FErrors)
             Else
               Inc(iFile);
@@ -3042,13 +3047,19 @@ Begin
                     FDeleteErrorNotifier(strPath + F.FileName, strErrorMsg, iLastError,
                       iResult);
                     Case iResult Of
-                      derIgnore: FDeleteErrors.Add(iLastError);
+                      derIgnoreAll: FDeleteErrors.Add(iLastError);
                       derUnknown, derStop: Raise Exception.CreateFmt(strExceptionMsg,
                         [strPath + F.FileName, strErrorMsg]);
                     End;
                     AddToErrors(Format(strExceptionMsg, [strPath + F.FileName,
                       strErrorMsg]));
                   End;
+                Case iResult Of
+                  derIgnoreOnce: iSuccess := psIgnoreOnce;
+                  derIgnoreAll:  iSuccess := psIgnoreAll;
+                Else
+                  iSuccess := psFailed;
+                End;
               End Else
               Begin
                 Raise Exception.CreateFmt(strExceptionMsg, [strPath + F.FileName,
