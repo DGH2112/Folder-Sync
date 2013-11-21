@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    20 Nov 2013
+  @Date    21 Nov 2013
   @Author  David Hoyle
 
 **)
@@ -314,6 +314,7 @@ Type
     FSearchEndNotifier  : TSearchEndNotifier;
     FExclusions         : TStringList;
     FTotalSize          : Int64;
+    FTotalCount         : Int64;
     FFileFilters        : TStringList;
     FSyncOptions        : TSyncOptions;
     FMaxFileSize        : Int64;
@@ -363,6 +364,13 @@ Type
       @return  an Int64
     **)
     Property TotalSize: Int64 Read FTotalSize;
+    (**
+      A property to get the total number of files in the list.
+      @precon  None.
+      @postcon Returns the total number of giles in the list processed.
+      @return  an Int64
+    **)
+    Property TotalCount: Int64 Read FTotalCount;
     (**
       This is an event handler for the start of the searching for files process.
       @precon  None.
@@ -1805,6 +1813,7 @@ Begin
                               rec.Attr, rec.Time, stNewer));
                           {$WARN SYMBOL_DEPRECATED ON}
                           Inc(FTotalSize, rec.Size);
+                          Inc(FTotalCount);
                           DoSearch(FFolderPath, Files[iFirst].FileName, Count, utDelayed);
                         End;
                     End;
@@ -2353,32 +2362,41 @@ Procedure TCompareFoldersCollection.BuildStats;
 Var
   iCount : Integer;
   iSize  : Int64;
-  iLeft, iRight : Int64;
+  iLeftSize, iRightSize : Int64;
+  iLeftCount, iRightCount : Int64;
+  iDiffCount : int64;
   i : Integer;
 
 Begin
   iSize := 0;
+  iDiffCount := 0;
   iCount := CountFileOps([foDelete], iSize);
   AddFileOpStat(fosDelete, 'Delete', iCount, iSize);
+  Inc(iDiffCount, iCount);
   iSize := 0;
   iCount := CountFileOps([foLeftToRight, foRightToLeft], iSize);
   AddFileOpStat(fosCopy, 'Copy', iCount, iSize);
+  Inc(iDiffCount, iCount);
   iSize := 0;
   iCount := CountFileOps([foSizeDiff], iSize);
   AddFileOpStat(fosSizeDiff, 'Size Diff', iCount, iSize);
   iSize := 0;
   iCount := CountFileOps([foNothing], iSize);
   AddFileOpStat(fosDoNothing, 'Do Nothing', iCount, iSize);
-  iLeft := 0;
-  iRight := 0;
+  iLeftSize := 0;
+  iLeftCount := 0;
+  iRightSize := 0;
+  iRightCount := 0;
   For i := 0 To FCompareFolders.Count - 1 Do
     Begin
-      Inc(iLeft, CompareFolders[i].LeftFldr.TotalSize);
-      Inc(iRight, CompareFolders[i].RightFldr.TotalSize);
+      Inc(iLeftSize, CompareFolders[i].LeftFldr.TotalSize);
+      Inc(iLeftCount, CompareFolders[i].LeftFldr.TotalCount);
+      Inc(iRightSize, CompareFolders[i].RightFldr.TotalSize);
+      Inc(iRightCount, CompareFolders[i].RightFldr.TotalCount);
     End;
-  AddFileOpStat(fosTotalLeft, 'Total Left', 0, iLeft);
-  AddFileOpStat(fosTotalRight, 'Total Right', 0, iRight);
-  AddFileOpStat(fosDifference, 'Difference (L-R)', 0, iLeft - iRight);
+  AddFileOpStat(fosTotalLeft, 'Total Left', iLeftCount, iLeftSize);
+  AddFileOpStat(fosTotalRight, 'Total Right', iRightCount, iRightSize);
+  AddFileOpStat(fosDifference, 'Difference (L-R)', iDiffCount, iLeftSize - iRightSize);
   BuildTotals;
 End;
 
@@ -2766,9 +2784,16 @@ Begin
           Begin // Count only one Copy file
             Inc(Result);
             If Process[i].LeftFile <> Nil Then
-              Inc(iSize, Process[i].LeftFile.Size)
-            Else
-              Inc(iSize, Process[i].RightFile.Size);
+              Begin
+                Inc(iSize, Process[i].LeftFile.Size);
+                If Process[i].RightFile <> Nil Then
+                  Dec(iSize, Process[i].RightFile.Size);
+              End Else
+              Begin
+                Inc(iSize, Process[i].RightFile.Size);
+                If Process[i].LeftFile <> Nil Then
+                  Dec(iSize, Process[i].LeftFile.Size);
+              End;
           End;
       End;
 End;
