@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    09 Nov 2013
+  @Date    21 Nov 2013
   
 **)
 Unit ProcessingErrorForm;
@@ -36,10 +36,11 @@ Type
     lblDestLabel: TLabel;
     lblOSError: TLabel;
     lblOSErrorLabel: TLabel;
-    btnIgnore: TBitBtn;
+    btnIgnoreAll: TBitBtn;
     btnStop: TBitBtn;
     imgIcon: TImage;
     lblWhatToDo: TLabel;
+    btnIgnoreOnce: TBitBtn;
     Procedure FormCreate(Sender: TObject);
   Private
     { Private declarations }
