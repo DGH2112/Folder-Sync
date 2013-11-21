@@ -2617,13 +2617,18 @@ Begin
   OutputResultLn(Format('      Source     : %s', [strSource]));
   OutputResultLn(Format('      Destination: %s', [strDest]));
   OutputResultLn(Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]));
-  OutputResult('    Do you want to [I]gnore the error or [S]top processing? ');
+  OutputResult('    Do you want to [I]gnore Once, Ignore [A]ll the errors or [S]top processing? ');
   Case TfrmErrorDlg.Execute('An error has occurred during the copying of files', 
     strSource, strDest, Format('(%d) %s', [iLastError, strErrorMsg])) Of
     mrIgnore:
       Begin
-        iResult := derIgnore;
+        iResult := derIgnoreOnce;
         OutputResultLn('I');
+      End;
+    mrYesToAll:
+      Begin
+        iResult := derIgnoreAll;
+        OutputResultLn('A');
       End;
     mrAbort:
       Begin
@@ -2860,13 +2865,18 @@ Begin
   OutputResultLn('    An error has occurred during the deleting of files:');
   OutputResultLn(Format('      Source     : %s', [strSource]));
   OutputResultLn(Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]));
-  OutputResult('    Do you want to [I]gnore the error or [S]top processing? ');
+  OutputResult('    Do you want to [I]gnore Once, Ignore [A]ll the errors or [S]top processing? ');
   Case TfrmErrorDlg.Execute('An error has occurred during the deleting of files', 
     strSource, '', Format('(%d) %s', [iLastError, strErrorMsg])) Of
     mrIgnore:
       Begin
-        iResult := derIgnore;
+        iResult := derIgnoreOnce;
         OutputResultLn('I');
+      End;
+    mrYesToAll:
+      Begin
+        iResult := derIgnoreAll;
+        OutputResultLn('A');
       End;
     mrAbort:
       Begin
