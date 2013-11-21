@@ -79,7 +79,7 @@ object frmOptions: TfrmOptions
     Top = 10
     Width = 608
     Height = 393
-    ActivePage = tabFolders
+    ActivePage = tabGlobalOptions
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
     object tabFolders: TTabSheet
@@ -276,6 +276,8 @@ object frmOptions: TfrmOptions
     object tabGlobalOptions: TTabSheet
       Caption = '&Global Options'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 26
       DesignSize = (
         600
         365)
@@ -311,12 +313,12 @@ object frmOptions: TfrmOptions
         Left = 4
         Top = 4
         Width = 592
-        Height = 297
+        Height = 89
         Margins.Left = 4
         Margins.Top = 4
         Margins.Right = 4
         Margins.Bottom = 4
-        Anchors = [akLeft, akTop, akRight, akBottom]
+        Anchors = [akLeft, akTop, akRight]
         Checkboxes = True
         Columns = <
           item
@@ -368,6 +370,28 @@ object frmOptions: TfrmOptions
         Anchors = [akLeft, akRight, akBottom]
         TabOrder = 3
         Text = 'cbxThemes'
+      end
+      object lvFileOpStats: TListView
+        Left = 4
+        Top = 101
+        Width = 592
+        Height = 198
+        Margins.Left = 4
+        Margins.Top = 4
+        Margins.Right = 4
+        Margins.Bottom = 4
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Checkboxes = True
+        Columns = <
+          item
+            AutoSize = True
+            Caption = 'Statusbar File Operation Statistics'
+          end>
+        HideSelection = False
+        ReadOnly = True
+        RowSelect = True
+        TabOrder = 4
+        ViewStyle = vsReport
       end
     end
     object tabFonts: TTabSheet
@@ -494,7 +518,7 @@ object frmOptions: TfrmOptions
     Left = 232
     Top = 390
     Bitmap = {
-      494C010102000500300010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000500340010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

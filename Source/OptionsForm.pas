@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    08 Jun 2013
+  @Date    21 Nov 2013
   @Version 1.0
   @Author  David Hoyle
 
@@ -93,6 +93,7 @@ Type
     btnUp: TBitBtn;
     btnDown: TBitBtn;
     btnCopy: TBitBtn;
+    lvFileOpStats: TListView;
     Procedure lvFoldersResize(Sender: TObject);
     Procedure btnAddClick(Sender: TObject);
     Procedure btnEditClick(Sender: TObject);
@@ -147,7 +148,7 @@ Type
     Class Function Execute(Folders: TFolders; Var strExclusions, strCompareEXE: String;
       strINIFileName: String; var InterfaceFonts : TInterfaceFontInfo;
       var FileOpFonts : TFileOperationFontInfo; Var FldrSyncOps: TFldrSyncOptions;
-      var strTheme : String): Boolean;
+      var strTheme : String; var FileOpStats : TFileOpStats): Boolean;
     Constructor CreateWithRootKey(AOwner: TComponent; strRootKey: String); Virtual;
   End;
 
@@ -211,6 +212,16 @@ Const
     (FININame: 'ReadOnlyFont';    FFontColour: clBlack;      FBGFontColour: $BBBBFF;  FFontStyle: []),
     (FININame: 'MissingFileFont'; FFontColour: clSilver;     FBGFontColour: clWindow; FFontStyle: [])
   );
+  (** A constant array of strings to represent the File Operation Statistics. **)
+  strFileOpStatDesc : Array[Low(TFileOpStat)..High(TFileOpStat)] Of String = (
+    'Show number of files and size of Deletes',
+    'Show number of files and size of Copies.',
+    'Show number of files and size of file with Differing Size',
+    'Show number of files and size of file with Nothing to Do',
+    'Show number of files and size of file in Total on the Left',
+    'Show number of files and size of file in Total on the Right',
+    'Show number of files and size of file in Total Difference'
+  );
 
 Implementation
 
@@ -243,16 +254,19 @@ Uses
   @param   FileOpFonts    as a TFileOperationFontInfo as a reference
   @param   FldrSyncOps    as a TFldrSyncOptions as a reference
   @param   strTheme       as a String as a reference
+  @param   FileOpStats    as a TFileOpStats as a reference
   @return  a Boolean
 
 **)
 Class Function TfrmOptions.Execute(Folders: TFolders;
   Var strExclusions, strCompareEXE: String; strINIFileName: String;
   var InterfaceFonts : TInterfaceFontInfo; var FileOpFonts : TFileOperationFontInfo;
-  Var FldrSyncOps: TFldrSyncOptions; var strTheme : String): Boolean;
+  Var FldrSyncOps: TFldrSyncOptions; var strTheme : String;
+  var FileOpStats : TFileOpStats): Boolean;
 
 Var
   i     : TFldrSyncOption;
+  j : TFileOpStat;
   Item: TListItem;
 
 Begin
@@ -273,6 +287,12 @@ Begin
           Item.Caption := strFldrSyncOptions[i].FDescription;
           lbxFldrSyncOps.Items[Integer(i)].Checked := i In FldrSyncOps;
         End;
+      For j              := Low(TFileOpStat) To High(TFileOpStat) Do
+        Begin
+          Item := lvFileOpStats.Items.Add;
+          Item.Caption := strFileOpStatDesc[j];
+          lvFileOpStats.Items[Integer(j)].Checked := j In FileOpStats;
+        End;
       If ShowModal = mrOK Then
         Begin
           Folders.Assign(FFolders);
@@ -282,6 +302,10 @@ Begin
           For i         := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
             If lbxFldrSyncOps.Items[Integer(i)].Checked Then
               Include(FldrSyncOps, i);
+          FileOpStats   := [];
+          For j         := Low(TFileOpStat) To High(TFileOpStat) Do
+            If lvFileOpStats.Items[Integer(j)].Checked Then
+              Include(FileOpStats, j);
           InterfaceFonts := FInterfaceFonts;
           FileOpFonts := FFileOpFonts;
           strTheme := cbxThemes.Text;
