@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    09 Nov 2013
+  @Date    21 Nov 2013
   @Author  David Hoyle
 
 **)
@@ -144,6 +144,7 @@ Type
     FFileOpFonts    : TFileOperationFontInfo;
     FLastFolder     : String;
     FTotalSize      : Int64;
+    FFileOpStats    : TFileOpStats;
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure UpgradeINIFolderOptions(iniMemFile : TMemIniFile);
@@ -349,6 +350,7 @@ Var
   iMaxValue : TInt64Ex;
   strLeftFldr, strRightFldr : String;
   iniMemFile : TMemIniFile;
+  iDefaultOps : TFileOpStats;
 
 Begin
   iniMemFile := TMemIniFile.Create(FRootKey);
@@ -403,6 +405,9 @@ Begin
           strFldrSyncOptions[j].fDefault) Then
           Include(FFldrSyncOptions, j);
       UpgradeINIFolderOptions(iniMemFile);
+      iDefaultOps := [fosDelete..fosDifference];
+      FFileOpStats := TFileOpStats(Byte(ReadInteger('Setup', 'FileOpStats',
+        Byte(iDefaultOps))));
       sl := TStringList.Create;
       Try
         ReadSection('NewFolders', sl);
@@ -1012,8 +1017,11 @@ End;
 **)
 Procedure TfrmMainForm.OutputStats;
 
+Const
+  strTemplate = '%s: %1.0n files in %1.1n kbytes';
+
 Var
-  i: Integer;
+  i: TFileOpStat;
   P: TStatusPanel;
 
 Begin
@@ -1022,13 +1030,18 @@ Begin
     While stbrStatusBar.Panels.Count > 1 Do
       stbrStatusBar.Panels.Delete(stbrStatusBar.Panels.Count - 1);
     FSyncModule.BuildStats;
-    For i := 0 To FSyncModule.Statistics.Count - 1 Do
-      Begin
-        P := stbrStatusBar.Panels.Add;
-        P.Text := FSyncModule.Statistics[i];
-        P.Width := stbrStatusBar.Canvas.TextWidth(P.Text) + 25;
-        P.Style := psOwnerDraw;
-      End;
+    For i := Low(TFileOpStat) To High(TFileOpStat) Do
+      If i In FFileOpStats Then
+        Begin
+          P := stbrStatusBar.Panels.Add;
+          P.Text := Format(strTemplate, [
+            FSyncModule.Statistics[i].FName,
+            Int(FSyncModule.Statistics[i].FCount),
+            Int(FSyncModule.Statistics[i].FSize / 1024.0)
+          ]);
+          P.Width := stbrStatusBar.Canvas.TextWidth(P.Text) + 25;
+          P.Style := psOwnerDraw;
+        End;
   Finally
     stbrStatusBar.Panels.EndUpdate;
   End;
@@ -1089,6 +1102,7 @@ Begin
       For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
         WriteBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
           j In FFldrSyncOptions);
+      WriteInteger('Setup', 'FileOpStats', Byte(FFileOpStats));
       EraseSection('Folders');
       EraseSection('FolderStatus');
       EraseSection('FolderMaxFileSize');
@@ -1679,7 +1693,7 @@ Begin
   FInterfaceFonts[ifLogFont].FFontName := redtOutputResults.Font.Name;
   FInterfaceFonts[ifLogFont].FFontSize := redtOutputResults.Font.Size;
   If TfrmOptions.Execute(FFolders, FExclusions, FCompareEXE, FRootKey, FInterfaceFonts,
-    FFileOpFonts, FFldrSyncOptions, strTheme) Then
+    FFileOpFonts, FFldrSyncOptions, strTheme, FFileOpStats) Then
     Begin
       lvFileList.Font.Name := FInterfaceFonts[ifTableFont].FFontName;
       lvFileList.Font.Size:= FInterfaceFonts[ifTableFont].FFontSize;
@@ -1687,6 +1701,7 @@ Begin
       redtOutputResults.Font.Size := FInterfaceFonts[ifLogFont].FFontSize;
       If CompareText(strTheme, TStyleManager.ActiveStyle.Name) <> 0 Then
         TStyleManager.SetStyle(strTheme);
+      OutputStats;
       actFileCompareExecute(Self);
     End;
 End;
