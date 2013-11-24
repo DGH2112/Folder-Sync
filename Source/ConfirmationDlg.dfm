@@ -3,11 +3,10 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   Top = 0
   BorderIcons = []
   Caption = 'Please confirm the action'
-  ClientHeight = 181
-  ClientWidth = 492
+  ClientHeight = 177
+  ClientWidth = 484
   Color = clBtnFace
   Constraints.MaxHeight = 215
-  Constraints.MaxWidth = 500
   Constraints.MinHeight = 215
   Constraints.MinWidth = 500
   DoubleBuffered = True
@@ -20,14 +19,14 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   OldCreateOrder = False
   Position = poDesigned
   DesignSize = (
-    492
-    181)
+    484
+    177)
   PixelsPerInch = 96
   TextHeight = 13
   object lblMessage: TLabel
     Left = 8
     Top = 8
-    Width = 476
+    Width = 468
     Height = 29
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
@@ -55,7 +54,7 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   object lblInformation1: TLabel
     Left = 85
     Top = 43
-    Width = 399
+    Width = 391
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
@@ -80,7 +79,7 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   object lblInformation2: TLabel
     Left = 85
     Top = 62
-    Width = 399
+    Width = 391
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
@@ -105,7 +104,7 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   object lblInformation3: TLabel
     Left = 85
     Top = 81
-    Width = 399
+    Width = 391
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
@@ -116,38 +115,35 @@ object frmConfirmationDlg: TfrmConfirmationDlg
   object lblSourceInfo: TLabel
     Left = 85
     Top = 100
-    Width = 399
+    Width = 391
     Height = 13
     Alignment = taRightJustify
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     Caption = 'lblSourceInfo'
-    ExplicitWidth = 391
   end
   object lblDestInfo: TLabel
     Left = 85
     Top = 119
-    Width = 399
+    Width = 391
     Height = 13
     Alignment = taRightJustify
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     Caption = 'lblSourceInfo'
-    ExplicitWidth = 391
   end
   object imgIcon: TImage
     Left = 8
-    Top = 125
+    Top = 121
     Width = 48
     Height = 48
     Anchors = [akLeft, akBottom]
     Center = True
     Stretch = True
-    ExplicitTop = 121
   end
   object btnYes: TBitBtn
-    Left = 65
-    Top = 148
+    Left = 57
+    Top = 144
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -174,8 +170,8 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     TabOrder = 0
   end
   object btnNo: TBitBtn
-    Left = 146
-    Top = 148
+    Left = 138
+    Top = 144
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -184,8 +180,8 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     TabOrder = 1
   end
   object btnYesToAll: TBitBtn
-    Left = 227
-    Top = 148
+    Left = 219
+    Top = 144
     Width = 85
     Height = 25
     Anchors = [akRight, akBottom]
@@ -195,8 +191,8 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     TabOrder = 2
   end
   object btnCancel: TBitBtn
-    Left = 409
-    Top = 148
+    Left = 401
+    Top = 144
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -205,8 +201,8 @@ object frmConfirmationDlg: TfrmConfirmationDlg
     TabOrder = 4
   end
   object btnNoToAll: TBitBtn
-    Left = 318
-    Top = 148
+    Left = 310
+    Top = 144
     Width = 85
     Height = 25
     Anchors = [akRight, akBottom]

@@ -4,7 +4,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    17 Apr 2013
+  @Date    24 Nov 2013
 
 **)
 Unit ConfirmationDlg;
@@ -48,7 +48,7 @@ Type
   Public
     { Public declarations }
     Class Function Execute(ParentForm : TForm; strMsg, strSrcPath, strDestPath : String;
-      Source, Dest : TFileRecord; iTop : Integer): TModalResult;
+      Source, Dest : TFileRecord; iTop : Integer; var iWidth : Integer): TModalResult;
   End;
 
 Implementation
@@ -70,11 +70,13 @@ Implementation
   @param   Source      as a TFileRecord
   @param   Dest        as a TFileRecord
   @param   iTop        as an Integer
+  @param   iWidth      as an Integer as a reference
   @return  a TModalResult
 
 **)
 Class Function TfrmConfirmationDlg.Execute(ParentForm : TForm; strMsg, strSrcPath,
-  strDestPath : String; Source, Dest : TFileRecord; iTop : Integer) : TModalResult;
+  strDestPath : String; Source, Dest : TFileRecord; iTop : Integer;
+  var iWidth : Integer) : TModalResult;
 
 Var
   AIcon : TIcon;
@@ -131,7 +133,10 @@ Begin
           lblDestInfo.Caption := '';
           Height := Height - (lblInformation3.Top - lblInformation2.Top);
         End;
+      If iWidth > 0 Then
+        Width := iWidth;
       Result := ShowModal;
+      iWidth := Width;
     Finally
       Free;
     End;
