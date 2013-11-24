@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    21 Nov 2013
+  @Date    24 Nov 2013
   @Author  David Hoyle
 
 **)
@@ -720,6 +720,9 @@ Type
     FSize  : Int64;
   End;
 
+  (** An enumerate to define the type of copy count operation to perform. **)
+  TCountOp = (coDifference, coSourceTotal);
+
   (** A class to represent a collection of TCompareFolders classes. **)
   TCompareFoldersCollection = Class
   Strict Private
@@ -827,7 +830,8 @@ Type
     Procedure DoSizeLimit;
     Function CopyFileContents(strSourceFile, strDestFile: String;
       Var iCopied: Integer): TProcessSuccess;
-    Function CountFileOps(FileOps: TFileOps; Var iSize: Int64): Integer;
+    Function CountFileOps(FileOps: TFileOps; Var iSize: Int64;
+      CountOp : TCountOp): Integer;
     Procedure DeleteIndividualFile(strPath: String; F: TFileRecord; iFile: Integer;
       Var FileActions : TFileActions; SyncOps: TSyncOptions);
     Function CopyIndividualFile(strSource, strDest: String; SourceFile,
@@ -2370,18 +2374,18 @@ Var
 Begin
   iSize := 0;
   iDiffCount := 0;
-  iCount := CountFileOps([foDelete], iSize);
+  iCount := CountFileOps([foDelete], iSize, coSourceTotal);
   AddFileOpStat(fosDelete, 'Delete', iCount, iSize);
   Inc(iDiffCount, iCount);
   iSize := 0;
-  iCount := CountFileOps([foLeftToRight, foRightToLeft], iSize);
+  iCount := CountFileOps([foLeftToRight, foRightToLeft], iSize, coDifference);
   AddFileOpStat(fosCopy, 'Copy', iCount, iSize);
   Inc(iDiffCount, iCount);
   iSize := 0;
-  iCount := CountFileOps([foSizeDiff], iSize);
+  iCount := CountFileOps([foSizeDiff], iSize, coDifference);
   AddFileOpStat(fosSizeDiff, 'Size Diff', iCount, iSize);
   iSize := 0;
-  iCount := CountFileOps([foNothing], iSize);
+  iCount := CountFileOps([foNothing], iSize, coDifference);
   AddFileOpStat(fosDoNothing, 'Do Nothing', iCount, iSize);
   iLeftSize := 0;
   iLeftCount := 0;
@@ -2609,7 +2613,8 @@ Begin
   FCopiedTotalSize := 0;
   FFiles   := 0;
   FSkipped := 0;
-  iCount   := CountFileOps([foLeftToRight, foRightToLeft], FCopiedTotalSize);
+  iCount   := CountFileOps([foLeftToRight, foRightToLeft], FCopiedTotalSize,
+    coSourceTotal);
   DoCopyStart(iCount, FCopiedTotalSize);
   Try
     If iCount = 0 Then
@@ -2749,20 +2754,21 @@ End;
 
 (**
 
-  This method counts the number of files to operated on depending on the file operation
+  This method counts the number of files to operated on depending on the file operation 
   and the files available. Also returns the size if the files.
 
   @precon  None.
-  @postcon Counts the number of files to operated on depending on the file operation
-           and the files available. Also returns the size if the files.
+  @postcon Counts the number of files to operated on depending on the file operation and 
+           the files available. Also returns the size if the files.
 
   @param   FileOps as a TFileOps
   @param   iSize   as an Int64 as a reference
+  @param   CountOp as a TCountOp
   @return  an Integer
 
 **)
 Function TCompareFoldersCollection.CountFileOps(FileOps: TFileOps;
-  Var iSize: Int64): Integer;
+  Var iSize: Int64; CountOp : TCountOp): Integer;
 
 Var
   i: Integer;
@@ -2791,12 +2797,12 @@ Begin
             If Process[i].LeftFile <> Nil Then
               Begin
                 Inc(iSize, Process[i].LeftFile.Size);
-                If Process[i].RightFile <> Nil Then
+                If (Process[i].RightFile <> Nil) And (CountOp = coDifference) Then
                   Dec(iSize, Process[i].RightFile.Size);
               End Else
               Begin
                 Inc(iSize, Process[i].RightFile.Size);
-                If Process[i].LeftFile <> Nil Then
+                If (Process[i].LeftFile <> Nil) And (CountOp = coDifference) Then
                   Dec(iSize, Process[i].LeftFile.Size);
               End;
           End;
@@ -2928,7 +2934,7 @@ Begin
   FFiles   := 0;
   FSkipped := 0;
   FErrors  := 0;
-  iCount   := CountFileOps([foDelete], FCopiedTotalSize);
+  iCount   := CountFileOps([foDelete], FCopiedTotalSize, coDifference);
   DoDeleteStart(iCount, FCopiedTotalSize);
   Try
     FCopiedTotalSize := 0;
@@ -3121,7 +3127,7 @@ Var
 
 Begin
   iSize  := 0;
-  iCount := CountFileOps([foSizeDiff], iSize);
+  iCount := CountFileOps([foSizeDiff], iSize, coDifference);
   DoDiffSizeStart(iCount);
   For i := 0 To ProcessCount - 1 Do
     Begin
@@ -3675,7 +3681,7 @@ Var
 
 Begin
   iSize  := 0;
-  iCount := CountFileOps([foNothing], iSize);
+  iCount := CountFileOps([foNothing], iSize, coDifference);
   DoNothingToDoStart(iCount);
   For i := 0 To ProcessCount - 1 Do
     Begin
@@ -3763,7 +3769,7 @@ Var
 
 Begin
   iSize  := 0;
-  iCount := CountFileOps([foExceedsSizeLimit], iSize);
+  iCount := CountFileOps([foExceedsSizeLimit], iSize, coDifference);
   DoExceedsSizeLimitStart(iCount);
   For i := 0 To ProcessCount - 1 Do
     Begin
