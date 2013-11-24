@@ -7,7 +7,6 @@ object frmCopyProgress: TfrmCopyProgress
   ClientWidth = 544
   Color = clBtnFace
   Constraints.MaxHeight = 250
-  Constraints.MaxWidth = 560
   Constraints.MinHeight = 250
   Constraints.MinWidth = 560
   DoubleBuffered = True

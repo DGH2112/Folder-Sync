@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    19 Dec 2012
+  @Date    24 Nov 2013
 
 **)
 Unit FileCopyProgressForm;
@@ -60,7 +60,7 @@ Type
     Procedure DoUpdateProgress(iPosition, iMaxPosition: Integer);
   Public
     { Public declarations }
-    Procedure Initialise(iFileCount : Integer; iTotalSize: Int64);
+    Procedure Initialise(iFileCount : Integer; iTotalSize: Int64; iWidth : Integer);
     Procedure Progress(iFile : Integer; strSource, strDest,
       strFileName: String); Overload;
     Procedure Progress(iCopiedSize, iTotalSize: Int64); Overload;
@@ -185,14 +185,18 @@ End;
 
   @param   iFileCount as an Integer
   @param   iTotalSize as an Int64
+  @param   iWidth     as an Integer
 
 **)
-Procedure TfrmCopyProgress.Initialise(iFileCount : Integer; iTotalSize: Int64);
+Procedure TfrmCopyProgress.Initialise(iFileCount : Integer; iTotalSize: Int64;
+  iWidth : Integer);
 
 Begin
   FCaption := Caption;
   FFileCount := iFileCount;
   FTotalSize := iTotalSize;
+  If iWidth > 0 Then
+    Width := iWidth;
   Show;
   Application.ProcessMessages;
   CheckForCancel;
