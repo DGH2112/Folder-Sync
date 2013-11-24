@@ -4,7 +4,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    12 May 2013
+  @Date    24 Nov 2013
 
 **)
 Unit FileDeleteProgressForm;
@@ -52,7 +52,8 @@ Type
     Procedure DoUpdateProgress(iPosition, iMaxPosition: Integer);
   Public
     { Public declarations }
-    Procedure Initialise(iType : TDeleteType; iFileCount : Integer; iTotalSize: Int64);
+    Procedure Initialise(iType : TDeleteType; iFileCount, iWidth : Integer;
+      iTotalSize: Int64);
     Procedure InitialiseFileName(iType : TDeleteType; iFile : Integer;
       strFileName: String);
     Procedure Progress(iSize : Int64; iTotalSize : Int64 = 0);
@@ -172,10 +173,11 @@ End;
 
   @param   iType      as a TDeleteType
   @param   iFileCount as an Integer
+  @param   iWidth     as an Integer
   @param   iTotalSize as an Int64
 
 **)
-Procedure TfrmDeleteProgress.Initialise(iType : TDeleteType; iFileCount : Integer;
+Procedure TfrmDeleteProgress.Initialise(iType : TDeleteType; iFileCount, iWidth : Integer;
   iTotalSize: Int64);
 
 Begin
@@ -190,6 +192,8 @@ Begin
   Else
     lblFileLabel.Caption := 'Foldername';
   FCaption := Caption;
+  If iWidth > 0 Then
+    Width := iWidth;
   Show;
   Application.ProcessMessages;
   CheckForCancel;

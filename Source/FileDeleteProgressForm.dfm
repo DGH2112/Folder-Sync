@@ -7,7 +7,6 @@ object frmDeleteProgress: TfrmDeleteProgress
   ClientWidth = 441
   Color = clBtnFace
   Constraints.MaxHeight = 140
-  Constraints.MaxWidth = 457
   Constraints.MinHeight = 140
   Constraints.MinWidth = 457
   DoubleBuffered = True
