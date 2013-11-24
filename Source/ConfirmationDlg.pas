@@ -84,6 +84,8 @@ Var
 Begin
   With TfrmConfirmationDlg.Create(Nil) Do
     Try
+      If iWidth > 0 Then
+        Width := iWidth;
       Left := ParentForm.Left + (ParentForm.Width - Width) Div 2;
       Top := iTop;
       lblMessage.Caption := strMsg;
@@ -133,8 +135,6 @@ Begin
           lblDestInfo.Caption := '';
           Height := Height - (lblInformation3.Top - lblInformation2.Top);
         End;
-      If iWidth > 0 Then
-        Width := iWidth;
       Result := ShowModal;
       iWidth := Width;
     Finally
