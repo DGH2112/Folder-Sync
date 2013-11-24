@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    21 Nov 2013
+  @Date    24 Nov 2013
   @Author  David Hoyle
 
 **)
@@ -122,29 +122,32 @@ Type
     procedure actToolsConfigMemMonExecute(Sender: TObject);
   Strict Private
     { Private declarations }
-    FFolders        : TFolders;
-    FExclusions     : String;
-    FIconFiles      : TStringList;
-    FProgressForm   : TfrmProgress;
-    FRootKey        : String;
-    FParams         : TStringList;
-    FCompareEXE     : String;
-    FFldrSyncOptions: TFldrSyncOptions;
-    FAutoProcessing : Boolean;
-    FCloseTimer     : TTimer;
-    FSyncModule     : TCompareFoldersCollection;
-    FProgressSection: Integer;
-    FTaskbarList    : ITaskbarList;
-    FTaskbarList3   : ITaskbarList3;
-    FStartTimer     : TTimer;
-    FDeleteForm     : TfrmDeleteProgress;
-    FCopyForm       : TfrmCopyProgress;
-    FDialogueBottom : Integer;
-    FInterfaceFonts : TInterfaceFontInfo;
-    FFileOpFonts    : TFileOperationFontInfo;
-    FLastFolder     : String;
-    FTotalSize      : Int64;
-    FFileOpStats    : TFileOpStats;
+    FFolders         : TFolders;
+    FExclusions      : String;
+    FIconFiles       : TStringList;
+    FProgressForm    :  TfrmProgress;
+    FRootKey         :  String;
+    FParams          : TStringList;
+    FCompareEXE      :  String;
+    FFldrSyncOptions : TFldrSyncOptions;
+    FAutoProcessing  : Boolean;
+    FCloseTimer      : TTimer;
+    FSyncModule      : TCompareFoldersCollection;
+    FProgressSection : Integer;
+    FTaskbarList     : ITaskbarList;
+    FTaskbarList3    : ITaskbarList3;
+    FStartTimer      : TTimer;
+    FDeleteForm      : TfrmDeleteProgress;
+    FCopyForm        : TfrmCopyProgress;
+    FDialogueBottom  : Integer;
+    FInterfaceFonts  : TInterfaceFontInfo;
+    FFileOpFonts     : TFileOperationFontInfo;
+    FLastFolder      : String;
+    FTotalSize       : Int64;
+    FFileOpStats     : TFileOpStats;
+    FCopyDlgWidth   : Integer;
+    FDeleteDlgWidth  : Integer;
+    FConfirmDlgWidth : Integer;
     Procedure LoadSettings();
     Procedure SaveSettings();
     Procedure UpgradeINIFolderOptions(iniMemFile : TMemIniFile);
@@ -408,6 +411,9 @@ Begin
       iDefaultOps := [fosDelete..fosDifference];
       FFileOpStats := TFileOpStats(Byte(ReadInteger('Setup', 'FileOpStats',
         Byte(iDefaultOps))));
+      FCopyDlgWidth := ReadInteger('DlgWidths', 'CopyDlg', 0);
+      FDeleteDlgWidth := ReadInteger('DlgWidths', 'DeleteDlg', 0);
+      FConfirmDlgWidth := ReadInteger('DlgWidths', 'ConfirmDlg', 0);
       sl := TStringList.Create;
       Try
         ReadSection('NewFolders', sl);
@@ -759,9 +765,10 @@ Var
              displaying the text.
 
     @param   iSubItem as an Integer
+    @param   iFileOp  as a TFileOp
 
   **)
-  Procedure FixUpEmptyFilePaths(iSubItem : Integer);
+  Procedure FixUpEmptyFilePaths(iSubItem : Integer; iFileOp : TFileOp);
 
   Begin
     {$IFDEF PROFILECODE}
@@ -780,7 +787,7 @@ Var
             Sender.Canvas.Font.Color := 
               StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
             Sender.Canvas.Brush.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FBGFontColour);
+              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
           End;
       End
     Else If (iSubItem = 4) And (Item.SubItems[iSubItem] = '') Then
@@ -796,7 +803,7 @@ Var
             Sender.Canvas.Font.Color := 
               StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
             Sender.Canvas.Brush.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FBGFontColour);
+              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
           End;
       End
     Else
@@ -829,7 +836,7 @@ Begin
       R := DrawFileIcon(iSubItem);
       StrPCopy(Buffer, Item.SubItems[iSubItem]);
       iBufferLen := Length(Item.SubItems[iSubItem]);
-      FixUpEmptyFilePaths(iSubItem);
+      FixUpEmptyFilePaths(iSubItem, iFileOp);
       Sender.Canvas.Refresh;
       DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
     End;
@@ -841,7 +848,7 @@ Begin
       R := DrawFileIcon(iSubItem);
       StrPCopy(Buffer, Item.SubItems[iSubItem]);
       iBufferLen := Length(Item.SubItems[iSubItem]);
-      FixUpEmptyFilePaths(iSubItem);
+      FixUpEmptyFilePaths(iSubItem, iFileOp);
       Sender.Canvas.Refresh;
       DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
     End;
@@ -1103,6 +1110,9 @@ Begin
         WriteBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
           j In FFldrSyncOptions);
       WriteInteger('Setup', 'FileOpStats', Byte(FFileOpStats));
+      WriteInteger('DlgWidths', 'CopyDlg', FCopyDlgWidth);
+      WriteInteger('DlgWidths', 'DeleteDlg', FDeleteDlgWidth);
+      WriteInteger('DlgWidths', 'ConfirmDlg', FConfirmDlgWidth);
       EraseSection('Folders');
       EraseSection('FolderStatus');
       EraseSection('FolderMaxFileSize');
@@ -2591,6 +2601,8 @@ Begin
   If iError > 0 Then
     OutputResult(Format(', Errored %1.0n file(s)', [Int(iError)]));
   OutputResultLn(')');
+  If FCopyForm <> Nil Then
+    FCopyDlgWidth := FCopyForm.Width;
   FreeAndNil(FCopyForm);
 End;
 
@@ -2739,7 +2751,7 @@ Begin
     Begin
       FCopyForm                  := TfrmCopyProgress.Create(Nil);
       FCopyForm.OnUpdateProgress := UpdateProgress;
-      FCopyForm.Initialise(iTotalCount, iTotalSize);
+      FCopyForm.Initialise(iTotalCount, iTotalSize, FCopyDlgWidth);
       FDialogueBottom := FCopyForm.Top + FCopyForm.Height;
     End;
 End;
@@ -2774,7 +2786,7 @@ Begin
       OutputResult(strConsoleMsg);
       UpdateTaskBar(ptError, 0, 1);
       Case TfrmConfirmationDlg.Execute(Self, strMsg, strSourcePath, strDestPath,
-        SourceFile, DestFile, FDialogueBottom) Of
+        SourceFile, DestFile, FDialogueBottom, FConfirmDlgWidth) Of
         mrYes:
           Option := faYes;
         mrNo:
@@ -2841,6 +2853,8 @@ Begin
   If iErrors > 0 Then
     OutputResult(Format(', Errored %1.0n file(s)', [Int(iErrors)]));
   OutputResultLn(').');
+  If FDeleteForm <> Nil Then
+    FDeleteDlgWidth := FDeleteForm.Width;
   FreeAndNil(FDeleteForm);
 End;
 
@@ -2917,6 +2931,8 @@ End;
 Procedure TfrmMainForm.DeleteFoldersEnd;
 
 Begin
+  If FDeleteForm <> Nil Then  
+    FDeleteDlgWidth := FDeleteForm.Width;
   FreeAndNil(FDeleteForm);
 End;
 
@@ -2939,7 +2955,7 @@ Begin
       OutputResultLn('Deleting empty folders...');
       FDeleteForm                  := TfrmDeleteProgress.Create(Nil);
       FDeleteForm.OnUpdateProgress := UpdateProgress;
-      FDeleteForm.Initialise(dtFolders, iFolderCount, iFolderCount);
+      FDeleteForm.Initialise(dtFolders, iFolderCount, FDeleteDlgWidth, iFolderCount);
       FDialogueBottom := FDeleteForm.Top + FDeleteForm.Height;
     End;
 End;
@@ -3013,7 +3029,7 @@ Begin
     Begin
       FDeleteForm                  := TfrmDeleteProgress.Create(Nil);
       FDeleteForm.OnUpdateProgress := UpdateProgress;
-      FDeleteForm.Initialise(dtFiles, iFileCount, iTotalSize);
+      FDeleteForm.Initialise(dtFiles, iFileCount, FDeleteDlgWidth, iTotalSize);
       FDialogueBottom := FDeleteForm.Top + FDeleteForm.Height;
     End;
 End;
