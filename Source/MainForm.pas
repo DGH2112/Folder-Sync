@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    24 Nov 2013
+  @Date    13 Sep 2014
   @Author  David Hoyle
 
 **)
@@ -1196,6 +1196,8 @@ Begin
   Application.OnHint                := ApplicationHint;
   FIconFiles                        := TStringList.Create;
   FIconFiles.Sorted                 := True;
+  Caption := Caption + StringReplace(GetConsoleTitle(' %d.%d%s (Build %s)'), #13#10,
+    ' - ', []);
   If IsDebuggerPresent Then
     Caption := Format('%s [DEBUGGING]', [Caption]);
   {$IFDEF WIN64}
