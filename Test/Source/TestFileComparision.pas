@@ -59,7 +59,7 @@ implementation
 
 procedure TestTFileRecord.SetUp;
 begin
-  FFileRecord := TFileRecord.Create('Daves File.Txt', 123456, faArchive,
+  FFileRecord := TFileRecord.CreateFile('Daves File.Txt', 123456, faArchive,
     DateTimeToFileDate(StrToDateTime('07/01/2007 10:11:12')), stNewer);
 end;
 
