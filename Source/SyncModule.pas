@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    24 Nov 2013
+  @Date    14 Sep 2014
   @Author  David Hoyle
 
 **)
@@ -329,6 +329,7 @@ Type
     Procedure DoSearchStart(strFolder: String);
     Procedure DoSearchEnd(iFileCount: Integer; iTotalSize: Int64);
     Procedure DoAddEmptyFolder(strFolder : String);
+    Function  Find(strFCName : String) : Integer;
   Public
     Constructor Create; Virtual;
     Destructor Destroy; Override;
@@ -1682,6 +1683,41 @@ End;
 
 (**
 
+  This method find the index position of the given file in the Files list.
+
+  @precon  None.
+  @postcon Returns the position of the file if found else returns the position that the
+           file needs to tbe inserted into the list.
+
+  @param   strFCName as a String
+  @return  an Integer
+
+**)
+Function TFileList.Find(strFCName : String): Integer;
+
+Var
+  iFirst, iLast, iMid   : Integer;
+  iResult: Integer;
+
+Begin
+  iFirst := 0;
+  iLast  := Count - 1;
+  While iLast >= iFirst Do
+    Begin
+      iMid := (iFirst + iLast) Div 2;
+      iResult := AnsiCompareFileName(strFCName, Files[iMid].FileName);
+      If iResult = 0 Then
+        Break;
+      If iResult < 0 Then
+        iLast := iMid - 1
+      Else
+        iFirst := iMid + 1;
+    End;
+  Result := iFirst;
+End;
+
+(**
+
   This method searches the give folder for files matching the file filters and excluding 
   any files that match one of the exclusions somewhere in their path and adds them to the 
   folder collection.
@@ -1773,8 +1809,8 @@ Var
   rec                   : TSearchRec;
   iRes                  : Integer;
   strFileName, strFCName: String;
-  iFirst, iLast, iMid   : Integer;
   iFilter               : Integer;
+  iIndex                : Integer;
 
 Begin
   DoSearch(FFolderPath, Copy(strFolderPath, Length(FFolderPath) + 1,
@@ -1798,27 +1834,14 @@ Begin
                         Begin
                           strFCName := Copy(strFileName, Length(FFolderPath) + 1,
                             Length(strFileName));
-                          iFirst := 0;
-                          iLast  := Count - 1;
-                          While iLast >= iFirst Do
-                            Begin
-                              iMid := (iFirst + iLast) Div 2;
-                              If AnsiCompareFileName(strFCName,
-                                Files[iMid].FileName) = 0 Then
-                                Break;
-                              If AnsiCompareFileName(strFCName,
-                                Files[iMid].FileName) < 0 Then
-                                iLast := iMid - 1
-                              Else
-                                iFirst := iMid + 1;
-                            End;
+                          iIndex := Find(strFCName);
                           {$WARN SYMBOL_DEPRECATED OFF}
-                          FFiles.Insert(iFirst, TFileRecord.Create(strFCName, rec.Size,
+                          FFiles.Insert(iIndex, TFileRecord.Create(strFCName, rec.Size,
                               rec.Attr, rec.Time, stNewer));
                           {$WARN SYMBOL_DEPRECATED ON}
                           Inc(FTotalSize, rec.Size);
                           Inc(FTotalCount);
-                          DoSearch(FFolderPath, Files[iFirst].FileName, Count, utDelayed);
+                          DoSearch(FFolderPath, Files[iIndex].FileName, Count, utDelayed);
                         End;
                     End;
                 iRes := FindNext(rec);
@@ -2136,6 +2159,7 @@ Begin
   FLeftFldr.SearchFolder(strLeftFldr, strPatterns, strExclusions, SyncOps, iMaxFileSize);
   FRightFldr.SearchFolder(strRightFldr, strPatterns, strExclusions, SyncOps, iMaxFileSize);
   CompareFolders;
+  //: @todo Implement spotting moved files.
 End;
 
 (**
@@ -2238,8 +2262,23 @@ End;
 **)
 Procedure TCompareFoldersCollection.AddEmptyFolder(strFolder: String);
 
+Var
+  iCount : Integer;
+  strPath : String;
+  iIndex : Integer;
+
 Begin
-  FEmptyFolders.AddObject(strFolder, TObject(FileCount(strFolder)));
+  strPath := strFolder;
+  Repeat
+    If Not FEmptyFolders.Find(strPath, iIndex) Then
+      Begin
+        iCount := FileCount(strPath);
+        FEmptyFolders.AddObject(strPath, TObject(iCount));
+        Delete(strPath, Length(strPath), 1);
+        strPath := ExtractFilePath(strPath);
+      End Else
+        Break;
+  Until (Length(strPath) = 0) Or (strPath[Length(strPath)] <> '\');
 End;
 
 (**
@@ -2860,10 +2899,11 @@ Begin
         Begin
           Dec(iFileCount);
           FEmptyFolders.Objects[iIndex] := TObject(iFileCount);
-        End;
+        End Else
+          CodeSite.SendWarning('DecFldr(Already Zero): %s', [strFolder]);
       Result := iFileCount = 0;
     End Else
-      CodeSite.SendWarning('DecFldr: %s', [strFolder]);
+      CodeSite.SendWarning('DecFldr(Not Found): %s', [strFolder]);
 End;
 
 (**
@@ -3040,7 +3080,7 @@ Begin
             SetFileAttributes(PChar(Expand(strPath + F.FileName)), iAttr);
           End;
         Inc(FCopiedTotalSize, F.Size);
-        DecrementFolder(strPath);
+        DecrementFolder(ExtractFilePath(strPath + F.FileName));
         If Not DeleteFile(PChar(Expand(strPath + F.FileName))) Then
           Begin
             If Assigned(FDeleteErrorNotifier) Then
