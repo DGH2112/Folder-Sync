@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    21 Nov 2013
+  @Date    16 Sep 2014
 
 **)
 Unit CommandLineProcess;
@@ -1425,7 +1425,8 @@ Begin
           Else If CompareText(strOption, 'PrimaryRight') = 0 Then
             Include(FSyncOptions, soPrimaryRight)
           Else If CompareText(Copy(strOption, 1, 1), 'E') = 0 Then
-            FExclusions := Copy(strOption, 2, Length(strOption) - 1)
+            FExclusions := StringReplace(Copy(strOption, 2, Length(strOption) - 1), ';',
+              #13#10, [rfReplaceAll])
           Else If CompareText(strOption, 'OverwriteReadOnly') = 0 Then
             Include(FSyncOptions, soOverwriteReadOnlyFiles)
           Else If CompareText(strOption, 'ConfirmNo') = 0 Then
