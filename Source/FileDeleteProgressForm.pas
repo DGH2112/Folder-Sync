@@ -4,7 +4,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    24 Nov 2013
+  @Date    02 Nov 2014
 
 **)
 Unit FileDeleteProgressForm;
@@ -245,6 +245,8 @@ Procedure TfrmDeleteProgress.Progress(iSize : Int64; iTotalSize : Int64 = 0);
 Begin
   If iTotalSize > 0 Then
     FTotalSize := iTotalSize;
+  If FTotalSize = 0 Then
+    Inc(FTotalSize);
   pbrOverall.Position := Trunc(Int(iSize) / Int(FTotalSize) * pbrOverall.Max);
   pbrOverall.Position := pbrOverall.Position - 1;
   pbrOverall.Position := pbrOverall.Position + 1;
