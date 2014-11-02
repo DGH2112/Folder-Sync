@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    13 Sep 2014
+  @Date    02 Nov 2014
   @Author  David Hoyle
 
 **)
@@ -2558,6 +2558,8 @@ Procedure TfrmMainForm.CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
 Begin
   FCopyForm.Progress(iCopiedFileTotalSize, iCopiedFileTotalSize);
   FCopyForm.ProgressOverall(iCopiedTotalSize);
+  If FTotalSize = 0 Then
+    Inc(FTotalSize);
   Case iSuccess Of
     psSuccessed: OutputResultLn(Format(' %1.1n%% Complete', [Int64(iCopiedTotalSize) /
       Int64(FTotalSize) * 100.0]));
@@ -2827,6 +2829,8 @@ Procedure TfrmMainForm.DeletedProc(iFile: Integer; iSize: int64;
 
 Begin
   FDeleteForm.Progress(iSize);
+  If FTotalSize = 0 Then
+    Inc(FTotalSize);
   Case iSuccess Of
     psSuccessed: OutputResultLn(Format(' %1.1n%% Complete', [Int(iSize) /
       Int(FTotalSize) * 100.0]));
