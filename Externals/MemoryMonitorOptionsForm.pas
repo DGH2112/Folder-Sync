@@ -4,7 +4,7 @@
   the memory monitor component.
 
   @Version 1.0
-  @Date    10 Mar 2013
+  @Date    10 Nov 2014
   @Author  David Hoyle
 
 **)
@@ -62,12 +62,11 @@ type
     cbxStrikeout: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure udHighPointChangingEx(Sender: TObject; var AllowChange: Boolean;
-      NewValue: Smallint; Direction: TUpDownDirection);
+      NewValue: Integer; Direction: TUpDownDirection);
     procedure udMidPointPointChangingEx(Sender: TObject; var AllowChange: Boolean;
-      NewValue: Smallint; Direction: TUpDownDirection);
-    procedure udLowPointChangingEx(Sender: TObject;
-      var AllowChange: Boolean; NewValue: Smallint;
-      Direction: TUpDownDirection);
+      NewValue: Integer; Direction: TUpDownDirection);
+    procedure udLowPointChangingEx(Sender: TObject; var AllowChange: Boolean;
+      NewValue: Integer; Direction: TUpDownDirection);
     procedure edtUpdateIntervalKeyPress(Sender: TObject; var Key: Char);
   private
     { Private declarations }
@@ -211,17 +210,16 @@ end;
   This is an On ChangingEx event handler for the Low Point control.
 
   @precon  None.
-  @postcon Ensures that the Low point can not be larger than the MidPoint Point
-           value.
+  @postcon Ensures that the Low point can not be larger than the MidPoint Point value.
 
   @param   Sender      as a TObject
   @param   AllowChange as a Boolean as a reference
-  @param   NewValue    as a Smallint
+  @param   NewValue    as an Integer
   @param   Direction   as a TUpDownDirection
 
 **)
 procedure TfrmMemoryMonitorOptions.udLowPointChangingEx(Sender: TObject;
-  var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
+  var AllowChange: Boolean; NewValue: Integer; Direction: TUpDownDirection);
 begin
   AllowChange := (NewValue < udMidPointPoint.Position) And (NewValue > 0);
 end;
@@ -231,17 +229,16 @@ end;
   This is an On ChangingEx event handler for the High Point control.
 
   @precon  None.
-  @postcon Ensures that the High point can not be smaller than the MidPoint Point
-           value.
+  @postcon Ensures that the High point can not be smaller than the MidPoint Point value.
 
   @param   Sender      as a TObject
   @param   AllowChange as a Boolean as a reference
-  @param   NewValue    as a Smallint
+  @param   NewValue    as an Integer
   @param   Direction   as a TUpDownDirection
 
 **)
 procedure TfrmMemoryMonitorOptions.udHighPointChangingEx(Sender: TObject;
-  var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
+  var AllowChange: Boolean; NewValue: Integer; Direction: TUpDownDirection);
 begin
   AllowChange := (NewValue < 100) And (NewValue > udMidPointPoint.Position);
 end;
@@ -251,17 +248,17 @@ end;
   This is an On ChangingEx event handler for the MidPoint Point control.
 
   @precon  None.
-  @postcon Ensures that the MidPoint point can not be smaller than the Low
-           Point value or greater than the High point value.
+  @postcon Ensures that the MidPoint point can not be smaller than the Low Point value or
+           greater than the High point value.
 
   @param   Sender      as a TObject
   @param   AllowChange as a Boolean as a reference
-  @param   NewValue    as a Smallint
+  @param   NewValue    as an Integer
   @param   Direction   as a TUpDownDirection
 
 **)
 procedure TfrmMemoryMonitorOptions.udMidPointPointChangingEx(Sender: TObject;
-  var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
+  var AllowChange: Boolean; NewValue: Integer; Direction: TUpDownDirection);
 begin
   AllowChange := (NewValue < udHighPoint.Position) And
     (NewValue > udLowPoint.Position);
