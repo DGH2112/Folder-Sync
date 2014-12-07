@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    21 Nov 2013
+  @Date    07 Dec 2014
   @Version 1.0
   @Author  David Hoyle
 
@@ -163,31 +163,49 @@ Type
 
 Const
   (** A constant array of strings corresponding to the OLD folder sync options. **)
-  strOLDFldrSyncOptions: Array [Low(TOLDFldrSyncOption) .. High(TOLDFldrSyncOption)
-    ] Of TOptionsInfo = ((FINISection: 'AppOptions'; FINIKey: 'CloseOnNoFiles';
-    FDescription
-    : 'Close Folder Sync IF there are no files to processes after comparison.';
-    FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'RespondWithYes';
-    FDescription: 'Respond with "Yes to All" for any dialogue boxes that are displayed.';
-    FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'DoNotConfirmDir';
-    FDescription
-    : 'Do not confirm the creation of a new directories if the operation requires one to be created.';
-    FDefault: True), (FINISection: 'AppOptions'; FINIKey: 'DisplayProgress';
-    FDescription: 'Display a progress dialogue box but do not show the file names.';
-    FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'StartAutomatically';
-    FDescription
-    : 'Start processing the files after comparison automatically (DANGEROUS!).';
-    FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'HideLongFiles';
-    FDescription: 'Hide file that are too long to copy or delete.'; FDefault: False));
+  strOLDFldrSyncOptions: Array [Low(TOLDFldrSyncOption) .. High(TOLDFldrSyncOption)] Of TOptionsInfo =
+    (
+      (FINISection: 'AppOptions';
+       FINIKey: 'CloseOnNoFiles';
+       FDescription: 'Close Folder Sync IF there are no files to processes after comparison.';
+       FDefault: False),
+      (FINISection: 'AppOptions';
+       FINIKey: 'RespondWithYes';
+       FDescription: 'Respond with "Yes to All" for any dialogue boxes that are displayed.';
+       FDefault: False),
+      (FINISection: 'AppOptions';
+       FINIKey: 'DoNotConfirmDir';
+       FDescription: 'Do not confirm the creation of a new directories if the operation requires one to be created.';
+       FDefault: True),
+      (FINISection: 'AppOptions';
+       FINIKey: 'DisplayProgress';
+       FDescription: 'Display a progress dialogue box but do not show the file names.';
+       FDefault: False),
+      (FINISection: 'AppOptions';
+       FINIKey: 'StartAutomatically';
+       FDescription: 'Start processing the files after comparison automatically (DANGEROUS!).';
+       FDefault: False),
+      (FINISection: 'AppOptions';
+       FINIKey: 'HideLongFiles';
+       FDescription: 'Hide file that are too long to copy or delete.';
+       FDefault: False)
+    );
   (** A constant array of strings corresponding to the NEW folder sync options. **)
-  strFldrSyncOptions: Array [Low(TFldrSyncOption) .. High(TFldrSyncOption)
-    ] Of TOptionsInfo = ((FINISection: 'AppOptions'; FINIKey: 'CloseOnNoFiles';
-    FDescription
-    : 'Close Folder Sync IF there are no files to processes after comparison.';
-    FDefault: False), (FINISection: 'AppOptions'; FINIKey: 'StartAutomatically';
-    FDescription
-    : 'Start processing the files after comparison automatically (DANGEROUS!).';
-    FDefault: False));
+  strFldrSyncOptions: Array [Low(TFldrSyncOption) .. High(TFldrSyncOption)] Of TOptionsInfo =
+    (
+      (FINISection: 'AppOptions';
+       FINIKey: 'CloseOnNoFiles';
+       FDescription: 'Close Folder Sync IF there are no files to processes after comparison.';
+       FDefault: False),
+      (FINISection: 'AppOptions';
+       FINIKey: 'StartAutomatically';
+       FDescription: 'Start processing the files after comparison automatically (DANGEROUS!).';
+       FDefault: False),
+      (FINISection: 'AppOptions';
+       FINIKey: 'PermanentlyDeleteFiles';
+       FDescription: 'Permanently delete files rather than delete them to the recucle bin.';
+       FDefault: False)
+    );
   (** A constant array of strings that name of the Interface fonts. **)
   strInterfaceFonts : Array[Low(TInterfaceFont)..High(TInterfaceFont)] Of String = (
     'Table Font', 'Log Font');
