@@ -142,6 +142,16 @@ object frmCopyProgress: TfrmCopyProgress
     EllipsisPosition = epPathEllipsis
     ExplicitWidth = 414
   end
+  object lblRemainingTime: TLabel
+    Left = 311
+    Top = 169
+    Width = 225
+    Height = 13
+    Alignment = taRightJustify
+    Anchors = [akLeft, akTop, akRight]
+    AutoSize = False
+    EllipsisPosition = epPathEllipsis
+  end
   object pbrOverall: TProgressBar
     Left = 8
     Top = 146
