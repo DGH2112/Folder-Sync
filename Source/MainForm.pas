@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    02 Nov 2014
+  @Date    13 Dec 2014
   @Author  David Hoyle
 
 **)
@@ -46,7 +46,7 @@ Uses
   ShlObj,
   FileDeleteProgressForm,
   FileCopyProgressForm,
-  DiskSpaceForm;
+  DiskSpaceForm, System.Actions;
 
 Type
   (** This enumerate determines the type of progress to be shown in the taskbar in
@@ -2250,7 +2250,7 @@ Begin
         DisableActions;
         Try
           Try
-            FSyncModule.ProcessFiles;
+            FSyncModule.ProcessFiles(FFldrSyncOptions);
           Except
             On E : EAbort Do boolAbort := True;
             On E : Exception Do MessageDlg(E.Message, mtError, [mbOK], 0);
