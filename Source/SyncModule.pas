@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    14 Sep 2014
+  @Date    13 Dec 2014
   @Author  David Hoyle
 
 **)
@@ -20,27 +20,33 @@ Uses
 
 Type
   (** An enumerate to define an action to take with a file. **)
-  TFileAction = (faNo, faYes, faYesToAll, faNoToAll, faYesToAllRO, faNoToAllRO, faCancel,
-    faUnknown);
+  TFileAction = (
+    faNo,
+    faYes,
+    faYesToAll,
+    faNoToAll,
+    faYesToAllRO,
+    faNoToAllRO,
+    faCancel,
+    faUnknown
+  );
   (** A set of the above file actions. **)
   TFileActions = Set Of TFileAction;
 
   (** A type to define the status of a file **)
   TStatus = (stNewer, stOlder, stSame, stDiffSize, stTooLarge);
 
-  (** A record to describe a single file. **)
-  TFileRecord = Class
+  (** An abstract class for describing a single file. **)
+  TBaseFileRecord = Class Abstract
   Strict Private
     FFileName  : String;
     FSize      : Int64;
     FAttributes: Integer;
     FDateTime  : Integer;
-    FStatus    : TStatus;
   Strict Protected
-    Procedure SetStatus(Status: TStatus);
   Public
-    Constructor Create(strName: String; iSize: Int64; iAttributes: Integer;
-      dtDateTime: Integer; Status: TStatus); Virtual;
+    Constructor CreateBase(strName: String; iSize: Int64; iAttributes: Integer;
+      dtDateTime: Integer); Virtual;
     (**
       A property to return the filename of the file in this class.
       @precon  None.
@@ -69,6 +75,17 @@ Type
       @return  an Integer
     **)
     Property DateTime: Integer Read FDateTime;
+  End;
+
+  (** A record to describe a single file. **)
+  TFileRecord = Class(TBaseFileRecord)
+  Strict Private
+    FStatus    : TStatus;
+  Strict Protected
+    Procedure SetStatus(Status: TStatus);
+  Public
+    Constructor CreateFile(strName: String; iSize: Int64; iAttributes: Integer;
+      dtDateTime: Integer; Status: TStatus); Virtual;
     (**
       A property to return the status of the file in this class.
       @precon  None.
@@ -78,12 +95,43 @@ Type
     Property Status: TStatus Read FStatus Write SetStatus;
   End;
 
+  {: TMovedFileRecord = Class(TBaseFileRecord)
+  Strict Private
+    FPaths : TStringList;
+  Strict Protected
+    Function  GetPath(iIndex : Integer) : String;
+    Function  GetStatus(iIndex : Integer) : TStatus;
+    Function  GetPathCount : Integer;
+  Public
+    Constructor CreateMovedFile(strName: String; iSize: Int64; iAttributes: Integer;
+      dtDateTime: Integer); Virtual;
+    Destructor Destroy; Override;
+    Procedure AddPath(strPath : String; ptrReference : TObject);
+    Property Path[iIndex : Integer] : String Read GetPath;
+    Property Status[iIndex : Integer] : TStatus Read GetStatus;
+    Property PathCount : Integer Read GetPathCount;
+  End; }
+
   (** An enumerate to define the type of update. **)
-  TUpdateType = (utDelayed, utImmediate);
+  TUpdateType = (
+    utDelayed,
+    utImmediate
+  );
   (** An enumerate to define the type of error result. **)
-  TDGHErrorResult = (derUnknown, derIgnoreOnce, derIgnoreAll, derStop);
+  TDGHErrorResult = (
+    derUnknown,
+    derIgnoreOnce,
+    derIgnoreAll,
+    derStop
+  );
   (** An enumerate to define the type of processing. **)
-  TProcessSuccess = (psUnknown, psSuccessed, psFailed, psIgnoreOnce, psIgnoreAll);
+  TProcessSuccess = (
+    psUnknown,
+    psSuccessed,
+    psFailed,
+    psIgnoreOnce,
+    psIgnoreAll
+  );
 
   (** An event signature for the start of a search. **)
   TSearchStartNotifier = Procedure(strFolder: String) Of Object;
@@ -179,7 +227,7 @@ Type
   TCopyErrorNotifier = Procedure(strSource, strDest, strErrorMsg : String;
     iLastError : Cardinal; var iResult : TDGHErrorResult) Of Object;
   (** An event handler signature for handling errors in deleting. **)
-  TDeleteErrorNotifier = Procedure(strSource, strErrorMsg : String; 
+  TDeleteErrorNotifier = Procedure(strSource, strErrorMsg : String;
     iLastError : Cardinal; var iResult : TDGHErrorResult) Of Object;
 
   (** An event signature for updating the taskbar from a progress dialogue. **)
@@ -193,30 +241,56 @@ Type
 
   (** A type to define whether the CheckDifference method should check for
       Older or Newer differences. **)
-  TCheckDifference = (cdNewer, cdOlder);
+  TCheckDifference = (
+    cdNewer,
+    cdOlder
+  );
 
   (** This is an enumerate for synchronisation options on a pair of folders. **)
-  TSyncOption = (soEnabled, soPrimaryLeft, soPrimaryRight, soOverwriteReadOnlyFiles,
-    soConfirmYes, soConfirmNo, soNoRecursion, soTempDisabled);
+  TSyncOption = (
+    soEnabled,
+    soPrimaryLeft,
+    soPrimaryRight,
+    soOverwriteReadOnlyFiles,
+    soConfirmYes,
+    soConfirmNo,
+    soNoRecursion,
+    soTempDisabled
+  );
 
   (** A set of sync options. **)
   TSyncOptions = Set Of TSyncOption;
 
   (** A list of enumerate values for the different types of file operation that
    can be undertaken. **)
-  TFileOp = (foNothing, foLeftToRight, foRightToLeft, foDelete, foSizeDiff,
-    foExceedsSizeLimit);
+  TFileOp = (
+    foNothing,
+    foLeftToRight,
+    foRightToLeft,
+    foDelete,
+    foSizeDiff,
+    foExceedsSizeLimit
+  );
   (** A set of the above TFileOp enumerates. **)
   TFileOps = Set Of TFileOp;
 
   (** An enumerate of Folder Sync Options from the pre-1.5 version - required for
       upgrade. **)
-  TOLDFldrSyncOption = (fsoCloseIFNoFilesAfterComparisonOLD, fsoNoConfirmation,
-    fsoDoNotConfirmMkDir, fsoShowSimpleProgress, fsoStartProcessingAutomaticallyOLD,
-    fsoHideLongFileNames);
+  TOLDFldrSyncOption = (
+    fsoCloseIFNoFilesAfterComparisonOLD,
+    fsoNoConfirmation,
+    fsoDoNotConfirmMkDir,
+    fsoShowSimpleProgress,
+    fsoStartProcessingAutomaticallyOLD,
+    fsoHideLongFileNames
+  );
 
   (** An enumerate of NEW Folder Sync Options **)
-  TFldrSyncOption = (fsoCloseIFNoFilesAfterComparison, fsoStartProcessingAutomatically);
+  TFldrSyncOption = (
+    fsoCloseIFNoFilesAfterComparison,
+    fsoStartProcessingAutomatically,
+    fsoPermanentlyDeleteFiles
+  );
 
   (** A set of folder sync options. **)
   TOLDFldrSyncOptions = Set Of TOLDFldrSyncOption;
@@ -253,7 +327,7 @@ Type
     (**
       This property defines the file search wildcard patterns for the comparison.
       @precon  None.
-      @postcon Returns the file search wildcard patterns for the comparison. 
+      @postcon Returns the file search wildcard patterns for the comparison.
       @return  a String
     **)
     Property Patterns : String Read FPatterns Write FPatterns;
@@ -267,7 +341,7 @@ Type
     (**
       This property defines the maxzimum size of file to be processed in the comparison.
       @precon  None.
-      @postcon Returns the maxzimum size of file to be processed in the comparison. 
+      @postcon Returns the maxzimum size of file to be processed in the comparison.
       @return  an Int64
     **)
     Property MaxFileSize : Int64 Read FMaxFileSize Write FMaxFileSize;
@@ -309,6 +383,7 @@ Type
   Strict Private
     FFolderPath         : String;
     FFiles              : TObjectList;
+    //: FMovedFiles         : TObjectList;
     FSearchStartNotifier: TSearchStartNotifier;
     FSearchNotifier     : TSearchNotifier;
     FSearchEndNotifier  : TSearchEndNotifier;
@@ -330,6 +405,12 @@ Type
     Procedure DoSearchEnd(iFileCount: Integer; iTotalSize: Int64);
     Procedure DoAddEmptyFolder(strFolder : String);
     Function  Find(strFCName : String) : Integer;
+    Procedure Add(iIndex : Integer; strFileName : String; iSize : Int64;
+      iAttribs, iDateTime : Integer; iStatus : TStatus);
+    {: Function  FindMovedFile(strFileName : String; iSize : Int64;
+      iDateTime : Integer; var iFirst : Integer) : Boolean;
+    Function  GetMovedFile(iIndex : Integer) : TMovedFileRecord;
+    Function  GetMovedFileCount : Integer; }
   Public
     Constructor Create; Virtual;
     Destructor Destroy; Override;
@@ -372,6 +453,8 @@ Type
       @return  an Int64
     **)
     Property TotalCount: Int64 Read FTotalCount;
+    //: Property MovedFiles[iIndex : Integer] : TMovedFileRecord Read GetMovedFile;
+    //: Property MovedFileCount : Integer Read GetMovedFileCount;
     (**
       This is an event handler for the start of the searching for files process.
       @precon  None.
@@ -429,6 +512,7 @@ Type
     Procedure SetSearchNotifier(SearchNotifier: TSearchNotifier);
     Procedure SetSearchStartNotifier(SearchStartNotifier: TSearchStartNotifier);
     Procedure SetSearchEndNotifier(SearchEndNotifier: TSearchEndNotifier);
+    //: Procedure FindMovedFiles;
   Public
     Constructor Create(AddEmptyFolderProc : TAddEmptyFolder); Virtual;
     Destructor Destroy; Override;
@@ -681,10 +765,10 @@ Type
       (** A constant value in the class to define the growth capacity of the collection. **)
       iCAPACITY: Integer = 100;
   Strict Protected
-    Function GetCount : Integer;                             
+    Function GetCount : Integer;
     Function GetValue(iIndex : Integer) : Integer;
     Function Find(iValue : Integer) : Integer;
-  Public                         
+  Public
     Constructor Create;
     Destructor Destroy; Override;
     Procedure Add(iValue : Integer);
@@ -708,8 +792,15 @@ Type
   End;
 
   (** An enumerate to define the File Operation Statistics that can be stored. **)
-  TFileOpStat = (fosDelete, fosCopy, fosSizeDiff, fosDoNothing, fosTotalLeft,
-    fosTotalRight, fosDifference);
+  TFileOpStat = (
+    fosDelete,
+    fosCopy,
+    fosSizeDiff,
+    fosDoNothing,
+    fosTotalLeft,
+    fosTotalRight,
+    fosDifference
+  );
 
   (** A set of the above file operation statistics. **)
   TFileOpStats = Set Of TFileOpStat;
@@ -778,6 +869,7 @@ Type
     FDrives                        : TDriveTotals;
     FCopyErrors                    : TSortedIntegerList;
     FDeleteErrors                  : TSortedIntegerList;
+    FFldrSyncOptions               : TFldrSyncOptions;
   Strict Protected
     Function GetCount: Integer;
     Function GetCompareFolders(iIndex: Integer): TCompareFolders;
@@ -836,7 +928,7 @@ Type
     Procedure DeleteIndividualFile(strPath: String; F: TFileRecord; iFile: Integer;
       Var FileActions : TFileActions; SyncOps: TSyncOptions);
     Function CopyIndividualFile(strSource, strDest: String; SourceFile,
-      DestFile: TFileRecord; Var FileActions : TFileActions; 
+      DestFile: TFileRecord; Var FileActions : TFileActions;
       SyncOps: TSyncOptions): TProcessSuccess;
     Function CanByPassQuery(SyncOps: TSyncOptions; boolReadOnly : Boolean;
       Var Option: TFileAction): Boolean;
@@ -866,13 +958,14 @@ Type
     Procedure AddFileOpStat(FileOpStat : TFileOpStat; strName : String; iCount,
       iSize : Int64);
     Function GetStatistics(FileOpStat : TFileOpStat) : TFileOpStatRec;
+    Function DeleteFileFromDisk(strFileName : String) : Boolean;
   Public
     Constructor Create; Virtual;
     Destructor Destroy; Override;
     Function ProcessFolders(Folders: TFolders; strExclusions: String): Boolean;
-    Procedure ProcessFiles;
+    Procedure ProcessFiles(FldrSyncOptions : TFldrSyncOptions);
     Procedure Clear;
-    Procedure BuildStats;    
+    Procedure BuildStats;
     Procedure BuildTotals;
     (**
       This property returns the number of files to process in the internal process list.
@@ -1259,7 +1352,12 @@ Uses
   FileCtrl,
   DGHLibrary,
   Math,
-  ShlwAPI;
+  ShlwAPI,
+  ShellAPI;
+
+{: Const
+  strStatus : Array[Low(TStatus)..High(TStatus)] Of String = (
+    'Newer', 'Older', 'Same', 'DiffSize', 'TooLarge'); }
 
 (**
 
@@ -1321,15 +1419,58 @@ Begin
     End;
 End;
 
+{ TBaseFileRecord }
+
+(**
+
+  This is a constructor for the TBaseFileRecord class.
+
+  @precon  None.
+  @postcon Intialises the class fields based on the file information passed.
+
+  @param   strName     as a String
+  @param   iSize       as an Int64
+  @param   iAttributes as an Integer
+  @param   dtDateTime  as an Integer
+
+**)
+Constructor TBaseFileRecord.CreateBase(strName: String; iSize: Int64;
+  iAttributes, dtDateTime: Integer);
+
+Begin
+  FFileName   := strName;
+  FSize       := iSize;
+  FAttributes := iAttributes;
+  FDateTime   := dtDateTime;
+End;
+
+{ TMovedFileRecord }
+
+{ Procedure TMovedFileRecord.AddPath(strPath: String; ptrReference : TObject);
+
+Begin
+  FPaths.AddObject(strPath, ptrReference);
+End;
+
+Constructor TMovedFileRecord.CreateMovedFile(strName: String; iSize: Int64;
+  iAttributes, dtDateTime: Integer);
+
+Begin
+  Inherited CreateBase(strName, iSize, iAttributes, dtDateTime);
+  FPaths := TstringList.Create;
+  FPaths.Duplicates := dupIgnore;
+  FPaths.Sorted := True;
+End; }
+
 { TFolder }
 
 (**
 
-  This method assigns the properties of the given folder to the current instance of a 
+  This method assigns the properties of the given folder to the current instance of a
   folder.
 
   @precon  AFolder must be a valid instance.
-  @postcon Assigns the properties of the given folder to the current instance of a 
+  @postcon Assigns the properties of the given folder to the current instance of a
            folder.
 
   @param   AFolder as a TFolder
@@ -1405,7 +1546,7 @@ Procedure TFolders.Assign(Folders: TFolders);
 Var
   i : Integer;
   AFolder: TFolder;
-  
+
 Begin
   FFolders.Clear;
   For i := 0 To Folders.Count - 1 Do
@@ -1527,15 +1668,12 @@ End;
   @param   Status      as a TStatus
 
 **)
-Constructor TFileRecord.Create(strName: String; iSize: Int64; iAttributes: Integer;
+Constructor TFileRecord.CreateFile(strName: String; iSize: Int64; iAttributes: Integer;
   dtDateTime: Integer; Status: TStatus);
 
 Begin
-  FFileName   := strName;
-  FSize       := iSize;
-  FAttributes := iAttributes;
-  FDateTime   := dtDateTime;
-  FStatus     := Status;
+  Inherited CreateBase(strName, iSize, iAttributes, dtDateTime);
+  FStatus := Status;
 End;
 
 (**
@@ -1555,7 +1693,68 @@ Begin
     FStatus := Status;
 End;
 
+{ Destructor TMovedFileRecord.Destroy;
+
+Begin
+  FPaths.Free;
+  Inherited Destroy;
+End;
+
+Function TMovedFileRecord.GetPath(iIndex: Integer): String;
+
+Begin
+  Result := FPaths[iIndex];
+End;
+
+Function TMovedFileRecord.GetPathCount: Integer;
+
+Begin
+  Result := FPaths.Count;
+End;
+
+Function TMovedFileRecord.GetStatus(iIndex: Integer): TStatus;
+
+Begin
+  Result := (FPaths.Objects[iIndex] As TFileRecord).Status;
+End; }
+
 { TFileList }
+
+(**
+
+  This method adds a file to the file list.
+
+  @precon  None.
+  @postcon The file is added to the file list.
+
+  @param   iIndex      as an Integer
+  @param   strFileName as a String
+  @param   iSize       as an Int64
+  @param   iAttribs    as an Integer
+  @param   iDateTime   as an Integer
+  @param   iStatus     as a TStatus
+
+**)
+Procedure TFileList.Add(iIndex : Integer; strFileName : String; iSize : Int64;
+  iAttribs, iDateTime : Integer; iStatus : TStatus);
+
+Var
+  // iMovedIndex: Integer;
+  FR: TFileRecord;
+  // MF: TMovedFileRecord;
+
+Begin
+  FR := TFileRecord.CreateFile(strFileName, iSize, iAttribs, iDateTime, iStatus);
+  FFiles.Insert(iIndex, FR);
+  { If Not FindMovedFile(ExtractFileName(strFileName), iSize, iDateTime, iMovedIndex) Then
+    Begin
+      MF := TMovedFileRecord.CreateMovedFile(ExtractFileName(strFileName), iSize, iAttribs,
+        iDateTime);
+      FMovedFiles.Insert(Abs(iMovedIndex), MF);
+    End Else
+      MF := MovedFiles[iMovedIndex];
+  MF.AddPath(ExtractFilePath(strFileName), FR);}
+End;
 
 (**
 
@@ -1571,6 +1770,7 @@ Begin
   Inherited Create;
   FTotalSize   := 0;
   FFiles       := TObjectList.Create(True);
+  // FMovedFiles  := TObjectList.Create(True);
   FFileFilters := TStringList.Create;
 End;
 
@@ -1603,6 +1803,7 @@ Destructor TFileList.Destroy;
 
 Begin
   FFileFilters.Free;
+  // FMovedFiles.Free;
   FFiles.Free;
   FExclusions.Free;
   Inherited;
@@ -1716,10 +1917,50 @@ Begin
   Result := iFirst;
 End;
 
+(** Function TFileList.FindMovedFile(strFileName: String; iSize: Int64;
+  iDateTime: Integer; var iFirst : Integer): Boolean;
+
+Var
+  iMid, iLast : Integer;
+  iResult: Int64;
+  MF: TMovedFileRecord;
+
+Begin
+  Result := False;
+  iFirst := 0;
+  iLast := FMovedFiles.Count - 1;
+  While iFirst <= iLast Do
+    Begin
+      iMid := (iFirst + iLast) Div 2;
+      MF := MovedFiles[iMid];
+      iResult := AnsiCompareFileName(MF.FileName, strFileName);
+      Case iResult Of
+        -2147483648..-1: {<} iFirst := iMid + 1;
+        +1..+2147483647: {>} iLast := iMid - 1;
+      Else
+        iResult := MF.DateTime - iDateTime;
+        Case iResult Of
+          -2147483648..-1: {<} iFirst := iMid + 1;
+          +1..+2147483647: {>} iLast := iMid - 1;
+        Else
+          iResult := MF.Size - iSize;
+          Case iResult Of
+            -2147483648..-1: {<} iFirst := iMid + 1;
+            +1..+2147483647: {>} iLast := iMid - 1;
+          Else
+            iFirst := iMid;
+            Result := True;
+            Break;
+          End;
+        End;
+      End;
+    End;
+End; **)
+
 (**
 
-  This method searches the give folder for files matching the file filters and excluding 
-  any files that match one of the exclusions somewhere in their path and adds them to the 
+  This method searches the give folder for files matching the file filters and excluding
+  any files that match one of the exclusions somewhere in their path and adds them to the
   folder collection.
 
   @precon  None.
@@ -1791,6 +2032,18 @@ Begin
   Result := FFiles.Items[iIndex] As TFileRecord;
 End;
 
+{: Function TFileList.GetMovedFile(iIndex: Integer): TMovedFileRecord;
+
+Begin
+  Result := FMovedFiles[iIndex] As TMovedFileRecord;
+End;
+
+Function TFileList.GetMovedFileCount: Integer;
+
+Begin
+  Result := FMovedFiles.Count;
+End; }
+
 (**
 
   This method recurses the passed folder for file name and adds them to the file
@@ -1836,8 +2089,7 @@ Begin
                             Length(strFileName));
                           iIndex := Find(strFCName);
                           {$WARN SYMBOL_DEPRECATED OFF}
-                          FFiles.Insert(iIndex, TFileRecord.Create(strFCName, rec.Size,
-                              rec.Attr, rec.Time, stNewer));
+                          Add(iIndex, strFCName, rec.Size, rec.Attr, rec.Time, stNewer);
                           {$WARN SYMBOL_DEPRECATED ON}
                           Inc(FTotalSize, rec.Size);
                           Inc(FTotalCount);
@@ -2001,7 +2253,7 @@ Begin
               RightFldr[iRight].Status := stNewer;
             Inc(iRight);
           End;
-      Else  
+      Else
         DoCompare(LeftFldr.FolderPath, RightFldr.FolderPath, LeftFldr[iLeft].FileName,
           Max(iLeft + 1, iRight + 1), Max(LeftFldr.Count, RightFldr.Count));
         iTimeDifference := LeftFldr[iLeft].DateTime - RightFldr[iRight].DateTime;
@@ -2034,8 +2286,8 @@ Begin
           End;
         Inc(iLeft);
         Inc(iRight);
-      End; 
-    End;        
+      End;
+    End;
   DoCompareEnd;
 End;
 
@@ -2129,6 +2381,38 @@ Begin
     FCompareStartNotifier(strLeftFldr, strRightFldr);
 End;
 
+{: Procedure TCompareFolders.FindMovedFiles;
+
+Var
+  i : Integer;
+  MF: TMovedFileRecord;
+  dtFileDateTime: TDateTime;
+  j: Integer;
+  S: TStatus;
+
+Begin
+  For i := 0 To LeftFldr.MovedFileCount - 1 Do
+    Begin
+      MF := LeftFldr.MovedFiles[i];
+      If MF.PathCount > 1 Then
+        For j := 0 To MF.PathCount - 1 Do
+          Begin
+            S := MF.Status[j];
+            If S In [stNewer, stOlder] Then
+              Begin
+                dtFileDateTime := FileDateToDateTime(MF.DateTime);
+                CodeSite.SendFmtMsg('%s, %s, %d, %s = %s', [
+                  MF.FileName,
+                  FormatDateTime('dd/mmm/yyyy hh:mm:ss', dtFileDateTime),
+                  MF.Size,
+                  MF.Path[j],
+                  strStatus[S]
+                ]);
+              End;
+          End;
+    End;
+End; }
+
 (**
 
   This method starts the process of searching the give folders for files.
@@ -2159,7 +2443,7 @@ Begin
   FLeftFldr.SearchFolder(strLeftFldr, strPatterns, strExclusions, SyncOps, iMaxFileSize);
   FRightFldr.SearchFolder(strRightFldr, strPatterns, strExclusions, SyncOps, iMaxFileSize);
   CompareFolders;
-  //: @todo Implement spotting moved files.
+  // FindMovedFiles;
 End;
 
 (**
@@ -2335,6 +2619,7 @@ Var
   iCollection  : Integer;
   iRight, iLeft: Integer;
   CP           : TCompareFolders;
+  iResult      : Integer;
 
 Begin
   DoMatchListStart;
@@ -2351,23 +2636,22 @@ Begin
           DoMatchList(Max(iLeft, iRight) + 1, Max(CP.LeftFldr.Count, CP.RightFldr.Count));
           If (CP.LeftFldr.Count > iLeft) And (CP.RightFldr.Count > iRight) Then
             Begin
-              If AnsiCompareFileName(CP.LeftFldr[iLeft].FileName,
-                CP.RightFldr[iRight].FileName) = 0 Then
+              iResult := AnsiCompareFileName(CP.LeftFldr[iLeft].FileName,
+                CP.RightFldr[iRight].FileName);
+              If iResult = 0 Then
                 Begin
                   InsertItem(CP.LeftFldr.FolderPath, CP.RightFldr.FolderPath,
                     CP.LeftFldr[iLeft], CP.RightFldr[iRight], CP.SyncOptions);
                   FindNextNonSame(CP.LeftFldr, iLeft);
                   FindNextNonSame(CP.RightFldr, iRight);
                 End
-              Else If AnsiCompareFileName(CP.LeftFldr[iLeft].FileName,
-                CP.RightFldr[iRight].FileName) < 0 Then
+              Else If iResult < 0 Then
                 Begin
                   InsertItem(CP.LeftFldr.FolderPath, CP.RightFldr.FolderPath,
                     CP.LeftFldr[iLeft], Nil, CP.SyncOptions);
                   FindNextNonSame(CP.LeftFldr, iLeft);
                 End
-              Else If AnsiCompareFileName(CP.LeftFldr[iLeft].FileName,
-                CP.RightFldr[iRight].FileName) > 0 Then
+              Else If iResult > 0 Then
                 Begin
                   InsertItem(CP.LeftFldr.FolderPath, CP.RightFldr.FolderPath, Nil,
                     CP.RightFldr[iRight], CP.SyncOptions);
@@ -2525,7 +2809,7 @@ End;
   This method copies the contents of a files from the source to the destination.
 
   @precon  None.
-  @postcon Coppies the sourcefile to the destination file and increments the numver of 
+  @postcon Coppies the sourcefile to the destination file and increments the numver of
            files copied.
 
   @param   strSourceFile as a String
@@ -2553,7 +2837,7 @@ Function TCompareFoldersCollection.CopyFileContents(strSourceFile, strDestFile: 
   Var
     recSearch: TSearchRec;
     iResult: Integer;
-  
+
   Begin
     Result := 0;
     iResult := FindFirst(strFileName, faAnyFile, recSearch);
@@ -2609,7 +2893,7 @@ Begin
                     derIgnoreAll : Result := psIgnoreAll;
                   Else
                     Result := psFailed;
-                  End;                  
+                  End;
                 End;
               AddToErrors(Format(strExceptionMsg, [strSourceFile, strDestFile,
                 strErrorMsg]));
@@ -2793,11 +3077,11 @@ End;
 
 (**
 
-  This method counts the number of files to operated on depending on the file operation 
+  This method counts the number of files to operated on depending on the file operation
   and the files available. Also returns the size if the files.
 
   @precon  None.
-  @postcon Counts the number of files to operated on depending on the file operation and 
+  @postcon Counts the number of files to operated on depending on the file operation and
            the files available. Also returns the size if the files.
 
   @param   FileOps as a TFileOps
@@ -2873,11 +3157,11 @@ End;
 
 (**
 
-  This method decrements the number of files and sub-folders associated with a folder in 
+  This method decrements the number of files and sub-folders associated with a folder in
   the empty folder collection.
 
   @precon  None.
-  @postcon The number of files and sub-folders associated with the folder is decremented 
+  @postcon The number of files and sub-folders associated with the folder is decremented
            by 1.
 
   @param   strFolder as a String
@@ -2889,7 +3173,7 @@ Function TCompareFoldersCollection.DecrementFolder(strFolder: String) : Boolean;
 Var
   iIndex : Integer;
   iFileCount: NativeUInt;
-  
+
 Begin
   Result := False;
   If FEmptyFolders.Find(strFolder, iIndex) Then
@@ -2922,7 +3206,7 @@ Var
   iFileCount: NativeUInt;
   iFolderCount : Integer;
   iFolder : Integer;
-  
+
 Begin
   iFolderCount := 0;
   For i := 0 To FEmptyFolders.Count - 1 Do
@@ -2950,6 +3234,55 @@ Begin
         End;
     End;
   DoDeleteFoldersEnd;
+End;
+
+(**
+
+  This method deletes the given file from disk either to the recycle bin or permanently
+  depending upon the global options.
+
+  @bug     Deleting to the recycle bin will not work on filename longer then MAX_PATH.
+
+  @precon  None.
+  @postcon The file is deleted.
+
+  @param   strFileName as a String
+  @return  a Boolean
+
+**)
+Function TCompareFoldersCollection.DeleteFileFromDisk(strFileName: String): Boolean;
+
+Var
+  FileOp : TSHFileOpStruct;
+  iResult : Integer;
+
+Begin
+  If fsoPermanentlyDeleteFiles In FFldrSyncOptions Then
+    // Success is return > zero
+    Result := DeleteFile(PChar(strFileName))
+  Else
+    Begin
+      // SHFileOperation does not support Unicode filenames.
+      If Copy(strFileName, 1, 4) = '\\?\UNC\' Then
+        Delete(strFileName, 1, 8);
+      If Copy(strFileName, 1, 4) = '\\?\' Then
+        Delete(strFileName, 1, 4);
+      strFileName := strFileName + #0#0;
+      with FileOp do
+         begin
+           wnd := 0;
+           wFunc := FO_DELETE;
+           pFrom := PChar(strFileName);
+           pTo := Nil;
+           fFlags := FOF_ALLOWUNDO Or FOF_NOCONFIRMATION;
+           fAnyOperationsAborted := False;
+           hNameMappings := Nil;
+           lpszProgressTitle := Nil;
+         end;
+      // Success is return = zero.
+      iResult := SHFileOperation(FileOp);
+      Result := iResult = 0;
+    End;
 End;
 
 (**
@@ -3081,7 +3414,7 @@ Begin
           End;
         Inc(FCopiedTotalSize, F.Size);
         DecrementFolder(ExtractFilePath(strPath + F.FileName));
-        If Not DeleteFile(PChar(Expand(strPath + F.FileName))) Then
+        If Not DeleteFileFromDisk(Expand(strPath + F.FileName)) Then
           Begin
             If Assigned(FDeleteErrorNotifier) Then
               Begin
@@ -3842,7 +4175,7 @@ Function TCompareFoldersCollection.FileCount(strFolder: String): NativeUInt;
 Var
   recSearch : TSearchRec;
   iResult: Integer;
-  
+
 Begin
   Result := 0;
   iResult := FindFirst(strFolder + '*.*', faAnyFile, recSearch);
@@ -3992,7 +4325,7 @@ Procedure TCompareFoldersCollection.IncrementFolder(strFolder: String);
 Var
   iIndex : Integer;
   iFileCount : Integer;
-  
+
 Begin
   If FEmptyFolders.Find(strFolder, iIndex) Then
     Begin
@@ -4115,10 +4448,13 @@ End;
   @precon  None.
   @postcon Processes the file for copying and deletion.
 
+  @param   FldrSyncOptions as a TFldrSyncOptions
+
 **)
-Procedure TCompareFoldersCollection.ProcessFiles;
+Procedure TCompareFoldersCollection.ProcessFiles(FldrSyncOptions : TFldrSyncOptions);
 
 Begin
+  FFldrSyncOptions := FldrSyncOptions;
   FCopyErrors.Clear;
   FDeleteErrors.Clear;
   FErrorMsgs.Clear;
@@ -4433,7 +4769,7 @@ End;
 Function DriveComparisonFunction(Item1, Item2 : Pointer) : Integer;
 
 Begin
-  Result := CompareText(TDriveTotal(Item1).Drive, TDriveTotal(Item2).Drive); 
+  Result := CompareText(TDriveTotal(Item1).Drive, TDriveTotal(Item2).Drive);
 End;
 
 (**
@@ -4468,7 +4804,7 @@ Var
   iIndex : Integer;
   i: Integer;
   tmp : TArrayOfInteger;
-  
+
 Begin
   iIndex := Find(iValue);
   Inc(FCount);
@@ -4549,7 +4885,7 @@ Function TSortedIntegerList.Find(iValue: Integer): Integer;
 
 Var
   iFirst, iMid, iLast : Integer;
-  
+
 Begin
   iFirst := 1;
   iLast := FCount;
