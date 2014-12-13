@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    16 Sep 2014
+  @Date    13 Dec 2014
 
 **)
 Unit CommandLineProcess;
@@ -21,7 +21,8 @@ Uses
 Type
   (** This enumerate describe the available command line options switches that can be
       applied to the application. **)
-  TCommandLineOption = (cloPause, cloCheckForUpdates, cloHelp, cloQuiet);
+  TCommandLineOption = (cloPause, cloCheckForUpdates, cloHelp, cloQuiet,
+    clsDeletePermentently);
   (** This is a set of the above command line option switches. **)
   TCommandLineOptions = Set Of TCommandLineOption;
 
@@ -48,12 +49,14 @@ Type
     FSyncOptions         : TSyncOptions;
     FTotalFiles          : Int64;
     FTotalSize           : Int64;
+    FCopiedSize          : Int64;
     FOutputUpdateInterval: Integer;
     FInputColour         : TColor;
     FReadOnlyColour      : TColor;
     FExceptionColour     : TColor;
     FHeaderColour        : TColor;
     FMaxFileSize         : Int64;
+    FFldrSyncOptions     : TFldrSyncOptions;
   Strict Protected
     Procedure ExceptionProc(strMsg: String);
     Function GetPause: Boolean;
@@ -254,9 +257,10 @@ Procedure TCommandLineProcessing.CopiedProc(iCopiedFiles: Integer; iCopiedFileTo
   iCopiedTotalSize: Int64; iSuccess: TProcessSuccess);
 
 Begin
+  FCopiedSize := iCopiedTotalSize;
   Case iSuccess Of
-    psSuccessed: OutputToConsoleLn(FStd, Format(' %1.1n%% Complete',
-        [Int64(iCopiedTotalSize) / Int64(FTotalSize) * 100.0]), FSuccessColour);
+    //psSuccessed: OutputToConsole(FStd, Format(' %1.1n%% Complete',
+    //    [Int64(iCopiedTotalSize) / Int64(FTotalSize) * 100.0]), FSuccessColour);
     psFailed: OutputToConsoleLn(FStd, ' Error Copying file (error type ignored).',
       FExceptionColour);
     //psIgnored: OutputToConsoleLn(FStd, ' Ignored Copying file.', FExceptionColour);
@@ -278,7 +282,9 @@ End;
 Procedure TCommandLineProcessing.CopyContentsProc(iCopiedSize, iTotalSize: Int64);
 
 Begin
-  OutputToConsole(FStd, Format(' %1.1f%%', [Int(iCopiedSize) / Int(iTotalSize) * 100]),
+  OutputToConsole(FStd, Format('    Copying %1.1f%% (%1.2f%%)',
+    [Int64(iCopiedSize) / Int64(iTotalSize) * 100.0,
+     Int64(FCopiedSize + iCopiedSize) / Int64(FTotalSize) * 100.0]),
     clNone, clNone, False);
 End;
 
@@ -330,7 +336,7 @@ Var
   Ch: Char;
 
 Begin
-  OutputToConsoleLn(FStd);
+  //OutputToConsoleLn(FStd);
   OutputToConsoleLn(FStd, '    An error has occurred during the copying of files:',
     FExceptionColour);
   OutputToConsoleLn(FStd, Format('      Source     : %s', [strSource]));
@@ -376,9 +382,9 @@ Begin
   Else
     iColour := FNotExistsColour;
   If Not IsRO(strSource + strFileName) Then
-    OutputToConsole(FStd, strFileName, iColour)
+    OutputToConsoleLn(FStd, strFileName, iColour)
   Else
-    OutputToConsole(FStd, strFileName, FReadOnlyColour);
+    OutputToConsoleLn(FStd, strFileName, FReadOnlyColour);
 End;
 
 (**
@@ -399,7 +405,7 @@ Procedure TCommandLineProcessing.CopyQueryProc(strSourcePath, strDestPath: Strin
   SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
 
 Begin
-  FileQuery(' Overwrite (Y/N/A/O/C)? ', strDestPath + DestFile.FileName, SourceFile, Option,
+  FileQuery('    Overwrite (Y/N/A/O/C)? ', strDestPath + DestFile.FileName, SourceFile, Option,
     False)
 End;
 
@@ -421,7 +427,7 @@ Procedure TCommandLineProcessing.CopyReadOnlyQueryProc(strSourcePath, strDestPat
   SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
 
 Begin
-  FileQuery(' Overwrite READONLY (Y/N/A/O/C)? ', strDestPath + DestFile.FileName,
+  FileQuery('    Overwrite READONLY (Y/N/A/O/C)? ', strDestPath + DestFile.FileName,
     SourceFile, Option, True)
 End;
 
@@ -1028,7 +1034,10 @@ Begin
                 End;
               End;
           End;
-        CFC.ProcessFiles;
+        FFldrSyncOptions := [];
+        If clsDeletePermentently In FCommandLineOptions Then
+          Include(FFldrSyncOptions, fsoPermanentlyDeleteFiles);
+        CFC.ProcessFiles(FFldrSyncOptions);
       Except
         On E : EAbort Do {Do nothing};
         On E : Exception Do
@@ -1065,8 +1074,12 @@ Procedure TCommandLineProcessing.FileQuery(strMsg, strFilePath: String;
 
 Var
   C: Char;
+  ConsoleInfo : TConsoleScreenBufferInfo;
+  OldPos : TCoord;
 
 Begin
+  Win32Check(GetConsoleScreenBufferInfo(FStd, ConsoleInfo));
+  OldPos := ConsoleInfo.dwCursorPosition;
   If (Not boolReadOnly And Not (Option In [faYesToAll, faNoToAll])) Or
      (    boolReadOnly And Not (Option In [faYesToAllRO, faNoToAllRO])) Then
     Begin
@@ -1094,6 +1107,9 @@ Begin
       End;
       OutputToConsole(FStd, strFileOptions[Option], FInputColour);
     End;
+  Win32Check(SetConsoleCursorPosition(FStd, OldPos));
+  OutputToConsole(FStd, StringOfChar(#32, Length(strMsg + strFileOptions[Option])));
+  Win32Check(SetConsoleCursorPosition(FStd, OldPos));
 End;
 
 (**
@@ -1424,6 +1440,8 @@ Begin
             Include(FSyncOptions, soPrimaryLeft)
           Else If CompareText(strOption, 'PrimaryRight') = 0 Then
             Include(FSyncOptions, soPrimaryRight)
+          Else If CompareText(strOption, 'DeletePermentently') = 0 Then
+            Include(FCommandLineOptions, clsDeletePermentently)
           Else If CompareText(Copy(strOption, 1, 1), 'E') = 0 Then
             FExclusions := StringReplace(Copy(strOption, 2, Length(strOption) - 1), ';',
               #13#10, [rfReplaceAll])
