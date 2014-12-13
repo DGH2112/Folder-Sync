@@ -3,11 +3,11 @@ object frmDeleteProgress: TfrmDeleteProgress
   Top = 20
   BorderIcons = []
   Caption = 'Deleting Files'
-  ClientHeight = 102
+  ClientHeight = 122
   ClientWidth = 441
   Color = clBtnFace
-  Constraints.MaxHeight = 140
-  Constraints.MinHeight = 140
+  Constraints.MaxHeight = 160
+  Constraints.MinHeight = 160
   Constraints.MinWidth = 457
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -22,7 +22,7 @@ object frmDeleteProgress: TfrmDeleteProgress
   OnShow = FormShow
   DesignSize = (
     441
-    102)
+    122)
   PixelsPerInch = 96
   TextHeight = 13
   object lblFromLabel: TLabel
@@ -71,9 +71,18 @@ object frmDeleteProgress: TfrmDeleteProgress
     EllipsisPosition = epPathEllipsis
     ExplicitWidth = 371
   end
+  object lblDeleteStatus: TLabel
+    Left = 8
+    Top = 43
+    Width = 425
+    Height = 13
+    Alignment = taRightJustify
+    Anchors = [akLeft, akTop, akRight]
+    AutoSize = False
+  end
   object pbrOverall: TProgressBar
     Left = 8
-    Top = 46
+    Top = 59
     Width = 425
     Height = 17
     Anchors = [akLeft, akTop, akRight]
@@ -83,7 +92,7 @@ object frmDeleteProgress: TfrmDeleteProgress
   end
   object btnCancel: TBitBtn
     Left = 192
-    Top = 69
+    Top = 89
     Width = 65
     Height = 25
     Anchors = [akLeft, akRight, akBottom]
@@ -91,5 +100,6 @@ object frmDeleteProgress: TfrmDeleteProgress
     NumGlyphs = 2
     TabOrder = 1
     OnClick = btnCancelClick
+    ExplicitTop = 69
   end
 end

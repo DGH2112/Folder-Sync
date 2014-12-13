@@ -4,7 +4,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    02 Nov 2014
+  @Date    22 Nov 2014
 
 **)
 Unit FileDeleteProgressForm;
@@ -24,7 +24,8 @@ Uses
   StdCtrls,
   Buttons,
   ComCtrls,
-  SyncModule;
+  SyncModule,
+  UITypes;
 
 Type
   (** An enumerate to define the deletion type to be displayed **)
@@ -38,6 +39,7 @@ Type
     lblFilename: TLabel;
     pbrOverall: TProgressBar;
     btnCancel: TBitBtn;
+    lblDeleteStatus: TLabel;
     Procedure btnCancelClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -242,11 +244,17 @@ End;
 **)
 Procedure TfrmDeleteProgress.Progress(iSize : Int64; iTotalSize : Int64 = 0);
 
+Const
+  dblFactor : Double = 1024.0;
+
 Begin
   If iTotalSize > 0 Then
     FTotalSize := iTotalSize;
   If FTotalSize = 0 Then
     Inc(FTotalSize);
+  lblDeleteStatus.Caption := Format('Deleted %1.0n kbytes in %1.0n kbytes [%1.1f%%]',
+    [Int(iSize) / dblFactor, Int(FTotalSize) / dblFactor,
+    Int(iSize) / Int(FTotalSize) * 100.0]);
   pbrOverall.Position := Trunc(Int(iSize) / Int(FTotalSize) * pbrOverall.Max);
   pbrOverall.Position := pbrOverall.Position - 1;
   pbrOverall.Position := pbrOverall.Position + 1;
