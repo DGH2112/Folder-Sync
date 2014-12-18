@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    13 Dec 2014
+  @Date    18 Dec 2014
 
 **)
 Unit CommandLineProcess;
@@ -487,8 +487,8 @@ Procedure TCommandLineProcessing.DeletedProc(iFile: Integer; iSize: Int64;
 
 Begin
   Case iSuccess Of
-    psSuccessed: OutputToConsoleLn(FStd, Format(' %1.1n%% Complete',
-      [Int(iFile) / Int(FTotalFiles) * 100.0]), FSuccessColour);
+    //psSuccessed: OutputToConsoleLn(FStd, Format(' %1.1n%% Complete',
+    //  [Int(iFile) / Int(FTotalFiles) * 100.0]), FSuccessColour);
     psFailed: OutputToConsoleLn(FStd, ' Error Deleting file (error type ignored).',
       FExceptionColour);
     //psIgnored: OutputToConsoleLn(FStd, ' Ignored Copying file.', FExceptionColour);
@@ -542,7 +542,7 @@ Var
   Ch : Char;
   
 Begin
-  OutputToConsoleLn(FStd);
+  //OutputToConsoleLn(FStd);
   OutputToConsoleLn(FStd, '    An error has occurred during the deletion of files:',
     FExceptionColour);
   OutputToConsoleLn(FStd, Format('      Source     : %s', [strSource]));
@@ -624,9 +624,9 @@ Procedure TCommandLineProcessing.DeletingProc(iFile : Integer; strFileName: Stri
 
 Begin
   If Not IsRO(strFileName) Then
-    OutputToConsole(FStd, #32#32 + strFileName, FExistsColour)
+    OutputToConsoleLn(FStd, #32#32 + strFileName, FExistsColour)
   ELse
-    OutputToConsole(FStd, #32#32 + strFileName, FReadOnlyColour);
+    OutputToConsoleLn(FStd, #32#32 + strFileName, FReadOnlyColour);
 End;
 
 (**
@@ -645,7 +645,7 @@ Procedure TCommandLineProcessing.DeleteQueryProc(strFilePath: String;
   DeleteFile : TFileRecord; Var Option: TFileAction);
 
 Begin
-  FileQuery(' Delete (Y/N/A/O/C)? ', strFilePath, DeleteFile, Option, False);
+  FileQuery('    Delete (Y/N/A/O/C)? ', strFilePath, DeleteFile, Option, False);
 End;
 
 (**
@@ -664,7 +664,7 @@ Procedure TCommandLineProcessing.DeleteReadOnlyQueryProc(strFilePath: String;
   DeleteFile : TFileRecord; Var Option: TFileAction);
 
 Begin
-  FileQuery(' Delete READONLY (Y/N/A/O/C)? ', strFilePath, DeleteFile, Option, True);
+  FileQuery('    Delete READONLY (Y/N/A/O/C)? ', strFilePath, DeleteFile, Option, True);
 End;
 
 (**
