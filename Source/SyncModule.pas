@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    13 Dec 2014
+  @Date    20 Dec 2014
   @Author  David Hoyle
 
 **)
@@ -2171,7 +2171,12 @@ Const
   Direction: Array [cdNewer .. cdOlder] Of Integer = (1, -1);
 
 Begin
-  Result := (Direction[Check] * iTimeDifference > 0);
+  //: @Note FileAge date and time resolution is to the nearest 2 seconds equals 1 integer.
+  //: @todo Discount time difference of 2 seconds.
+  If Direction[Check] < 0 Then
+    Result := (iTimeDifference < -1)
+  Else
+    Result := (iTimeDifference > 1);
   Result := Result And Not((iTimeDifference = Direction[Check] * 2048)
     { And (iSizeDifference = 0)});
   Result := Result And Not((iTimeDifference = Direction[Check] * 18432)
