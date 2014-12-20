@@ -1,5 +1,6 @@
+//: @stopdocumentation
 unit TestFileComparision;
-{
+{:
 
   Delphi DUnit Test Case
   ----------------------
@@ -174,6 +175,12 @@ begin
   Check(CheckDates('07/01/2007 22:41:12', '08/01/2007 00:11:12', 0, cdOlder), 'Diff Day, 1 1/2 Hours Before');
   Check(CheckDates('08/01/2007 00:11:12', '07/01/2007 23:41:12', 0, cdNewer), 'Diff Day, 1/2 Hour Before');
   Check(CheckDates('08/01/2007 00:41:12', '07/01/2007 23:11:12', 0, cdNewer), 'Diff Day, 1 1/2 Hours Before');
+
+  Check(CheckDates('08/01/2007 06:41:12', '08/01/2007 06:41:16', 0, cdOlder), '4 Seconds Older');
+  Check(Not CheckDates('08/01/2007 06:41:12', '08/01/2007 06:41:14', 0, cdOlder), '2 Seconds Older');
+  Check(Not CheckDates('08/01/2007 06:41:12', '08/01/2007 06:41:12', 0, cdOlder), 'Same');
+  Check(Not CheckDates('08/01/2007 06:41:12', '08/01/2007 06:41:10', 0, cdNewer), '2 Seconds Newer');
+  Check(CheckDates('08/01/2007 06:41:12', '08/01/2007 06:41:08', 0, cdNewer), '4 Seconds Newer');
 end;
 
 
