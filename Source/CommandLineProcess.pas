@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    18 Dec 2014
+  @Date    03 Jan 2015
 
 **)
 Unit CommandLineProcess;
@@ -118,6 +118,7 @@ Type
       iLastError : Cardinal; var iResult : TDGHErrorResult);
     Procedure DeleteError(strSource, strErrorMsg : String;
       iLastError : Cardinal; var iResult : TDGHErrorResult);
+    Procedure CheckForEscape;
   Public
     Constructor Create;
     Destructor Destroy; Override;
@@ -158,6 +159,73 @@ Begin
 End;
 
 { TCommandLineProcessing }
+
+(**
+
+  This method checks for the Escape having been pressed at the command line and if true
+  prompts the user as to whether they wish to terminate the process.
+
+  @precon  None.
+  @postcon If Esacape is pressed the user is prompted to stop the processing.
+
+**)
+Procedure TCommandLineProcessing.CheckForEscape;
+
+ResourceString
+  strMsg = '    Are you sure you want to stop processing? (Y/N): ';
+
+Const
+  wBufferLength : DWord = 1024;
+
+Var
+  KBBuffer : Array Of TInputRecord;
+  wCharsRead : DWord;
+  wEvents : DWord;
+  Hnd : THandle;
+  i : Integer;
+  C: Char;
+  ConsoleInfo : TConsoleScreenBufferInfo;
+  OldPos : TCoord;
+
+Begin
+  Hnd := GetStdHandle(STD_INPUT_HANDLE);
+  Win32Check(GetNumberOfConsoleInputEvents(Hnd, wEvents));
+  If wEvents > 0 Then
+    Begin
+      SetLength(KBBuffer, wBufferLength);
+      Win32Check(PeekConsoleInput(Hnd, KBBuffer[0], wBufferLength, wCharsRead));
+      If wCharsRead > 0 Then
+        For i := 0 To wEvents - 1 Do
+          If KBBuffer[i].EventType = KEY_EVENT Then
+            Begin
+              If Boolean(KBBuffer[i].Event.KeyEvent.bKeyDown) Then
+                Case KBBuffer[i].Event.KeyEvent.wVirtualKeyCode Of
+                  VK_ESCAPE:
+                    Begin
+                      Win32Check(GetConsoleScreenBufferInfo(FStd, ConsoleInfo));
+                      OldPos := ConsoleInfo.dwCursorPosition;
+                      OutputToConsole(FStd, strMsg, FInputColour);
+                      C := GetConsoleCharacter(['y', 'Y', 'n', 'N']);
+                      Case C Of
+                        'y', 'Y':
+                          Begin
+                            OutputToConsoleLn(FStd, 'Yes', FInputColour);
+                            Abort
+                          End;
+                        'n', 'N':
+                          Begin
+                            Win32Check(SetConsoleCursorPosition(FStd, OldPos));
+                            OutputToConsole(FStd, StringOfChar(#32, Length(strMsg)));
+                            Win32Check(SetConsoleCursorPosition(FStd, OldPos));
+                          End;
+                      End;
+                    End;
+                End;
+              FlushConsoleInputBuffer(Hnd);
+            End;
+      FlushConsoleInputBuffer(Hnd);
+    End;
+End;
 
 (**
 
@@ -265,6 +333,7 @@ Begin
       FExceptionColour);
     //psIgnored: OutputToConsoleLn(FStd, ' Ignored Copying file.', FExceptionColour);
   End;
+  CheckForEscape;
 End;
 
 (**
@@ -316,7 +385,7 @@ End;
 
 (**
 
-  This method displays an error message on the screen and ask the user to ignore or stop 
+  This method displays an error message on the screen and ask the user to ignore or stop
   the processing.
 
   @precon  None.
@@ -493,6 +562,7 @@ Begin
       FExceptionColour);
     //psIgnored: OutputToConsoleLn(FStd, ' Ignored Copying file.', FExceptionColour);
   End;
+  CheckForEscape;
 End;
 
 (**
@@ -523,7 +593,7 @@ End;
 
 (**
 
-  This method is displayed upon a deletion error and prompts the user as to whether they 
+  This method is displayed upon a deletion error and prompts the user as to whether they
   want to ignore the error or stop processing.
 
   @precon  None.
@@ -540,7 +610,7 @@ Procedure TCommandLineProcessing.DeleteError(strSource, strErrorMsg: String;
 
 Var
   Ch : Char;
-  
+
 Begin
   //OutputToConsoleLn(FStd);
   OutputToConsoleLn(FStd, '    An error has occurred during the deletion of files:',
@@ -1056,7 +1126,7 @@ End;
 
 (**
 
-  This method queries the user via the command line as to the action to be take for the 
+  This method queries the user via the command line as to the action to be take for the
   deletion of a file.
 
   @precon  None.
@@ -1371,7 +1441,7 @@ Var
   cM       : Char;
   iSizeLimit : Int64;
   iErrorCode : Integer;
-  
+
 Begin
   strValue := strOption;
   Delete(strValue, 1, 9);
@@ -1393,7 +1463,7 @@ Begin
                 'm', 'M': FMaxFileSize := iSizeLimit * 1024 * 1024;
                 'g', 'G': FMaxFileSize := iSizeLimit * 1024 * 1024 * 1024;
                 't', 'T': FMaxFileSize := iSizeLimit * 1024 * 1024 * 1024 * 1024;
-              Else  
+              Else
                 FMaxFileSize := iSizeLimit;
               End;
             End Else
