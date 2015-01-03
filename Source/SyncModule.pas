@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    20 Dec 2014
+  @Date    03 Jan 2015
   @Author  David Hoyle
 
 **)
@@ -2866,12 +2866,19 @@ Var
   iLastError : Cardinal;
   strErrorMsg : String;
   iResult : TDGHErrorResult;
+  iWin32Result: Boolean;
 
 Begin
   iSrcSize := GetFileSize(strSourceFile);
   iDestSize := GetFileSize(strDestFile);
-  GetDiskFreeSpaceEx(PChar(ExtractFilePath(strDestFile)), iFreeBytesAvailableToCaller,
-    iTotalNumberOfBytes, @iTotalNumberOfFreeBytes);
+  iWin32Result := GetDiskFreeSpaceEx(
+    PChar(ExtractFileDrive(strDestFile) + '\'),
+    iFreeBytesAvailableToCaller,
+    iTotalNumberOfBytes,
+    @iTotalNumberOfFreeBytes
+  );
+  If Not iWin32Result Then
+    CodeSite.Send(SysErrorMessage(GetLastError));
   If (iSrcSize - iDestSize) < iTotalNumberOfFreeBytes Then
     Begin
       IncrementFolder(ExtractFilePath(strDestFile));
