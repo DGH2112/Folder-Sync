@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    03 Jan 2015
+  @Date    12 Feb 2015
 
 **)
 Unit CommandLineProcess;
@@ -1006,7 +1006,7 @@ Const
   strTitle =
     'Folder Sync %d.%d%s (Build %s) [%s] A command line tool to synchronise directories.';
   strSoftwareID = 'FldrSync';
-  strMsg = 'Drive "%s" is running low on disk space. Do you want to continue (Y/N)? ';
+  strMsg = 'Drive "%s" does not have enough disk space. Do you want to continue (Y/N)? ';
 
 Var
   CFC      : TCompareFoldersCollection;
@@ -1094,7 +1094,7 @@ Begin
         For iDrive := 0 To CFC.Drives.Count - 1 Do
           Begin
             D := CFC.Drives.Drive[iDrive];
-            If D.FreeAtFinish / D.Total < dblDriveSpaceCheckPercentage Then
+            If D.FreeAtFinish <= 0 Then
               Begin
                 OutputToConsole(FStd, Format(strMsg, [D.Drive]), FInputColour);
                 C := GetConsoleCharacter(['y', 'Y', 'n', 'N']);
