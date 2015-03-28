@@ -35,6 +35,9 @@ Uses
 **)
 Function UpdateRemainingTime(dblStartTime, dblProgress : Double) : String;
 
+Const
+  iRoundPoint : Integer = 5;
+
 Var
   dblElapsed : TDateTime;
   iHours, iMinutes, iSeconds, iMSec : Word;
@@ -46,11 +49,33 @@ Begin
       DecodeTime((1 - dblProgress) * dblElapsed / dblProgress, iHours, iMinutes,
         iSeconds, iMSec);
       If iHours > 0 Then
-        Result := Format('Time remaining %d hrs and %d mins...   ', [iHours, iMinutes])
-      Else If iMinutes > 0 Then
-        Result := Format('Time remaining %d mins and %d secs...   ', [iMinutes, iSeconds])
-      Else
-        Result := Format('Time remaining %d secs...   ', [iSeconds]);
+        Begin
+          iMinutes := iMinutes + (iRoundPoint - iMinutes Mod iRoundPoint);
+          If iMinutes >= 60 Then
+            Begin
+              Inc(iHours);
+              iMinutes := 0;
+            End;
+          Result := Format('Remaining %d hrs and %d mins...   ', [
+            iHours,
+            iMinutes
+          ])
+        End Else
+      If iMinutes > 0 Then
+        Begin
+          iSeconds := iSeconds + (iRoundPoint - iSeconds Mod iRoundPoint);
+          If iSeconds >= 60 Then
+            Begin
+              Inc(iMinutes);
+              iSeconds := 0;
+            End;
+          Result := Format('Remaining %d mins and %d secs...   ', [
+            iMinutes,
+            iSeconds
+          ])
+        End Else
+        Result := Format('Remaining %d secs...   ', [
+          iSeconds + (iRoundPoint - iSeconds Mod iRoundPoint)]);
     End Else
       Result := 'Please wait, calculating remaining time...   ';
 End;
