@@ -137,16 +137,6 @@ object frmCopyProgress: TfrmCopyProgress
     AutoSize = False
     EllipsisPosition = epPathEllipsis
   end
-  object lblRemainingTime: TLabel
-    Left = 311
-    Top = 169
-    Width = 225
-    Height = 13
-    Alignment = taRightJustify
-    Anchors = [akLeft, akTop, akRight]
-    AutoSize = False
-    EllipsisPosition = epPathEllipsis
-  end
   object pbrOverall: TProgressBar
     Left = 8
     Top = 146
@@ -167,15 +157,63 @@ object frmCopyProgress: TfrmCopyProgress
     MarqueeInterval = 0
     TabOrder = 0
   end
-  object btnCancel: TBitBtn
-    Left = 230
-    Top = 179
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Kind = bkCancel
-    NumGlyphs = 2
+  object GridPanel: TGridPanel
+    Left = 8
+    Top = 169
+    Width = 528
+    Height = 35
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    BevelOuter = bvNone
+    ColumnCollection = <
+      item
+        Value = 50.000000745058070000
+      end
+      item
+        SizeStyle = ssAbsolute
+        Value = 75.000000000000000000
+      end
+      item
+        Value = 49.999999254941930000
+      end>
+    ControlCollection = <
+      item
+        Column = 1
+        Control = btnCancel
+        Row = 0
+      end
+      item
+        Column = 2
+        Control = lblRemainingTime
+        Row = 0
+      end>
+    RowCollection = <
+      item
+        Value = 100.000000000000000000
+      end>
     TabOrder = 2
-    OnClick = btnCancelClick
+    DesignSize = (
+      528
+      35)
+    object btnCancel: TBitBtn
+      Left = 225
+      Top = 4
+      Width = 75
+      Height = 25
+      Anchors = []
+      Kind = bkCancel
+      NumGlyphs = 2
+      TabOrder = 0
+      OnClick = btnCancelClick
+    end
+    object lblRemainingTime: TLabel
+      Left = 300
+      Top = 0
+      Width = 226
+      Height = 33
+      Align = alClient
+      Alignment = taRightJustify
+      AutoSize = False
+      EllipsisPosition = epPathEllipsis
+    end
   end
 end

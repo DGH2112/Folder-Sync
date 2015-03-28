@@ -27,7 +27,7 @@ Uses
   ComCtrls,
   SyncModule,
   Vcl.Samples.Gauges,
-  UITypes;
+  UITypes, Vcl.ExtCtrls;
 
 Type
   (** This is a class to represent the form interface for displaying progress. **)
@@ -46,6 +46,7 @@ Type
     lblBytesOverallCopied: TLabel;
     btnCancel: TBitBtn;
     lblRemainingTime: TLabel;
+    GridPanel: TGridPanel;
     Procedure btnCancelClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -335,7 +336,6 @@ Begin
   lblRemainingTime.Caption := UpdateRemainingTime(FStartTime, Int(iSize) / Int(FTotalSize));
   DoUpdateProgress(pbrOverall.Position, pbrOverall.Max);
   Application.ProcessMessages;
-  CheckForCancel;
 End;
 
 End.
