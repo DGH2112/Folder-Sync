@@ -4,7 +4,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    22 Nov 2014
+  @Date    28 Mar 2015
 
 **)
 Unit FileDeleteProgressForm;
@@ -25,7 +25,7 @@ Uses
   Buttons,
   ComCtrls,
   SyncModule,
-  UITypes;
+  UITypes, Vcl.ExtCtrls;
 
 Type
   (** An enumerate to define the deletion type to be displayed **)
@@ -40,6 +40,8 @@ Type
     pbrOverall: TProgressBar;
     btnCancel: TBitBtn;
     lblDeleteStatus: TLabel;
+    lblProgress: TLabel;
+    GridPanel: TGridPanel;
     Procedure btnCancelClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -50,6 +52,7 @@ Type
     FCaption       : String;
     FAbort         : Boolean;
     FUpdateProgress: TUpdateProgress;
+    FStartTime     : Double;
     Procedure CheckForCancel;
     Procedure DoUpdateProgress(iPosition, iMaxPosition: Integer);
   Public
@@ -70,6 +73,9 @@ Type
   End;
 
 Implementation
+
+uses
+  ApplicationFunctions;
 
 {$R *.dfm}
 { TfrmDeleteProgress }
@@ -185,6 +191,7 @@ Procedure TfrmDeleteProgress.Initialise(iType : TDeleteType; iFileCount, iWidth 
 Begin
   FFileCount := iFileCount;
   FTotalSize := iTotalSize;
+  FStartTime := Now();
   If iType = dtFiles Then
     FCaption := 'Deleting Files'
   Else
@@ -258,6 +265,7 @@ Begin
   pbrOverall.Position := Trunc(Int(iSize) / Int(FTotalSize) * pbrOverall.Max);
   pbrOverall.Position := pbrOverall.Position - 1;
   pbrOverall.Position := pbrOverall.Position + 1;
+  lblProgress.Caption := UpdateRemainingTime(FStartTime, Int(iSize) / Int(FTotalSize));
   DoUpdateProgress(pbrOverall.Position, pbrOverall.Max);
   Application.ProcessMessages;
   CheckForCancel;

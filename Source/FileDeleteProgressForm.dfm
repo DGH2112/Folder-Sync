@@ -46,7 +46,6 @@ object frmDeleteProgress: TfrmDeleteProgress
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     EllipsisPosition = epPathEllipsis
-    ExplicitWidth = 371
   end
   object lblFileLabel: TLabel
     Left = 8
@@ -69,7 +68,6 @@ object frmDeleteProgress: TfrmDeleteProgress
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     EllipsisPosition = epPathEllipsis
-    ExplicitWidth = 371
   end
   object lblDeleteStatus: TLabel
     Left = 8
@@ -90,16 +88,62 @@ object frmDeleteProgress: TfrmDeleteProgress
     MarqueeInterval = 0
     TabOrder = 0
   end
-  object btnCancel: TBitBtn
-    Left = 192
-    Top = 89
-    Width = 65
-    Height = 25
-    Anchors = [akLeft, akRight, akBottom]
-    Kind = bkCancel
-    NumGlyphs = 2
+  object GridPanel: TGridPanel
+    Left = 8
+    Top = 82
+    Width = 425
+    Height = 32
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    BevelOuter = bvNone
+    ColumnCollection = <
+      item
+        Value = 50.000000000000000000
+      end
+      item
+        SizeStyle = ssAbsolute
+        Value = 75.000000000000000000
+      end
+      item
+        Value = 50.000000000000000000
+      end>
+    ControlCollection = <
+      item
+        Column = 2
+        Control = lblProgress
+        Row = 0
+      end
+      item
+        Column = 1
+        Control = btnCancel
+        Row = 0
+      end>
+    RowCollection = <
+      item
+        Value = 100.000000000000000000
+      end>
     TabOrder = 1
-    OnClick = btnCancelClick
-    ExplicitTop = 69
+    DesignSize = (
+      425
+      32)
+    object lblProgress: TLabel
+      Left = 249
+      Top = 0
+      Width = 174
+      Height = 30
+      Align = alClient
+      Alignment = taRightJustify
+      AutoSize = False
+    end
+    object btnCancel: TBitBtn
+      Left = 179
+      Top = 2
+      Width = 65
+      Height = 25
+      Anchors = []
+      Kind = bkCancel
+      NumGlyphs = 2
+      TabOrder = 0
+      OnClick = btnCancelClick
+    end
   end
 end
