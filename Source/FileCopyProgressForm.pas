@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    13 Dec 2014
+  @Date    28 Mar 2015
 
 **)
 Unit FileCopyProgressForm;
@@ -63,7 +63,6 @@ Type
     Procedure CheckForCancel;
     Procedure DoUpdateProgress(iPosition, iMaxPosition: Integer);
     Procedure UpdateOverallProgress(iSize : Int64);
-    Procedure UpdateRemainingTime(dblProgress : Double);
   Public
     { Public declarations }
     Procedure Initialise(iFileCount : Integer; iTotalSize: Int64; iWidth : Integer);
@@ -82,6 +81,9 @@ Type
   End;
 
 Implementation
+
+uses
+  ApplicationFunctions;
 
 {$R *.dfm}
 
@@ -330,46 +332,10 @@ Begin
   lblBytesOverallCopied.Caption := Format('Copied %1.0n kbytes in %1.0n kbytes [%1.1f%%]',
     [Int(iSize) / dblFactor,
     Int(FTotalSize) / dblFactor, Int(iSize) / Int(FTotalSize) * 100.0]);
-  UpdateRemainingTime(Int(iSize) / Int(FTotalSize));
+  lblRemainingTime.Caption := UpdateRemainingTime(FStartTime, Int(iSize) / Int(FTotalSize));
   DoUpdateProgress(pbrOverall.Position, pbrOverall.Max);
   Application.ProcessMessages;
   CheckForCancel;
-End;
-
-(**
-
-  This method updates the remaining time label on the dialogue based on the start time
-  for copying and the current time that has elapsed.
-
-  @precon  None.
-  @postcon The remaining time labell is pudated with the estimated time to complete the
-           copying operations.
-
-  @param   dblProgress as a Double
-
-**)
-Procedure TfrmCopyProgress.UpdateRemainingTime(dblProgress : Double);
-
-Var
-  dblElapsed : TDateTime;
-  iHours, iMinutes, iSeconds, iMSec : Word;
-
-Begin
-  If dblProgress > 0 Then
-    Begin
-      dblElapsed := Now() - FStartTime;
-      DecodeTime((1 - dblProgress) * dblElapsed / dblProgress, iHours, iMinutes,
-        iSeconds, iMSec);
-      If iHours > 0 Then
-        lblRemainingTime.Caption := Format('Time remaining %d hrs and %d mins...',
-          [iHours, iMinutes])
-      Else If iMinutes > 0 Then
-        lblRemainingTime.Caption := Format('Time remaining %d mins and %d secs...',
-          [iMinutes, iSeconds])
-      Else
-        lblRemainingTime.Caption := Format('Time remaining %d secs...', [iSeconds]);
-    End Else
-      lblRemainingTime.Caption := 'Please wait, calculating remaining time...';
 End;
 
 End.

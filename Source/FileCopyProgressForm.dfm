@@ -46,7 +46,6 @@ object frmCopyProgress: TfrmCopyProgress
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     EllipsisPosition = epPathEllipsis
-    ExplicitWidth = 371
   end
   object lblToLabel: TLabel
     Left = 8
@@ -69,7 +68,6 @@ object frmCopyProgress: TfrmCopyProgress
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     EllipsisPosition = epPathEllipsis
-    ExplicitWidth = 371
   end
   object lblFileLabel: TLabel
     Left = 8
@@ -92,7 +90,6 @@ object frmCopyProgress: TfrmCopyProgress
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     EllipsisPosition = epPathEllipsis
-    ExplicitWidth = 371
   end
   object lblOverall: TLabel
     Left = 8
@@ -129,7 +126,6 @@ object frmCopyProgress: TfrmCopyProgress
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     EllipsisPosition = epPathEllipsis
-    ExplicitWidth = 371
   end
   object lblBytesOverallCopied: TLabel
     Left = 72
@@ -140,7 +136,6 @@ object frmCopyProgress: TfrmCopyProgress
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     EllipsisPosition = epPathEllipsis
-    ExplicitWidth = 414
   end
   object lblRemainingTime: TLabel
     Left = 311
