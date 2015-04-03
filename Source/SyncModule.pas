@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    03 Jan 2015
+  @Date    29 Mar 2015
   @Author  David Hoyle
 
 **)
@@ -159,7 +159,8 @@ Type
   (** An event signature for the start of the deletion process. **)
   TDeleteStartNotifier = Procedure(iFileCount: Integer; iTotalSize: Int64) Of Object;
   (** An event signature for the start of the deletion of an individual file. **)
-  TDeletingNotifier = Procedure(iFile : Integer; strFileName: String) Of Object;
+  TDeletingNotifier = Procedure(iFile : Integer; iSize: Int64;
+    strFileName: String) Of Object;
   (** An event signature for the end of the deletion of an individual file. **)
   TDeletedNotifier = Procedure(iFile: Integer; iSize: Int64;
     iSuccess : TProcessSuccess) Of Object;
@@ -885,7 +886,7 @@ Type
     Function GetProcessCount: Integer;
     Function GetProcessItem(iIndex: Integer): TProcessItem;
     Procedure DoDeleteStart(iFileCount: Integer; iTotalSize: Int64);
-    Procedure DoDeleting(iFile : Integer; strFileName: String);
+    Procedure DoDeleting(iFile : Integer; iSize : Int64; strFileName: String);
     Procedure DoDeleted(iFile: Integer; iSize: Int64; iSuccess: TProcessSuccess);
     Procedure DoDeleteQuery(strFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction;  SyncOptions: TSyncOptions);
@@ -3376,7 +3377,7 @@ Var
 
 Begin
   iSuccess := psUnknown;
-  DoDeleting(iFile, strPath + F.FileName);
+  DoDeleting(iFile, F.Size, strPath + F.FileName);
   FA := faUnknown;
   If (F.Attributes And faReadOnly = 0) Then
     Begin
@@ -3661,14 +3662,16 @@ End;
   @postcon Fires the Deleting event if the event has a handler installed.
 
   @param   iFile       as an Integer
+  @param   iSize       as an Int64
   @param   strFileName as a String
 
 **)
-Procedure TCompareFoldersCollection.DoDeleting(iFile : Integer; strFileName: String);
+Procedure TCompareFoldersCollection.DoDeleting(iFile : Integer; iSize : Int64;
+  strFileName: String);
 
 Begin
   If Assigned(FDeletingNotifier) Then
-    FDeletingNotifier(iFile, strFileName);
+    FDeletingNotifier(iFile, iSize, strFileName);
 End;
 
 (**
