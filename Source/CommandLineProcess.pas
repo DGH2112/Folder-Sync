@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    12 Feb 2015
+  @Date    03 Apr 2015
 
 **)
 Unit CommandLineProcess;
@@ -57,6 +57,7 @@ Type
     FHeaderColour        : TColor;
     FMaxFileSize         : Int64;
     FFldrSyncOptions     : TFldrSyncOptions;
+    FStartTime           : TDateTime;
   Strict Protected
     Procedure ExceptionProc(strMsg: String);
     Function GetPause: Boolean;
@@ -77,7 +78,7 @@ Type
     Procedure MatchListEndProc;
     Procedure ClearLine;
     Procedure DeleteStartProc(iFileCount: Integer; iTotalSize: Int64);
-    Procedure DeletingProc(iFile : Integer; strFileName: String);
+    Procedure DeletingProc(iFile : Integer; iSize : Int64; strFileName: String);
     Procedure DeletedProc(iFile: Integer; iSize: Int64; iSuccess: TProcessSuccess);
     Procedure DeleteQueryProc(strFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction);
@@ -119,6 +120,7 @@ Type
     Procedure DeleteError(strSource, strErrorMsg : String;
       iLastError : Cardinal; var iResult : TDGHErrorResult);
     Procedure CheckForEscape;
+    Function  CheckPath(strOutput : String) : String;
   Public
     Constructor Create;
     Destructor Destroy; Override;
@@ -135,11 +137,17 @@ Type
 Implementation
 
 Uses
+  CodeSiteLogging,
   Windows,
   DGHLibrary,
   INIFiles,
   checkforupdates,
-  ShellAPI;
+  ShellAPI,
+  {$IFDEF EUREKALOG_VER7}
+  ExceptionLog7,
+  EExceptionManager,
+  {$ENDIF}
+  ApplicationFunctions;
 
 (**
 
@@ -204,6 +212,7 @@ Begin
                     Begin
                       Win32Check(GetConsoleScreenBufferInfo(FStd, ConsoleInfo));
                       OldPos := ConsoleInfo.dwCursorPosition;
+                      ClearLine;
                       OutputToConsole(FStd, strMsg, FInputColour);
                       C := GetConsoleCharacter(['y', 'Y', 'n', 'N']);
                       Case C Of
@@ -224,6 +233,55 @@ Begin
               FlushConsoleInputBuffer(Hnd);
             End;
       FlushConsoleInputBuffer(Hnd);
+    End;
+End;
+
+(**
+
+  This method checks the length of the given path text an ensures it will fit on the width
+  of the console screen from the cursor position.
+
+  @precon  None.
+  @postcon Shortens the path to fit on the console screen.
+
+  @param   strOutput as a String
+  @return  a String
+
+**)
+Function TCommandLineProcessing.CheckPath(strOutput: String): String;
+
+Var
+  ConsoleInfo: _CONSOLE_SCREEN_BUFFER_INFO;
+  iMaxWidth : Integer;
+  i: Integer;
+  j: Integer;
+
+Begin
+  If (cloQuiet In FCommandLineOptions) Then
+    Exit;
+  GetConsoleScreenBufferInfo(FStd, ConsoleInfo);
+  iMaxWidth := ConsoleInfo.dwSize.X - ConsoleInfo.dwCursorPosition.X - 1;
+  Result := strOutput;
+  While Length(Result) > iMaxWidth Do
+    Begin
+      If Pos('...', Result) = 0 Then
+        Begin
+          i := PosOfNthChar(Result, '\', 1) + 1;
+          j := PosOfNthChar(Result, '\', 2);
+          If (i > 0) And (j > 0) Then
+            Result := StringReplace(Result, Copy(Result, i, j - i), '...', [])
+          Else
+            Result := Copy(Result, 1, j - 1) + Copy(Result, j + 1, Length(Result) - j - 1);
+        End
+      Else
+        Begin
+          i := PosOfNthChar(Result, '\', 2);
+          j := PosOfNthChar(Result, '\', 3);
+          If (i > 0) And (j > 0) Then
+            Result := StringReplace(Result, Copy(Result, i, j - i), '', [])
+          Else
+            Result := Copy(Result, Length(Result) - iMaxWidth, iMaxWidth);
+        End;
     End;
 End;
 
@@ -325,6 +383,7 @@ Procedure TCommandLineProcessing.CopiedProc(iCopiedFiles: Integer; iCopiedFileTo
   iCopiedTotalSize: Int64; iSuccess: TProcessSuccess);
 
 Begin
+  ClearLine;
   FCopiedSize := iCopiedTotalSize;
   Case iSuccess Of
     //psSuccessed: OutputToConsole(FStd, Format(' %1.1n%% Complete',
@@ -351,9 +410,13 @@ End;
 Procedure TCommandLineProcessing.CopyContentsProc(iCopiedSize, iTotalSize: Int64);
 
 Begin
-  OutputToConsole(FStd, Format('    Copying %1.1f%% (%1.2f%%)',
+  ClearLine;
+  If FTotalSize = 0 Then
+    Inc(FTotalSize);
+  OutputToConsole(FStd, Format('    Copying %5.1f%% (%1.2f%%), %s',
     [Int64(iCopiedSize) / Int64(iTotalSize) * 100.0,
-     Int64(FCopiedSize + iCopiedSize) / Int64(FTotalSize) * 100.0]),
+     Int64(FCopiedSize + iCopiedSize) / Int64(FTotalSize) * 100.0,
+     UpdateRemainingTime(FStartTime, Int64(FCopiedSize + iCopiedSize) / Int64(FTotalSize))]),
     clNone, clNone, False);
 End;
 
@@ -372,6 +435,7 @@ End;
 Procedure TCommandLineProcessing.CopyEndProc(iCopied, iSkipped, iError: Integer);
 
 Begin
+  ClearLine;
   OutputToConsole(FStd, Format('  Copied %1.0n file(s) (Skipped %1.0n file(s)',
       [Int(iCopied), Int(iSkipped)]), FSuccessColour);
   If iError > 0 Then
@@ -405,7 +469,7 @@ Var
   Ch: Char;
 
 Begin
-  //OutputToConsoleLn(FStd);
+  ClearLine;
   OutputToConsoleLn(FStd, '    An error has occurred during the copying of files:',
     FExceptionColour);
   OutputToConsoleLn(FStd, Format('      Source     : %s', [strSource]));
@@ -443,6 +507,7 @@ Var
   iColour: TColor;
 
 Begin
+  ClearLine;
   OutputToConsole(FStd, #32#32 + strSource, FPathColour);
   OutputToConsole(FStd, ' => ');
   OutputToConsole(FStd, strDest, FPathColour);
@@ -451,9 +516,9 @@ Begin
   Else
     iColour := FNotExistsColour;
   If Not IsRO(strSource + strFileName) Then
-    OutputToConsoleLn(FStd, strFileName, iColour)
+    OutputToConsoleLn(FStd, CheckPath(strFileName), iColour)
   Else
-    OutputToConsoleLn(FStd, strFileName, FReadOnlyColour);
+    OutputToConsoleLn(FStd, CheckPath(strFileName), FReadOnlyColour);
 End;
 
 (**
@@ -474,6 +539,7 @@ Procedure TCommandLineProcessing.CopyQueryProc(strSourcePath, strDestPath: Strin
   SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
 
 Begin
+  ClearLine;
   FileQuery('    Overwrite (Y/N/A/O/C)? ', strDestPath + DestFile.FileName, SourceFile, Option,
     False)
 End;
@@ -496,6 +562,7 @@ Procedure TCommandLineProcessing.CopyReadOnlyQueryProc(strSourcePath, strDestPat
   SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
 
 Begin
+  ClearLine;
   FileQuery('    Overwrite READONLY (Y/N/A/O/C)? ', strDestPath + DestFile.FileName,
     SourceFile, Option, True)
 End;
@@ -516,6 +583,7 @@ Procedure TCommandLineProcessing.CopyStartProc(iTotalCount: Integer; iTotalSize:
 Begin
   FTotalFiles := iTotalCount;
   FTotalSize  := iTotalSize;
+  FStartTime  := Now();
   OutputToConsoleLn(FStd, Format('Copying %1.0n files...', [Int(iTotalCount)]),
     FHeaderColour);
 End;
@@ -555,6 +623,7 @@ Procedure TCommandLineProcessing.DeletedProc(iFile: Integer; iSize: Int64;
   iSuccess: TProcessSuccess);
 
 Begin
+  ClearLine;
   Case iSuccess Of
     //psSuccessed: OutputToConsoleLn(FStd, Format(' %1.1n%% Complete',
     //  [Int(iFile) / Int(FTotalFiles) * 100.0]), FSuccessColour);
@@ -563,6 +632,13 @@ Begin
     //psIgnored: OutputToConsoleLn(FStd, ' Ignored Copying file.', FExceptionColour);
   End;
   CheckForEscape;
+  If FTotalSize = 0 Then
+    Inc(FTotalSize);
+  OutputToConsole(FStd, Format('    Deleting %1.2f%%, %s',
+    [Int(FCopiedSize + iSize) / Int(FTotalFiles) * 100.0,
+     UpdateRemainingTime(FStartTime, Int(FCopiedSize + iFile) / Int(FTotalFiles))]),
+    clNone, clNone, False);
+  Inc(FCopiedSize, iSize);
 End;
 
 (**
@@ -580,6 +656,7 @@ End;
 Procedure TCommandLineProcessing.DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
 
 Begin
+  ClearLine;
   OutputToConsole(FStd, Format('  Deleted %1.0n file(s) (Skipped %1.0n file(s)',
       [Int(iDeleted), Int(iSkipped)]), FSuccessColour);
   If iErrors > 0 Then
@@ -612,7 +689,7 @@ Var
   Ch : Char;
 
 Begin
-  //OutputToConsoleLn(FStd);
+  ClearLine;
   OutputToConsoleLn(FStd, '    An error has occurred during the deletion of files:',
     FExceptionColour);
   OutputToConsoleLn(FStd, Format('      Source     : %s', [strSource]));
@@ -645,7 +722,8 @@ Procedure TCommandLineProcessing.DeleteFolders(iFolder, iFolders: Integer;
   strFolder: String);
 
 Begin
-  OutputToConsoleLn(FStd, #32#32 + strFolder);
+  ClearLine;
+  OutputToConsoleLn(FStd, CheckPath(#32#32 + strFolder));
 End;
 
 (**
@@ -674,6 +752,7 @@ End;
 Procedure TCommandLineProcessing.DeleteFoldersStart(iFolderCount: Integer);
 
 Begin
+  ClearLine;
   FTotalFiles := iFolderCount;
   If iFolderCount > 0 Then
     OutputToConsoleLn(FStd, 'Deleting empty folders...', FHeaderColour);
@@ -687,16 +766,25 @@ End;
   @postcon Outputs the name of the file being deleted.
 
   @param   iFile       as an Integer
+  @param   iSize       as an Int64
   @param   strFileName as a String
 
 **)
-Procedure TCommandLineProcessing.DeletingProc(iFile : Integer; strFileName: String);
+Procedure TCommandLineProcessing.DeletingProc(iFile : Integer; iSize : Int64;
+  strFileName: String);
 
 Begin
+  ClearLine;
   If Not IsRO(strFileName) Then
-    OutputToConsoleLn(FStd, #32#32 + strFileName, FExistsColour)
+    OutputToConsoleLn(FStd, CheckPath(#32#32 + strFileName), FExistsColour)
   ELse
-    OutputToConsoleLn(FStd, #32#32 + strFileName, FReadOnlyColour);
+    OutputToConsoleLn(FStd, CheckPath(#32#32 + strFileName), FReadOnlyColour);
+  If FTotalSize = 0 Then
+    Inc(FTotalSize);
+  OutputToConsole(FStd, Format('    Deleting %1.2f%%, %s',
+    [Int(FCopiedSize + iSize) / Int(FTotalSize) * 100.0,
+     UpdateRemainingTime(FStartTime, Int(FCopiedSize + iSize) / Int(FTotalSize))]),
+    clNone, clNone, False);
 End;
 
 (**
@@ -715,6 +803,7 @@ Procedure TCommandLineProcessing.DeleteQueryProc(strFilePath: String;
   DeleteFile : TFileRecord; Var Option: TFileAction);
 
 Begin
+  ClearLine;
   FileQuery('    Delete (Y/N/A/O/C)? ', strFilePath, DeleteFile, Option, False);
 End;
 
@@ -734,6 +823,7 @@ Procedure TCommandLineProcessing.DeleteReadOnlyQueryProc(strFilePath: String;
   DeleteFile : TFileRecord; Var Option: TFileAction);
 
 Begin
+  ClearLine;
   FileQuery('    Delete READONLY (Y/N/A/O/C)? ', strFilePath, DeleteFile, Option, True);
 End;
 
@@ -751,7 +841,11 @@ End;
 Procedure TCommandLineProcessing.DeleteStartProc(iFileCount: Integer; iTotalSize: Int64);
 
 Begin
+  ClearLine;
   FTotalFiles := iFileCount;
+  FTotalSize := iTotalSize;
+  FCopiedSize := 0;
+  FStartTime  := Now();
   OutputToConsoleLn(FStd, Format('Deleting %1.0n files (%1.0n bytes)...',
       [Int(iFileCount), Int(iTotalSize)]), FHeaderColour);
 End;
@@ -1112,8 +1206,14 @@ Begin
         On E : EAbort Do {Do nothing};
         On E : Exception Do
           Begin
-            OutputToConsoleLn(FStd);
-            OutputToConsoleLn(FStd, E.Message, FExceptionColour);
+            {$IFDEF EUREKALOG_VER7}
+            If Not (ExceptionManager.StandardEurekaNotify(ExceptObject,
+              ExceptAddr).ErrorCode = ERROR_SUCCESS) Then
+              {$ENDIF}
+              Begin
+                OutputToConsoleLn(FStd);
+                OutputToConsoleLn(FStd, E.Message, FExceptionColour);
+              End;
           End;
       End;
     Finally
@@ -1610,6 +1710,8 @@ End;
 **)
 Procedure TCommandLineProcessing.SearchProc(strFolder, strFileName: String;
   iCount: Integer; Update : TUpdateType);
+var
+  strOutput: String;
 
 Begin
   If strFolder = FLastFolder Then
@@ -1618,8 +1720,8 @@ Begin
         If (iCount Mod FOutputUpdateInterval = 0) Or (Update = utImmediate) Then
           Begin
             ClearLine;
-            OutputToConsole(FStd, Format('%1.0n\%s', [Int(iCount), strFileName]), clNone,
-              clNone, False);
+            strOutput := Format('%1.0n\%s', [Int(iCount), strFileName]);
+            OutputToConsole(FStd, CheckPath(strOutput), clNone, clNone, False);
           End;
     End
   Else
