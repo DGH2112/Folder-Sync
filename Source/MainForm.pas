@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    13 Dec 2014
+  @Date    03 Apr 2015
   @Author  David Hoyle
 
 **)
@@ -172,7 +172,7 @@ Type
     Procedure MatchListProc(iPosition, iMaxItems: Integer);
     Procedure MatchListEndProc;
     Procedure DeleteStartProc(iFileCount: Integer; iTotalSize: int64);
-    Procedure DeletingProc(iFile : Integer; strFileName: String);
+    Procedure DeletingProc(iFile : Integer; iSize : Int64; strFileName: String);
     Procedure DeletedProc(iFile: Integer; iSize: int64; iSuccess: TProcessSuccess);
     Procedure DeleteQueryProc(strFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction);
@@ -270,7 +270,14 @@ Uses
   DGHLibrary,
   ConfirmationDlg,
   Themes,
-  MemoryMonitorOptionsForm, ProcessingErrorForm;
+  MemoryMonitorOptionsForm,
+  ProcessingErrorForm,
+  {$IFDEF EUREKALOG_VER7}
+  ExceptionLog7,
+  EExceptionManager,
+  {$ENDIF}
+  UITypes,
+  Types;
 
 {$R *.DFM}
 
@@ -2253,7 +2260,12 @@ Begin
             FSyncModule.ProcessFiles(FFldrSyncOptions);
           Except
             On E : EAbort Do boolAbort := True;
-            On E : Exception Do MessageDlg(E.Message, mtError, [mbOK], 0);
+            On E : Exception Do
+              {$IFDEF EUREKALOG_VER7}
+              If Not (ExceptionManager.StandardEurekaNotify(ExceptObject,
+                ExceptAddr).ErrorCode = ERROR_SUCCESS) Then
+                {$ENDIF}
+              MessageDlg(E.Message, mtError, [mbOK], 0);
           End;
         Finally
           EnableActions(True);
@@ -3048,10 +3060,11 @@ End;
   @postcon Output the file to be deleted to the deletion progress form.
 
   @param   iFile       as an Integer
+  @param   iSize       as an Int64
   @param   strFileName as a String
 
 **)
-Procedure TfrmMainForm.DeletingProc(iFile : Integer; strFileName: String);
+Procedure TfrmMainForm.DeletingProc(iFile : Integer; iSize : Int64; strFileName: String);
 
 Begin
   FDeleteForm.InitialiseFileName(dtFiles, iFile, strFileName);

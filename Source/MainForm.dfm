@@ -179,7 +179,6 @@ object frmMainForm: TfrmMainForm
       Align = alBottom
       MinSize = 50
       ResizeStyle = rsUpdate
-      ExplicitTop = 551
     end
     object lvFileList: TListView
       Left = 0
@@ -285,7 +284,7 @@ object frmMainForm: TfrmMainForm
     Left = 33
     Top = 151
     Bitmap = {
-      494C01010F001300280110001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010F0013003C0110001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1089,9 +1088,9 @@ object frmMainForm: TfrmMainForm
       Caption = 'Copy &Right to Left'
       Hint = 'Copy Right to Left|Copy from the right pane to the left pane...'
       ImageIndex = 2
-      ShortCut = 16466
       SecondaryShortCuts.Strings = (
         'Ctrl+Left')
+      ShortCut = 16466
       OnExecute = actEditCopyRightToLeftExecute
       OnUpdate = actEditFileOperationsUpdate
     end
@@ -1100,9 +1099,9 @@ object frmMainForm: TfrmMainForm
       Caption = 'Copy &Left to Right'
       Hint = 'Copy Left to Right|Copy from the Left pane to the Right pane...'
       ImageIndex = 1
-      ShortCut = 16460
       SecondaryShortCuts.Strings = (
         'Ctrl+Right')
+      ShortCut = 16460
       OnExecute = actEditCopyLeftToRightExecute
       OnUpdate = actEditFileOperationsUpdate
     end
