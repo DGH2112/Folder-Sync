@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    03 Apr 2015
+  @Date    09 May 2015
 
 **)
 Unit CommandLineProcess;
@@ -635,8 +635,8 @@ Begin
   If FTotalSize = 0 Then
     Inc(FTotalSize);
   OutputToConsole(FStd, Format('    Deleting %1.2f%%, %s',
-    [Int(FCopiedSize + iSize) / Int(FTotalFiles) * 100.0,
-     UpdateRemainingTime(FStartTime, Int(FCopiedSize + iFile) / Int(FTotalFiles))]),
+    [Int(FCopiedSize + iSize) / Int(FTotalSize) * 100.0,
+     UpdateRemainingTime(FStartTime, Int(FCopiedSize + iFile) / Int(FTotalSize))]),
     clNone, clNone, False);
   Inc(FCopiedSize, iSize);
 End;
