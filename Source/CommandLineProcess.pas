@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    09 May 2015
+  @Date    31 May 2015
 
 **)
 Unit CommandLineProcess;
@@ -134,6 +134,15 @@ Type
     Property Pause: Boolean Read GetPause;
   End;
 
+  Procedure RaiseFldrSyncException(iErrHnd : Thandle; E : Exception);
+
+Const
+  (** This is a tempate for the output of an exception message. **)
+  strExpMsg = #13#10 +
+    'An exception has occurred in the application!'#13#10#13#10 +
+    'Class  : %s'#13#10 +
+    'Message: %s';
+
 Implementation
 
 Uses
@@ -146,6 +155,7 @@ Uses
   {$IFDEF EUREKALOG_VER7}
   ExceptionLog7,
   EExceptionManager,
+  ECallStack,
   {$ENDIF}
   ApplicationFunctions;
 
@@ -164,6 +174,38 @@ Function IsRO(strFileName: String): Boolean;
 
 Begin
   IsRO := GetFileAttributes(PChar(Expand(strFileName))) And FILE_ATTRIBUTE_READONLY > 0;
+End;
+
+(**
+
+  This method outputs an excpetion message to the console along with its call stack.
+
+  @precon  None.
+  @postcon An expcetion message and call stack are output to the console.
+
+  @param   iErrHnd as a Thandle
+  @param   E       as an Exception
+
+**)
+Procedure RaiseFldrSyncException(iErrHnd : Thandle; E : Exception);
+
+Var
+  CS: TEurekaBaseStackList;
+  i : Integer;
+
+Begin
+  OutputToConsoleLn(iErrHnd, #13#10 + E.ClassName + ': ' + E.Message, clRed);
+  CS := ExceptionManager.LastThreadException.CallStack;
+  OutputToConsoleLn(iErrHnd, 'CALL STACK', clRed);
+  OutputToConsoleLn(iErrHnd, '  -------------------------------------------------------------------------------------------------------', clRed);
+  OutputToConsoleLn(iErrHnd, '   Line Col  Unit Name                 Class Name                Method Name', clRed);
+  OutputToConsoleLn(iErrHnd, '  -------------------------------------------------------------------------------------------------------', clRed);
+  For i := 0 To CS.Count - 1 Do
+    With CS.Item[i].Location Do
+      If CS.Item[i].ThreadName = 'Main thread' Then
+        OutputToConsoleLn(iErrHnd, Format('  %5d[%3d] %-25s %-25s %-25s', [LineNumber,
+          OffsetFromLineNumber, UnitName, ClassName, ProcedureName]), clRed);
+  OutputToConsoleLn(iErrHnd, '', clRed);
 End;
 
 { TCommandLineProcessing }
@@ -1204,16 +1246,15 @@ Begin
         CFC.ProcessFiles(FFldrSyncOptions);
       Except
         On E : EAbort Do {Do nothing};
+        On E : EFldrSyncException Do
+          RaiseFldrSyncException(FErr, E);
         On E : Exception Do
           Begin
             {$IFDEF EUREKALOG_VER7}
             If Not (ExceptionManager.StandardEurekaNotify(ExceptObject,
               ExceptAddr).ErrorCode = ERROR_SUCCESS) Then
               {$ENDIF}
-              Begin
-                OutputToConsoleLn(FStd);
-                OutputToConsoleLn(FStd, E.Message, FExceptionColour);
-              End;
+              OutputToConsoleLn(FErr, Format(strExpMsg, [E.ClassName, E.Message]), clRed);
           End;
       End;
     Finally
