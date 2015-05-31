@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    29 Mar 2015
+  @Date    30 May 2015
   @Author  David Hoyle
 
 **)
@@ -2898,7 +2898,8 @@ Begin
                     iResult);
                   Case iResult Of
                     derIgnoreAll: FCopyErrors.Add(iLastError);
-                    derUnknown, derStop: Raise Exception.CreateFmt(strExceptionMsg,
+                    derUnknown, derStop:
+                      Raise EFldrSyncException.CreateFmt(strExceptionMsg,
                         [strSourceFile, strDestFile, strErrorMsg]);
                   End;
                   Case iResult Of
@@ -2912,8 +2913,8 @@ Begin
                 strErrorMsg]));
             End Else
             Begin
-              Raise Exception.CreateFmt(strExceptionMsg, [strSourceFile, strDestFile,
-               strErrorMsg]);
+              Raise EFldrSyncException.CreateFmt(strExceptionMsg,
+                [strSourceFile, strDestFile, strErrorMsg]);
             End;
         End Else
         Begin
@@ -2921,8 +2922,9 @@ Begin
           Inc(iCopied);
         End;
     End Else
-      Raise Exception.CreateFmt('There is not enough disk space at the destination to ' +
-        'copy this file "%s".', [strDestFile]);
+      Raise EFldrSyncException.CreateFmt(
+        'There is not enough disk space at the destination to copy this file "%s".',
+        [strDestFile]);
 End;
 
 (**
@@ -3440,7 +3442,8 @@ Begin
                       iResult);
                     Case iResult Of
                       derIgnoreAll: FDeleteErrors.Add(iLastError);
-                      derUnknown, derStop: Raise Exception.CreateFmt(strExceptionMsg,
+                      derUnknown, derStop:
+                        Raise EFldrSyncException.CreateFmt(strExceptionMsg,
                         [strPath + F.FileName, strErrorMsg]);
                     End;
                     AddToErrors(Format(strExceptionMsg, [strPath + F.FileName,
@@ -3454,7 +3457,7 @@ Begin
                 End;
               End Else
               Begin
-                Raise Exception.CreateFmt(strExceptionMsg, [strPath + F.FileName,
+                Raise EFldrSyncException.CreateFmt(strExceptionMsg, [strPath + F.FileName,
                  strErrorMsg]);
               End;
           End Else
