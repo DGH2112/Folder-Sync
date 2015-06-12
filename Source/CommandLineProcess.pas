@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    31 May 2015
+  @Date    12 Jun 2015
 
 **)
 Unit CommandLineProcess;
@@ -664,6 +664,9 @@ End;
 Procedure TCommandLineProcessing.DeletedProc(iFile: Integer; iSize: Int64;
   iSuccess: TProcessSuccess);
 
+Var
+  dblPercent: Double;
+
 Begin
   ClearLine;
   Case iSuccess Of
@@ -676,11 +679,11 @@ Begin
   CheckForEscape;
   If FTotalSize = 0 Then
     Inc(FTotalSize);
-  OutputToConsole(FStd, Format('    Deleting %1.2f%%, %s',
-    [Int(FCopiedSize + iSize) / Int(FTotalSize) * 100.0,
-     UpdateRemainingTime(FStartTime, Int(FCopiedSize + iFile) / Int(FTotalSize))]),
-    clNone, clNone, False);
-  Inc(FCopiedSize, iSize);
+  dblPercent := Int(iSize) / Int(FTotalSize);
+  Assert(dblPercent <= 1.0);
+  OutputToConsole(FStd, Format('    Deleting %1.2f%%, %s', [dblPercent * 100.0,
+     UpdateRemainingTime(FStartTime, dblPercent)]), clNone, clNone, False);
+  FCopiedSize := iSize;
 End;
 
 (**
@@ -815,6 +818,9 @@ End;
 Procedure TCommandLineProcessing.DeletingProc(iFile : Integer; iSize : Int64;
   strFileName: String);
 
+Var
+  dblPercent : Double;
+
 Begin
   ClearLine;
   If Not IsRO(strFileName) Then
@@ -823,10 +829,10 @@ Begin
     OutputToConsoleLn(FStd, CheckPath(#32#32 + strFileName), FReadOnlyColour);
   If FTotalSize = 0 Then
     Inc(FTotalSize);
-  OutputToConsole(FStd, Format('    Deleting %1.2f%%, %s',
-    [Int(FCopiedSize + iSize) / Int(FTotalSize) * 100.0,
-     UpdateRemainingTime(FStartTime, Int(FCopiedSize + iSize) / Int(FTotalSize))]),
-    clNone, clNone, False);
+  dblPercent := Int(FCopiedSize + iSize) / Int(FTotalSize);
+  Assert(dblPercent <= 1.0);
+  OutputToConsole(FStd, Format('    Deleting %1.2f%%, %s', [dblPercent * 100.0,
+     UpdateRemainingTime(FStartTime, dblPercent)]), clNone, clNone, False);
 End;
 
 (**
@@ -1070,9 +1076,9 @@ Begin
   OutputToConsole(FStd, ' => ');
   OutputToConsole(FStd, strRPath, FPathColour);
   If Not IsRO(strRPath + strFileName) Then
-    OutputToConsoleLn(FStd, strFileName, FExistsColour)
+    OutputToConsoleLn(FStd, CheckPath(strFileName), FExistsColour)
   Else
-    OutputToConsoleLn(FStd, strFileName, FReadOnlyColour);
+    OutputToConsoleLn(FStd, CheckPath(strFileName), FReadOnlyColour);
 End;
 
 (**
@@ -1471,9 +1477,9 @@ Begin
   OutputToConsole(FStd, ' => ');
   OutputToConsole(FStd, strRPath, FPathColour);
   If Not IsRO(strRPath + strFileName) Then
-    OutputToConsoleLn(FStd, strFileName, FExistsColour)
+    OutputToConsoleLn(FStd, CheckPath(strFileName), FExistsColour)
   Else
-    OutputToConsoleLn(FStd, strFileName, FReadOnlyColour);
+    OutputToConsoleLn(FStd, CheckPath(strFileName), FReadOnlyColour);
 End;
 
 (**
