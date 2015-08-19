@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    03 Apr 2015
+  @Date    16 Jul 2015
   @Author  David Hoyle
 
 **)
@@ -1214,7 +1214,7 @@ Begin
   {$ENDIF}
   Caption                             := Format('%s: %s', [Caption, FRootKey]);
   FDialogueBottom                     := 0;
-  FSyncModule                         := TCompareFoldersCollection.Create;
+  FSyncModule                         := TCompareFoldersCollection.Create(Self.Handle);
   FSyncModule.OnSearchStart           := SearchStartProc;
   FSyncModule.OnSearch                := SearchProc;
   FSyncModule.OnSearchEnd             := SearchEndProc;
