@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    12 Jun 2015
+  @Date    16 Jul 2015
 
 **)
 Unit CommandLineProcess;
@@ -1185,7 +1185,7 @@ Begin
     FFilePatterns := '*.*';
   OutputToConsoleLn(FStd, #32#32 + 'Patterns: ' + FFilePatterns);
   OutputToConsoleLn(FStd);
-  CFC := TCompareFoldersCollection.Create;
+  CFC := TCompareFoldersCollection.Create(0);
   Try
     Folders := TFolders.Create;
     Try
