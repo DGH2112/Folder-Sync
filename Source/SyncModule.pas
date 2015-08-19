@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    30 May 2015
+  @Date    16 Jul 2015
   @Author  David Hoyle
 
 **)
@@ -871,6 +871,7 @@ Type
     FCopyErrors                    : TSortedIntegerList;
     FDeleteErrors                  : TSortedIntegerList;
     FFldrSyncOptions               : TFldrSyncOptions;
+    FAppHnd                        : THandle;
   Strict Protected
     Function GetCount: Integer;
     Function GetCompareFolders(iIndex: Integer): TCompareFolders;
@@ -961,7 +962,7 @@ Type
     Function GetStatistics(FileOpStat : TFileOpStat) : TFileOpStatRec;
     Function DeleteFileFromDisk(strFileName : String) : Boolean;
   Public
-    Constructor Create; Virtual;
+    Constructor Create(iAppHnd : THandle); Virtual;
     Destructor Destroy; Override;
     Function ProcessFolders(Folders: TFolders; strExclusions: String): Boolean;
     Procedure ProcessFiles(FldrSyncOptions : TFldrSyncOptions);
@@ -3154,8 +3155,10 @@ End;
   @precon  None.
   @postcon Creates a collection for the folder lists.
 
+  @param   iAppHnd as a THandle
+
 **)
-Constructor TCompareFoldersCollection.Create();
+Constructor TCompareFoldersCollection.Create(iAppHnd : THandle);
 
 Begin
   FCompareFolders := TObjectList.Create(True);
@@ -3168,6 +3171,7 @@ Begin
   FDrives := TDriveTotals.Create;
   FCopyErrors := TSortedIntegerList.Create;
   FDeleteErrors := TSortedIntegerList.Create;
+  FAppHnd := iAppHnd;
 End;
 
 (**
@@ -3285,7 +3289,7 @@ Begin
       strFileName := strFileName + #0#0;
       with FileOp do
          begin
-           wnd := 0;
+           wnd := FAppHnd;
            wFunc := FO_DELETE;
            pFrom := PChar(strFileName);
            pTo := Nil;
@@ -3316,37 +3320,92 @@ Var
   P        : TProcessItem;
   iFile    : Integer;
   FileActions : TFileActions;
+  FileOp : TSHFileOpStruct;
+  iResult : Integer;
+  strFileName : String;
+  iDeletedTotalSize: Int64;
 
 Begin
-  FCopiedTotalSize    := 0;
   FFiles   := 0;
   FSkipped := 0;
   FErrors  := 0;
-  iCount   := CountFileOps([foDelete], FCopiedTotalSize, coDifference);
-  DoDeleteStart(iCount, FCopiedTotalSize);
-  Try
-    FCopiedTotalSize := 0;
-    If iCount = 0 Then
-      Exit;
-    FileActions := [];
-    iFile     := 1;
-    For i     := 0 To ProcessCount - 1 Do
-      Begin
-        P := Process[i];
-        If P.FileOp = foDelete Then
+  iDeletedTotalSize := 0;
+  iCount   := CountFileOps([foDelete], iDeletedTotalSize, coDifference);
+  FCopiedTotalSize := 0;
+  If iCount = 0 Then
+    Exit;
+  If fsoPermanentlyDeleteFiles In FFldrSyncOptions Then
+    Begin
+      DoDeleteStart(iCount, iDeletedTotalSize);
+      Try
+        FileActions := [];
+        iFile     := 1;
+        For i     := 0 To ProcessCount - 1 Do
           Begin
-            If P.LeftFile <> Nil Then
-              DeleteIndividualFile(P.LPath, P.LeftFile, iFile, FileActions,
-                P.SyncOptions);
-            If P.RightFile <> Nil Then
-              DeleteIndividualFile(P.RPath, P.RightFile, iFile, FileActions,
-                P.SyncOptions);
-            Inc(iFile);
+            P := Process[i];
+            If P.FileOp = foDelete Then
+              Begin
+                If P.LeftFile <> Nil Then
+                  DeleteIndividualFile(P.LPath, P.LeftFile, iFile, FileActions,
+                    P.SyncOptions);
+                If P.RightFile <> Nil Then
+                  DeleteIndividualFile(P.RPath, P.RightFile, iFile, FileActions,
+                    P.SyncOptions);
+                Inc(iFile);
+              End;
           End;
+      Finally
+        DoDeleteEnd(FFiles, FSkipped, FErrors);
       End;
-  Finally
-    DoDeleteEnd(FFiles, FSkipped, FErrors);
-  End;
+    End Else
+    Begin
+      DoDeleteStart(iCount, iDeletedTotalSize);
+      Try
+        iFile := 1;
+        For i     := 0 To ProcessCount - 1 Do
+          Begin
+            P := Process[i];
+            If P.FileOp = foDelete Then
+              Begin
+                If P.LeftFile <> Nil Then
+                  Begin
+                    DoDeleting(iFile, P.LeftFile.Size, P.LeftFile.FileName);
+                    strFileName := strFileName + P.LPath + P.LeftFile.FileName + #0;
+                    Inc(FCopiedTotalSize, P.LeftFile.Size);
+                    DoDeleted(iFile, P.LeftFile.Size, psSuccessed);
+                  End;
+                If P.RightFile <> Nil Then
+                  Begin
+                    DoDeleting(iFile, P.RightFile.Size, P.RightFile.FileName);
+                    strFileName := strFileName + P.RPath + P.RightFile.FileName + #0;
+                    Inc(FCopiedTotalSize, P.RightFile.Size);
+                    DoDeleted(iFile, P.RightFile.Size, psSuccessed);
+                  End;
+                Inc(iFile);
+              End;
+          End;
+      Finally
+        DoDeleteEnd(FFiles, FSkipped, FErrors);
+      End;
+      strFileName := strFileName + #0;
+      with FileOp do
+         begin
+           wnd := FAppHnd;
+           wFunc := FO_DELETE;
+           pFrom := PChar(strFileName);
+           pTo := Nil;
+           fFlags := FOF_ALLOWUNDO;
+           If soConfirmYes In Process[0].SyncOptions Then
+             fFlags := fFlags Or FOF_NOCONFIRMATION;
+           fAnyOperationsAborted := False;
+           hNameMappings := Nil;
+           lpszProgressTitle := Nil;
+         end;
+      // Success is return = zero.
+      iResult := SHFileOperation(FileOp);
+      If iResult > 0 Then
+        Raise Exception.Create(SysErrorMessage(iResult));
+    End;
 End;
 
 (**
@@ -3375,7 +3434,7 @@ Var
   iSuccess  : TProcessSuccess;
   iLastError: Cardinal;
   strErrorMsg: String;
-  iResult: TDGHErrorResult;
+  iResult:  TDGHErrorResult;
 
 Begin
   iSuccess := psUnknown;
