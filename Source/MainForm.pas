@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    16 Jul 2015
+  @Date    22 Aug 2015
   @Author  David Hoyle
 
 **)
@@ -46,7 +46,8 @@ Uses
   ShlObj,
   FileDeleteProgressForm,
   FileCopyProgressForm,
-  DiskSpaceForm, System.Actions;
+  DiskSpaceForm,
+  System.Actions;
 
 Type
   (** This enumerate determines the type of progress to be shown in the taskbar in
@@ -120,15 +121,16 @@ Type
       const Rect: TRect);
     procedure actEditFileOperationsUpdate(Sender: TObject);
     procedure actToolsConfigMemMonExecute(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
   Strict Private
     { Private declarations }
     FFolders         : TFolders;
     FExclusions      : String;
     FIconFiles       : TStringList;
-    FProgressForm    :  TfrmProgress;
-    FRootKey         :  String;
+    FProgressForm    : TfrmProgress;
+    FRootKey         : String;
     FParams          : TStringList;
-    FCompareEXE      :  String;
+    FCompareEXE      : String;
     FFldrSyncOptions : TFldrSyncOptions;
     FAutoProcessing  : Boolean;
     FCloseTimer      : TTimer;
@@ -1164,6 +1166,31 @@ Begin
     Finally
       Free;
     End;
+End;
+
+(**
+
+  This is an on form activate event handler for the main form.
+
+  @precon  None.
+  @postcon Ensures that any child forms that are visible are brought to the front.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.FormActivate(Sender: TObject);
+
+Var
+  iForm: Integer;
+
+Begin
+  For iForm := 0 To ComponentCount - 1 Do
+    If Components[iForm] Is TForm Then
+      If (Components[iForm] As TForm).Visible  Then
+        Begin
+          (Components[iForm] As TForm).BringToFront;
+          CodeSite.Send('Activate', (Components[iForm] As TForm));
+        End;
 End;
 
 (**
@@ -2765,7 +2792,7 @@ Begin
       [Int(iTotalCount), Int(iTotalSize)]));
   If iTotalCount > 0 Then
     Begin
-      FCopyForm                  := TfrmCopyProgress.Create(Nil);
+      FCopyForm                  := TfrmCopyProgress.Create(Self);
       FCopyForm.OnUpdateProgress := UpdateProgress;
       FCopyForm.Initialise(iTotalCount, iTotalSize, FCopyDlgWidth);
       FDialogueBottom := FCopyForm.Top + FCopyForm.Height;
@@ -2971,7 +2998,7 @@ Begin
   If iFolderCount > 0 Then
     Begin
       OutputResultLn('Deleting empty folders...');
-      FDeleteForm                  := TfrmDeleteProgress.Create(Nil);
+      FDeleteForm                  := TfrmDeleteProgress.Create(Self);
       FDeleteForm.OnUpdateProgress := UpdateProgress;
       FDeleteForm.Initialise(dtFolders, iFolderCount, FDeleteDlgWidth, iFolderCount);
       FDialogueBottom := FDeleteForm.Top + FDeleteForm.Height;
@@ -3045,7 +3072,7 @@ Begin
       [Int(iFileCount), Int(iTotalSize)]));
   If iFileCount > 0 Then
     Begin
-      FDeleteForm                  := TfrmDeleteProgress.Create(Nil);
+      FDeleteForm                  := TfrmDeleteProgress.Create(Self);
       FDeleteForm.OnUpdateProgress := UpdateProgress;
       FDeleteForm.Initialise(dtFiles, iFileCount, FDeleteDlgWidth, iTotalSize);
       FDialogueBottom := FDeleteForm.Top + FDeleteForm.Height;
