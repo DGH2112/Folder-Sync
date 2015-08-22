@@ -15,7 +15,6 @@ object frmDeleteProgress: TfrmDeleteProgress
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  FormStyle = fsStayOnTop
   OldCreateOrder = False
   Position = poMainFormCenter
   OnResize = FormResize
@@ -126,17 +125,17 @@ object frmDeleteProgress: TfrmDeleteProgress
       425
       32)
     object lblProgress: TLabel
-      Left = 249
+      Left = 250
       Top = 0
-      Width = 174
-      Height = 30
+      Width = 175
+      Height = 32
       Align = alClient
       Alignment = taRightJustify
       AutoSize = False
     end
     object btnCancel: TBitBtn
-      Left = 179
-      Top = 2
+      Left = 180
+      Top = 3
       Width = 65
       Height = 25
       Anchors = []
