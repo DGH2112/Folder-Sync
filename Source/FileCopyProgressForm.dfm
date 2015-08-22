@@ -15,7 +15,6 @@ object frmCopyProgress: TfrmCopyProgress
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  FormStyle = fsStayOnTop
   OldCreateOrder = False
   Position = poMainFormCenter
   OnResize = FormResize
@@ -195,8 +194,8 @@ object frmCopyProgress: TfrmCopyProgress
       528
       35)
     object btnCancel: TBitBtn
-      Left = 225
-      Top = 4
+      Left = 226
+      Top = 5
       Width = 75
       Height = 25
       Anchors = []
@@ -206,10 +205,10 @@ object frmCopyProgress: TfrmCopyProgress
       OnClick = btnCancelClick
     end
     object lblRemainingTime: TLabel
-      Left = 300
+      Left = 301
       Top = 0
-      Width = 226
-      Height = 33
+      Width = 227
+      Height = 35
       Align = alClient
       Alignment = taRightJustify
       AutoSize = False
