@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    28 Mar 2015
+  @Date    06 Oct 2015
 
 **)
 Unit ApplicationFunctions;
@@ -40,14 +40,24 @@ Const
 
 Var
   dblElapsed : TDateTime;
+  dblRemaining : TDateTime;
+  iDays : Integer;
   iHours, iMinutes, iSeconds, iMSec : Word;
 
 Begin
   If dblProgress > 0 Then
     Begin
       dblElapsed := Now() - dblStartTime;
-      DecodeTime((1 - dblProgress) * dblElapsed / dblProgress, iHours, iMinutes,
-        iSeconds, iMSec);
+      dblRemaining := (1 - dblProgress) * dblElapsed / dblProgress;
+      iDays := Trunc(dblRemaining);
+      DecodeTime(dblRemaining, iHours, iMinutes, iSeconds, iMSec);
+      If iDays > 0 Then
+        Begin
+          Result := Format('Remaining %d days and %d hours...   ', [
+            iDays,
+            iHours
+          ])
+        End Else
       If iHours > 0 Then
         Begin
           iMinutes := iMinutes + (iRoundPoint - iMinutes Mod iRoundPoint);
