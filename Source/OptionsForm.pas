@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    07 Dec 2014
+  @Date    11 Oct 2015
   @Version 1.0
   @Author  David Hoyle
 
@@ -203,7 +203,11 @@ Const
        FDefault: False),
       (FINISection: 'AppOptions';
        FINIKey: 'PermanentlyDeleteFiles';
-       FDescription: 'Permanently delete files rather than delete them to the recucle bin.';
+       FDescription: 'Permanently delete files rather than delete them to the recycle bin.';
+       FDefault: False),
+      (FINISection: 'AppOptions';
+       FINIKey: 'BatchDeleteFiles';
+       FDescription: 'Batch delete files rather than delete them individually to the recycle bin.';
        FDefault: False)
     );
   (** A constant array of strings that name of the Interface fonts. **)

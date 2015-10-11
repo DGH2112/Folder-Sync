@@ -84,10 +84,6 @@ object frmOptions: TfrmOptions
     TabOrder = 0
     object tabFolders: TTabSheet
       Caption = '&Folders'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         600
         365)
@@ -280,10 +276,6 @@ object frmOptions: TfrmOptions
     object tabGlobalOptions: TTabSheet
       Caption = '&Global Options'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 26
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         600
         365)
@@ -299,7 +291,6 @@ object frmOptions: TfrmOptions
         Anchors = [akLeft, akBottom]
         Caption = '&Theme'
         FocusControl = cbxThemes
-        ExplicitTop = 332
       end
       object lblCompareFiles: TLabel
         Left = 2
@@ -313,13 +304,12 @@ object frmOptions: TfrmOptions
         Anchors = [akLeft, akBottom]
         Caption = 'Compare &EXE'
         FocusControl = edtCompareEXE
-        ExplicitTop = 302
       end
       object lbxFldrSyncOps: TListView
         Left = 4
         Top = 4
         Width = 592
-        Height = 89
+        Height = 125
         Margins.Left = 4
         Margins.Top = 4
         Margins.Right = 4
@@ -379,9 +369,9 @@ object frmOptions: TfrmOptions
       end
       object lvFileOpStats: TListView
         Left = 4
-        Top = 101
+        Top = 137
         Width = 592
-        Height = 198
+        Height = 162
         Margins.Left = 4
         Margins.Top = 4
         Margins.Right = 4
@@ -404,10 +394,6 @@ object frmOptions: TfrmOptions
       Caption = 'F&onts'
       ImageIndex = 1
       OnResize = tabFontsResize
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         600
         365)
@@ -473,10 +459,6 @@ object frmOptions: TfrmOptions
     object tabExclusions: TTabSheet
       Caption = '&Exclusions'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         600
         365)
@@ -532,7 +514,7 @@ object frmOptions: TfrmOptions
     Left = 232
     Top = 390
     Bitmap = {
-      494C010102000500380010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000500400010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
