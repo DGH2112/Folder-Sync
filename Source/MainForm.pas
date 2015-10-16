@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    22 Aug 2015
+  @Date    16 Oct 2015
   @Author  David Hoyle
 
 **)
@@ -174,18 +174,27 @@ Type
     Procedure MatchListProc(iPosition, iMaxItems: Integer);
     Procedure MatchListEndProc;
     Procedure DeleteStartProc(iFileCount: Integer; iTotalSize: int64);
-    Procedure DeletingProc(iFile : Integer; iSize : Int64; strFileName: String);
-    Procedure DeletedProc(iFile: Integer; iSize: int64; iSuccess: TProcessSuccess);
+    Procedure DeletingProc(iCurrentFileToDelete, iTotalFilesToDelete : Integer;
+      iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
+      strDeletePath, strFileNameToDelete: String);
+    Procedure DeletedProc(iCurrentFileToDeleted, iTotalFilesToDelete: Integer;
+      iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
+      iSuccess : TProcessSuccess);
     Procedure DeleteQueryProc(strFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction);
     Procedure DeleteReadOnlyQueryProc(strFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction);
     Procedure DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
     Procedure CopyStartProc(iTotalCount: Integer; iTotalSize: int64);
-    Procedure CopyContentsProc(iCopiedSize, iTotalSize: int64);
-    Procedure CopyingProc(iFile : Integer; strSource, strDest, strFileName: String);
-    Procedure CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
-      iCopiedTotalSize: int64; iSuccess: TProcessSuccess);
+    Procedure CopyContentsProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+      iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy, iCurrentFileCopiedSizeSoFar,
+      iTotalCurrentFileSize: Int64);
+    Procedure CopyingProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+      iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; strSource, strDest,
+      strFileName: String);
+    Procedure CopiedProc(iCurrentFileToCopy, iTotalFilesToCopy: Integer;
+      iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
+      iSuccess : TProcessSuccess);
     Procedure CopyQueryProc(strSourcePath, strDestPath: String; SourceFile,
       DestFile : TFileRecord; Var Option: TFileAction);
     Procedure CopyReadOnlyQueryProc(strSourcePath, strDestPath: String; SourceFile,
@@ -194,13 +203,16 @@ Type
     Procedure FileQuery(strMsg, strConsoleMsg, strSourcePath, strDestPath: String;
       SourceFile, DestFile : TFileRecord; Var Option: TFileAction; boolReadOnly : Boolean);
     Procedure DiffSizeStart(iFileCount : Integer);
-    Procedure DiffSize(strLPath, strRPath, strFileName : String);
+    Procedure DiffSize(iFile, iFileCount: Integer; strLPath, strRPath,
+      strFileName: String);
     Procedure DiffSizeEnd();
     Procedure NothingToDoStart(iFileCount : Integer);
-    Procedure NothingToDo(strLPath, strRPath, strFileName : String);
+    Procedure NothingToDo(iFile, iFileCount: Integer; strLPath, strRPath,
+    strFileName: String);
     Procedure NothingToDoEnd();
     Procedure ExceedsSizeLimitStart(iFileCount : Integer);
-    Procedure ExceedsSizeLimit(strLPath, strRPath, strFileName : String);
+    Procedure ExceedsSizeLimit(iFile, iFileCount: Integer; strLPath, strRPath,
+      strFileName: String);
     Procedure ExceedsSizeLimitEnd();
     Procedure ErrorMessageStart(iFileCount : Integer);
     Procedure ErrorMessage(strErrorMsg : String);
@@ -210,7 +222,7 @@ Type
     Procedure DeleteFoldersEnd();
     Procedure CopyError(strSource, strDest, strErrorMsg : String;
       iLastError : Cardinal; var iResult : TDGHErrorResult);
-    Procedure DeleteError(strSource, strErrorMsg : String; 
+    Procedure DeleteError(strSource, strErrorMsg : String;
       iLastError : Cardinal; var iResult : TDGHErrorResult);
     Procedure UpdateTaskBar(ProgressType: TTaskbarProgressType; iPosition: Integer = 0;
       iMaxPosition: Integer = 100);
@@ -223,6 +235,7 @@ Type
     Procedure LogSize;
     Procedure OutputStats;
     Procedure MemoryPopupMenu(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
+    Procedure OutputFileNumber(iCurrentFile, iTotal : Integer);
   End;
 
   (** This is a custon exception for folders not found or created. **)
@@ -943,15 +956,19 @@ End;
   @postcon Outputs the name of the files that have a difference size but the same date
            and time.
 
+  @param   iFile       as an Integer
+  @param   iFileCount  as an Integer
   @param   strLPath    as a String
   @param   strRPath    as a String
   @param   strFileName as a String
 
 **)
-procedure TfrmMainForm.NothingToDo(strLPath, strRPath, strFileName: String);
+procedure TfrmMainForm.NothingToDo(iFile, iFileCount: Integer; strLPath, strRPath,
+    strFileName: String);
 
 begin
-  OutputResultLn(Format('  %s => %s%s', [strLPath, strRPath, strFileName]));
+  OutputFileNumber(iFile, iFileCount);
+  OutputResultLn(Format('%s => %s%s', [strLPath, strRPath, strFileName]));
 end;
 
 (**
@@ -1187,10 +1204,7 @@ Begin
   For iForm := 0 To ComponentCount - 1 Do
     If Components[iForm] Is TForm Then
       If (Components[iForm] As TForm).Visible  Then
-        Begin
-          (Components[iForm] As TForm).BringToFront;
-          CodeSite.Send('Activate', (Components[iForm] As TForm));
-        End;
+        (Components[iForm] As TForm).BringToFront;
 End;
 
 (**
@@ -2200,15 +2214,19 @@ End;
   @precon  None.
   @postcon Outputs the given file to the log.
 
+  @param   iFile       as an Integer
+  @param   iFileCount  as an Integer
   @param   strLPath    as a String
   @param   strRPath    as a String
   @param   strFileName as a String
 
 **)
-Procedure TfrmMainForm.ExceedsSizeLimit(strLPath, strRPath, strFileName: String);
+Procedure TfrmMainForm.ExceedsSizeLimit(iFile, iFileCount: Integer; strLPath, strRPath,
+    strFileName: String);
 
 Begin
-  OutputResultLn(Format('  %s => %s%s', [strLPath, strRPath, strFileName]));
+  OutputFileNumber(iFile, iFileCount);
+  OutputResultLn(Format('%s => %s%s', [strLPath, strRPath, strFileName]));
 End;
 
 (**
@@ -2585,24 +2603,25 @@ End;
   @precon  None.
   @postcon Updates the copy progress or if an error outputs the error message.
 
-  @param   iCopiedFiles         as an Integer
-  @param   iCopiedFileTotalSize as an int64
-  @param   iCopiedTotalSize     as an int64
-  @param   iSuccess             as a TProcessSuccess
+  @param   iCurrentFileToCopy           as an Integer
+  @param   iTotalFilesToCopy            as an Integer
+  @param   iCumulativeFileSizeAfterCopy as an Int64
+  @param   iTotalFileSizeToCopy         as an Int64
+  @param   iSuccess                     as a TProcessSuccess
 
 **)
-Procedure TfrmMainForm.CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
-  iCopiedTotalSize: int64; iSuccess: TProcessSuccess);
+Procedure TfrmMainForm.CopiedProc(iCurrentFileToCopy, iTotalFilesToCopy: Integer;
+    iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
+    iSuccess : TProcessSuccess);
 
 Begin
-  FCopyForm.Progress(iCopiedFileTotalSize, iCopiedFileTotalSize);
-  FCopyForm.ProgressOverall(iCopiedTotalSize);
+  FCopyForm.IndividualProgress(0, 0 ,iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy);
   If FTotalSize = 0 Then
     Inc(FTotalSize);
   Case iSuccess Of
-    psSuccessed: OutputResultLn(Format(' %1.1n%% Complete', [Int64(iCopiedTotalSize) /
-      Int64(FTotalSize) * 100.0]));
-    psFailed: OutputResultLn(' Error Copying file (error type ignored).');
+    psSuccessed: OutputResultLn();
+    psFailed: OutputResultLn(
+      Format(' Error Copying file (error type ignored [%s]).', [FSyncModule.LastError]));
     //psIgnored: OutputResultLn(' Ignored Copying file.');
   End;
 End;
@@ -2614,14 +2633,21 @@ End;
   @precon  None.
   @postcon Updates the progress of the individual file copy.
 
-  @param   iCopiedSize as an Int64
-  @param   iTotalSize  as an Int64
+  @param   iCurrentFileToCopy            as an Integer
+  @param   iTotalFilesToCopy             as an Integer
+  @param   iCumulativeFileSizeBeforeCopy as an Int64
+  @param   iTotalFileSizeToCopy          as an Int64
+  @param   iCurrentFileCopiedSizeSoFar   as an Int64
+  @param   iTotalCurrentFileSize         as an Int64
 
 **)
-Procedure TfrmMainForm.CopyContentsProc(iCopiedSize, iTotalSize: int64);
+Procedure TfrmMainForm.CopyContentsProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+    iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy, iCurrentFileCopiedSizeSoFar,
+    iTotalCurrentFileSize: Int64);
 
 Begin
-  FCopyForm.Progress(iCopiedSize, iTotalSize);
+  FCopyForm.IndividualProgress(iCurrentFileCopiedSizeSoFar, iTotalCurrentFileSize,
+    iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy);
 End;
 
 (**
@@ -2700,23 +2726,29 @@ End;
   @precon  None.
   @postcon Updates the copy dialogue.
 
-  @param   iFile       as an Integer
-  @param   strSource   as a String
-  @param   strDest     as a String
-  @param   strFileName as a String
+  @param   iCurrentFileToCopy            as an Integer
+  @param   iTotalFilesToCopy             as an Integer
+  @param   iCumulativeFileSizeBeforeCopy as an Int64
+  @param   iTotalFileSizeToCopy          as an Int64
+  @param   strSource                     as a String
+  @param   strDest                       as a String
+  @param   strFileName                   as a String
 
 **)
-Procedure TfrmMainForm.CopyingProc(iFile : Integer; strSource, strDest,
-  strFileName: String);
+Procedure TfrmMainForm.CopyingProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+    iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; strSource, strDest,
+    strFileName: String);
 
 Begin
   FCopyForm.Progress(
-    iFile,
+    iCurrentFileToCopy,
+    iTotalFilesToCopy,
     ExtractFilePath(strSource + strFileName),
     ExtractFilePath(strDest + strFileName),
     ExtractFileName(strFileName)
   );
-  OutputResult(Format('  %s => %s%s', [strSource, strDest, strFilename]));
+  OutputFileNumber(iCurrentFileToCopy, iTotalFilesToCopy);
+  OutputResult(Format('%s => %s%s', [strSource, strDest, strFilename]));
 End;
 
 (**
@@ -2858,22 +2890,25 @@ End;
   @precon  None.
   @postcon Updates the progress dialogue is successful or outputs an error message.
 
-  @param   iFile    as an Integer
-  @param   iSize    as an int64
-  @param   iSuccess as a TProcessSuccess
+  @param   iCurrentFileToDeleted          as an Integer
+  @param   iTotalFilesToDelete            as an Integer
+  @param   iCumulativeFileSizeAfterDelete as an Int64
+  @param   iTotalFileSizeToDelete         as an Int64
+  @param   iSuccess                       as a TProcessSuccess
 
 **)
-Procedure TfrmMainForm.DeletedProc(iFile: Integer; iSize: int64;
-  iSuccess: TProcessSuccess);
+Procedure TfrmMainForm.DeletedProc(iCurrentFileToDeleted, iTotalFilesToDelete: Integer;
+    iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
+    iSuccess : TProcessSuccess);
 
 Begin
-  FDeleteForm.Progress(iSize);
+  FDeleteForm.Progress(iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete);
   If FTotalSize = 0 Then
     Inc(FTotalSize);
   Case iSuccess Of
-    psSuccessed: OutputResultLn(Format(' %1.1n%% Complete', [Int(iSize) /
-      Int(FTotalSize) * 100.0]));
-    psFailed: OutputResultLn(' Error Deleting file (error type ignored).');
+    psSuccessed: OutputResultLn();
+    psFailed: OutputResultLn(
+      Format(' Error Deleting file (error type ignored [%s]).', [FSyncModule.LastError]));
     //psIgnored: OutputResultLn(' Ignored Copying file.');
   End;
 End;
@@ -2960,9 +2995,10 @@ End;
 Procedure TfrmMainForm.DeleteFolders(iFolder, iFolders : Integer; strFolder: String);
 
 Begin
-  FDeleteForm.InitialiseFileName(dtFiles, iFolder, strFolder);
+  FDeleteForm.InitialiseFileName(dtFiles, iFolder, iFolders, strFolder);
   FDeleteForm.Progress(iFolder, iFolders);
-  OutputResultLn(#32#32 + strFolder);
+  OutputFileNumber(iFolder, iFolders);
+  OutputResultLn(strFolder);
 End;
 
 (**
@@ -3000,7 +3036,7 @@ Begin
       OutputResultLn('Deleting empty folders...');
       FDeleteForm                  := TfrmDeleteProgress.Create(Self);
       FDeleteForm.OnUpdateProgress := UpdateProgress;
-      FDeleteForm.Initialise(dtFolders, iFolderCount, FDeleteDlgWidth, iFolderCount);
+      FDeleteForm.Initialise(dtFolders, iFolderCount, iFolderCount, FDeleteDlgWidth);
       FDialogueBottom := FDeleteForm.Top + FDeleteForm.Height;
     End;
 End;
@@ -3074,7 +3110,7 @@ Begin
     Begin
       FDeleteForm                  := TfrmDeleteProgress.Create(Self);
       FDeleteForm.OnUpdateProgress := UpdateProgress;
-      FDeleteForm.Initialise(dtFiles, iFileCount, FDeleteDlgWidth, iTotalSize);
+      FDeleteForm.Initialise(dtFiles, iFileCount, iTotalSize, FDeleteDlgWidth);
       FDialogueBottom := FDeleteForm.Top + FDeleteForm.Height;
     End;
 End;
@@ -3086,16 +3122,23 @@ End;
   @precon  None.
   @postcon Output the file to be deleted to the deletion progress form.
 
-  @param   iFile       as an Integer
-  @param   iSize       as an Int64
-  @param   strFileName as a String
+  @param   iCurrentFileToDelete            as an Integer
+  @param   iTotalFilesToDelete             as an Integer
+  @param   iCumulativeFileSizeBeforeDelete as an Int64
+  @param   iTotalFileSizeToDelete          as an Int64
+  @param   strDeletePath                   as a String
+  @param   strFileNameToDelete             as a String
 
 **)
-Procedure TfrmMainForm.DeletingProc(iFile : Integer; iSize : Int64; strFileName: String);
+Procedure TfrmMainForm.DeletingProc(iCurrentFileToDelete, iTotalFilesToDelete : Integer;
+    iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
+    strDeletePath, strFileNameToDelete: String);
 
 Begin
-  FDeleteForm.InitialiseFileName(dtFiles, iFile, strFileName);
-  OutputResult(#32#32 + strFileName);
+  FDeleteForm.InitialiseFileName(dtFiles, iCurrentFileToDelete, iTotalFilesToDelete,
+    strDeletePath + strFileNameToDelete);
+  OutputFileNumber(iCurrentFileToDelete, iTotalFilesToDelete);
+  OutputResult(strDeletePath + strFileNameToDelete);
 End;
 
 (**
@@ -3106,15 +3149,19 @@ End;
   @postcon Outputs the name of the files that have a difference size but the same date
            and time.
 
+  @param   iFile       as an Integer
+  @param   iFileCount  as an Integer
   @param   strLPath    as a String
   @param   strRPath    as a String
   @param   strFileName as a String
 
 **)
-procedure TfrmMainForm.DiffSize(strLPath, strRPath, strFileName: String);
+procedure TfrmMainForm.DiffSize(iFile, iFileCount: Integer; strLPath, strRPath,
+    strFileName: String);
 
 begin
-  OutputResultLn(Format('  %s => %s%s', [strLPath, strRPath, strFileName]));
+  OutputFileNumber(iFile, iFileCount);
+  OutputResultLn(Format('%s => %s%s', [strLPath, strRPath, strFileName]));
 end;
 
 (**
@@ -3172,7 +3219,7 @@ End;
   of the file.
 
   @precon  None.
-  @postcon Updates the status images of the list view based on the filename / extension 
+  @postcon Updates the status images of the list view based on the filename / extension
            of the file.
 
   @param   ProcessItem as a TProcessItem
@@ -3226,6 +3273,30 @@ Procedure TfrmMainForm.appEventsException(Sender: TObject; E: Exception);
 
 Begin
   MessageDlg('Exception: ' + E.Message, mtError, [mbOK], 0);
+End;
+
+(**
+
+  This method outputs the file number and the total number of files to the output window.
+
+  @precon  None.
+  @postcon Outputs the file number and the total number of files to the output window.
+
+  @param   iCurrentFile as an Integer
+  @param   iTotal       as an Integer
+
+**)
+Procedure TfrmMainForm.OutputFileNumber(iCurrentFile, iTotal : Integer);
+
+Var
+  strTotal : String;
+  iSize : Integer;
+
+Begin
+  strTotal := Format('%1.0n', [Int(iTotal)]);
+  iSize    := Length(strTotal);
+  OutputResult(#32#32 + Format('(%*.0n/%*.0n) ',
+      [iSize, Int(iCurrentFile), iSize, Int(iTotal)]));
 End;
 
 End.
