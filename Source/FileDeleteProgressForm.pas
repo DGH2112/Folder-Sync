@@ -4,7 +4,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    22 Aug 2015
+  @Date    16 Oct 2015
 
 **)
 Unit FileDeleteProgressForm;
@@ -25,7 +25,8 @@ Uses
   Buttons,
   ComCtrls,
   SyncModule,
-  UITypes, Vcl.ExtCtrls;
+  UITypes,
+  Vcl.ExtCtrls;
 
 Type
   (** An enumerate to define the deletion type to be displayed **)
@@ -47,8 +48,6 @@ Type
     procedure FormShow(Sender: TObject);
   Private
     { Private declarations }
-    FFileCount     : Integer;
-    FTotalSize     : Int64;
     FCaption       : String;
     FAbort         : Boolean;
     FUpdateProgress: TUpdateProgress;
@@ -57,11 +56,11 @@ Type
     Procedure DoUpdateProgress(iPosition, iMaxPosition: Integer);
   Public
     { Public declarations }
-    Procedure Initialise(iType : TDeleteType; iFileCount, iWidth : Integer;
-      iTotalSize: Int64);
-    Procedure InitialiseFileName(iType : TDeleteType; iFile : Integer;
-      strFileName: String);
-    Procedure Progress(iSize : Int64; iTotalSize : Int64 = 0);
+    Procedure Initialise(iType : TDeleteType; iTotalFileCount : Integer;
+      iTotalFileSize : Int64; iWidth : Integer);
+    Procedure InitialiseFileName(iType : TDeleteType; iCurrentFileToDelete,
+      iTotalFilesToDelete : Integer; strFileName: String);
+    Procedure Progress(iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64);
     (**
       This property defines a call back event handler for getting the current progress
       position from the dialogue.
@@ -179,18 +178,16 @@ End;
   @precon  None.
   @postcon The progress dialogue is initialised.
 
-  @param   iType      as a TDeleteType
-  @param   iFileCount as an Integer
-  @param   iWidth     as an Integer
-  @param   iTotalSize as an Int64
+  @param   iType           as a TDeleteType
+  @param   iTotalFileCount as an Integer
+  @param   iTotalFileSize  as an Int64
+  @param   iWidth          as an Integer
 
 **)
-Procedure TfrmDeleteProgress.Initialise(iType : TDeleteType; iFileCount, iWidth : Integer;
-  iTotalSize: Int64);
+Procedure TfrmDeleteProgress.Initialise(iType : TDeleteType; iTotalFileCount : Integer;
+  iTotalFileSize : Int64; iWidth : Integer);
 
 Begin
-  FFileCount := iFileCount;
-  FTotalSize := iTotalSize;
   FStartTime := Now();
   If iType = dtFiles Then
     FCaption := 'Deleting Files'
@@ -215,16 +212,18 @@ End;
   @precon  None.
   @postcon The filename and from labels are updated.
 
-  @param   iType       as a TDeleteType
-  @param   iFile       as an Integer
-  @param   strFileName as a String
+  @param   iType                as a TDeleteType
+  @param   iCurrentFileToDelete as an Integer
+  @param   iTotalFilesToDelete  as an Integer
+  @param   strFileName          as a String
 
 **)
-Procedure TfrmDeleteProgress.InitialiseFileName(iType : TDeleteType; iFile : Integer;
-  strFileName: String);
+Procedure TfrmDeleteProgress.InitialiseFileName(iType : TDeleteType; iCurrentFileToDelete,
+  iTotalFilesToDelete : Integer; strFileName: String);
 
 Begin
-  Caption := Format('%s (%1.0n of %1.0n)', [FCaption, Int(iFile), Int(FFileCount)]);
+  Caption := Format('%s (%1.0n of %1.0n)', [FCaption, Int(iCurrentFileToDelete),
+    Int(iTotalFilesToDelete)]);
   If iType = dtFiles Then
     Begin
       lblFrom.Caption     := ExtractFilePath(strFileName);
@@ -245,27 +244,29 @@ End;
   @precon  None.
   @postcon The progress bar on the dialogue is updated.
 
-  @param   iSize      as an Int64
-  @param   iTotalSize as an Int64
+  @param   iCumulativeFileSizeAfterDelete as an Int64
+  @param   iTotalFileSizeToDelete         as an Int64
 
 **)
-Procedure TfrmDeleteProgress.Progress(iSize : Int64; iTotalSize : Int64 = 0);
+Procedure TfrmDeleteProgress.Progress(iCumulativeFileSizeAfterDelete,
+  iTotalFileSizeToDelete: Int64);
 
 Const
   dblFactor : Double = 1024.0;
 
 Begin
-  If iTotalSize > 0 Then
-    FTotalSize := iTotalSize;
-  If FTotalSize = 0 Then
-    Inc(FTotalSize);
+  If iTotalFileSizeToDelete = 0 Then
+    Inc(iTotalFileSizeToDelete);
   lblDeleteStatus.Caption := Format('Deleted %1.0n kbytes in %1.0n kbytes [%1.1f%%]',
-    [Int(iSize) / dblFactor, Int(FTotalSize) / dblFactor,
-    Int(iSize) / Int(FTotalSize) * 100.0]);
-  pbrOverall.Position := Trunc(Int(iSize) / Int(FTotalSize) * pbrOverall.Max);
+    [Int(iCumulativeFileSizeAfterDelete) /
+     dblFactor, Int(iTotalFileSizeToDelete) / dblFactor,
+    Int(iCumulativeFileSizeAfterDelete) / Int(iTotalFileSizeToDelete) * 100.0]);
+  pbrOverall.Position := Trunc(Int(iCumulativeFileSizeAfterDelete) /
+    Int(iTotalFileSizeToDelete) * pbrOverall.Max);
   pbrOverall.Position := pbrOverall.Position - 1;
   pbrOverall.Position := pbrOverall.Position + 1;
-  lblProgress.Caption := UpdateRemainingTime(FStartTime, Int(iSize) / Int(FTotalSize));
+  lblProgress.Caption := UpdateRemainingTime(FStartTime,
+    Int(iCumulativeFileSizeAfterDelete) / Int(iTotalFileSizeToDelete));
   DoUpdateProgress(pbrOverall.Position, pbrOverall.Max);
   Application.ProcessMessages;
   CheckForCancel;
