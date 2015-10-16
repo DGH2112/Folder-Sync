@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    22 Aug 2015
+  @Date    16 Oct 2015
 
 **)
 Unit FileCopyProgressForm;
@@ -27,7 +27,8 @@ Uses
   ComCtrls,
   SyncModule,
   Vcl.Samples.Gauges,
-  UITypes, Vcl.ExtCtrls;
+  UITypes,
+  Vcl.ExtCtrls;
 
 Type
   (** This is a class to represent the form interface for displaying progress. **)
@@ -52,25 +53,23 @@ Type
     procedure FormShow(Sender: TObject);
   Strict Private
     { Private declarations }
-    FFileCount     : Integer;
-    FTotalSize     : Int64;
     FCaption       : String;
-    FSize          : Int64;
     FStartTick     : Int64;
     FLastTick      : Int64;
     FAbort         : Boolean;
-    FStartTime: TDateTime;
+    FStartTime     : TDateTime;
     FUpdateProgress: TUpdateProgress;
     Procedure CheckForCancel;
     Procedure DoUpdateProgress(iPosition, iMaxPosition: Integer);
-    Procedure UpdateOverallProgress(iSize : Int64);
+    Procedure UpdateOverallProgress(iCurrentFileCopiedSizeSoFar,
+      iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy : Int64);
   Public
     { Public declarations }
     Procedure Initialise(iFileCount : Integer; iTotalSize: Int64; iWidth : Integer);
-    Procedure Progress(iFile : Integer; strSource, strDest,
-      strFileName: String); Overload;
-    Procedure Progress(iCopiedSize, iTotalSize: Int64); Overload;
-    Procedure ProgressOverall(iSize: Int64);
+    Procedure Progress(iCurrentFileToCopy, iTotalFilesToCopy : Integer; strSource,
+      strDest, strFileName: String); Overload;
+    Procedure IndividualProgress(iCurrentFileCopiedSizeSoFar,
+      iTotalCurrentFileSize, iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy : Int64);
     (**
       This property defines a call back event handler for getting the current progress
       position from the dialogue.
@@ -84,6 +83,7 @@ Type
 Implementation
 
 uses
+  CodeSiteLogging,
   ApplicationFunctions;
 
 {$R *.dfm}
@@ -202,8 +202,6 @@ Procedure TfrmCopyProgress.Initialise(iFileCount : Integer; iTotalSize: Int64;
 
 Begin
   FCaption := Caption;
-  FFileCount := iFileCount;
-  FTotalSize := iTotalSize;
   If iWidth > 0 Then
     Width := iWidth;
   FStartTime := Now;
@@ -221,17 +219,19 @@ End;
   @postcon The Source, Destinationa dn Filename labels are updated and the progress bar
            for the file set to zero.
 
-  @param   iFile       as an Integer
-  @param   strSource   as a String
-  @param   strDest     as a String
-  @param   strFileName as a String
+  @param   iCurrentFileToCopy as an Integer
+  @param   iTotalFilestoCopy  as an Integer
+  @param   strSource          as a String
+  @param   strDest            as a String
+  @param   strFileName        as a String
 
 **)
-Procedure TfrmCopyProgress.Progress(iFile : Integer; strSource, strDest,
-  strFileName: String);
+Procedure TfrmCopyProgress.Progress(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+  strSource, strDest, strFileName: String);
 
 Begin
-  Caption := Format('%S (%1.0n of %1.0n)', [FCaption, Int(iFile), Int(FFileCount)]);
+  Caption := Format('%s (%1.0n of %1.0n)', [FCaption, Int(iCurrentFileToCopy),
+    Int(iTotalFilesToCopy)]);
   lblFrom.Caption        := strSource;
   lblTo.Caption          := strDest;
   lblFilename.Caption    := strFileName;
@@ -250,11 +250,14 @@ End;
   @precon  None.
   @postcon Both the file and the overall progress bars are updated.
 
-  @param   iCopiedSize as an Int64
-  @param   iTotalSize  as an Int64
+  @param   iCurrentFileCopiedSizeSoFar   as an Int64
+  @param   iTotalCurrentFileSize         as an Int64
+  @param   iCumulativeFileSizeBeforeCopy as an Int64
+  @param   iTotalFileSizeToCopy          as an Int64
 
 **)
-Procedure TfrmCopyProgress.Progress(iCopiedSize, iTotalSize: Int64);
+Procedure TfrmCopyProgress.IndividualProgress(iCurrentFileCopiedSizeSoFar,
+    iTotalCurrentFileSize, iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy : Int64);
 
 Var
   dblBytesPerSec: Double;
@@ -262,53 +265,31 @@ Var
 
 Begin
   iTick := GetTickCount;
-  If (iTick - FLastTick > 25) Or (iCopiedSize = iTotalSize) Then
+  If (iTick - FLastTick > 25) Or (iCurrentFileCopiedSizeSoFar = iTotalCurrentFileSize) Then
     Begin
       If iTick <> FStartTick Then
-        dblBytesPerSec := Int(iCopiedSize) * 1000.0 / dblFactor / (iTick - FStartTick)
+        dblBytesPerSec := Int(iCurrentFileCopiedSizeSoFar) * 1000.0 / dblFactor /
+          (iTick - FStartTick)
       Else
         dblBytesPerSec       := 0;
-      If iTotalSize = 0 Then
-        Inc(iTotalSize);
+      If iTotalCurrentFileSize = 0 Then
+        Inc(iTotalCurrentFileSize);
       lblBytesCopied.Caption :=
-        Format('Copied %1.0n kbytes in %1.0n kbytes (%1.1n kbytes/sec) [%1.1f%%]',
-        [Int(iCopiedSize / dblFactor), Int(iTotalSize / dblFactor), dblBytesPerSec,
-        Int(iCopiedSize) / Int(iTotalSize) * 100.0]);
-      pbrFile.Position    := Trunc(Int(iCopiedSize) / Int(iTotalSize) * Int(pbrFile.Max));
+        Format('Copying %1.0n kbytes in %1.0n kbytes (%1.1n kbytes/sec) [%1.1f%%]', [
+          Int(iCurrentFileCopiedSizeSoFar / dblFactor),
+          Int(iTotalCurrentFileSize / dblFactor),
+          dblBytesPerSec,
+          Int(iCurrentFileCopiedSizeSoFar) / Int(iTotalCurrentFileSize) * 100.0
+        ]);
+      pbrFile.Position    := Trunc(Int(iCurrentFileCopiedSizeSoFar) /
+        Int(iTotalCurrentFileSize) * Int(pbrFile.Max));
       // Workaround for Windows 7 animatation not updating the bar correctly.
       pbrFile.Position := pbrFile.Position - 1;
       pbrFile.Position := pbrFile.Position + 1;
-      UpdateOverallProgress(FSize + iCopiedSize);
-      //If FTotalSize = 0 Then
-      //  Inc(FTotalSize);
-      //pbrOverall.Position := Trunc(Int(pbrOverall.Max) * Int(FSize + iCopiedSize) / Int(FTotalSize));
-      //// Workaround for Windows 7 animatation not updating the bar correctly.
-      //pbrOverall.Position := pbrOverall.Position - 1;
-      //pbrOverall.Position := pbrOverall.Position + 1;
-      //lblBytesOverallCopied.Caption := Format('Copied %1.0n kbytes in %1.0n kbytes [%1.1f%%]',
-      //  [Int(FSize + iCopiedSize) / dblFactor, Int(FTotalSize) / dblFactor,
-      //  Int(FSize) / Int(FTotalSize) * 100.0]);
-      //DoUpdateProgress(pbrOverall.Position, pbrOverall.Max);
-      //Application.ProcessMessages;
+      UpdateOverallProgress(iCurrentFileCopiedSizeSoFar, iCumulativeFileSizeBeforeCopy,
+        iTotalFileSizeToCopy);
       FLastTick := iTick;
     End;
-End;
-
-(**
-
-  This method updates the overall progress bar and label.
-
-  @precon  None.
-  @postcon The overall progress bar is updated.
-
-  @param   iSize as an Int64
-
-**)
-Procedure TfrmCopyProgress.ProgressOverall(iSize: Int64);
-
-Begin
-  FSize := iSize;
-  UpdateOverallProgress(iSize);
 End;
 
 (**
@@ -318,22 +299,31 @@ End;
   @precon  None.
   @postcon The overall progress bar and label are updated.
 
-  @param   iSize as an Int64
+  @param   iCurrentFileCopiedSizeSoFar   as an Int64
+  @param   iCumulativeFileSizeBeforeCopy as an Int64
+  @param   iTotalFileSizeToCopy          as an Int64
 
 **)
-Procedure TfrmCopyProgress.UpdateOverallProgress(iSize: Int64);
+Procedure TfrmCopyProgress.UpdateOverallProgress(iCurrentFileCopiedSizeSoFar,
+  iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy : Int64);
 
 Begin
-  If FTotalSize = 0 Then
-    Inc(FTotalSize);
-  pbrOverall.Position := Trunc(Int(pbrOverall.Max) * Int(iSize) / Int(FTotalSize));
+  If iTotalFileSizeToCopy = 0 Then
+    Inc(iTotalFileSizeToCopy);
+  pbrOverall.Position := Trunc(Int(pbrOverall.Max) *
+    Int(iCurrentFileCopiedSizeSoFar + iCumulativeFileSizeBeforeCopy) /
+    Int(iTotalFileSizeToCopy));
   // Workaround for Windows 7 animatation not updating the bar correctly.
   pbrOverall.Position := pbrOverall.Position - 1;
   pbrOverall.Position := pbrOverall.Position + 1;
   lblBytesOverallCopied.Caption := Format('Copied %1.0n kbytes in %1.0n kbytes [%1.1f%%]',
-    [Int(iSize) / dblFactor,
-    Int(FTotalSize) / dblFactor, Int(iSize) / Int(FTotalSize) * 100.0]);
-  lblRemainingTime.Caption := UpdateRemainingTime(FStartTime, Int(iSize) / Int(FTotalSize));
+    [Int(iCurrentFileCopiedSizeSoFar + iCumulativeFileSizeBeforeCopy) / dblFactor,
+    Int(iTotalFileSizeToCopy) / dblFactor,
+    Int(iCurrentFileCopiedSizeSoFar + iCumulativeFileSizeBeforeCopy) /
+      Int(iTotalFileSizeToCopy) * 100.0]);
+  lblRemainingTime.Caption := UpdateRemainingTime(FStartTime,
+    Int(iCurrentFileCopiedSizeSoFar + iCumulativeFileSizeBeforeCopy) /
+    Int(iTotalFileSizeToCopy));
   DoUpdateProgress(pbrOverall.Position, pbrOverall.Max);
   Application.ProcessMessages;
 End;
