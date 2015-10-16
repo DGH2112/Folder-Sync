@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    11 Oct 2015
+  @Date    16 Oct 2015
   @Author  David Hoyle
 
 **)
@@ -985,15 +985,15 @@ Type
       @postcon Returns the number of CompareFolder classes in the collection.
       @return  an Integer
     **)
-    Property Count: Integer Read GetCount;
+    Property  Count: Integer Read GetCount;
     Procedure AddEmptyFolder(strFolder : String);
     Procedure IncrementFolder(strFolder : String);
     Function  DecrementFolder(strFolder : String) : Boolean;
     Function  FileCount(strFolder : String) : NativeUInt;
     Procedure AddFileOpStat(FileOpStat : TFileOpStat; strName : String; iCount,
       iSize : Int64);
-    Function GetStatistics(FileOpStat : TFileOpStat) : TFileOpStatRec;
-    Function DeleteFileFromDisk(strFileName : String) : Boolean;
+    Function  GetStatistics(FileOpStat : TFileOpStat) : TFileOpStatRec;
+    Function  DeleteFileFromDisk(strFileName : String) : Boolean;
   Protected
     Procedure FileCounters(var iCurrentFileToCopy, iTotalFilesToCopy : Integer;
       var iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy : Int64);
@@ -3453,7 +3453,6 @@ Var
   i : Integer;
 
 Begin
-  //: @todo Prompt (via event) if there are more than 5% of the files to be deleted!
   FTotalFileCount   := 0;
   FTotalSkippedCount := 0;
   FTotalErrorCount  := 0;
@@ -3686,18 +3685,20 @@ Procedure TCompareFoldersCollection.DifferentSize;
 Var
   iCount: Integer;
   iSize : Int64;
-  i     : Integer;
+  i, j  : Integer;
   P     : TProcessItem;
 
 Begin
   iSize  := 0;
   iCount := CountFileOps([foSizeDiff], iSize, coDifference);
   DoDiffSizeStart(iCount);
+  j := 1;
   For i := 0 To ProcessCount - 1 Do
     Begin
       P := Process[i];
       If P.FileOp In [foSizeDiff] Then
-        DoDiffSize(Succ(i), iCount, P.LPath, P.RPath, P.LeftFile.FileName);
+        DoDiffSize(j, iCount, P.LPath, P.RPath, P.LeftFile.FileName);
+        Inc(j);
     End;
   DoDiffSizeEnd();
 End;
@@ -4267,7 +4268,7 @@ Procedure TCompareFoldersCollection.DoNothing;
 Var
   iSize : Int64;
   iCount: Integer;
-  i     : Integer;
+  i, j  : Integer;
   P     : TProcessItem;
   strFileName : String;
 
@@ -4275,6 +4276,7 @@ Begin
   iSize  := 0;
   iCount := CountFileOps([foNothing], iSize, coDifference);
   DoNothingToDoStart(iCount);
+  j := 1;
   For i := 0 To ProcessCount - 1 Do
     Begin
       P := Process[i];
@@ -4284,7 +4286,8 @@ Begin
             strFileName := P.LeftFile.FileName
           Else
             strFileName := P.RightFile.FileName;
-          DoNothingToDo(Succ(i), iCount, P.LPath, P.RPath, strFileName);
+          DoNothingToDo(j, iCount, P.LPath, P.RPath, strFileName);
+          Inc(j);
         End;
     End;
   DoNothingToDoEnd();
@@ -4357,7 +4360,7 @@ Procedure TCompareFoldersCollection.DoSizeLimit;
 Var
   iSize : Int64;
   iCount: Integer;
-  i     : Integer;
+  i, j  : Integer;
   P     : TProcessItem;
   strFileName : String;
 
@@ -4365,6 +4368,7 @@ Begin
   iSize  := 0;
   iCount := CountFileOps([foExceedsSizeLimit], iSize, coDifference);
   DoExceedsSizeLimitStart(iCount);
+  j := 1;
   For i := 0 To ProcessCount - 1 Do
     Begin
       P := Process[i];
@@ -4374,7 +4378,8 @@ Begin
             strFileName := P.LeftFile.FileName
           Else
             strFileName := P.RightFile.FileName;
-          DoExceedsSizeLimit(Succ(i), iCount, P.LPath, P.RPath, strFileName);
+          DoExceedsSizeLimit(j, iCount, P.LPath, P.RPath, strFileName);
+          Inc(j);
         End;
     End;
   DoExceedsSizeLimitEnd();
@@ -4775,7 +4780,6 @@ Begin
     End;
   BuildMatchLists;
   BuildStats;
-  //: @todo Prompt (via event) if there are more than 5% of the files to be deleted!
   Result := True;
 End;
 
