@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    10 Oct 2015
+  @Date    16 Oct 2015
 
 **)
 Unit CommandLineProcess;
@@ -27,7 +27,8 @@ Type
     cloHelp,
     cloQuiet,
     clsDeletePermentently,
-    clsBatchRecycleFiles
+    clsBatchRecycleFiles,
+    clsProceedAutomatically
   );
 
   (** This is a set of the above command line option switches. **)
@@ -1289,8 +1290,8 @@ Begin
       FCFC.OnCopyError             := CopyError;
       FCFC.OnDeleteError           := DeleteError;
       FCFC.ProcessFolders(Folders, FExclusions);
-      OutputStats(FCFC);
       Try
+        OutputStats(FCFC);
         For iDrive := 0 To FCFC.Drives.Count - 1 Do
           Begin
             D := FCFC.Drives.Drive[iDrive];
@@ -1618,6 +1619,7 @@ Var
   i : TFileOpStat;
   iDrive : Integer;
   strHeader : String;
+  C : Char;
 
 Begin
   OutputToConsoleLn(FStd, 'Statistics:', FHeaderColour);
@@ -1651,6 +1653,18 @@ Begin
         Int(CFC.Drives.Drive[iDrive].TotalAdds) / 1024,
         Int(CFC.Drives.Drive[iDrive].FreeAtFinish) / 1024
       ]));
+    End;
+  OutputToConsoleLn(FStd);
+  If Not (clsProceedAutomatically In FCommandLineOptions) Then
+    Begin
+      OutputToConsole(FStd, 'Do you want to proceed (Y/N)? ', FInputColour);
+      C := GetConsoleCharacter(['y', 'Y', 'n', 'N']);
+      OutputToConsole(FStd, C, FInputColour);
+      OutputToConsoleLn(FStd);
+      OutputToConsoleLn(FStd);
+      Case C Of
+        'n', 'N': Abort;
+      End;
     End;
 End;
 
@@ -1748,6 +1762,8 @@ Begin
             Include(FCommandLineOptions, clsDeletePermentently)
           Else If CompareText(strOption, 'BatchRecycleFiles') = 0 Then
             Include(FCommandLineOptions, clsBatchRecycleFiles)
+          Else If CompareText(strOption, 'ProceedAutomatically') = 0 Then
+            Include(FCommandLineOptions, clsProceedAutomatically)
           Else If CompareText(Copy(strOption, 1, 1), 'E') = 0 Then
             FExclusions := StringReplace(Copy(strOption, 2, Length(strOption) - 1), ';',
               #13#10, [rfReplaceAll])
