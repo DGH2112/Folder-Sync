@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    16 Jul 2015
+  @Date    10 Oct 2015
 
 **)
 Unit CommandLineProcess;
@@ -21,8 +21,15 @@ Uses
 Type
   (** This enumerate describe the available command line options switches that can be
       applied to the application. **)
-  TCommandLineOption = (cloPause, cloCheckForUpdates, cloHelp, cloQuiet,
-    clsDeletePermentently);
+  TCommandLineOption = (
+    cloPause,
+    cloCheckForUpdates,
+    cloHelp,
+    cloQuiet,
+    clsDeletePermentently,
+    clsBatchRecycleFiles
+  );
+
   (** This is a set of the above command line option switches. **)
   TCommandLineOptions = Set Of TCommandLineOption;
 
@@ -35,6 +42,7 @@ Type
     FINIFileName         : String;
     FParams              : TStringList;
     FStd, FErr           : THandle;
+    FCFC                 : TCompareFoldersCollection;
     FCommandLineOptions  : TCommandLineOptions;
     FTitleColour         : TColor;
     FPathColour          : TColor;
@@ -47,9 +55,6 @@ Type
     FExclusions          : String;
     FLastFolder          : String;
     FSyncOptions         : TSyncOptions;
-    FTotalFiles          : Int64;
-    FTotalSize           : Int64;
-    FCopiedSize          : Int64;
     FOutputUpdateInterval: Integer;
     FInputColour         : TColor;
     FReadOnlyColour      : TColor;
@@ -77,19 +82,29 @@ Type
     Procedure MatchListProc(iPosition, iMaxItems: Integer);
     Procedure MatchListEndProc;
     Procedure ClearLine;
-    Procedure DeleteStartProc(iFileCount: Integer; iTotalSize: Int64);
-    Procedure DeletingProc(iFile : Integer; iSize : Int64; strFileName: String);
-    Procedure DeletedProc(iFile: Integer; iSize: Int64; iSuccess: TProcessSuccess);
+    Procedure DeleteStartProc(iTotalFileCount: Integer; iTotalFileSize: Int64);
+    Procedure DeletingProc(iCurrentFileToDelete, iTotalFilesToDelete : Integer;
+      iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
+      strDeletePath, strFileNameToDelete: String);
+    Procedure DeletedProc(iCurrentFileDeleted, iTotalFilesToDelete: Integer;
+      iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
+      iSuccess: TProcessSuccess);
     Procedure DeleteQueryProc(strFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction);
     Procedure DeleteReadOnlyQueryProc(strFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction);
-    Procedure DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
+    Procedure DeleteEndProc(iTotalDeletedFileCount, iTotalSkippedFileCount,
+      iTotalErrorsFileCount: Integer);
     Procedure CopyStartProc(iTotalCount: Integer; iTotalSize: Int64);
-    Procedure CopyContentsProc(iCopiedSize, iTotalSize: Int64);
-    Procedure CopyingProc(iFile : Integer; strSource, strDest, strFileName: String);
-    Procedure CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
-      iCopiedTotalSize: Int64; iSuccess: TProcessSuccess);
+    Procedure CopyContentsProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+      iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy,
+      iCurrentFileCopiedSizeSoFar, iTotalCurrentFileSize: Int64);
+    Procedure CopyingProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+      iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; strSource, strDest,
+      strFileName: String);
+    Procedure CopiedProc(iCurrentFileToCopy, iTotalFilesToCopy: Integer;
+      iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
+      iSuccess : TProcessSuccess);
     Procedure CopyQueryProc(strSourcePath, strDestPath: String; SourceFile,
       DestFile : TFileRecord; Var Option: TFileAction);
     Procedure CopyReadOnlyQueryProc(strSourcePath, strDestPath: String; SourceFile,
@@ -99,15 +114,18 @@ Type
     Procedure FileQuery(strMsg, strFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction; boolReadOnly : Boolean);
     Procedure DiffSizeStart(iFileCount: Integer);
-    Procedure DiffSize(strLPath, strRPath, strFileName: String);
+    Procedure DiffSize(iFile, iFileCount : Integer; strLPath, strRPath,
+      strFileName: String);
     Procedure DiffSizeEnd();
     Procedure NothingToDoStart(iFileCount: Integer);
-    Procedure NothingToDo(strLPath, strRPath, strFileName: String);
+    Procedure NothingToDo(iFile, iFileCount : Integer; strLPath, strRPath,
+      strFileName: String);
     Procedure NothingToDoEnd();
     Procedure OutputStats(CFC : TCompareFoldersCollection);
     Procedure ParseSizeLimit(strOption : String);
     Procedure ExceedsSizeLimitStart(iFileCount: Integer);
-    Procedure ExceedsSizeLimit(strLPath, strRPath, strFileName: String);
+    Procedure ExceedsSizeLimit(iFile, iFileCount : integer; strLPath, strRPath,
+      strFileName: String);
     Procedure ExceedsSizeLimitEnd();
     Procedure ErrorMsgsStart(iErrorCount: Integer);
     Procedure ErrorMsgs(strErrorMsg : String);
@@ -121,6 +139,7 @@ Type
       iLastError : Cardinal; var iResult : TDGHErrorResult);
     Procedure CheckForEscape;
     Function  CheckPath(strOutput : String) : String;
+    Procedure OutputFileNumber(iCurrentFile, iTotal : Integer);
   Public
     Constructor Create;
     Destructor Destroy; Override;
@@ -415,24 +434,28 @@ End;
   @precon  None.
   @postcon Outputs the percentage completion of the overall copying process.
 
-  @param   iCopiedFiles         as an Integer
-  @param   iCopiedFileTotalSize as an Int64
-  @param   iCopiedTotalSize     as an Int64
-  @param   iSuccess             as a TProcessSuccess
+  @param   iCurrentFileToCopy           as an Integer
+  @param   iTotalFilesToCopy            as an Integer
+  @param   iCumulativeFileSizeAfterCopy as an Int64
+  @param   iTotalFileSizeToCopy         as an Int64
+  @param   iSuccess                     as a TProcessSuccess
 
 **)
-Procedure TCommandLineProcessing.CopiedProc(iCopiedFiles: Integer; iCopiedFileTotalSize,
-  iCopiedTotalSize: Int64; iSuccess: TProcessSuccess);
+Procedure TCommandLineProcessing.CopiedProc(iCurrentFileToCopy, iTotalFilesToCopy: Integer;
+    iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
+    iSuccess : TProcessSuccess);
 
 Begin
   ClearLine;
-  FCopiedSize := iCopiedTotalSize;
   Case iSuccess Of
     //psSuccessed: OutputToConsole(FStd, Format(' %1.1n%% Complete',
-    //    [Int64(iCopiedTotalSize) / Int64(FTotalSize) * 100.0]), FSuccessColour);
-    psFailed: OutputToConsoleLn(FStd, ' Error Copying file (error type ignored).',
+    //  [Int64(iCumulativeFileSizeAfterCopy) / Int64(iTotalFileSizeToCopy) * 100.0]),
+    //  FSuccessColour);
+    psFailed: OutputToConsoleLn(FStd,
+      Format(' Error Copying file (error type ignored [%s]).', [FCFC.LastError]),
       FExceptionColour);
-    //psIgnored: OutputToConsoleLn(FStd, ' Ignored Copying file.', FExceptionColour);
+    //psIgnoreOnce, psIgnoreAll: OutputToConsoleLn(FStd, ' Ignored Copying file.',
+    //  FExceptionColour);
   End;
   CheckForEscape;
 End;
@@ -445,21 +468,42 @@ End;
   @precon  None.
   @postcon Outputs the percentage completion of the individual file copying.
 
-  @param   iCopiedSize as an Int64
-  @param   iTotalSize  as an Int64
+  @param   iCurrentFileToCopy            as an Integer
+  @param   iTotalFilesToCopy             as an Integer
+  @param   iCumulativeFileSizeBeforeCopy as an Int64
+  @param   iTotalFileSizeToCopy          as an Int64
+  @param   iCurrentFileCopiedSizeSoFar   as an Int64
+  @param   iTotalCurrentFileSize         as an Int64
 
 **)
-Procedure TCommandLineProcessing.CopyContentsProc(iCopiedSize, iTotalSize: Int64);
+Procedure TCommandLineProcessing.CopyContentsProc(iCurrentFileToCopy,
+  iTotalFilesToCopy : Integer; iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy,
+  iCurrentFileCopiedSizeSoFar, iTotalCurrentFileSize: Int64);
+
+Var
+  strOutput : String;
+  strFileSize : String;
+  iLength : Integer;
 
 Begin
   ClearLine;
-  If FTotalSize = 0 Then
-    Inc(FTotalSize);
-  OutputToConsole(FStd, Format('    Copying %5.1f%% (%1.2f%%), %s',
-    [Int64(iCopiedSize) / Int64(iTotalSize) * 100.0,
-     Int64(FCopiedSize + iCopiedSize) / Int64(FTotalSize) * 100.0,
-     UpdateRemainingTime(FStartTime, Int64(FCopiedSize + iCopiedSize) / Int64(FTotalSize))]),
-    clNone, clNone, False);
+  If iTotalFileSizeToCopy <> 0 Then
+    Begin
+      strOutput := Format('    Copying %5.1f%% (%1.2f%%)',
+        [Int64(iCurrentFileCopiedSizeSoFar) / Int64(iTotalCurrentFileSize) * 100.0,
+         Int64(iCumulativeFileSizeBeforeCopy + iCurrentFileCopiedSizeSoFar) /
+           Int64(iTotalFileSizeToCopy) * 100.0]);
+      strFileSize := Format('%1.1n', [Int(iTotalCurrentFileSize) / 1024.0]);
+      iLength := Length(strFileSize);
+      strOutput := strOutput + Format(', %*.1n of %*.1n kbytes copied', [iLength,
+        Int(iCurrentFileCopiedSizeSoFar) / 1024.0, iLength,
+        Int(iTotalCurrentFileSize) / 1024.0]);
+      strOutput := strOutput + Format(', %s', [UpdateRemainingTime(FStartTime,
+           Int64(iCumulativeFileSizeBeforeCopy + iCurrentFileCopiedSizeSoFar) /
+           Int64(iTotalFileSizeToCopy))]);
+    End Else
+      strOutput := '    Copying...';
+  OutputToConsole(FStd, strOutput, clNone, clNone, False);
 End;
 
 (**
@@ -536,21 +580,26 @@ End;
   @precon  None.
   @postcon Outputs the file information for the file being copied.
 
-  @param   iFile       as an Integer
-  @param   strSource   as a String
-  @param   strDest     as a String
-  @param   strFileName as a String
+  @param   iCurrentFileToCopy            as an Integer
+  @param   iTotalFilesToCopy             as an Integer
+  @param   iCumulativeFileSizeBeforeCopy as an Int64
+  @param   iTotalFileSizeToCopy          as an Int64
+  @param   strSource                     as a String
+  @param   strDest                       as a String
+  @param   strFileName                   as a String
 
 **)
-Procedure TCommandLineProcessing.CopyingProc(iFile : Integer; strSource, strDest,
-  strFileName: String);
+Procedure TCommandLineProcessing.CopyingProc(iCurrentFileToCopy,
+  iTotalFilesToCopy : Integer; iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64;
+  strSource, strDest, strFileName: String);
 
 Var
   iColour: TColor;
 
 Begin
   ClearLine;
-  OutputToConsole(FStd, #32#32 + strSource, FPathColour);
+  OutputFileNumber(iCurrentFileToCopy, iTotalFilesToCopy);
+  OutputToConsole(FStd, strSource, FPathColour);
   OutputToConsole(FStd, ' => ');
   OutputToConsole(FStd, strDest, FPathColour);
   If FileExists(strDest + strFileName) Then
@@ -623,8 +672,6 @@ End;
 Procedure TCommandLineProcessing.CopyStartProc(iTotalCount: Integer; iTotalSize: Int64);
 
 Begin
-  FTotalFiles := iTotalCount;
-  FTotalSize  := iTotalSize;
   FStartTime  := Now();
   OutputToConsoleLn(FStd, Format('Copying %1.0n files...', [Int(iTotalCount)]),
     FHeaderColour);
@@ -656,13 +703,16 @@ End;
   @precon  None.
   @postcon Output the percentage completion of the deletion process.
 
-  @param   iFile    as an Integer
-  @param   iSize    as an Int64
-  @param   iSuccess as a TProcessSuccess
+  @param   iCurrentFileDeleted            as an Integer
+  @param   iTotalFilesToDelete            as an Integer
+  @param   iCumulativeFileSizeAfterDelete as an Int64
+  @param   iTotalFileSizeToDelete         as an Int64
+  @param   iSuccess                       as a TProcessSuccess
 
 **)
-Procedure TCommandLineProcessing.DeletedProc(iFile: Integer; iSize: Int64;
-  iSuccess: TProcessSuccess);
+Procedure TCommandLineProcessing.DeletedProc(iCurrentFileDeleted,
+  iTotalFilesToDelete: Integer; iCumulativeFileSizeAfterDelete,
+  iTotalFileSizeToDelete: Int64; iSuccess: TProcessSuccess);
 
 Var
   dblPercent: Double;
@@ -671,19 +721,20 @@ Begin
   ClearLine;
   Case iSuccess Of
     //psSuccessed: OutputToConsoleLn(FStd, Format(' %1.1n%% Complete',
-    //  [Int(iFile) / Int(FTotalFiles) * 100.0]), FSuccessColour);
-    psFailed: OutputToConsoleLn(FStd, ' Error Deleting file (error type ignored).',
+    //  [Int(iCumulativeFileSizeAfterDelete) / Int(iTotalFileSizeToDelete) * 100.0]),
+    //  FSuccessColour);
+    psFailed: OutputToConsoleLn(FStd,
+      Format(' Error Deleting file (error type ignored [%s]).', [FCFC.LastError]),
       FExceptionColour);
-    //psIgnored: OutputToConsoleLn(FStd, ' Ignored Copying file.', FExceptionColour);
+    //psIgnoreOnce, psIgnoreAll: OutputToConsoleLn(FStd, ' Ignored Copying file.',
+    //  FExceptionColour);
   End;
   CheckForEscape;
-  If FTotalSize = 0 Then
-    Inc(FTotalSize);
-  dblPercent := Int(iSize) / Int(FTotalSize);
-  Assert(dblPercent <= 1.0);
+  dblPercent := 0;
+  If iTotalFileSizeToDelete <> 0 Then
+    dblPercent := Int(iCumulativeFileSizeAfterDelete) / Int(iTotalFileSizeToDelete);
   OutputToConsole(FStd, Format('    Deleting %1.2f%%, %s', [dblPercent * 100.0,
      UpdateRemainingTime(FStartTime, dblPercent)]), clNone, clNone, False);
-  FCopiedSize := iSize;
 End;
 
 (**
@@ -693,21 +744,22 @@ End;
   @precon  None.
   @postcon Outputs how many files were deleted and how many were skipped.
 
-  @param   iDeleted as an Integer
-  @param   iSkipped as an Integer
-  @param   iErrors  as an Integer
+  @param   iTotalDeletedFileCount as an Integer
+  @param   iTotalSkippedFileCount as an Integer
+  @param   iTotalErrorsFileCount  as an Integer
 
 **)
-Procedure TCommandLineProcessing.DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
+Procedure TCommandLineProcessing.DeleteEndProc(iTotalDeletedFileCount,
+  iTotalSkippedFileCount, iTotalErrorsFileCount: Integer);
 
 Begin
   ClearLine;
   OutputToConsole(FStd, Format('  Deleted %1.0n file(s) (Skipped %1.0n file(s)',
-      [Int(iDeleted), Int(iSkipped)]), FSuccessColour);
-  If iErrors > 0 Then
+      [Int(iTotalDeletedFileCount), Int(iTotalSkippedFileCount)]), FSuccessColour);
+  If iTotalErrorsFileCount > 0 Then
     Begin
       OutputToConsole(FErr, ', ', FSuccessColour);
-      OutputToConsole(FErr, Format('Errored %1.0n file(s)', [Int(iErrors)]),
+      OutputToConsole(FErr, Format('Errored %1.0n file(s)', [Int(iTotalErrorsFileCount)]),
         FExceptionColour);
     End;
   OutputToConsoleLn(FStd, ').');
@@ -768,7 +820,8 @@ Procedure TCommandLineProcessing.DeleteFolders(iFolder, iFolders: Integer;
 
 Begin
   ClearLine;
-  OutputToConsoleLn(FStd, CheckPath(#32#32 + strFolder));
+  OutputFileNumber(iFolder, iFolders);
+  OutputToConsoleLn(FStd, CheckPath(strFolder));
 End;
 
 (**
@@ -798,7 +851,6 @@ Procedure TCommandLineProcessing.DeleteFoldersStart(iFolderCount: Integer);
 
 Begin
   ClearLine;
-  FTotalFiles := iFolderCount;
   If iFolderCount > 0 Then
     OutputToConsoleLn(FStd, 'Deleting empty folders...', FHeaderColour);
 End;
@@ -810,27 +862,32 @@ End;
   @precon  None.
   @postcon Outputs the name of the file being deleted.
 
-  @param   iFile       as an Integer
-  @param   iSize       as an Int64
-  @param   strFileName as a String
+  @param   iCurrentFileToDelete            as an Integer
+  @param   iTotalFilesToDelete             as an Integer
+  @param   iCumulativeFileSizeBeforeDelete as an Int64
+  @param   iTotalFileSizeToDelete          as an Int64
+  @param   strDeletePath                   as a String
+  @param   strFileNameToDelete             as a String
 
 **)
-Procedure TCommandLineProcessing.DeletingProc(iFile : Integer; iSize : Int64;
-  strFileName: String);
+Procedure TCommandLineProcessing.DeletingProc(iCurrentFileToDelete,
+  iTotalFilesToDelete : Integer; iCumulativeFileSizeBeforeDelete,
+  iTotalFileSizeToDelete: Int64; strDeletePath, strFileNameToDelete: String);
 
 Var
   dblPercent : Double;
 
 Begin
   ClearLine;
-  If Not IsRO(strFileName) Then
-    OutputToConsoleLn(FStd, CheckPath(#32#32 + strFileName), FExistsColour)
+  OutputFileNumber(iCurrentFileToDelete, iTotalFilesToDelete);
+  OutputToConsole(FStd, strDeletePath, FPathColour);
+  If Not IsRO(strFileNameToDelete) Then
+    OutputToConsoleLn(FStd, CheckPath(strFileNameToDelete), FExistsColour)
   ELse
-    OutputToConsoleLn(FStd, CheckPath(#32#32 + strFileName), FReadOnlyColour);
-  If FTotalSize = 0 Then
-    Inc(FTotalSize);
-  dblPercent := Int(FCopiedSize + iSize) / Int(FTotalSize);
-  Assert(dblPercent <= 1.0);
+    OutputToConsoleLn(FStd, CheckPath(strFileNameToDelete), FReadOnlyColour);
+  dblPercent := 0;
+  If iTotalFileSizeToDelete <> 0 Then
+    dblPercent := Int(iCumulativeFileSizeBeforeDelete) / Int(iTotalFileSizeToDelete);
   OutputToConsole(FStd, Format('    Deleting %1.2f%%, %s', [dblPercent * 100.0,
      UpdateRemainingTime(FStartTime, dblPercent)]), clNone, clNone, False);
 End;
@@ -882,20 +939,18 @@ End;
   @precon  None.
   @postcon Displays the number of files to be deleted.
 
-  @param   iFileCount as an Integer
-  @param   iTotalSize as an Int64
+  @param   iTotalFileCount as an Integer
+  @param   iTotalFileSize  as an Int64
 
 **)
-Procedure TCommandLineProcessing.DeleteStartProc(iFileCount: Integer; iTotalSize: Int64);
+Procedure TCommandLineProcessing.DeleteStartProc(iTotalFileCount: Integer;
+  iTotalFileSize: Int64);
 
 Begin
   ClearLine;
-  FTotalFiles := iFileCount;
-  FTotalSize := iTotalSize;
-  FCopiedSize := 0;
   FStartTime  := Now();
   OutputToConsoleLn(FStd, Format('Deleting %1.0n files (%1.0n bytes)...',
-      [Int(iFileCount), Int(iTotalSize)]), FHeaderColour);
+      [Int(iTotalFileCount), Int(iTotalFileSize)]), FHeaderColour);
 End;
 
 (**
@@ -921,15 +976,19 @@ End;
   @precon  None.
   @postcon Outputs the name of the files which has a size difference only.
 
+  @param   iFile       as an Integer
+  @param   iFileCount  as an Integer
   @param   strLPath    as a String
   @param   strRPath    as a String
   @param   strFileName as a String
 
 **)
-Procedure TCommandLineProcessing.DiffSize(strLPath, strRPath, strFileName: String);
+Procedure TCommandLineProcessing.DiffSize(iFile, iFileCount : Integer; strLPath, strRPath,
+  strFileName: String);
 
 Begin
-  OutputToConsole(FStd, #32#32 + strLPath, FPathColour);
+  OutputFileNumber(iFile, iFileCount);
+  OutputToConsole(FStd, strLPath, FPathColour);
   OutputToConsole(FStd, ' => ');
   OutputToConsole(FStd, strRPath, FPathColour);
   If Not IsRO(strRPath + strFileName) Then
@@ -965,7 +1024,6 @@ End;
 Procedure TCommandLineProcessing.DiffSizeStart(iFileCount: Integer);
 
 Begin
-  FTotalFiles := iFileCount;
   If iFileCount > 0 Then
     OutputToConsoleLn(FStd, Format('%1.0n Files with Differing Sizes...',
         [Int(iFileCount)]), FHeaderColour);
@@ -1049,7 +1107,6 @@ End;
 Procedure TCommandLineProcessing.ErrorMsgsStart(iErrorCount: Integer);
 
 Begin
-  FTotalFiles := iErrorCount;
   If iErrorCount > 0 Then
     OutputToConsoleLn(FStd, Format('%1.0n Files had errors...', [Int(iErrorCount)]
         ), FHeaderColour);
@@ -1063,16 +1120,19 @@ End;
   @postcon Outputs a line of information for each file considered as too large for
            copying.
 
+  @param   iFile       as an integer
+  @param   iFileCount  as an integer
   @param   strLPath    as a String
   @param   strRPath    as a String
   @param   strFileName as a String
 
 **)
-Procedure TCommandLineProcessing.ExceedsSizeLimit(strLPath, strRPath,
-  strFileName: String);
+Procedure TCommandLineProcessing.ExceedsSizeLimit(iFile, iFileCount : integer; strLPath,
+  strRPath, strFileName: String);
 
 Begin
-  OutputToConsole(FStd, #32#32 + strLPath, FPathColour);
+  OutputFileNumber(iFile, iFileCount);
+  OutputToConsole(FStd, strLPath, FPathColour);
   OutputToConsole(FStd, ' => ');
   OutputToConsole(FStd, strRPath, FPathColour);
   If Not IsRO(strRPath + strFileName) Then
@@ -1109,7 +1169,6 @@ End;
 Procedure TCommandLineProcessing.ExceedsSizeLimitStart(iFileCount: Integer);
 
 Begin
-  FTotalFiles := iFileCount;
   If iFileCount > 0 Then
     OutputToConsoleLn(FStd, Format('%1.0n Files exceeding Size Limit...', [Int(iFileCount)]
         ), FHeaderColour);
@@ -1151,7 +1210,6 @@ Const
   strMsg = 'Drive "%s" does not have enough disk space. Do you want to continue (Y/N)? ';
 
 Var
-  CFC      : TCompareFoldersCollection;
   Folders  : TFolders;
   iDrive : Integer;
   D : TDriveTotal;
@@ -1185,57 +1243,57 @@ Begin
     FFilePatterns := '*.*';
   OutputToConsoleLn(FStd, #32#32 + 'Patterns: ' + FFilePatterns);
   OutputToConsoleLn(FStd);
-  CFC := TCompareFoldersCollection.Create(0);
+  FCFC := TCompareFoldersCollection.Create(0);
   Try
     Folders := TFolders.Create;
     Try
       Folders.Add(TFolder.Create(FSourceDir, FDestDir, FFilePatterns, FSyncOptions,
         FMaxFileSize));
-      CFC.OnSearchStart           := SearchStartProc;
-      CFC.OnSearch                := SearchProc;
-      CFC.OnSearchEnd             := SearchEndProc;
-      CFC.OnCompareStart          := CompareStartProc;
-      CFC.OnCompare               := CompareProc;
-      CFC.OnCompareEnd            := CompareEndProc;
-      CFC.OnMatchListStart        := MatchListStartProc;
-      CFC.OnMatchList             := MatchListProc;
-      CFC.OnMatchListEnd          := MatchListEndProc;
-      CFC.OnDeleteStart           := DeleteStartProc;
-      CFC.OnDeleting              := DeletingProc;
-      CFC.OnDeleted               := DeletedProc;
-      CFC.OnDeleteQuery           := DeleteQueryProc;
-      CFC.OnDeleteReadOnlyQuery   := DeleteReadOnlyQueryProc;
-      CFC.OnDeleteEnd             := DeleteEndProc;
-      CFC.OnCopyStart             := CopyStartProc;
-      CFC.OnCopying               := CopyingProc;
-      CFC.OnCopyContents          := CopyContentsProc;
-      CFC.OnCopied                := CopiedProc;
-      CFC.OnCopyQuery             := CopyQueryProc;
-      CFC.OnCopyReadOnlyQuery     := CopyReadOnlyQueryProc;
-      CFC.OnCopyEnd               := CopyEndProc;
-      CFC.OnDiffSizeStart         := DiffSizeStart;
-      CFC.OnDiffSize              := DiffSize;
-      CFC.OnDiffSizeEnd           := DiffSizeEnd;
-      CFC.OnNothingToDoStart      := NothingToDoStart;
-      CFC.OnNothingToDo           := NothingToDo;
-      CFC.OnNothingToDoEnd        := NothingToDoEnd;
-      CFC.OnExceedsSizeLimitStart := ExceedsSizeLimitStart;
-      CFC.OnExceedsSizeLimit      := ExceedsSizeLimit;
-      CFC.OnExceedsSizeLimitEnd   := ExceedsSizeLimitEnd;
-      CFC.OnErrorMsgsStart        := ErrorMsgsStart;
-      CFC.OnErrorMsgs             := ErrorMsgs;
-      CFC.OnErrorMsgsEnd          := ErrorMsgsEnd;
-      CFC.OnDeleteFoldersStart    := DeleteFoldersStart;
-      CFC.OnDeleteFolders         := DeleteFolders;
-      CFC.OnDeleteFoldersEnd      := DeleteFoldersEnd;
-      CFC.OnCopyError             := CopyError;
-      CFC.OnDeleteError           := DeleteError;
-      CFC.ProcessFolders(Folders, FExclusions);
-      OutputStats(CFC);
+      FCFC.OnSearchStart           := SearchStartProc;
+      FCFC.OnSearch                := SearchProc;
+      FCFC.OnSearchEnd             := SearchEndProc;
+      FCFC.OnCompareStart          := CompareStartProc;
+      FCFC.OnCompare               := CompareProc;
+      FCFC.OnCompareEnd            := CompareEndProc;
+      FCFC.OnMatchListStart        := MatchListStartProc;
+      FCFC.OnMatchList             := MatchListProc;
+      FCFC.OnMatchListEnd          := MatchListEndProc;
+      FCFC.OnDeleteStart           := DeleteStartProc;
+      FCFC.OnDeleting              := DeletingProc;
+      FCFC.OnDeleted               := DeletedProc;
+      FCFC.OnDeleteQuery           := DeleteQueryProc;
+      FCFC.OnDeleteReadOnlyQuery   := DeleteReadOnlyQueryProc;
+      FCFC.OnDeleteEnd             := DeleteEndProc;
+      FCFC.OnCopyStart             := CopyStartProc;
+      FCFC.OnCopying               := CopyingProc;
+      FCFC.OnCopyContents          := CopyContentsProc;
+      FCFC.OnCopied                := CopiedProc;
+      FCFC.OnCopyQuery             := CopyQueryProc;
+      FCFC.OnCopyReadOnlyQuery     := CopyReadOnlyQueryProc;
+      FCFC.OnCopyEnd               := CopyEndProc;
+      FCFC.OnDiffSizeStart         := DiffSizeStart;
+      FCFC.OnDiffSize              := DiffSize;
+      FCFC.OnDiffSizeEnd           := DiffSizeEnd;
+      FCFC.OnNothingToDoStart      := NothingToDoStart;
+      FCFC.OnNothingToDo           := NothingToDo;
+      FCFC.OnNothingToDoEnd        := NothingToDoEnd;
+      FCFC.OnExceedsSizeLimitStart := ExceedsSizeLimitStart;
+      FCFC.OnExceedsSizeLimit      := ExceedsSizeLimit;
+      FCFC.OnExceedsSizeLimitEnd   := ExceedsSizeLimitEnd;
+      FCFC.OnErrorMsgsStart        := ErrorMsgsStart;
+      FCFC.OnErrorMsgs             := ErrorMsgs;
+      FCFC.OnErrorMsgsEnd          := ErrorMsgsEnd;
+      FCFC.OnDeleteFoldersStart    := DeleteFoldersStart;
+      FCFC.OnDeleteFolders         := DeleteFolders;
+      FCFC.OnDeleteFoldersEnd      := DeleteFoldersEnd;
+      FCFC.OnCopyError             := CopyError;
+      FCFC.OnDeleteError           := DeleteError;
+      FCFC.ProcessFolders(Folders, FExclusions);
+      OutputStats(FCFC);
       Try
-        For iDrive := 0 To CFC.Drives.Count - 1 Do
+        For iDrive := 0 To FCFC.Drives.Count - 1 Do
           Begin
-            D := CFC.Drives.Drive[iDrive];
+            D := FCFC.Drives.Drive[iDrive];
             If D.FreeAtFinish <= 0 Then
               Begin
                 OutputToConsole(FStd, Format(strMsg, [D.Drive]), FInputColour);
@@ -1249,7 +1307,9 @@ Begin
         FFldrSyncOptions := [];
         If clsDeletePermentently In FCommandLineOptions Then
           Include(FFldrSyncOptions, fsoPermanentlyDeleteFiles);
-        CFC.ProcessFiles(FFldrSyncOptions);
+        If clsBatchRecycleFiles In FCommandLineOptions Then
+          Include(FFldrSyncOptions, fsoBatchRecycleFiles);
+        FCFC.ProcessFiles(FFldrSyncOptions);
       Except
         On E : EAbort Do {Do nothing};
         On E : EFldrSyncException Do
@@ -1267,7 +1327,7 @@ Begin
       Folders.Free;
     End;
   Finally
-    CFC.Free;
+    FCFC.Free;
   End;
 End;
 
@@ -1465,15 +1525,19 @@ End;
   @precon  None.
   @postcon Outputs the name and path(s) of the file.
 
+  @param   iFile       as an Integer
+  @param   iFileCount  as an Integer
   @param   strLPath    as a String
   @param   strRPath    as a String
   @param   strFileName as a String
 
 **)
-Procedure TCommandLineProcessing.NothingToDo(strLPath, strRPath, strFileName: String);
+Procedure TCommandLineProcessing.NothingToDo(iFile, iFileCount : Integer; strLPath,
+  strRPath, strFileName: String);
 
 Begin
-  OutputToConsole(FStd, #32#32 + strLPath, FPathColour);
+  OutputFileNumber(iFile, iFileCount);
+  OutputToConsole(FStd, strLPath, FPathColour);
   OutputToConsole(FStd, ' => ');
   OutputToConsole(FStd, strRPath, FPathColour);
   If Not IsRO(strRPath + strFileName) Then
@@ -1509,10 +1573,33 @@ End;
 Procedure TCommandLineProcessing.NothingToDoStart(iFileCount: Integer);
 
 Begin
-  FTotalFiles := iFileCount;
   If iFileCount > 0 Then
     OutputToConsoleLn(FStd, Format('%1.0n Files with Nothing to do...', [Int(iFileCount)]
         ), FHeaderColour);
+End;
+
+(**
+
+  This method outputs a consistent file number / totel number format to the console.
+
+  @precon  None.
+  @postcon Outputs a consistent file number / totel number format to the console.
+
+  @param   iCurrentFile as an Integer
+  @param   iTotal       as an Integer
+
+**)
+Procedure TCommandLineProcessing.OutputFileNumber(iCurrentFile, iTotal : Integer);
+
+Var
+  strTotal : String;
+  iSize : Integer;
+
+Begin
+  strTotal := Format('%1.0n', [Int(iTotal)]);
+  iSize    := Length(strTotal);
+  OutputToConsole(FStd, #32#32 + Format('(%*.0n/%*.0n) ',
+      [iSize, Int(iCurrentFile), iSize, Int(iTotal)]));
 End;
 
 (**
@@ -1659,6 +1746,8 @@ Begin
             Include(FSyncOptions, soPrimaryRight)
           Else If CompareText(strOption, 'DeletePermentently') = 0 Then
             Include(FCommandLineOptions, clsDeletePermentently)
+          Else If CompareText(strOption, 'BatchRecycleFiles') = 0 Then
+            Include(FCommandLineOptions, clsBatchRecycleFiles)
           Else If CompareText(Copy(strOption, 1, 1), 'E') = 0 Then
             FExclusions := StringReplace(Copy(strOption, 2, Length(strOption) - 1), ';',
               #13#10, [rfReplaceAll])
