@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    16 Jul 2015
+  @Date    11 Oct 2015
   @Author  David Hoyle
 
 **)
@@ -34,7 +34,13 @@ Type
   TFileActions = Set Of TFileAction;
 
   (** A type to define the status of a file **)
-  TStatus = (stNewer, stOlder, stSame, stDiffSize, stTooLarge);
+  TStatus = (
+    stNewer,
+    stOlder,
+    stSame,
+    stDiffSize,
+    stTooLarge
+  );
 
   (** An abstract class for describing a single file. **)
   TBaseFileRecord = Class Abstract
@@ -157,73 +163,87 @@ Type
   TMatchListEndNotifier = Procedure Of Object;
 
   (** An event signature for the start of the deletion process. **)
-  TDeleteStartNotifier = Procedure(iFileCount: Integer; iTotalSize: Int64) Of Object;
+  TDeleteStartNotifier = Procedure(iTotalFileCount: Integer;
+    iTotalFileSize: Int64) Of Object;
   (** An event signature for the start of the deletion of an individual file. **)
-  TDeletingNotifier = Procedure(iFile : Integer; iSize: Int64;
-    strFileName: String) Of Object;
+  TDeletingNotifier = Procedure(iCurrentFileToDelete, iTotalFilesToDelete : Integer;
+    iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
+    strDeletePath, strFileNameToDelete: String) Of Object;
   (** An event signature for the end of the deletion of an individual file. **)
-  TDeletedNotifier = Procedure(iFile: Integer; iSize: Int64;
+  TDeletedNotifier = Procedure(iCurrentFileToDeleted, iTotalFilesToDelete: Integer;
+    iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
     iSuccess : TProcessSuccess) Of Object;
   (** An event signature to prompt for the deletion of a file. **)
-  TDeleteQueryNotifier = Procedure(strDeletePath: String; DeleteFile : TFileRecord;
+  TDeleteQueryNotifier = Procedure(strDeleteFilePath: String; DeleteFile : TFileRecord;
     Var Option: TFileAction) Of Object;
-  (** An event signature to prompt for the deletion of a read only file. **)
-  TDeleteReadOnlyQueryNotifier = Procedure(strDeletePath: String;
-    DeleteFile : TFileRecord; Var Option: TFileAction) Of Object;
   (** An event sighature for the end of the deletion process. **)
-  TDeleteEndNotifier = Procedure(iDeleted, iSkipped, iErrors: Integer) Of Object;
+  TDeleteEndNotifier = Procedure(iTotalDeletedFileCount, iTotalSkippedFileCount,
+    iTotalErrorsFileCount: Integer) Of Object;
 
   (** An event signature for the start of the copying process. **)
-  TCopyStartNotifier = Procedure(iTotalCount: Integer; iTotalSize: Int64) Of Object;
+  TCopyStartNotifier = Procedure(iTotalFileCount: Integer;
+    iTotalFileSize: Int64) Of Object;
   (** An event signature for the start of the copying of an individual file. **)
-  TCopyingNotifier = Procedure(iFile : Integer; strSource, strDest,
+  TCopyingNotifier = Procedure(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+    iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; strSource, strDest,
     strFileName: String) Of Object;
   (** An event signature for feeding back progress on the copying of a file. **)
-  TCopyContents = Procedure(iCopiedSize, iTotalSize: Int64) Of Object;
+  TCopyContents = Procedure(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+    iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy, iCurrentFileCopiedSizeSoFar,
+    iTotalCurrentFileSize: Int64) Of Object;
   (** An event signature for the end of the copying of an individual file. **)
-  TCopiedNotifier = Procedure(iCopiedFiles: Integer; iCopiedFileTotalSize,
-    iCopiedTotalSize: Int64; iSuccess : TProcessSuccess) Of Object;
+  TCopiedNotifier = Procedure(iCurrentFileToCopy, iTotalFilesToCopy: Integer;
+    iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
+    iSuccess : TProcessSuccess) Of Object;
   (** An event signature to prompt for the overwriting of a file. **)
   TCopyQueryNotifier = Procedure(strSrcPath, strDestPath : String; SourceFile,
     DestFile: TFileRecord; Var Option: TFileAction) Of Object;
-  (** An event signature to prompt for the overwriting of a read only file. **)
-  TCopyReadOnlyQueryNotifier = Procedure(strSrcPath, strDestPath : String; SourceFile,
-    DestFile: TFileRecord; Var Option: TFileAction) Of Object;
   (** An event signature for the end of the copying process. **)
-  TCopyEndNotifier = Procedure(iCopied, iSkipped, iError: Integer) Of Object;
+  TCopyEndNotifier = Procedure(iTotalCopiedFiles, iTotalSkippedFiles,
+    iTotalErrorFiles: Integer) Of Object;
+
   (** An event signature for the start of the different size process. **)
   TDiffSizeStartNotifier = Procedure(iFileCount: Integer) Of Object;
   (** An event signature for each file in the different size process. **)
-  TDiffSizeNotifier = Procedure(strLPath, strRPath, strFileName: String) Of Object;
+  TDiffSizeNotifier = Procedure(iFile, iFileCount: Integer; strLPath, strRPath,
+    strFileName: String) Of Object;
   (** An event signature for the end of the different size process. **)
   TDiffSizeEndNotifier = Procedure() Of Object;
+
   (** An event signature for the start of the Nothing to do Process. **)
   TNothingToDoStartNotifier = Procedure(iFileCount: Integer) Of Object;
   (** An event signature for each file in the Nothing to do Process. **)
-  TNothingToDoNotifier = Procedure(strLPath, strRPath, strFileName: String) Of Object;
+  TNothingToDoNotifier = Procedure(iFile, iFileCount: Integer; strLPath, strRPath,
+    strFileName: String) Of Object;
   (** An event signature for the end of the Nothing to do Process. **)
   TNothingToDoEndNotifier = Procedure() Of Object;
+
   (** An event signature for the start of the Size Limit Process. **)
   TExceedsSizeLimitStartNotifier = Procedure(iFileCount: Integer) Of Object;
   (** An event signature for each file in the Size Limit Process. **)
-  TExceedsSizeLimitNotifier = Procedure(strLPath, strRPath, strFileName: String) Of Object;
+  TExceedsSizeLimitNotifier = Procedure(iFile, iFileCount: Integer; strLPath, strRPath,
+    strFileName: String) Of Object;
   (** An event signature for the end of the Size Limit Process. **)
   TExceedsSizeLimitEndNotifier = Procedure() Of Object;
   (** An event signature for the start of the Error Message Process. **)
+
   TErrorMsgsStartNotifier = Procedure(iFileCount: Integer) Of Object;
   (** An event signature for each error in the Error Message Process. **)
   TErrorMsgsNotifier = Procedure(strErrorMsg: String) Of Object;
   (** An event signature for the end of the Error Message Process. **)
   TErrorMsgsEndNotifier = Procedure() Of Object;
-  (** An event handler signature for the end of the deletion of empty folders. **)
-  TDeleteFoldersEndNotifier = Procedure() Of Object;
+
   (** An event handler signature for the start of the deletion of empty folders. **)
   TDeleteFoldersStartNotifier = Procedure(iFolderCount: Integer) Of Object;
   (** An event handler signature for the deletion of each empty folder. **)
   TDeleteFoldersNotifier = Procedure(iFolder, iFolders : Integer;
     strFolder: String) Of Object;
+  (** An event handler signature for the end of the deletion of empty folders. **)
+  TDeleteFoldersEndNotifier = Procedure() Of Object;
+
   (** An event handler signature for adding folders to the empty folder list. **)
   TAddEmptyFolder = Procedure(strFolder : String) Of Object;
+
   (** An event handler signature for handling errors in copying. **)
   TCopyErrorNotifier = Procedure(strSource, strDest, strErrorMsg : String;
     iLastError : Cardinal; var iResult : TDGHErrorResult) Of Object;
@@ -290,7 +310,8 @@ Type
   TFldrSyncOption = (
     fsoCloseIFNoFilesAfterComparison,
     fsoStartProcessingAutomatically,
-    fsoPermanentlyDeleteFiles
+    fsoPermanentlyDeleteFiles,
+    fsoBatchRecycleFiles
   );
 
   (** A set of folder sync options. **)
@@ -833,14 +854,14 @@ Type
     FDeletingNotifier              : TDeletingNotifier;
     FDeletedNotifier               : TDeletedNotifier;
     FDeleteQueryNotifier           : TDeleteQueryNotifier;
-    FDeleteReadOnlyQueryNotifier   : TDeleteReadOnlyQueryNotifier;
+    FDeleteReadOnlyQueryNotifier   : TDeleteQueryNotifier;
     FDeleteEndNotifier             : TDeleteEndNotifier;
     FCopyStartNotifier             : TCopyStartNotifier;
     FCopyingNotifier               : TCopyingNotifier;
     FCopyContents                  : TCopyContents;
     FCopiedNotifier                : TCopiedNotifier;
     FCopyQueryNotifier             : TCopyQueryNotifier;
-    FCopyReadOnlyQueryNotifier     : TCopyReadOnlyQueryNotifier;
+    FCopyReadOnlyQueryNotifier     : TCopyQueryNotifier;
     FCopyEndNotifier               : TCopyEndNotifier;
     FDiffSizeStartNotifier         : TDiffSizeStartNotifier;
     FDiffSizeNotifier              : TDiffSizeNotifier;
@@ -860,10 +881,10 @@ Type
     FCopyErrorNotifier             : TCopyErrorNotifier;
     FDeleteErrorNotifier           : TDeleteErrorNotifier;
     FProcessList                   : TObjectList;
-    FCopiedTotalSize               : Int64;
-    FFiles                         : Integer;
-    FSkipped                       : Integer;
-    FErrors                        : Integer;
+    FCurrentFileToCopy             : Integer;
+    FTotalFileCount                : Integer;
+    FTotalSkippedCount             : Integer;
+    FTotalErrorCount               : Integer;
     FStatistics                    : Array[Low(TFileOpStat)..High(TFileOpStat)] Of TFileOpStatRec;
     FErrorMsgs                     : TStringList;
     FEmptyFolders                  : TStringList;
@@ -872,6 +893,8 @@ Type
     FDeleteErrors                  : TSortedIntegerList;
     FFldrSyncOptions               : TFldrSyncOptions;
     FAppHnd                        : THandle;
+    FTotalFileSize                 : Int64;
+    FCumulativeFileSize            : Int64;
   Strict Protected
     Function GetCount: Integer;
     Function GetCompareFolders(iIndex: Integer): TCompareFolders;
@@ -886,31 +909,41 @@ Type
       SyncOptions: TSyncOptions): TFileOp;
     Function GetProcessCount: Integer;
     Function GetProcessItem(iIndex: Integer): TProcessItem;
-    Procedure DoDeleteStart(iFileCount: Integer; iTotalSize: Int64);
-    Procedure DoDeleting(iFile : Integer; iSize : Int64; strFileName: String);
-    Procedure DoDeleted(iFile: Integer; iSize: Int64; iSuccess: TProcessSuccess);
-    Procedure DoDeleteQuery(strFilePath: String; DeleteFile : TFileRecord;
+    Procedure DoDeleteStart(iTotalFileCount: Integer; iTotalFileSize: Int64);
+    Procedure DoDeleting(iCurrentFileToDelete, iTotalFilesToDelete : Integer;
+      iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete : Int64;
+      strDeletePath, strFileNameToDelete: String);
+    Procedure DoDeleted(iCurrentFileDeleted, iTotalFilesToDelete: Integer;
+      iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
+      iSuccess: TProcessSuccess);
+    Procedure DoDeleteQuery(strDeleteFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction;  SyncOptions: TSyncOptions);
-    Procedure DoDeleteReadOnlyQuery(strFilePath: String; DeleteFile : TFileRecord;
+    Procedure DoDeleteReadOnlyQuery(strDeleteFilePath: String; DeleteFile : TFileRecord;
       Var Option: TFileAction; SyncOptions: TSyncOptions);
-    Procedure DoDeleteEnd(iDeleted, iSkipped, iErrors: Integer);
+    Procedure DoDeleteEnd(iTotalDeletedFileCount, iTotalSkippedFileCount,
+      iTotalErrorsFileCount: Integer);
     Procedure DoCopyStart(iTotalCount: Integer; iTotalSize: Int64);
-    Procedure DoCopying(iFile : Integer; strSource, strDest, strFileName: String);
-    Procedure DoCopied(iCopiedFiles: Integer; iCopiedFileTotalSize,
-      iCopiedTotalSize: Int64; iSuccess: TProcessSuccess);
+    Procedure DoCopying(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+      iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy : Int64; strSource, strDest,
+      strFileName: String);
+    Procedure DoCopied(iCurrentFileToCopy, iTotalFilesToCopy: Integer;
+      iCopiedFileTotalSize, iCopiedTotalSize: Int64; iSuccess: TProcessSuccess);
     Procedure DoCopyQuery(strSourcePath, strDestPath: String; SourceFile,
       DestFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
     Procedure DoCopyReadOnlyQuery(strSourcePath, strDestPath: String; SourceFile,
       DestFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
     Procedure DoCopyEnd(iCopied, iSkipped, iError: Integer);
     Procedure DoDiffSizeStart(iFileCount: Integer);
-    Procedure DoDiffSize(strLPath, strRPath, strFileName: String);
+    Procedure DoDiffSize(iFile, iFileCount : Integer; strLPath, strRPath,
+      strFileName: String);
     Procedure DoDiffSizeEnd;
     Procedure DoNothingToDoStart(iFileCount: Integer);
-    Procedure DoNothingToDo(strLPath, strRPath, strFileName: String);
+    Procedure DoNothingToDo(iFile, iFileCount : Integer; strLPath, strRPath,
+      strFileName: String);
     Procedure DoNothingToDoEnd;
     Procedure DoExceedsSizeLimitStart(iFileCount: Integer);
-    Procedure DoExceedsSizeLimit(strLPath, strRPath, strFileName: String);
+    Procedure DoExceedsSizeLimit(iFile, iFileCount : Integer; strLPath, strRPath,
+      strFileName: String);
     Procedure DoExceedsSizeLimitEnd;
     Procedure DoErrorsMsgsStart(iErrorCount: Integer);
     Procedure DoErrorMsgs(strErrorMsg: String);
@@ -925,10 +958,10 @@ Type
     Procedure DoSizeLimit;
     Function CopyFileContents(strSourceFile, strDestFile: String;
       Var iCopied: Integer): TProcessSuccess;
-    Function CountFileOps(FileOps: TFileOps; Var iSize: Int64;
+    Function CountFileOps(FileOps: TFileOps; Var iOperationSize{, iTotalSize}: Int64;
       CountOp : TCountOp): Integer;
-    Procedure DeleteIndividualFile(strPath: String; F: TFileRecord; iFile: Integer;
-      Var FileActions : TFileActions; SyncOps: TSyncOptions);
+    Procedure DeleteIndividualFile(strPath: String; F: TFileRecord; iCurrentFileToDelete,
+      iTotalFilesToDelete: Integer; Var FileActions : TFileActions; SyncOps: TSyncOptions);
     Function CopyIndividualFile(strSource, strDest: String; SourceFile,
       DestFile: TFileRecord; Var FileActions : TFileActions;
       SyncOps: TSyncOptions): TProcessSuccess;
@@ -961,6 +994,9 @@ Type
       iSize : Int64);
     Function GetStatistics(FileOpStat : TFileOpStat) : TFileOpStatRec;
     Function DeleteFileFromDisk(strFileName : String) : Boolean;
+  Protected
+    Procedure FileCounters(var iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+      var iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy : Int64);
   Public
     Constructor Create(iAppHnd : THandle); Virtual;
     Destructor Destroy; Override;
@@ -969,6 +1005,7 @@ Type
     Procedure Clear;
     Procedure BuildStats;
     Procedure BuildTotals;
+    Function  LastError : String;
     (**
       This property returns the number of files to process in the internal process list.
       @precon  None.
@@ -1108,9 +1145,9 @@ Type
       @precon  None.
       @postcon Event handler is fired for all readonyl file instead of OnDeleteQuery to
                check whether the file should be deleted.
-      @return  a TDeleteReadOnlyQueryNotifier
+      @return  a TDeleteQueryNotifier
     **)
-    Property OnDeleteReadOnlyQuery: TDeleteReadOnlyQueryNotifier
+    Property OnDeleteReadOnlyQuery: TDeleteQueryNotifier
       Read FDeleteReadOnlyQueryNotifier Write FDeleteReadOnlyQueryNotifier;
     (**
       This is an event handler that is fired at the end of the deletion of files
@@ -1169,9 +1206,9 @@ Type
       This is an event that is fired before copying over a read only destination file.
       @precon  None.
       @postcon Event that is fired before copying over a read only destination file.
-      @return  a TCopyReadOnlyQueryNotifier
+      @return  a TCopyQueryNotifier
     **)
-    Property OnCopyReadOnlyQuery: TCopyReadOnlyQueryNotifier
+    Property OnCopyReadOnlyQuery: TCopyQueryNotifier
       Read FCopyReadOnlyQueryNotifier Write FCopyReadOnlyQueryNotifier;
     (**
       This is an event handler that is fired after finishing copying files.
@@ -1387,12 +1424,24 @@ Function CopyCallback(TotalFileSize, TotalBytesTransferred, StreamSize,
 Const
   PROCESS_CONTINUE = 0;
 
+var
+  iCurrentFileToCopy: Integer;
+  iTotalFilesToCopy: Integer;
+  iCumulativeFileSizeBeforeCopy: Int64;
+  iTotalFileSizeToCopy: Int64;
+
 Begin
   Result := PROCESS_CONTINUE;
   If dwCallbackReason = CALLBACK_CHUNK_FINISHED Then
     If Assigned(CFC) Then
       If Assigned(CFC.OnCopyContents) Then
-        CFC.OnCopyContents(TotalBytesTransferred, TotalFileSize);
+        Begin
+          CFC.FileCounters(iCurrentFileToCopy, iTotalFilesToCopy,
+            iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy);
+          CFC.OnCopyContents(iCurrentFileToCopy, iTotalFilesToCopy,
+            iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy,
+            TotalBytesTransferred, TotalFileSize);
+        End;
 End;
 
 (**
@@ -2939,9 +2988,9 @@ End;
 Procedure TCompareFoldersCollection.CopyFiles;
 
 Var
-  iCount            : Integer;
+  iTotalFilesToCopy            : Integer;
   FileActions       : TFileActions;
-  iFile             : Integer;
+  iCurrentFileToCopy             : Integer;
   i                 : Integer;
   P                 : TProcessItem;
   strSource, strDest: String;
@@ -2949,19 +2998,19 @@ Var
   iSuccess          : TProcessSuccess;
 
 Begin
-  FCopiedTotalSize := 0;
-  FFiles   := 0;
-  FSkipped := 0;
-  iCount   := CountFileOps([foLeftToRight, foRightToLeft], FCopiedTotalSize,
+  FTotalFileSize := 0;
+  FTotalFileCount   := 0;
+  FTotalSkippedCount := 0;
+  FTotalErrorCount   := 0;
+  FCumulativeFileSize := 0;
+  iTotalFilesToCopy   := CountFileOps([foLeftToRight, foRightToLeft], FTotalFileSize,
     coSourceTotal);
-  DoCopyStart(iCount, FCopiedTotalSize);
+  DoCopyStart(iTotalFilesToCopy, FTotalFileSize);
   Try
-    If iCount = 0 Then
+    If iTotalFilesToCopy = 0 Then
       Exit;
     FileActions := [];
-    iFile     := 0;
-    FCopiedTotalSize     := 0;
-    FErrors   := 0;
+    iCurrentFileToCopy     := 0;
     For i     := 0 To ProcessCount - 1 Do
       Begin
         P := Process[i];
@@ -2981,7 +3030,8 @@ Begin
                 SourceFile := P.RightFile;
                 DestFile   := P.LeftFile;
               End;
-            DoCopying(iFile + 1, strSource, strDest, SourceFile.FileName);
+            DoCopying(iCurrentFileToCopy + 1, iTotalFilesToCopy, FCumulativeFileSize,
+              FTotalFileSize, strSource, strDest, SourceFile.FileName);
             If Not SysUtils.DirectoryExists
               (ExtractFilePath(strDest + SourceFile.FileName)) Then
               If Not SysUtils.ForceDirectories
@@ -2990,20 +3040,21 @@ Begin
                   [ExtractFilePath(strDest + SourceFile.FileName)]);
             If DestFile = Nil Then
               iSuccess := CopyFileContents(strSource + SourceFile.FileName,
-                strDest + SourceFile.FileName, FFiles)
+                strDest + SourceFile.FileName, FTotalFileCount)
             Else
               iSuccess := CopyIndividualFile(strSource, strDest, SourceFile,
                 DestFile, FileActions, P.SyncOptions);
-            Inc(FCopiedTotalSize, SourceFile.Size);
+            Inc(FCumulativeFileSize, SourceFile.Size);
             If iSuccess In [psFailed, psIgnoreOnce, psIgnoreAll] Then
-              Inc(FErrors)
+              Inc(FTotalErrorCount)
             Else
-              Inc(iFile);
-            DoCopied(iFile, SourceFile.Size, FCopiedTotalSize, iSuccess);
+              Inc(iCurrentFileToCopy);
+            DoCopied(iCurrentFileToCopy, iTotalFilesToCopy, FCumulativeFileSize,
+              FTotalFileSize, iSuccess);
           End;
       End;
   Finally
-    DoCopyEnd(FFiles, FSkipped, FErrors);
+    DoCopyEnd(FTotalFileCount, FTotalSkippedCount, FTotalErrorCount);
   End;
 End;
 
@@ -3072,7 +3123,7 @@ Begin
   Case FA Of
     faNo:
       Begin
-        Inc(FSkipped);
+        Inc(FTotalSkippedCount);
         Result := psSuccessed;
       End;
     faYes:
@@ -3084,7 +3135,7 @@ Begin
             SetFileAttributes(PChar(Expand(strDest + DestFile.FileName)), iAttr);
           End;
         Result := CopyFileContents(strSource + SourceFile.FileName,
-          strDest + DestFile.FileName, FFiles);
+          strDest + DestFile.FileName, FTotalFileCount);
       End;
     faCancel:
       Abort;
@@ -3100,33 +3151,37 @@ End;
   @postcon Counts the number of files to operated on depending on the file operation and
            the files available. Also returns the size if the files.
 
-  @param   FileOps as a TFileOps
-  @param   iSize   as an Int64 as a reference
-  @param   CountOp as a TCountOp
+  @param   FileOps        as a TFileOps
+  @param   iOperationSize as an Int64 as a reference
+  @param   CountOp        as a TCountOp
   @return  an Integer
 
 **)
 Function TCompareFoldersCollection.CountFileOps(FileOps: TFileOps;
-  Var iSize: Int64; CountOp : TCountOp): Integer;
+  Var iOperationSize{, iTotalSize}: Int64; CountOp : TCountOp): Integer;
 
 Var
   i: Integer;
 
 Begin
   Result := 0;
+  iOperationSize := 0;
+//  iTotalSize := 0;
   For i  := 0 To ProcessCount - 1 Do
     If Process[i].FileOp In FileOps Then
       Begin
+//        If Process[i].LeftFile <> Nil Then
+//          Inc(iTotalSize, Process[i].LeftFile.Size);
         If foDelete In FileOps Then
           Begin // Count both Deleted Files
             If Process[i].LeftFile <> Nil Then
               Begin
-                Inc(iSize, Process[i].LeftFile.Size);
+                Inc(iOperationSize, Process[i].LeftFile.Size);
                 Inc(Result);
               End;
             If Process[i].RightFile <> Nil Then
               Begin
-                Inc(iSize, Process[i].RightFile.Size);
+                Inc(iOperationSize, Process[i].RightFile.Size);
                 Inc(Result);
               End;
           End
@@ -3135,14 +3190,14 @@ Begin
             Inc(Result);
             If Process[i].LeftFile <> Nil Then
               Begin
-                Inc(iSize, Process[i].LeftFile.Size);
+                Inc(iOperationSize, Process[i].LeftFile.Size);
                 If (Process[i].RightFile <> Nil) And (CountOp = coDifference) Then
-                  Dec(iSize, Process[i].RightFile.Size);
+                  Dec(iOperationSize, Process[i].RightFile.Size);
               End Else
               Begin
-                Inc(iSize, Process[i].RightFile.Size);
+                Inc(iOperationSize, Process[i].RightFile.Size);
                 If (Process[i].LeftFile <> Nil) And (CountOp = coDifference) Then
-                  Dec(iSize, Process[i].LeftFile.Size);
+                  Dec(iOperationSize, Process[i].LeftFile.Size);
               End;
           End;
       End;
@@ -3314,29 +3369,103 @@ End;
 **)
 Procedure TCompareFoldersCollection.DeleteFiles;
 
+  (**
+
+    This method adds the given file to a string list for the specified path for later
+    deletion.
+
+    @precon  None.
+    @postcon The file is added to the path string list to be deleted.
+
+    @param   iCurrentFileToDelete            as an Integer
+    @param   iTotalFilesToDelete             as an Integer
+    @param   iCumulativeFileSizeBeforeDelete as an Int64
+    @param   iTotalFileSizeToDelete          as an Int64
+    @param   strPath                         as a String
+    @param   strFileName                     as a String
+    @param   iFileSize                       as an Int64
+    @param   slRecycleFiles                  as a TStringList
+
+  **)
+  Procedure AddToRecycler(iCurrentFileToDelete, iTotalFilesToDelete : Integer;
+    iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete : Int64; strPath,
+    strFileName : String; iFileSize : Int64; slRecycleFiles : TStringList);
+
+  Begin
+    DoDeleting(iCurrentFileToDelete, iTotalFilesToDelete, iCumulativeFileSizeBeforeDelete,
+      iTotalFileSizeToDelete, strPath, strFileName);
+    slRecycleFiles.Values[strPath] := slRecycleFiles.Values[strPath] +
+      strPath + strFileName + #0;
+    Inc(FCumulativeFileSize, iFileSize);
+    DoDeleted(iCurrentFileToDelete, iTotalFilesToDelete,
+      iCumulativeFileSizeBeforeDelete + iFileSize, iTotalFileSizeToDelete, psSuccessed);
+  End;
+
+  (**
+
+    This method cycles through the paths to have file deleted and recycles each set of
+    files separately.
+
+    @precon  None.
+    @postcon The files are recycled if they can be esle deleted.
+
+    @param   slRecycleFiles as a TstringList
+
+  **)
+  Procedure RecycleFiles(slRecycleFiles : TstringList);
+
+  Var
+    FileOp : TSHFileOpStruct;
+    i : Integer;
+    iResult : Integer;
+
+  Begin
+    For i := 0 To slRecycleFiles.Count - 1 Do
+      Begin
+        slRecycleFiles.ValueFromIndex[i] := slRecycleFiles.ValueFromIndex[i] + #0;
+        with FileOp do
+           begin
+             wnd := FAppHnd;
+             wFunc := FO_DELETE;
+             pFrom := PChar(slRecycleFiles.ValueFromIndex[i]);
+             pTo := Nil;
+             fFlags := FOF_ALLOWUNDO;
+             If soConfirmYes In Process[0].SyncOptions Then
+               fFlags := fFlags Or FOF_NOCONFIRMATION;
+             fAnyOperationsAborted := False;
+             hNameMappings := Nil;
+             lpszProgressTitle := PChar(Format('Recycling %s', [slRecycleFiles.Names[i]]));
+           end;
+        // Success is return = zero.
+        Sleep(10);
+        iResult := SHFileOperation(FileOp);
+        If (iResult > 0) And Not FileOp.fAnyOperationsAborted Then
+          Raise Exception.Create(SysErrorMessage(iResult));
+      End;
+  End;
+
 Var
-  iCount   : Integer;
-  i        : Integer;
+  iTotalFilesToDelete   : Integer;
   P        : TProcessItem;
   iFile    : Integer;
   FileActions : TFileActions;
-  FileOp : TSHFileOpStruct;
-  iResult : Integer;
-  strFileName : String;
-  iDeletedTotalSize: Int64;
+  slRecycleFiles : TStringList;
+  i : Integer;
 
 Begin
-  FFiles   := 0;
-  FSkipped := 0;
-  FErrors  := 0;
-  iDeletedTotalSize := 0;
-  iCount   := CountFileOps([foDelete], iDeletedTotalSize, coDifference);
-  FCopiedTotalSize := 0;
-  If iCount = 0 Then
+  //: @todo Prompt (via event) if there are more than 5% of the files to be deleted!
+  FTotalFileCount   := 0;
+  FTotalSkippedCount := 0;
+  FTotalErrorCount  := 0;
+  FCumulativeFileSize := 0;
+  FTotalFileSize := 0;
+  iTotalFilesToDelete   := CountFileOps([foDelete], FTotalFileSize, coDifference);
+  If iTotalFilesToDelete = 0 Then
     Exit;
-  If fsoPermanentlyDeleteFiles In FFldrSyncOptions Then
+  If (fsoPermanentlyDeleteFiles In FFldrSyncOptions) Or
+     Not (fsoBatchRecycleFiles In FFldrSyncOptions) Then
     Begin
-      DoDeleteStart(iCount, iDeletedTotalSize);
+      DoDeleteStart(iTotalFilesToDelete, FTotalFileSize);
       Try
         FileActions := [];
         iFile     := 1;
@@ -3346,65 +3475,48 @@ Begin
             If P.FileOp = foDelete Then
               Begin
                 If P.LeftFile <> Nil Then
-                  DeleteIndividualFile(P.LPath, P.LeftFile, iFile, FileActions,
-                    P.SyncOptions);
+                  DeleteIndividualFile(P.LPath, P.LeftFile, iFile, iTotalFilesToDelete,
+                    FileActions, P.SyncOptions);
                 If P.RightFile <> Nil Then
-                  DeleteIndividualFile(P.RPath, P.RightFile, iFile, FileActions,
-                    P.SyncOptions);
+                  DeleteIndividualFile(P.RPath, P.RightFile, iFile, iTotalFilesToDelete,
+                    FileActions, P.SyncOptions);
                 Inc(iFile);
               End;
           End;
       Finally
-        DoDeleteEnd(FFiles, FSkipped, FErrors);
+        DoDeleteEnd(FTotalFileCount, FTotalSkippedCount, FTotalErrorCount);
       End;
     End Else
     Begin
-      DoDeleteStart(iCount, iDeletedTotalSize);
+      DoDeleteStart(iTotalFilesToDelete, FTotalFileSize);
+      slRecycleFiles := TStringList.Create;
       Try
-        iFile := 1;
-        For i     := 0 To ProcessCount - 1 Do
-          Begin
-            P := Process[i];
-            If P.FileOp = foDelete Then
-              Begin
-                If P.LeftFile <> Nil Then
-                  Begin
-                    DoDeleting(iFile, P.LeftFile.Size, P.LeftFile.FileName);
-                    strFileName := strFileName + P.LPath + P.LeftFile.FileName + #0;
-                    Inc(FCopiedTotalSize, P.LeftFile.Size);
-                    DoDeleted(iFile, P.LeftFile.Size, psSuccessed);
-                  End;
-                If P.RightFile <> Nil Then
-                  Begin
-                    DoDeleting(iFile, P.RightFile.Size, P.RightFile.FileName);
-                    strFileName := strFileName + P.RPath + P.RightFile.FileName + #0;
-                    Inc(FCopiedTotalSize, P.RightFile.Size);
-                    DoDeleted(iFile, P.RightFile.Size, psSuccessed);
-                  End;
-                Inc(iFile);
-              End;
-          End;
+        Try
+          iFile := 1;
+          For i := 0 To ProcessCount - 1 Do
+            Begin
+              P := Process[i];
+              If P.FileOp = foDelete Then
+                Begin
+                  If P.LeftFile <> Nil Then
+                    AddToRecycler(iFile, iTotalFilesToDelete, FCumulativeFileSize,
+                      FTotalFileSize, P.LPath, P.LeftFile.FileName, P.LeftFile.Size,
+                      slRecycleFiles);
+                  If P.RightFile <> Nil Then
+                    AddToRecycler(iFile, iTotalFilesToDelete, FCumulativeFileSize,
+                      FTotalFileSize, P.RPath, P.RightFile.FileName, P.RightFile.Size,
+                        slRecycleFiles);
+                  Inc(iFile);
+                  Inc(FTotalFileCount);
+                End;
+            End;
+        Finally
+          DoDeleteEnd(FTotalFileCount, FTotalSkippedCount, FTotalErrorCount);
+        End;
+        RecycleFiles(slRecycleFiles);
       Finally
-        DoDeleteEnd(FFiles, FSkipped, FErrors);
+        slRecycleFiles.Free;
       End;
-      strFileName := strFileName + #0;
-      with FileOp do
-         begin
-           wnd := FAppHnd;
-           wFunc := FO_DELETE;
-           pFrom := PChar(strFileName);
-           pTo := Nil;
-           fFlags := FOF_ALLOWUNDO;
-           If soConfirmYes In Process[0].SyncOptions Then
-             fFlags := fFlags Or FOF_NOCONFIRMATION;
-           fAnyOperationsAborted := False;
-           hNameMappings := Nil;
-           lpszProgressTitle := Nil;
-         end;
-      // Success is return = zero.
-      iResult := SHFileOperation(FileOp);
-      If iResult > 0 Then
-        Raise Exception.Create(SysErrorMessage(iResult));
     End;
 End;
 
@@ -3415,15 +3527,17 @@ End;
   @precon  None.
   @postcon Deletes the given files from the drive structure.
 
-  @param   strPath     as a String
-  @param   F           as a TFileRecord
-  @param   iFile       as an Integer
-  @param   FileActions as a TFileActions as a reference
-  @param   SyncOps     as a TSyncOptions
+  @param   strPath              as a String
+  @param   F                    as a TFileRecord
+  @param   iCurrentFileToDelete as an Integer
+  @param   iTotalFilesToDelete  as an Integer
+  @param   FileActions          as a TFileActions as a reference
+  @param   SyncOps              as a TSyncOptions
 
 **)
 Procedure TCompareFoldersCollection.DeleteIndividualFile(strPath: String; F: TFileRecord;
-  iFile: Integer; Var FileActions : TFileActions; SyncOps: TSyncOptions);
+  iCurrentFileToDelete, iTotalFilesToDelete: Integer; Var FileActions : TFileActions;
+  SyncOps: TSyncOptions);
 
 Const
   strExceptionMsg = 'Deletion of file "%s" failed (%s)!';
@@ -3438,7 +3552,8 @@ Var
 
 Begin
   iSuccess := psUnknown;
-  DoDeleting(iFile, F.Size, strPath + F.FileName);
+  DoDeleting(iCurrentFileToDelete, iTotalFilesToDelete, FCumulativeFileSize,
+    FTotalFileSize, strPath, F.FileName);
   FA := faUnknown;
   If (F.Attributes And faReadOnly = 0) Then
     Begin
@@ -3486,7 +3601,7 @@ Begin
             iAttr := iAttr Xor FILE_ATTRIBUTE_READONLY;
             SetFileAttributes(PChar(Expand(strPath + F.FileName)), iAttr);
           End;
-        Inc(FCopiedTotalSize, F.Size);
+        Inc(FCumulativeFileSize, F.Size);
         DecrementFolder(ExtractFilePath(strPath + F.FileName));
         If Not DeleteFileFromDisk(Expand(strPath + F.FileName)) Then
           Begin
@@ -3522,16 +3637,17 @@ Begin
           End Else
           Begin
             iSuccess := psSuccessed;
-            Inc(FFiles);
+            Inc(FTotalFileCount);
           End;
       End;
     faNo:
       Begin
         iSuccess := psSuccessed;
-        Inc(FSkipped);
+        Inc(FTotalSkippedCount);
       End;
   End;
-  DoDeleted(iFile, FCopiedTotalSize, iSuccess);
+  DoDeleted(iCurrentFileToDelete, iTotalFilesToDelete, FCumulativeFileSize,
+    FTotalFileSize, iSuccess);
 End;
 
 (**
@@ -3581,7 +3697,7 @@ Begin
     Begin
       P := Process[i];
       If P.FileOp In [foSizeDiff] Then
-        DoDiffSize(P.LPath, P.RPath, P.LeftFile.FileName);
+        DoDiffSize(Succ(i), iCount, P.LPath, P.RPath, P.LeftFile.FileName);
     End;
   DoDiffSizeEnd();
 End;
@@ -3593,18 +3709,21 @@ End;
   @precon  None.
   @postcon Fires the Copied event if the event has a handler installed.
 
-  @param   iCopiedFiles         as an Integer
+  @param   iCurrentFileToCopy   as an Integer
+  @param   iTotalFilesToCopy    as an Integer
   @param   iCopiedFileTotalSize as an Int64
   @param   iCopiedTotalSize     as an Int64
   @param   iSuccess             as a TProcessSuccess
 
 **)
-Procedure TCompareFoldersCollection.DoCopied(iCopiedFiles: Integer; iCopiedFileTotalSize,
-  iCopiedTotalSize: Int64; iSuccess: TProcessSuccess);
+Procedure TCompareFoldersCollection.DoCopied(iCurrentFileToCopy,
+  iTotalFilesToCopy: Integer; iCopiedFileTotalSize, iCopiedTotalSize: Int64;
+  iSuccess: TProcessSuccess);
 
 Begin
   If Assigned(FCopiedNotifier) Then
-    FCopiedNotifier(iCopiedFiles, iCopiedFileTotalSize, iCopiedTotalSize, iSuccess);
+    FCopiedNotifier(iCurrentFileToCopy, iTotalFilesToCopy, iCopiedFileTotalSize,
+      iCopiedTotalSize, iSuccess);
 End;
 
 (**
@@ -3635,18 +3754,23 @@ End;
   @postcon Fires any hook DoCopying events but issuing events for each files giving the
            source, destination and filename.
 
-  @param   iFile       as an Integer
-  @param   strSource   as a String
-  @param   strDest     as a String
-  @param   strFileName as a String
+  @param   iCurrentFileToCopy            as an Integer
+  @param   iTotalFilesToCopy             as an Integer
+  @param   iCumulativeFileSizeBeforeCopy as an Int64
+  @param   iTotalFileSizeToCopy          as an Int64
+  @param   strSource                     as a String
+  @param   strDest                       as a String
+  @param   strFileName                   as a String
 
 **)
-Procedure TCompareFoldersCollection.DoCopying(iFile : Integer; strSource, strDest,
-  strFileName: String);
+Procedure TCompareFoldersCollection.DoCopying(iCurrentFileToCopy,
+  iTotalFilesToCopy : Integer; iCumulativeFileSizeBeforeCopy,
+  iTotalFileSizeToCopy : Int64; strSource, strDest, strFileName: String);
 
 Begin
   If Assigned(FCopyingNotifier) Then
-    FCopyingNotifier(iFile, strSource, strDest, strFileName);
+    FCopyingNotifier(iCurrentFileToCopy, iTotalFilesToCopy, iCumulativeFileSizeBeforeCopy,
+      iTotalFileSizeToCopy, strSource, strDest, strFileName);
 End;
 
 (**
@@ -3723,17 +3847,23 @@ End;
   @precon  None.
   @postcon Fires the Deleting event if the event has a handler installed.
 
-  @param   iFile       as an Integer
-  @param   iSize       as an Int64
-  @param   strFileName as a String
+  @param   iCurrentFileToDelete            as an Integer
+  @param   iTotalFilesToDelete             as an Integer
+  @param   iCumulativeFileSizeBeforeDelete as an Int64
+  @param   iTotalFileSizeToDelete          as an Int64
+  @param   strDeletePath                   as a String
+  @param   strFileNameToDelete             as a String
 
 **)
-Procedure TCompareFoldersCollection.DoDeleting(iFile : Integer; iSize : Int64;
-  strFileName: String);
+Procedure TCompareFoldersCollection.DoDeleting(iCurrentFileToDelete,
+  iTotalFilesToDelete : Integer; iCumulativeFileSizeBeforeDelete,
+  iTotalFileSizeToDelete : Int64; strDeletePath, strFileNameToDelete: String);
 
 Begin
   If Assigned(FDeletingNotifier) Then
-    FDeletingNotifier(iFile, iSize, strFileName);
+    FDeletingNotifier(iCurrentFileToDelete, iTotalFilesToDelete,
+      iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete, strDeletePath,
+      strFileNameToDelete);
 End;
 
 (**
@@ -3743,16 +3873,19 @@ End;
   @precon  None.
   @postcon Fires an event for each file with a different size only.
 
+  @param   iFile       as an Integer
+  @param   iFileCount  as an Integer
   @param   strLPath    as a String
   @param   strRPath    as a String
   @param   strFileName as a String
 
 **)
-Procedure TCompareFoldersCollection.DoDiffSize(strLPath, strRPath, strFileName: String);
+Procedure TCompareFoldersCollection.DoDiffSize(iFile, iFileCount : Integer; strLPath,
+  strRPath, strFileName: String);
 
 Begin
   If Assigned(FDiffSizeNotifier) Then
-    FDiffSizeNotifier(strLPath, strRPath, strFileName);
+    FDiffSizeNotifier(iFile, iFileCount, strLPath, strRPath, strFileName);
 End;
 
 (**
@@ -3866,17 +3999,19 @@ End;
   @precon  None.
   @postcon Calls the FExceeedsSizeLimit is it has been assigned.
 
+  @param   iFile       as an Integer
+  @param   iFileCount  as an Integer
   @param   strLPath    as a String
   @param   strRPath    as a String
   @param   strFileName as a String
 
 **)
-Procedure TCompareFoldersCollection.DoExceedsSizeLimit(strLPath, strRPath,
-  strFileName: String);
+Procedure TCompareFoldersCollection.DoExceedsSizeLimit(iFile, iFileCount : Integer;
+  strLPath, strRPath, strFileName: String);
 
 Begin
   If Assigned(FExceedsSizeLimitNotifier) Then
-    FExceedsSizeLimitNotifier(strLPAth, strRPath, strFileName);
+    FExceedsSizeLimitNotifier(iFile, iFileCount, strLPath, strRPath, strFileName);
 End;
 
 (**
@@ -3918,17 +4053,21 @@ End;
   @precon  None.
   @postcon Fires the Deleted event if the event has a handler installed.
 
-  @param   iFile    as an Integer
-  @param   iSize    as an Int64
-  @param   iSuccess as a TProcessSuccess
+  @param   iCurrentFileDeleted            as an Integer
+  @param   iTotalFilesToDelete            as an Integer
+  @param   iCumulativeFileSizeAfterDelete as an Int64
+  @param   iTotalFileSizeToDelete         as an Int64
+  @param   iSuccess                       as a TProcessSuccess
 
 **)
-Procedure TCompareFoldersCollection.DoDeleted(iFile: Integer; iSize: Int64;
-  iSuccess: TProcessSuccess);
+Procedure TCompareFoldersCollection.DoDeleted(iCurrentFileDeleted,
+  iTotalFilesToDelete: Integer; iCumulativeFileSizeAfterDelete,
+  iTotalFileSizeToDelete: Int64; iSuccess: TProcessSuccess);
 
 Begin
   If Assigned(FDeletedNotifier) Then
-    FDeletedNotifier(iFile, iSize, iSuccess);
+    FDeletedNotifier(iCurrentFileDeleted, iTotalFilesToDelete,
+      iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete, iSuccess);
 End;
 
 (**
@@ -3938,16 +4077,18 @@ End;
   @precon  None.
   @postcon Fires the DeletedEnd event if the event has a handler installed.
 
-  @param   iDeleted as an Integer
-  @param   iSkipped as an Integer
-  @param   iErrors  as an Integer
+  @param   iTotalDeletedFileCount as an Integer
+  @param   iTotalSkippedFileCount as an Integer
+  @param   iTotalErrorsFileCount  as an Integer
 
 **)
-Procedure TCompareFoldersCollection.DoDeleteEnd(iDeleted, iSkipped, iErrors: Integer);
+Procedure TCompareFoldersCollection.DoDeleteEnd(iTotalDeletedFileCount,
+  iTotalSkippedFileCount, iTotalErrorsFileCount: Integer);
 
 Begin
   If Assigned(FDeleteEndNotifier) Then
-    FDeleteEndNotifier(iDeleted, iSkipped, iErrors);
+    FDeleteEndNotifier(iTotalDeletedFileCount, iTotalSkippedFileCount,
+      iTotalErrorsFileCount);
 End;
 
 (**
@@ -4009,19 +4150,19 @@ End;
   @precon  None.
   @postcon Fires the DeleteQuery event if the event has a handler installed.
 
-  @param   strFilePath as a String
-  @param   DeleteFile  as a TFileRecord
-  @param   Option      as a TFileAction as a reference
-  @param   SyncOptions as a TSyncOptions
+  @param   strDeleteFilePath as a String
+  @param   DeleteFile        as a TFileRecord
+  @param   Option            as a TFileAction as a reference
+  @param   SyncOptions       as a TSyncOptions
 
 **)
-Procedure TCompareFoldersCollection.DoDeleteQuery(strFilePath: String;
+Procedure TCompareFoldersCollection.DoDeleteQuery(strDeleteFilePath: String;
   DeleteFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
 
 Begin
   If Not CanByPassQuery(SyncOptions, False, Option) Then
     If Assigned(FDeleteQueryNotifier) Then
-      FDeleteQueryNotifier(strFilePath, DeleteFile, Option);
+      FDeleteQueryNotifier(strDeleteFilePath, DeleteFile, Option);
 End;
 
 (**
@@ -4031,19 +4172,19 @@ End;
   @precon  None.
   @postcon Fires the DeleteReadOnlyQuery event if the event has a handler installed.
 
-  @param   strFilePath as a String
-  @param   DeleteFile  as a TFileRecord
-  @param   Option      as a TFileAction as a reference
-  @param   SyncOptions as a TSyncOptions
+  @param   strDeleteFilePath as a String
+  @param   DeleteFile        as a TFileRecord
+  @param   Option            as a TFileAction as a reference
+  @param   SyncOptions       as a TSyncOptions
 
 **)
-Procedure TCompareFoldersCollection.DoDeleteReadOnlyQuery(strFilePath: String;
+Procedure TCompareFoldersCollection.DoDeleteReadOnlyQuery(strDeleteFilePath: String;
   DeleteFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
 
 Begin
   If Not CanByPassQuery(SyncOptions, True, Option) Then
     If Assigned(FDeleteReadOnlyQueryNotifier) Then
-      FDeleteReadOnlyQueryNotifier(strFilePath, DeleteFile, Option);
+      FDeleteReadOnlyQueryNotifier(strDeleteFilePath, DeleteFile, Option);
 End;
 
 (**
@@ -4053,15 +4194,16 @@ End;
   @precon  None.
   @postcon Fires the DeleteStart event if the event has a handler installed.
 
-  @param   iFileCount as an Integer
-  @param   iTotalSize as an Int64
+  @param   iTotalFileCount as an Integer
+  @param   iTotalFileSize  as an Int64
 
 **)
-Procedure TCompareFoldersCollection.DoDeleteStart(iFileCount: Integer; iTotalSize: Int64);
+Procedure TCompareFoldersCollection.DoDeleteStart(iTotalFileCount: Integer;
+  iTotalFileSize: Int64);
 
 Begin
   If Assigned(FDeleteStartNotifier) Then
-    FDeleteStartNotifier(iFileCount, iTotalSize);
+    FDeleteStartNotifier(iTotalFileCount, iTotalFileSize);
 End;
 
 (**
@@ -4142,7 +4284,7 @@ Begin
             strFileName := P.LeftFile.FileName
           Else
             strFileName := P.RightFile.FileName;
-          DoNothingToDo(P.LPath, P.RPath, strFileName);
+          DoNothingToDo(Succ(i), iCount, P.LPath, P.RPath, strFileName);
         End;
     End;
   DoNothingToDoEnd();
@@ -4155,17 +4297,19 @@ End;
   @precon  None.
   @postcon Fires an event for each file with nothing to do.
 
+  @param   iFile       as an Integer
+  @param   iFileCount  as an Integer
   @param   strLPath    as a String
   @param   strRPath    as a String
   @param   strFileName as a String
 
 **)
-Procedure TCompareFoldersCollection.DoNothingToDo(strLPath, strRPath,
-  strFileName: String);
+Procedure TCompareFoldersCollection.DoNothingToDo(iFile, iFileCount : Integer; strLPath,
+  strRPath, strFileName: String);
 
 Begin
   If Assigned(FNothingToDoNotifier) Then
-    FNothingToDoNotifier(strLPath, strRPath, strFileName);
+    FNothingToDoNotifier(iFile, iFileCount, strLPath, strRPath, strFileName);
 End;
 
 (**
@@ -4230,7 +4374,7 @@ Begin
             strFileName := P.LeftFile.FileName
           Else
             strFileName := P.RightFile.FileName;
-          DoExceedsSizeLimit(P.LPath, P.RPath, strFileName);
+          DoExceedsSizeLimit(Succ(i), iCount, P.LPath, P.RPath, strFileName);
         End;
     End;
   DoExceedsSizeLimitEnd();
@@ -4266,6 +4410,30 @@ Begin
   Finally
     SysUtils.FindClose(recSearch);
   End;
+End;
+
+(**
+
+  This method provides the caller with the current counter states.
+
+  @precon  None.
+  @postcon Returns the current count states in the var parameters.
+
+  @param   iCurrentFileToCopy            as an Integer as a reference
+  @param   iTotalFilesToCopy             as an Integer as a reference
+  @param   iCumulativeFileSizeBeforeCopy as an Int64 as a reference
+  @param   iTotalFileSizeToCopy          as an Int64 as a reference
+
+**)
+Procedure TCompareFoldersCollection.FileCounters(Var iCurrentFileToCopy,
+  iTotalFilesToCopy : Integer; var iCumulativeFileSizeBeforeCopy,
+  iTotalFileSizeToCopy: Int64);
+
+Begin
+  iCurrentFileToCopy := FCurrentFileToCopy;
+  iTotalFilesToCopy := FTotalFileCount;
+  iCumulativeFileSizeBeforeCopy := FCumulativeFileSize;
+  iTotalFileSizeToCopy := FTotalFileSize;
 End;
 
 (**
@@ -4443,6 +4611,24 @@ End;
 
 (**
 
+  This method returns the last error logged.
+
+  @precon  None.
+  @postcon Returns the last error logged.
+
+  @return  a String
+
+**)
+Function TCompareFoldersCollection.LastError: String;
+
+Begin
+  Result := '';
+  If FErrorMsgs.Count > 0 Then
+    Result := FErrorMsgs[FErrorMsgs.Count - 1];
+End;
+
+(**
+
   This method updates the operational status of the files based on their date and time and
   also whether they are reasd only or not.
 
@@ -4589,6 +4775,7 @@ Begin
     End;
   BuildMatchLists;
   BuildStats;
+  //: @todo Prompt (via event) if there are more than 5% of the files to be deleted!
   Result := True;
 End;
 
