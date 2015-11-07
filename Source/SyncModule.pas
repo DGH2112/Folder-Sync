@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    16 Oct 2015
+  @Date    07 Nov 2015
   @Author  David Hoyle
 
 **)
@@ -1554,8 +1554,8 @@ Constructor TFolder.Create(strLeftFldr, strRightFldr, strPatterns: String;
   iSyncOptions: TSyncOptions; iMaxFileSize: Int64);
 
 Begin
-  FLeftFldr := strLeftFldr;
-  FRightFldr := strRightFldr;
+  FLeftFldr := ExpandFileName(strLeftFldr);
+  FRightFldr := ExpandFileName(strRightFldr);
   FPatterns := strPatterns;
   FSyncOptions := iSyncOptions;
   FMaxFileSize := iMaxFileSize;
