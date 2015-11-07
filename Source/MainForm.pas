@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    16 Oct 2015
+  @Date    07 Nov 2015
   @Author  David Hoyle
 
 **)
@@ -292,7 +292,8 @@ Uses
   EExceptionManager,
   {$ENDIF}
   UITypes,
-  Types;
+  Types,
+  ApplicationFunctions;
 
 {$R *.DFM}
 
@@ -376,6 +377,7 @@ Var
   strLeftFldr, strRightFldr : String;
   iniMemFile : TMemIniFile;
   iDefaultOps : TFileOpStats;
+  ComOps: TCommandLineOptionsRec;
 
 Begin
   iniMemFile := TMemIniFile.Create(FRootKey);
@@ -396,7 +398,7 @@ Begin
       FInterfaceFonts[ifTableFont].FFontName :=
         ReadString('ListViewFont', 'Name', InterfaceFontDefaults[ifTableFont].FFontName);
       lvFileList.Font.Name               := FInterfaceFonts[ifTableFont].FFontName;
-      FInterfaceFonts[ifTableFont].FFontSize := 
+      FInterfaceFonts[ifTableFont].FFontSize :=
         ReadInteger('ListViewFont', 'Size', InterfaceFontDefaults[ifTableFont].FFontSize);
       lvFileList.Font.Size               := FInterfaceFonts[ifTableFont].FFontSize;
       FInterfaceFonts[ifLogFont].FFontName :=
@@ -424,48 +426,75 @@ Begin
       WindowState := TWindowState(ReadInteger('Setup', 'WindowState', Byte(wsNormal)));
       redtOutputResults.Height := ReadInteger('Setup', 'OutputResultsHeight', 100);
       FCompareEXE      := ReadString('Setup', 'CompareEXE', '');
-      FFldrSyncOptions := [];
-      For j            := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
+      FCopyDlgWidth := ReadInteger('DlgWidths', 'CopyDlg', 0);
+      FDeleteDlgWidth := ReadInteger('DlgWidths', 'DeleteDlg', 0);
+      FConfirmDlgWidth := ReadInteger('DlgWidths', 'ConfirmDlg', 0);
+      iDefaultOps := [fosDelete..fosDifference];
+      FFileOpStats := TFileOpStats(Byte(ReadInteger('Setup', 'FileOpStats',
+        Byte(iDefaultOps))));
+      For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
         If ReadBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
           strFldrSyncOptions[j].fDefault) Then
           Include(FFldrSyncOptions, j);
       UpgradeINIFolderOptions(iniMemFile);
-      iDefaultOps := [fosDelete..fosDifference];
-      FFileOpStats := TFileOpStats(Byte(ReadInteger('Setup', 'FileOpStats',
-        Byte(iDefaultOps))));
-      FCopyDlgWidth := ReadInteger('DlgWidths', 'CopyDlg', 0);
-      FDeleteDlgWidth := ReadInteger('DlgWidths', 'DeleteDlg', 0);
-      FConfirmDlgWidth := ReadInteger('DlgWidths', 'ConfirmDlg', 0);
-      sl := TStringList.Create;
-      Try
-        ReadSection('NewFolders', sl);
-        For i := 0 To sl.Count - 1 Do
-          Begin
-            iSyncOptions := TSyncOptions(Byte(ReadInteger('NewFolderStatus', sl[i],
-              Byte(iSyncOptions))));
-            strMaxValue := ReadString('NewFolderMaxFileSize', sl[i], '0,0,0,0');
-            iMaxValue.Value := 0;
-            iMaxValue.iFirst := StrToInt(GetField(strMaxValue, ',', 1));
-            iMaxValue.iSecond := StrToInt(GetField(strMaxValue, ',', 2));
-            iMaxValue.iThird := StrToInt(GetField(strMaxValue, ',', 3));
-            iMaxValue.iFourth := StrToInt(GetField(strMaxValue, ',', 4));
-            strLeftFldr := GetShortHint(ReadString('NewFolders', sl[i], ''));
-            strRightFldr := GetLongHint(ReadString('NewFolders', sl[i], ''));
-            FFolders.Add(
-              TFolder.Create(
-                ExtractFilePath(strLeftFldr),
-                ExtractFilePath(strRightFldr),
-                ExtractFileName(strLeftFldr),
-                iSyncOptions,
-                iMaxValue.Value
-              )
-            );
+      If FParams.Count = 0 Then
+        Begin
+          FFldrSyncOptions := [];
+          sl := TStringList.Create;
+          Try
+            ReadSection('NewFolders', sl);
+            For i := 0 To sl.Count - 1 Do
+              Begin
+                iSyncOptions := TSyncOptions(Byte(ReadInteger('NewFolderStatus', sl[i],
+                  Byte(iSyncOptions))));
+                strMaxValue := ReadString('NewFolderMaxFileSize', sl[i], '0,0,0,0');
+                iMaxValue.Value := 0;
+                iMaxValue.iFirst := StrToInt(GetField(strMaxValue, ',', 1));
+                iMaxValue.iSecond := StrToInt(GetField(strMaxValue, ',', 2));
+                iMaxValue.iThird := StrToInt(GetField(strMaxValue, ',', 3));
+                iMaxValue.iFourth := StrToInt(GetField(strMaxValue, ',', 4));
+                strLeftFldr := GetShortHint(ReadString('NewFolders', sl[i], ''));
+                strRightFldr := GetLongHint(ReadString('NewFolders', sl[i], ''));
+                FFolders.Add(
+                  TFolder.Create(
+                    ExtractFilePath(strLeftFldr),
+                    ExtractFilePath(strRightFldr),
+                    ExtractFileName(strLeftFldr),
+                    iSyncOptions,
+                    iMaxValue.Value
+                  )
+                );
+              End;
+          Finally
+            sl.Free;
           End;
-      Finally
-        sl.Free;
-      End;
-      FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|', #13#10,
-        [rfReplaceAll]);
+          FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|', #13#10,
+            [rfReplaceAll]);
+        End Else
+        Begin
+          ComOps.iSyncOptions := [soEnabled];
+          ProcessCommandLine(FParams, ComOps);
+          FFolders.Add(
+            TFolder.Create(
+              ComOps.strSourceFldr,
+              ComOps.strDestFldr,
+              ComOps.strFilePatterns,
+              ComOps.iSyncOptions,
+              ComOps.iMaxFileSize
+            ));
+          If clsDeletePermentently In ComOps.iCommandLineOptions Then
+            Include(FFldrSyncOptions, fsoPermanentlyDeleteFiles)
+          Else
+            Exclude(FFldrSyncOptions, fsoPermanentlyDeleteFiles);
+          If clsBatchRecycleFiles In ComOps.iCommandLineOptions Then
+            Include(FFldrSyncOptions, fsoBatchRecycleFiles)
+          Else
+            Exclude(FFldrSyncOptions, fsoBatchRecycleFiles);
+          If clsProceedAutomatically In ComOps.iCommandLineOptions Then
+            Include(FFldrSyncOptions, fsoStartProcessingAutomatically)
+          Else
+            Exclude(FFldrSyncOptions, fsoStartProcessingAutomatically);
+        End;
       DGHMemoryMonitor.UpdateInterval := ReadInteger('MemoryMonitor', 'UpdateInterval',
         DGHMemoryMonitor.UpdateInterval);
       DGHMemoryMonitor.BackColour := StringToColor(ReadString('MemoryMonitor',
@@ -484,17 +513,17 @@ Begin
         'HalfFontColour', ColorToString(DGHMemoryMonitor.HalfFontColour)));
       DGHMemoryMonitor.LowFontColour := StringToColor(ReadString('MemoryMonitor',
         'LowFontColour', ColorToString(DGHMemoryMonitor.LowFontColour)));
-      DGHMemoryMonitor.LowPoint := ReadInteger('MemoryMonitor', 'LowPoint', 
+      DGHMemoryMonitor.LowPoint := ReadInteger('MemoryMonitor', 'LowPoint',
         DGHMemoryMonitor.LowPoint);
-      DGHMemoryMonitor.HalfPoint := ReadInteger('MemoryMonitor', 'HalfPoint', 
+      DGHMemoryMonitor.HalfPoint := ReadInteger('MemoryMonitor', 'HalfPoint',
         DGHMemoryMonitor.HalfPoint);
-      DGHMemoryMonitor.HighPoint := ReadInteger('MemoryMonitor', 'HighPoint', 
+      DGHMemoryMonitor.HighPoint := ReadInteger('MemoryMonitor', 'HighPoint',
         DGHMemoryMonitor.HighPoint);
-      DGHMemoryMonitor.Font.Name := ReadString('MemoryMonitor', 'FontName', 
+      DGHMemoryMonitor.Font.Name := ReadString('MemoryMonitor', 'FontName',
         DGHMemoryMonitor.Font.Name);
-      DGHMemoryMonitor.Font.Size := ReadInteger('MemoryMonitor', 'FontSize', 
+      DGHMemoryMonitor.Font.Size := ReadInteger('MemoryMonitor', 'FontSize',
         DGHMemoryMonitor.Font.Size);
-      DGHMemoryMonitor.Font.Style := TFontStyles(Byte(ReadInteger('MemoryMonitor', 'FontStyle', 
+      DGHMemoryMonitor.Font.Style := TFontStyles(Byte(ReadInteger('MemoryMonitor', 'FontStyle',
         Byte(DGHMemoryMonitor.Font.Style))));
       DGHMemoryMonitor.Width := ReadInteger('MemoryMonitor', 'Width',
         DGHMemoryMonitor.Width);
@@ -1132,37 +1161,40 @@ Begin
       WriteInteger('Setup', 'WindowState', Byte(WindowState));
       WriteInteger('Setup', 'OutputResultsHeight', redtOutputResults.Height);
       WriteString('Setup', 'CompareEXE', FCompareEXE);
-      For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
-        WriteBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
-          j In FFldrSyncOptions);
-      WriteInteger('Setup', 'FileOpStats', Byte(FFileOpStats));
       WriteInteger('DlgWidths', 'CopyDlg', FCopyDlgWidth);
       WriteInteger('DlgWidths', 'DeleteDlg', FDeleteDlgWidth);
       WriteInteger('DlgWidths', 'ConfirmDlg', FConfirmDlgWidth);
-      EraseSection('Folders');
-      EraseSection('FolderStatus');
-      EraseSection('FolderMaxFileSize');
-      EraseSection('NewFolders');
-      EraseSection('NewFolderStatus');
-      EraseSection('NewFolderMaxFileSize');
-      For i := 0 To FFolders.Count - 1 Do
-        Begin
-          WriteString('NewFolders', Format('Folder%2.2d', [i]),
-            FFolders.Folder[i].LeftFldr + FFolders.Folder[i].Patterns + '|' +
-            FFolders.Folder[i].RightFldr + FFolders.Folder[i].Patterns);
-          Ops := FFolders.Folder[i].SyncOptions;
-          Exclude(Ops, soTempDisabled);
-          WriteInteger('NewFolderStatus', Format('Folder%2.2d', [i]), Byte(Ops));
-          iMaxValue.Value := FFolders.Folder[i].MaxFileSize;
-          WriteString('NewFolderMaxFileSize', Format('Folder%2.2d', [i]),
-            Format('%d,%d,%d,%d', [iMaxValue.iFirst, iMaxValue.iSecond,
-              iMaxValue.iThird, iMaxValue.iFourth]));
-        End;
-      WriteString('Setup', 'Exclusions', StringReplace(FExclusions, #13#10, '|',
-          [rfReplaceAll]));
+      WriteInteger('Setup', 'FileOpStats', Byte(FFileOpStats));
       WriteString('Setup', 'Theme', TStyleManager.ActiveStyle.Name);
-      FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|', #13#10,
-        [rfReplaceAll]);
+      If FParams.Count = 0 Then
+        Begin
+          For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
+            WriteBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
+              j In FFldrSyncOptions);
+          EraseSection('Folders');
+          EraseSection('FolderStatus');
+          EraseSection('FolderMaxFileSize');
+          EraseSection('NewFolders');
+          EraseSection('NewFolderStatus');
+          EraseSection('NewFolderMaxFileSize');
+          For i := 0 To FFolders.Count - 1 Do
+            Begin
+              WriteString('NewFolders', Format('Folder%2.2d', [i]),
+                FFolders.Folder[i].LeftFldr + FFolders.Folder[i].Patterns + '|' +
+                FFolders.Folder[i].RightFldr + FFolders.Folder[i].Patterns);
+              Ops := FFolders.Folder[i].SyncOptions;
+              Exclude(Ops, soTempDisabled);
+              WriteInteger('NewFolderStatus', Format('Folder%2.2d', [i]), Byte(Ops));
+              iMaxValue.Value := FFolders.Folder[i].MaxFileSize;
+              WriteString('NewFolderMaxFileSize', Format('Folder%2.2d', [i]),
+                Format('%d,%d,%d,%d', [iMaxValue.iFirst, iMaxValue.iSecond,
+                  iMaxValue.iThird, iMaxValue.iFourth]));
+            End;
+          WriteString('Setup', 'Exclusions', StringReplace(FExclusions, #13#10, '|',
+              [rfReplaceAll]));
+          //FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|', #13#10,
+          //  [rfReplaceAll]);
+        End;
       WriteInteger('MemoryMonitor', 'UpdateInterval', DGHMemoryMonitor.UpdateInterval);
       WriteString('MemoryMonitor', 'BackColour', ColorToString(DGHMemoryMonitor.BackColour));
       WriteString('MemoryMonitor', 'BackFontColour', ColorToString(DGHMemoryMonitor.BackFontColour));
@@ -2693,6 +2725,7 @@ Procedure TfrmMainForm.CopyError(strSource, strDest, strErrorMsg: String;
   iLastError: Cardinal; Var iResult: TDGHErrorResult);
 
 Begin
+  UpdateTaskBar(ptError, 0, 1);
   OutputResultLn();
   OutputResultLn('    An error has occurred during the copying of files:');
   OutputResultLn(Format('      Source     : %s', [strSource]));
@@ -2955,12 +2988,13 @@ Procedure TfrmMainForm.DeleteError(strSource, strErrorMsg: String; iLastError: C
   Var iResult: TDGHErrorResult);
 
 Begin
+  UpdateTaskBar(ptError, 0, 1);
   OutputResultLn();
   OutputResultLn('    An error has occurred during the deleting of files:');
   OutputResultLn(Format('      Source     : %s', [strSource]));
   OutputResultLn(Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]));
   OutputResult('    Do you want to [I]gnore Once, Ignore [A]ll the errors or [S]top processing? ');
-  Case TfrmErrorDlg.Execute('An error has occurred during the deleting of files', 
+  Case TfrmErrorDlg.Execute('An error has occurred during the deleting of files',
     strSource, '', Format('(%d) %s', [iLastError, strErrorMsg])) Of
     mrIgnore:
       Begin
