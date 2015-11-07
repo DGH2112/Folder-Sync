@@ -16,24 +16,10 @@ Uses
   SysUtils,
   Classes,
   Graphics,
-  SyncModule;
+  SyncModule,
+  ApplicationFunctions;
 
 Type
-  (** This enumerate describe the available command line options switches that can be
-      applied to the application. **)
-  TCommandLineOption = (
-    cloPause,
-    cloCheckForUpdates,
-    cloHelp,
-    cloQuiet,
-    clsDeletePermentently,
-    clsBatchRecycleFiles,
-    clsProceedAutomatically
-  );
-
-  (** This is a set of the above command line option switches. **)
-  TCommandLineOptions = Set Of TCommandLineOption;
-
   (** An arrray of Ansi Characters - used for console input selection. **)
   TCharArray = Set Of AnsiChar;
 
@@ -44,24 +30,18 @@ Type
     FParams              : TStringList;
     FStd, FErr           : THandle;
     FCFC                 : TCompareFoldersCollection;
-    FCommandLineOptions  : TCommandLineOptions;
+    FCommandLineOptions  : TCommandLineOptionsRec;
     FTitleColour         : TColor;
     FPathColour          : TColor;
     FSuccessColour       : TColor;
     FExistsColour        : TColor;
     FNotExistsColour     : TColor;
-    FSourceDir           : String;
-    FDestDir             : String;
-    FFilePatterns        : String;
-    FExclusions          : String;
-    FLastFolder          : String;
-    FSyncOptions         : TSyncOptions;
-    FOutputUpdateInterval: Integer;
     FInputColour         : TColor;
     FReadOnlyColour      : TColor;
     FExceptionColour     : TColor;
     FHeaderColour        : TColor;
-    FMaxFileSize         : Int64;
+    FLastFolder          : String;
+    FOutputUpdateInterval: Integer;
     FFldrSyncOptions     : TFldrSyncOptions;
     FStartTime           : TDateTime;
   Strict Protected
@@ -69,7 +49,6 @@ Type
     Function GetPause: Boolean;
     Procedure LoadSettings;
     Procedure SaveSettings;
-    Procedure ProcessCommandLine;
     Procedure DisplayHelp;
     Procedure SearchStartProc(strFolder: String);
     Procedure SearchProc(strFolder, strFileName: String; iCount: Integer;
@@ -123,7 +102,6 @@ Type
       strFileName: String);
     Procedure NothingToDoEnd();
     Procedure OutputStats(CFC : TCompareFoldersCollection);
-    Procedure ParseSizeLimit(strOption : String);
     Procedure ExceedsSizeLimitStart(iFileCount: Integer);
     Procedure ExceedsSizeLimit(iFile, iFileCount : integer; strLPath, strRPath,
       strFileName: String);
@@ -175,9 +153,8 @@ Uses
   {$IFDEF EUREKALOG_VER7}
   ExceptionLog7,
   EExceptionManager,
-  ECallStack,
-  {$ENDIF}
-  ApplicationFunctions;
+  ECallStack
+  {$ENDIF};
 
 (**
 
@@ -319,7 +296,7 @@ Var
   j: Integer;
 
 Begin
-  If (cloQuiet In FCommandLineOptions) Then
+  If (cloQuiet In FCommandLineOptions.iCommandLineOptions) Then
     Exit;
   GetConsoleScreenBufferInfo(FStd, ConsoleInfo);
   iMaxWidth := ConsoleInfo.dwSize.X - ConsoleInfo.dwCursorPosition.X - 1;
@@ -402,7 +379,7 @@ Procedure TCommandLineProcessing.CompareProc(strLeftFldr, strRightFldr,
   strFileName: String; iPosition, iMaxItems: Integer);
 
 Begin
-  If Not(cloQuiet In FCommandLineOptions) Then
+  If Not(cloQuiet In FCommandLineOptions.iCommandLineOptions) Then
     If iPosition Mod 100 = 0 Then
       Begin
         ClearLine;
@@ -692,8 +669,8 @@ Constructor TCommandLineProcessing.Create;
 Begin
   FParams      := TStringList.Create;
   FINIFileName := BuildRootKey(FParams, ExceptionProc);
-  Include(FSyncOptions, soEnabled);
-  FMaxFileSize := 0;
+  Include(FCommandLineOptions.iSyncOptions, soEnabled);
+  FCommandLineOptions.iMaxFileSize := 0;
   LoadSettings;
 End;
 
@@ -1221,35 +1198,37 @@ Begin
   FErr := iErr;
   OutputToConsoleLn(FStd, GetConsoleTitle(strTitle), FTitleColour);
   OutputToConsoleLn(FStd);
-  ProcessCommandLine;
-  TCheckForUpdates.Execute(strSoftwareID, FINIFileName, cloCheckForUpdates
-      In FCommandLineOptions);
-  If cloHelp In FCommandLineOptions Then
+  ProcessCommandLine(FParams, FCommandLineOptions);
+  TCheckForUpdates.Execute(strSoftwareID, FINIFileName,
+    cloCheckForUpdates In FCommandLineOptions.iCommandLineOptions);
+  If cloHelp In FCommandLineOptions.iCommandLineOptions Then
     Begin
       DisplayHelp;
       Exit;
     End;
   OutputToConsoleLn(FStd, 'Synchronising folders:', FHeaderColour);
-  If Not DirectoryExists(FSourceDir) Then
-    If Not ForceDirectories(FSourceDir) Then
+  If Not DirectoryExists(FCommandLineOptions.strSourceFldr) Then
+    If Not ForceDirectories(FCommandLineOptions.strSourceFldr) Then
       Raise EFldrSyncException.CreateFmt('Could not create the directory "%s".',
-        [FSourceDir]);
-  OutputToConsoleLn(FStd, #32#32 + 'Source:   ' + ExpandFileName(FSourceDir));
-  If Not DirectoryExists(FDestDir) Then
-    If Not ForceDirectories(FDestDir) Then
+        [FCommandLineOptions.strSourceFldr]);
+  OutputToConsoleLn(FStd, #32#32 + 'Source:   ' + ExpandFileName(FCommandLineOptions.strSourceFldr));
+  If Not DirectoryExists(FCommandLineOptions.strDestFldr) Then
+    If Not ForceDirectories(FCommandLineOptions.strDestFldr) Then
       Raise EFldrSyncException.CreateFmt('Could not create the directory "%s".',
-        [FDestDir]);
-  OutputToConsoleLn(FStd, #32#32 + 'Dest:     ' + ExpandFileName(FDestDir));
-  If FFilePatterns = '' Then
-    FFilePatterns := '*.*';
-  OutputToConsoleLn(FStd, #32#32 + 'Patterns: ' + FFilePatterns);
+        [FCommandLineOptions.strDestFldr]);
+  OutputToConsoleLn(FStd, #32#32 + 'Dest:     ' + ExpandFileName(FCommandLineOptions.strDestFldr));
+  If FCommandLineOptions.strFilePatterns = '' Then
+    FCommandLineOptions.strFilePatterns := '*.*';
+  OutputToConsoleLn(FStd, #32#32 + 'Patterns: ' + FCommandLineOptions.strFilePatterns);
   OutputToConsoleLn(FStd);
   FCFC := TCompareFoldersCollection.Create(0);
   Try
     Folders := TFolders.Create;
     Try
-      Folders.Add(TFolder.Create(FSourceDir, FDestDir, FFilePatterns, FSyncOptions,
-        FMaxFileSize));
+      Folders.Add(TFolder.Create(FCommandLineOptions.strSourceFldr,
+        FCommandLineOptions.strDestFldr, FCommandLineOptions.strFilePatterns,
+        FCommandLineOptions.iSyncOptions,
+        FCommandLineOptions.iMaxFileSize));
       FCFC.OnSearchStart           := SearchStartProc;
       FCFC.OnSearch                := SearchProc;
       FCFC.OnSearchEnd             := SearchEndProc;
@@ -1289,7 +1268,7 @@ Begin
       FCFC.OnDeleteFoldersEnd      := DeleteFoldersEnd;
       FCFC.OnCopyError             := CopyError;
       FCFC.OnDeleteError           := DeleteError;
-      FCFC.ProcessFolders(Folders, FExclusions);
+      FCFC.ProcessFolders(Folders, FCommandLineOptions.strExclusions);
       Try
         OutputStats(FCFC);
         For iDrive := 0 To FCFC.Drives.Count - 1 Do
@@ -1306,9 +1285,9 @@ Begin
               End;
           End;
         FFldrSyncOptions := [];
-        If clsDeletePermentently In FCommandLineOptions Then
+        If clsDeletePermentently In FCommandLineOptions.iCommandLineOptions Then
           Include(FFldrSyncOptions, fsoPermanentlyDeleteFiles);
-        If clsBatchRecycleFiles In FCommandLineOptions Then
+        If clsBatchRecycleFiles In FCommandLineOptions.iCommandLineOptions Then
           Include(FFldrSyncOptions, fsoBatchRecycleFiles);
         FCFC.ProcessFiles(FFldrSyncOptions);
       Except
@@ -1436,7 +1415,7 @@ End;
 Function TCommandLineProcessing.GetPause: Boolean;
 
 Begin
-  Result := cloPause In FCommandLineOptions;
+  Result := cloPause In FCommandLineOptions.iCommandLineOptions;
 End;
 
 (**
@@ -1496,7 +1475,7 @@ End;
 Procedure TCommandLineProcessing.MatchListProc(iPosition, iMaxItems: Integer);
 
 Begin
-  If Not(cloQuiet In FCommandLineOptions) Then
+  If Not(cloQuiet In FCommandLineOptions.iCommandLineOptions) Then
     Begin
       If iPosition Mod 100 = 0 Then
         OutputToConsole(FStd, Format('Processing Item %1.0n of %1.0n (%1.0n%%)...',
@@ -1662,7 +1641,7 @@ Begin
       ]));
     End;
   OutputToConsoleLn(FStd);
-  If Not (clsProceedAutomatically In FCommandLineOptions) Then
+  If Not (clsProceedAutomatically In FCommandLineOptions.iCommandLineOptions) Then
     Begin
       OutputToConsole(FStd, 'Do you want to proceed (Y/N)? ', FInputColour);
       C := GetConsoleCharacter(['y', 'Y', 'n', 'N']);
@@ -1672,138 +1651,6 @@ Begin
       Case C Of
         'n', 'N': Abort;
       End;
-    End;
-End;
-
-(**
-
-  This method parses the size limit command line argument. If an incorrect specification
-  an exception is raised.
-
-  @precon  None.
-  @postcon Sets the size limit for copying files else raises an exception.
-
-  @param   strOption as a String
-
-**)
-Procedure TCommandLineProcessing.ParseSizeLimit(strOption: String);
-
-Const
-  strMultipliers = ['k', 'K', 'm', 'M', 'g', 'G', 't', 'T'];
-
-Var
-  strValue   : String;
-  cM       : Char;
-  iSizeLimit : Int64;
-  iErrorCode : Integer;
-
-Begin
-  strValue := strOption;
-  Delete(strValue, 1, 9);
-  If Copy(strValue, 1, 1) = '=' Then
-    Begin
-      Delete(strValue, 1, 1);
-      If (Length(strValue) > 0) Then
-        Begin
-          If (Not CharInSet(strValue[Length(strValue)], ['0'..'0']))
-            And (CharInSet(strValue[Length(strValue)], strMultipliers)) Then
-            Begin
-              cM := strValue[Length(strValue)];
-              Delete(strValue, Length(strValue), 1);
-              Val(strValue, iSizeLimit, iErrorCode);
-              If iErrorCode > 0 Then
-                Raise EFldrSyncException.Create('Invalid SizeLimit Number');
-              Case cM Of
-                'k', 'K': FMaxFileSize := iSizeLimit * 1024;
-                'm', 'M': FMaxFileSize := iSizeLimit * 1024 * 1024;
-                'g', 'G': FMaxFileSize := iSizeLimit * 1024 * 1024 * 1024;
-                't', 'T': FMaxFileSize := iSizeLimit * 1024 * 1024 * 1024 * 1024;
-              Else
-                FMaxFileSize := iSizeLimit;
-              End;
-            End Else
-              Raise EFldrSyncException.Create('Invalid SizeLimit Multiplier');
-        End Else
-          Raise EFldrSyncException.Create('Missing SizeLimit Specification');
-    End Else
-      Raise EFldrSyncException.Create('= expected after SizeLimit');
-End;
-
-(**
-
-  This method processes the command line parameters of the console application and sets up
-  the applications internal variables based on those settings.
-
-  @precon  None.
-  @postcon Processes the command line parameters of the console application and sets up
-           the applications internal variables based on those settings.
-
-**)
-Procedure TCommandLineProcessing.ProcessCommandLine;
-
-Var
-  strOption: String;
-  i        : Integer;
-
-Begin
-  FCommandLineOptions := [];
-  For i := 0 To FParams.Count - 1 Do
-    Begin
-      strOption := FParams[i];
-      If CharInSet(strOption[1], ['-', '/']) Then
-        Begin
-          strOption := Copy(strOption, 2, Length(strOption) - 1);
-          If CompareText(strOption, 'Quiet') = 0 Then
-            Include(FCommandLineOptions, cloQuiet)
-          Else If strOption = '!' Then
-            Include(FCommandLineOptions, cloPause)
-          Else If strOption = '?' Then
-            Include(FCommandLineOptions, cloHelp)
-          Else If CompareText(strOption, 'Updates') = 0 Then
-            Include(FCommandLineOptions, cloCheckForUpdates)
-          Else If CompareText(strOption, 'PrimaryLeft') = 0 Then
-            Include(FSyncOptions, soPrimaryLeft)
-          Else If CompareText(strOption, 'PrimaryRight') = 0 Then
-            Include(FSyncOptions, soPrimaryRight)
-          Else If CompareText(strOption, 'DeletePermanently') = 0 Then
-            Include(FCommandLineOptions, clsDeletePermentently)
-          Else If CompareText(strOption, 'BatchRecycleFiles') = 0 Then
-            Include(FCommandLineOptions, clsBatchRecycleFiles)
-          Else If CompareText(strOption, 'ProceedAutomatically') = 0 Then
-            Include(FCommandLineOptions, clsProceedAutomatically)
-          Else If CompareText(Copy(strOption, 1, 1), 'E') = 0 Then
-            FExclusions := StringReplace(Copy(strOption, 2, Length(strOption) - 1), ';',
-              #13#10, [rfReplaceAll])
-          Else If CompareText(strOption, 'OverwriteReadOnly') = 0 Then
-            Include(FSyncOptions, soOverwriteReadOnlyFiles)
-          Else If CompareText(strOption, 'ConfirmNo') = 0 Then
-            Begin
-              Include(FSyncOptions, soConfirmNo);
-              Exclude(FSyncOptions, soConfirmYes);
-            End
-          Else If CompareText(strOption, 'ConfirmYes') = 0 Then
-            Begin
-              Include(FSyncOptions, soConfirmYes);
-              Exclude(FSyncOptions, soConfirmNo);
-            End
-          Else If CompareText(strOption, 'NoRecursion') = 0 Then
-            Include(FSyncOptions, soNoRecursion)
-          Else If CompareText(Copy(strOption, 1, 9), 'SizeLimit') = 0 Then
-            ParseSizeLimit(strOption)
-          Else
-            Raise EFldrSyncException.CreateFmt('Invalid command line option "%s".',
-              [FParams[i]]);
-        End
-      Else
-        Begin
-          If FSourceDir = '' Then
-            Begin
-              FFilePatterns := ExtractFileName(FParams[i]);
-              FSourceDir    := ExtractFilePath(FParams[i]);
-            End
-          Else
-            FDestDir := ExtractFilePath(FParams[i]);
-        End;
     End;
 End;
 
@@ -1875,7 +1722,7 @@ var
 Begin
   If strFolder = FLastFolder Then
     Begin
-      If Not(cloQuiet In FCommandLineOptions) Then
+      If Not(cloQuiet In FCommandLineOptions.iCommandLineOptions) Then
         If (iCount Mod FOutputUpdateInterval = 0) Or (Update = utImmediate) Then
           Begin
             ClearLine;
