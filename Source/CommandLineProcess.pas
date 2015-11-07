@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    16 Oct 2015
+  @Date    07 Nov 2015
 
 **)
 Unit CommandLineProcess;
@@ -1758,7 +1758,7 @@ Begin
             Include(FSyncOptions, soPrimaryLeft)
           Else If CompareText(strOption, 'PrimaryRight') = 0 Then
             Include(FSyncOptions, soPrimaryRight)
-          Else If CompareText(strOption, 'DeletePermentently') = 0 Then
+          Else If CompareText(strOption, 'DeletePermanently') = 0 Then
             Include(FCommandLineOptions, clsDeletePermentently)
           Else If CompareText(strOption, 'BatchRecycleFiles') = 0 Then
             Include(FCommandLineOptions, clsBatchRecycleFiles)
