@@ -1234,12 +1234,12 @@ Begin
     If Not ForceDirectories(FSourceDir) Then
       Raise EFldrSyncException.CreateFmt('Could not create the directory "%s".',
         [FSourceDir]);
-  OutputToConsoleLn(FStd, #32#32 + 'Source:   ' + FSourceDir);
+  OutputToConsoleLn(FStd, #32#32 + 'Source:   ' + ExpandFileName(FSourceDir));
   If Not DirectoryExists(FDestDir) Then
     If Not ForceDirectories(FDestDir) Then
       Raise EFldrSyncException.CreateFmt('Could not create the directory "%s".',
         [FDestDir]);
-  OutputToConsoleLn(FStd, #32#32 + 'Dest:     ' + FDestDir);
+  OutputToConsoleLn(FStd, #32#32 + 'Dest:     ' + ExpandFileName(FDestDir));
   If FFilePatterns = '' Then
     FFilePatterns := '*.*';
   OutputToConsoleLn(FStd, #32#32 + 'Patterns: ' + FFilePatterns);
@@ -1620,6 +1620,7 @@ Var
   iDrive : Integer;
   strHeader : String;
   C : Char;
+  iMaxDriveWidth : Integer;
 
 Begin
   OutputToConsoleLn(FStd, 'Statistics:', FHeaderColour);
@@ -1633,7 +1634,12 @@ Begin
     End;
   OutputToConsoleLn(FStd, 'Drive Space (in kbytes):',
     FHeaderColour);
-  strHeader := Format(' %-25s | %16s | %16s | %16s | %16s | %16s ', [
+  iMaxDriveWidth := 0;
+  For iDrive := 0 To CFC.Drives.Count -  1 Do
+    If Length(CFC.Drives.Drive[iDrive].Drive) > iMaxDriveWidth Then
+      iMaxDriveWidth := Length(CFC.Drives.Drive[iDrive].Drive);
+  strHeader := Format(' %-*s | %16s | %16s | %16s | %16s | %16s ', [
+    iMaxDriveWidth + 2,
     'Drive',
     'Total',
     'Free at Start',
@@ -1645,7 +1651,8 @@ Begin
   OutputToConsoleLn(FStd, StringOfChar('-', Length(strHeader)));
   For iDrive := 0 To CFC.Drives.Count -  1 Do
     Begin
-      OutputToConsoleLn(FStd, Format(' %-25s | %16.1n | %16.1n | %16.1n | %16.1n | %16.1n', [
+      OutputToConsoleLn(FStd, Format(' %-*s | %16.1n | %16.1n | %16.1n | %16.1n | %16.1n', [
+        iMaxDriveWidth + 2,
         CFC.Drives.Drive[iDrive].Drive,
         Int(CFC.Drives.Drive[iDrive].Total) / 1024,
         Int(CFC.Drives.Drive[iDrive].FreeAtStart) / 1024,
