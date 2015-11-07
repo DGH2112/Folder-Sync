@@ -14,7 +14,9 @@
     a batch process, something that was difficult with the GUI version.</p>
 
     <pre>FldrSyncCmd D:\Path\filepattern D:\Path\ [ /PrimaryLeft ] [ /PrimaryRight]
-  [ /ConfirmYes ] [ /ConfirmNo ] [ /OverwriteREADONLY ] [ /Quiet ] [ /Update ]
+  [ /ConfirmYes ] [ /ConfirmNo ] [ /OverwriteREADONLY ] [ /DeletePermanently ]
+  [ /BatchRecycleFiles ] [ /ProceedAutomatically ]
+  [ /SizeLimit=# [ 'K' | 'M' | 'G' | 'T'] ] [ /Quiet ] [ /Update ]
   [ /NoRecursion ] [ /EExclusionList ] [ /! ] [ /? ]
     </pre>
 
@@ -45,7 +47,7 @@
         <td>By default you will be asked to confirm any deletion or overwriting
         of files. This option allow you to answer Yes to all actions and not be
         prompted. (Note: you need to use this is conjunction with the
-        /OverwriteREADONLY switch to over write read only files with
+        <code>/OverwriteREADONLY</code> switch to over write read only files with
         non-read-only files.)</td>
       </tr>
       <tr>
@@ -58,6 +60,26 @@
         <td>/OverwriteREADONLY</td>
         <td>This option is require to allow the overwriting of read only files
         with non-read-only files without being prompted.</td>
+      </tr>
+      <tr>
+        <td>DeletePermanently</td>
+        <td>This option delets the files permanently rather than to the recycle bin.</td>
+      </tr>
+      <tr>
+        <td>BatchRecycleFiles</td>
+        <td>The option recycles the deleted files in batches (per drive/folder) rather
+        than individually.</td>
+      </tr>
+      <tr>
+        <td>ProceedAutomatically</td>
+        <td>This option causes Fodler Sync to proceed with processing the files after
+        the display of the drive space changes without prompting the user.</td>
+      </tr>
+      <tr>
+        <td>SizeLimit</td>
+        <td>This option limits the size of the files that should be processed.
+        The syntax for this is <pre>/SizeLimit=100K</pre> where the letter at the end
+        indicates the size modifier. Acceptable values are K, M, G and T.</td>
       </tr>
       <tr>
         <td>/Quiet</td>
