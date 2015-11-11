@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    07 Nov 2015
+  @Date    11 Nov 2015
   @Author  David Hoyle
 
 **)
@@ -3300,7 +3300,7 @@ Begin
             Length(FEmptyFolders[i]) - 1))) Then
             Inc(iFolderCount);
           RemoveDir(FEmptyFolders[i]);
-          DoDeleteFolders(iFolder, iFolderCount, FEmptyFolders[i]);
+          DoDeleteFolders(Succ(iFolder), iFolderCount, FEmptyFolders[i]);
           Inc(iFolder);
           iFileCount := FileCount(FEmptyFolders[i]);
           If iFileCount > 0 Then
