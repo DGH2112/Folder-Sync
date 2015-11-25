@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    07 Nov 2015
+  @Date    22 Nov 2015
   @Author  David Hoyle
 
 **)
@@ -432,14 +432,14 @@ Begin
       iDefaultOps := [fosDelete..fosDifference];
       FFileOpStats := TFileOpStats(Byte(ReadInteger('Setup', 'FileOpStats',
         Byte(iDefaultOps))));
-      For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
-        If ReadBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
-          strFldrSyncOptions[j].fDefault) Then
-          Include(FFldrSyncOptions, j);
       UpgradeINIFolderOptions(iniMemFile);
       If FParams.Count = 0 Then
         Begin
           FFldrSyncOptions := [];
+          For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
+            If ReadBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
+              strFldrSyncOptions[j].fDefault) Then
+              Include(FFldrSyncOptions, j);
           sl := TStringList.Create;
           Try
             ReadSection('NewFolders', sl);
