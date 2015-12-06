@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    11 Nov 2015
+  @Date    06 Dec 2015
   @Author  David Hoyle
 
 **)
@@ -3296,9 +3296,9 @@ Begin
       iFileCount := NativeUInt(FEmptyFolders.Objects[i]);
       If iFileCount = 0 Then
         Begin
-          If DecrementFolder(ExtractFilePath(Copy(FEmptyFolders[i], 1,
-            Length(FEmptyFolders[i]) - 1))) Then
-            Inc(iFolderCount);
+          {If }DecrementFolder(ExtractFilePath(Copy(FEmptyFolders[i], 1,
+            Length(FEmptyFolders[i]) - 1))){ Then
+            Inc(iFolderCount)};
           RemoveDir(FEmptyFolders[i]);
           DoDeleteFolders(Succ(iFolder), iFolderCount, FEmptyFolders[i]);
           Inc(iFolder);
@@ -3315,8 +3315,6 @@ End;
   This method deletes the given file from disk either to the recycle bin or permanently
   depending upon the global options.
 
-  @bug     Deleting to the recycle bin will not work on filename longer then MAX_PATH.
-
   @precon  None.
   @postcon The file is deleted.
 
@@ -3331,7 +3329,7 @@ Var
   iResult : Integer;
 
 Begin
-  If fsoPermanentlyDeleteFiles In FFldrSyncOptions Then
+  If (fsoPermanentlyDeleteFiles In FFldrSyncOptions) Or (Length(strFileName) > MAX_PATH) Then
     // Success is return > zero
     Result := DeleteFile(PChar(strFileName))
   Else
@@ -3394,8 +3392,11 @@ Procedure TCompareFoldersCollection.DeleteFiles;
   Begin
     DoDeleting(iCurrentFileToDelete, iTotalFilesToDelete, iCumulativeFileSizeBeforeDelete,
       iTotalFileSizeToDelete, strPath, strFileName);
-    slRecycleFiles.Values[strPath] := slRecycleFiles.Values[strPath] +
-      strPath + strFileName + #0;
+    If Length(strPath + strFileName) <= MAX_PATH Then
+      slRecycleFiles.Values[strPath] := slRecycleFiles.Values[strPath] +
+        strPath + strFileName + #0
+    Else
+      DeleteFileFromDisk(Expand(strPath + strFileName));
     Inc(FCumulativeFileSize, iFileSize);
     DoDeleted(iCurrentFileToDelete, iTotalFilesToDelete,
       iCumulativeFileSizeBeforeDelete + iFileSize, iTotalFileSizeToDelete, psSuccessed);
