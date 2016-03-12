@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    07 Nov 2015
+  @Date    11 Mar 2016
 
 **)
 Unit ApplicationFunctions;
@@ -230,13 +230,37 @@ Begin
             Include(ComOps.iSyncOptions, soOverwriteReadOnlyFiles)
           Else If CompareText(strOption, 'ConfirmNo') = 0 Then
             Begin
-              Include(ComOps.iSyncOptions, soConfirmNo);
-              Exclude(ComOps.iSyncOptions, soConfirmYes);
+              Include(ComOps.iSyncOptions, soConfirmCopyNo);
+              Include(ComOps.iSyncOptions, soConfirmDeleteNo);
+              Exclude(ComOps.iSyncOptions, soConfirmCopyYes);
+              Exclude(ComOps.iSyncOptions, soConfirmDeleteYes);
+            End
+          Else If CompareText(strOption, 'ConfirmCopyNo') = 0 Then
+            Begin
+              Include(ComOps.iSyncOptions, soConfirmCopyNo);
+              Exclude(ComOps.iSyncOptions, soConfirmCopyYes);
+            End
+          Else If CompareText(strOption, 'ConfirmDeleteNo') = 0 Then
+            Begin
+              Include(ComOps.iSyncOptions, soConfirmDeleteNo);
+              Exclude(ComOps.iSyncOptions, soConfirmDeleteYes);
             End
           Else If CompareText(strOption, 'ConfirmYes') = 0 Then
             Begin
-              Include(ComOps.iSyncOptions, soConfirmYes);
-              Exclude(ComOps.iSyncOptions, soConfirmNo);
+              Include(ComOps.iSyncOptions, soConfirmCopyYes);
+              Include(ComOps.iSyncOptions, soConfirmDeleteYes);
+              Exclude(ComOps.iSyncOptions, soConfirmCopyNo);
+              Exclude(ComOps.iSyncOptions, soConfirmDeleteNo);
+            End
+          Else If CompareText(strOption, 'ConfirmCopyYes') = 0 Then
+            Begin
+              Include(ComOps.iSyncOptions, soConfirmCopyYes);
+              Exclude(ComOps.iSyncOptions, soConfirmCopyNo);
+            End
+          Else If CompareText(strOption, 'ConfirmDeleteYes') = 0 Then
+            Begin
+              Include(ComOps.iSyncOptions, soConfirmDeleteYes);
+              Exclude(ComOps.iSyncOptions, soConfirmDeleteNo);
             End
           Else If CompareText(strOption, 'NoRecursion') = 0 Then
             Include(ComOps.iSyncOptions, soNoRecursion)
