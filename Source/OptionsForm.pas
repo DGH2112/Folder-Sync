@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    11 Oct 2015
+  @Date    11 Mar 2016
   @Version 1.0
   @Author  David Hoyle
 
@@ -254,7 +254,8 @@ Uses
   CheckForUpdatesOptionsForm,
   Themes,
   InterfaceFontForm,
-  OperationsFontForm;
+  OperationsFontForm,
+  Types;
   
 {$R *.DFM}
 
@@ -963,9 +964,17 @@ End;
 Procedure TfrmOptions.PopulateFolderList;
 
 Const
-  SyncOps: Array [Succ(Low(TSyncOption)) .. High(TSyncOption)
-    ] Of String = ('Left', 'Right', 'Overwrite', 'Yes', 'No', 'No Recursion',
-    'Temp Disabled');
+  SyncOps: Array [Succ(Low(TSyncOption))..High(TSyncOption)] Of String = (
+    'Left',
+    'Right',
+    'Overwrite',
+    'Copy Yes',
+    'Delete Yes',
+    'Copy No',
+    'Delete No',
+    'No Recursion',
+    'Temp Disabled'
+    );
   strMultiplers : Array[0..5] of String = ('B', 'KB', 'MB', 'GB', 'TB', 'PB');
 
 Var
