@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 1.0
-  @Date    22 Nov 2015
+  @Date    11 Mar 2016
   @Author  David Hoyle
 
 **)
@@ -445,8 +445,8 @@ Begin
             ReadSection('NewFolders', sl);
             For i := 0 To sl.Count - 1 Do
               Begin
-                iSyncOptions := TSyncOptions(Byte(ReadInteger('NewFolderStatus', sl[i],
-                  Byte(iSyncOptions))));
+                iSyncOptions := TSyncOptions(SmallInt(ReadInteger('NewFolderStatus', sl[i],
+                  SmallInt(iSyncOptions))));
                 strMaxValue := ReadString('NewFolderMaxFileSize', sl[i], '0,0,0,0');
                 iMaxValue.Value := 0;
                 iMaxValue.iFirst := StrToInt(GetField(strMaxValue, ',', 1));
@@ -1184,7 +1184,7 @@ Begin
                 FFolders.Folder[i].RightFldr + FFolders.Folder[i].Patterns);
               Ops := FFolders.Folder[i].SyncOptions;
               Exclude(Ops, soTempDisabled);
-              WriteInteger('NewFolderStatus', Format('Folder%2.2d', [i]), Byte(Ops));
+              WriteInteger('NewFolderStatus', Format('Folder%2.2d', [i]), SmallInt(Ops));
               iMaxValue.Value := FFolders.Folder[i].MaxFileSize;
               WriteString('NewFolderMaxFileSize', Format('Folder%2.2d', [i]),
                 Format('%d,%d,%d,%d', [iMaxValue.iFirst, iMaxValue.iSecond,
@@ -2101,7 +2101,7 @@ Begin
     For i := 0 To sl.Count - 1 Do
       Begin
         iniMemFile.WriteInteger('NewFolderStatus', Format('Folder%2.2d', [i]), 
-          iniMemFile.ReadInteger('FolderStatus', sl[i], Byte(iSyncOptions)));
+          iniMemFile.ReadInteger('FolderStatus', sl[i], SmallInt(iSyncOptions)));
         iniMemFile.WriteString('NewFolderMaxFileSize', Format('Folder%2.2d', [i]), 
           iniMemFile.ReadString('FolderMaxFileSize', sl[i], '0,0,0,0'));
         iniMemFile.WriteString('NewFolders', Format('Folder%2.2d', [i]), 
