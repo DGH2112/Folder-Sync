@@ -3,7 +3,7 @@
   A class to define a form for editing the Folder Paths.
 
   @Version 1.0
-  @date    11 May 2013
+  @date    12 Mar 2016
   @Author  David Hoyle.
 
 **)
@@ -46,8 +46,8 @@ Type
     Procedure btnBrowseRightClick(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
-    Procedure lbxSyncOptionsClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
+    procedure lbxSyncOptionsChange(Sender: TObject; Item: TListItem; Change: TItemChange);
   Private
     { Private declarations }
     FRootKey: String;
@@ -67,10 +67,18 @@ Uses
 
 Const
   (** A constant array to provide string representations of the sync options. **)
-  SyncOps: Array [Low(TSyncOption) .. High(TSyncOption)
-    ] Of String = ('Enable Folder Comparison', 'Primary Left Folder',
-    'Primary Right Folder', 'Overwrite Read Only Files', 'Confirm Yes', 'Confirm No',
-    'No Recursion', 'Temporarily Disabled');
+  SyncOps: Array [Low(TSyncOption)..High(TSyncOption)] Of String = (
+    'Enable Folder Comparison',
+    'Primary Left Folder',
+    'Primary Right Folder',
+    'Overwrite Read Only Files',
+    'Confirm Copy Yes',
+    'Confirm Delete Yes',
+    'Confirm Copy No',
+    'Confirm Delete No',
+    'No Recursion',
+    'Temporarily Disabled'
+  );
 
 { TfrmFolderPaths }
 
@@ -101,12 +109,14 @@ Begin
       Result              := False;
       edtLeftFolder.Text  := Folder.LeftFldr + Folder.Patterns;
       edtRightFolder.Text := Folder.RightFldr + Folder.Patterns;
+      lbxSyncOptions.OnChange := Nil;
       For i               := Low(TSyncOption) To High(TSyncOption) Do
         Begin
           Item := lbxSyncOptions.Items.Add;
           Item.Caption := SyncOps[i];
           Item.Checked := i In Folder.SyncOptions;
         End;
+      lbxSyncOptions.OnChange := lbxSyncOptionsChange;
       iMaxFileSize := Folder.MaxFileSize;
       cbxMaxFileSize.ItemIndex := 0;
       While iMaxFileSize Mod 1024 = 0 Do
@@ -220,35 +230,42 @@ End;
 
 (**
 
-  This is an on click event handler for the check list box.
+  This is an on change event handler for the check list box.
 
   @precon  None.
   @postcon Ensures that Primary Left and Right are not checked at the same time and that
            Confirm Yes and No are not checked at the same time.
 
   @param   Sender as a TObject
+  @param   Item   as a TListItem
+  @param   Change as a TItemChange
 
 **)
-Procedure TfrmFolderPaths.lbxSyncOptionsClick(Sender: TObject);
+procedure TfrmFolderPaths.lbxSyncOptionsChange(Sender: TObject; Item: TListItem;
+  Change: TItemChange);
 
 Const
-  SyncOpInts: Array [Low(TSyncOption) .. High(TSyncOption)] Of Integer =
-    (0, 1, 2, 3, 4, 5, 6, 7);
+  SyncOpInts: Array [Low(TSyncOption)..High(TSyncOption)] Of Integer =
+    (0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
 Var
-  i: TSyncOption;
+  i : TSyncOption;
 
-Begin
-  i := TSyncOption(lbxSyncOptions.ItemIndex);
+begin
+  i := TSyncOption(Item.Index);
   If (i In [soPrimaryLeft]) And lbxSyncOptions.Items[SyncOpInts[i]].Checked Then
     lbxSyncOptions.Items[SyncOpInts[soPrimaryRight]].Checked := False;
   If (i In [soPrimaryRight]) And lbxSyncOptions.Items[SyncOpInts[i]].Checked Then
     lbxSyncOptions.Items[SyncOpInts[soPrimaryLeft]].Checked := False;
-  If (i In [soConfirmYes]) And lbxSyncOptions.Items[SyncOpInts[i]].Checked Then
-    lbxSyncOptions.Items[SyncOpInts[soConfirmNo]].Checked := False;
-  If (i In [soConfirmNo]) And lbxSyncOptions.Items[SyncOpInts[i]].Checked Then
-    lbxSyncOptions.Items[SyncOpInts[soConfirmYes]].Checked := False;
-End;
+  If (i In [soConfirmCopyYes]) And lbxSyncOptions.Items[SyncOpInts[i]].Checked Then
+    lbxSyncOptions.Items[SyncOpInts[soConfirmCopyNo]].Checked := False;
+  If (i In [soConfirmDeleteYes]) And lbxSyncOptions.Items[SyncOpInts[i]].Checked Then
+    lbxSyncOptions.Items[SyncOpInts[soConfirmDeleteNo]].Checked := False;
+  If (i In [soConfirmCopyNo]) And lbxSyncOptions.Items[SyncOpInts[i]].Checked Then
+    lbxSyncOptions.Items[SyncOpInts[soConfirmCopyYes]].Checked := False;
+  If (i In [soConfirmDeleteNo]) And lbxSyncOptions.Items[SyncOpInts[i]].Checked Then
+    lbxSyncOptions.Items[SyncOpInts[soConfirmDeleteYes]].Checked := False;
+end;
 
 (**
 

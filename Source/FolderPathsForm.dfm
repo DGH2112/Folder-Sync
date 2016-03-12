@@ -3,7 +3,7 @@ object frmFolderPaths: TfrmFolderPaths
   Top = 388
   Caption = 'Folder Paths'
   ClientHeight = 356
-  ClientWidth = 778
+  ClientWidth = 772
   Color = clBtnFace
   Constraints.MaxHeight = 485
   Constraints.MinHeight = 394
@@ -19,7 +19,7 @@ object frmFolderPaths: TfrmFolderPaths
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
-    778
+    772
     356)
   PixelsPerInch = 96
   TextHeight = 16
@@ -64,7 +64,7 @@ object frmFolderPaths: TfrmFolderPaths
   object edtLeftFolder: TEdit
     Left = 10
     Top = 31
-    Width = 710
+    Width = 704
     Height = 24
     Margins.Left = 4
     Margins.Top = 4
@@ -77,7 +77,7 @@ object frmFolderPaths: TfrmFolderPaths
   object edtRightFolder: TEdit
     Left = 10
     Top = 85
-    Width = 710
+    Width = 704
     Height = 24
     Margins.Left = 4
     Margins.Top = 4
@@ -88,7 +88,7 @@ object frmFolderPaths: TfrmFolderPaths
     OnChange = FolderPathChange
   end
   object btnBrowseLeft: TButton
-    Left = 727
+    Left = 721
     Top = 28
     Width = 41
     Height = 31
@@ -102,7 +102,7 @@ object frmFolderPaths: TfrmFolderPaths
     OnClick = btnBrowseLeftClick
   end
   object btnBrowseRight: TButton
-    Left = 727
+    Left = 721
     Top = 82
     Width = 41
     Height = 31
@@ -116,7 +116,7 @@ object frmFolderPaths: TfrmFolderPaths
     OnClick = btnBrowseRightClick
   end
   object btnOK: TBitBtn
-    Left = 576
+    Left = 570
     Top = 315
     Width = 92
     Height = 31
@@ -130,7 +130,7 @@ object frmFolderPaths: TfrmFolderPaths
     TabOrder = 8
   end
   object btnCancel: TBitBtn
-    Left = 676
+    Left = 670
     Top = 315
     Width = 92
     Height = 31
@@ -144,7 +144,7 @@ object frmFolderPaths: TfrmFolderPaths
     TabOrder = 9
   end
   object btnHelp: TBitBtn
-    Left = 476
+    Left = 470
     Top = 315
     Width = 93
     Height = 31
@@ -192,9 +192,9 @@ object frmFolderPaths: TfrmFolderPaths
       'TBytes')
   end
   object lbxSyncOptions: TListView
-    Left = 10
-    Top = 118
-    Width = 758
+    Left = 11
+    Top = 117
+    Width = 752
     Height = 190
     Margins.Left = 4
     Margins.Top = 4
@@ -204,14 +204,15 @@ object frmFolderPaths: TfrmFolderPaths
     Checkboxes = True
     Columns = <
       item
-        AutoSize = True
         Caption = 'Folder Synchronization Options'
+        Width = 725
       end>
     HideSelection = False
     ReadOnly = True
     RowSelect = True
     TabOrder = 4
     ViewStyle = vsReport
+    OnChange = lbxSyncOptionsChange
     OnClick = lbxSyncOptionsClick
   end
 end
