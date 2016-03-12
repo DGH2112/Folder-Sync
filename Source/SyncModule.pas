@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    06 Dec 2015
+  @Date    10 Mar 2016
   @Author  David Hoyle
 
 **)
@@ -273,8 +273,10 @@ Type
     soPrimaryLeft,
     soPrimaryRight,
     soOverwriteReadOnlyFiles,
-    soConfirmYes,
-    soConfirmNo,
+    soConfirmCopyYes,
+    soConfirmDeleteYes,
+    soConfirmCopyNo,
+    soConfirmDeleteNo,
     soNoRecursion,
     soTempDisabled
   );
@@ -2808,9 +2810,9 @@ End;
 (**
 
   This method determines whether the querying call back procedures can be by passed based
-  on the options provided in the SyncOps parameter. If these are either soConfirmYes or so
-  ConfirmNo then the function returns TRUE and the file action options is set
-  appropriately.
+  on the options provided in the SyncOps parameter. If these are either soConfirmCopyYes,
+  soConfirmDeleteYes, soConfirmCopyNo or soConfirmDeleteNo then the function returns TRUE
+  and the file action options is set appropriately.
 
   @precon  None.
   @postcon Returns whether the querying process snhould be bypassed and modifies the file
@@ -2830,11 +2832,12 @@ Var
 
 Begin
   Op := Option;
-  Result := SyncOps * [soConfirmNo, soConfirmYes] <> [];
+  Result := SyncOps * [soConfirmCopyNo, soConfirmDeleteNo, soConfirmCopyYes,
+    soConfirmDeleteYes] <> [];
   If Result Then
-    If soConfirmNo In SyncOps Then
+    If [soConfirmCopyNo, soConfirmDeleteNo] *  SyncOps <> [] Then
       Option := faNo
-    Else If soConfirmYes In SyncOps Then
+    Else If [soConfirmCopyYes, soConfirmDeleteYes] * SyncOps <> [] Then
       Option := faYes;
   If boolReadOnly Then
     Begin
@@ -3431,7 +3434,7 @@ Procedure TCompareFoldersCollection.DeleteFiles;
              pFrom := PChar(slRecycleFiles.ValueFromIndex[i]);
              pTo := Nil;
              fFlags := FOF_ALLOWUNDO;
-             If soConfirmYes In Process[0].SyncOptions Then
+             If soConfirmDeleteYes In Process[0].SyncOptions Then
                fFlags := fFlags Or FOF_NOCONFIRMATION;
              fAnyOperationsAborted := False;
              hNameMappings := Nil;
