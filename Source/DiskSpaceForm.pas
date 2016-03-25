@@ -6,7 +6,7 @@
 
   @Author  Daviid Hoyle
   @Version 1.0
-  @Date    22 Aug 2015
+  @Date    25 Mar 2016
 
 **)
 Unit DiskSpaceForm;
@@ -54,7 +54,8 @@ Implementation
 
 Uses
   CodeSiteLogging,
-  dghlibrary;
+  dghlibrary,
+  Themes;
 
 Type
   (** This is a record to describe the node data for each virtual tree node. **)
@@ -128,10 +129,14 @@ Begin
     dblValue := dblValue / dblTotal
   Else
     dblValue := 0;
-  TargetCanvas.Brush.Color := CalcColour(dblValue, 0.0, 0.025, 0.05, clRed, $00CCFF,
-    clWindow);
-  TargetCanvas.Font.Color := CalcColour(dblValue, 0.0, 0.025, 0.05, clBlack, clBlack,
-    clWindowText);
+  TargetCanvas.Brush.Color := CalcColour(dblValue, 0.0, 0.025, 0.05,
+    StyleServices.GetSystemColor(clRed),
+    StyleServices.GetSystemColor($00CCFF),
+    StyleServices.GetSystemColor(clWindow));
+  TargetCanvas.Font.Color := CalcColour(dblValue, 0.0, 0.025, 0.05,
+    StyleServices.GetSystemColor(clBlack),
+    StyleServices.GetSystemColor(clBlack),
+    StyleServices.GetSystemColor(clWindowText));
   TargetCanvas.FillRect(ItemRect);
 End;
 

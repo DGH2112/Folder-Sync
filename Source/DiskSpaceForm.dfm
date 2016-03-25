@@ -69,7 +69,7 @@ object frmDiskSpace: TfrmDiskSpace
     Columns = <
       item
         Position = 0
-        Width = 119
+        Width = 115
         WideText = 'Drive'
       end
       item
