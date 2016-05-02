@@ -213,6 +213,5 @@ object frmFolderPaths: TfrmFolderPaths
     TabOrder = 4
     ViewStyle = vsReport
     OnChange = lbxSyncOptionsChange
-    OnClick = lbxSyncOptionsClick
   end
 end
