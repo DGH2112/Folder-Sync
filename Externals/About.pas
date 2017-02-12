@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    29 Sep 2012
+  @Date    12 Feb 2017
 
 **)
 Unit About;
@@ -25,8 +25,6 @@ Uses
   ExtCtrls,
   StdCtrls,
   DGHSpectrum;
-
-{$I 'CompilerDefinitions.inc'}
 
 Type
   (** This is a class to represent the About form which displays the
@@ -277,11 +275,7 @@ Var
   dtDate: TDateTime;
 
 Begin
-  {$IFNDEF D2005}
-  dtDate := FileDateToDateTime(FileAge(FModuleFileName));
-  {$ELSE}
   FileAge(FModuleFileName, dtDate);
-  {$ENDIF}
   lblBy.Caption := 'Written by David Hoyle - Copyright ' +
     FormatDateTime('dd mmmm yyyy', dtDate);
   AboutTimer.Enabled := True;
