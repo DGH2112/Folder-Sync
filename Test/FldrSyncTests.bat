@@ -1,0 +1,4 @@
+@ECHO OFF
+FldrSyncTests.EXE
+IF ERRORLEVEL != THEN ECHO Oops...
+

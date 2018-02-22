@@ -1,0 +1,45 @@
+[Setup]
+WarnBefore=0
+WarnAfter=0
+IncBuild=1
+CopyVersionInfo=0
+CopyVersionInfoFrom=
+ExcludedResExts=.dcr
+EnabledVersionInfo=1
+IncludeInProject=1
+CompileWithBRCC32=0
+MajorVer=2
+MinorVer=0
+ReleaseVer=0
+BuildVer=1720
+ResourceName=ITHelperVersionInfoGUI
+
+[Zipping]
+Enabled=0
+ZipFile={$PROJDRIVE$}\HoylD\Web Page\Zips\fldrsync.zip
+BasePath={$PROJDRIVE$}\HoylD\Borland Studio Projects\
+ExclusionFiles=
+
+[Additional Zip Files]
+Item0={$PROJDRIVE$}\HoylD\Borland Studio Projects\Applications\Folder Sync\HTML Help\*
+Item1={$PROJDRIVE$}\HoylD\Borland Studio Projects\Applications\Folder Sync\HTML Help\Images\*
+
+[VersionInfo]
+CompanyName=Season's Fall Music Limited (c) 1989
+FileDescription=A GUI application to synchronise files in folders.
+FileVersion=2.0.0.1720
+InternalName=FldrSync
+LegalCopyright=Season's Fall Music Limited (c) 1989
+LegalTrademarks=Season's Fall Music Limited (c) 1989
+OriginalFilename=FldrSync
+ProductName=FldrSync
+ProductVersion=2.0
+Comments=A GUI application to synchronise files in folders.
+
+[Pre-Compilation]
+D:\HoylD\RAD Studio\Applications\Folder Sync\Test\FldrSyncTests.exe||D:\HoylD\RAD Studio\Applications\Folder Sync\Test\|FldrSyncTests.exe=0
+
+[Post-Compilation]
+{$PROJDRIVE$}\HoylD\Borland Studio Projects\Binaries\Inno Setup 5\ISCC.exe|"Folder Sync.iss"|{$PROJDRIVE$}\HoylD\Borland Studio Projects\Applications\Folder Sync\INNO Setup\|ISCC.exe=0
+{$PROJDRIVE$}\HoylD\RAD Studio\Applications\Update HoylD XML\HoylDXML.exe|FldrSync.exe "..\..\..\Web Page\HoylD-LIVE.xml"|{$PROJDRIVE$}\HoylD\RAD Studio\Applications\Folder Sync\|HoylDXML.exe=0
+

@@ -1,0 +1,36 @@
+[Setup]
+WarnBefore=0
+WarnAfter=0
+IncBuild=1
+CopyVersionInfoFrom=
+ExcludedResExts=.dcr
+EnabledVersionInfo=1
+IncludeInProject=1
+CompileWithBRCC32=0
+MajorVer=1
+MinorVer=6
+ReleaseVer=0
+BuildVer=1136
+ResourceName=ITHelperVersionInfo
+
+[Zipping]
+Enabled=0
+ZipFile=D:\HoylD\Web Page\Zips\fldrsync.zip
+BasePath=D:\HoylD\Borland Studio Projects\
+ExclusionFiles=
+
+[VersionInfo]
+CompanyName=Season's Fall Music Limited (c) 1989
+FileDescription=FldrSync Tests
+FileVersion=1.6.0.1136
+InternalName=FldrSyncTests
+LegalCopyright=Season's Fall Music Limited (c) 1989
+LegalTrademarks=Season's Fall Music Limited (c) 1989
+OriginalFilename=FldrSyncTests
+ProductName=FldrSyncTests
+ProductVersion=1.6
+Comments=
+
+[Post-Compilation]
+D:\HoylD\RAD Studio\Applications\Folder Sync\Test\FldrSyncTests.exe||D:\HoylD\RAD Studio\Applications\Folder Sync\Test\|FldrSyncTests=0
+

@@ -1,0 +1,25 @@
+﻿
+[Exception Log]
+EurekaLog Version=8000
+Activate=1
+atConsole=1
+atWin32=1
+DeleteMapAfterCompile=1
+Dialog Class="TConsoleWriterBugReportDumpDialog"
+dpJCL=1
+Encrypt Password=""
+idConsole=1
+InjectCode=1
+InjectInfo=1
+InjectOptions=1
+loAddBugIDInLogFileName=1
+loAddComputerNameInLogFileName=1
+loAddDateInLogFileName=1
+loEnableMMDebugMode=1
+ProjectID="{86CC4563-C182-42F4-BAB9-17CDA3AD464A}"
+Save Log File=0
+seMAPI=1
+Sender Classes="TELMailSimpleMAPISender;TELMailMAPISender"
+seSMAPI=1
+sndScreenshot=0
+

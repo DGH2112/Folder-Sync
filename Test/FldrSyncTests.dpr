@@ -1,11 +1,12 @@
+{:  @stopdocumentation }
 program FldrSyncTests;
 {
 
   Delphi DUnit Test Project
   -------------------------
   This project contains the DUnit test framework and the GUI/Console test runners.
-  Add "CONSOLE_TESTRUNNER" to the conditional defines entry in the project options 
-  to use the console test runner.  Otherwise the GUI test runner will be used by 
+  Add "CONSOLE_TESTRUNNER" to the conditional defines entry in the project options
+  to use the console test runner.  Otherwise the GUI test runner will be used by
   default.
 
 }
@@ -17,21 +18,32 @@ program FldrSyncTests;
 {$R 'ITHelperVersionInfo.res' 'ITHelperVersionInfo.RC'}
 
 uses
-  ExceptionLog,
+  {$IFDEF EurekaLog}
+  EMemLeaks,
+  EResLeaks,
+  ESendMailMAPI,
+  ESendMailSMAPI,
+  EDialogConsole,
+  EDebugExports,
+  EDebugJCL,
+  EMapWin32,
+  EAppConsole,
+  ExceptionLog7,
+  {$ENDIF EurekaLog}
+  //ExceptionLog,
   Forms,
   TestFramework,
   GUITestRunner,
   TextTestRunner,
-  JclDebug,
+  //JclDebug,
   TestFileComparision in 'Source\TestFileComparision.pas',
   SyncModule in '..\Source\SyncModule.pas',
-  TestDGHLibrary in '..\..\..\LIBRARY\Test\Source\TestDGHLibrary.pas',
-  dghlibrary in '..\..\..\LIBRARY\dghlibrary.pas',
-  ProgressForm in '..\source\ProgressForm.pas' {frmProgress},
-  DGHEllipsisLabel in '..\..\..\Components\Source\DGHEllipsisLabel.pas',
-  OptionsForm in '..\Source\OptionsForm.pas' {frmOptions},
+  TestDGHLibrary in '..\Externals\TestDGHLibrary.pas',
+  dghlibrary in '..\Externals\dghlibrary.pas',
+  ProgressForm in '..\Source\ProgressForm.pas' {frmProgress},
+  DGHEllipsisLabel in '..\Externals\DGHEllipsisLabel.pas',
   FolderPathsForm in '..\Source\FolderPathsForm.pas' {frmFolderPaths},
-  CheckForUpdatesOptionsForm in '..\..\..\Library\CheckForUpdatesOptionsForm.pas' {frmCheckForUpdatesOptions};
+  CheckForUpdatesOptionsForm in '..\Externals\CheckForUpdatesOptionsForm.pas' {frmCheckForUpdatesOptions};
 
 {$R *.RES}
 

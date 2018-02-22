@@ -2,9 +2,9 @@
 
   This module contains a command line application to synchronsise 2 folders files.
 
-  @Version 1.5
+  @Version 2.0
   @Author  David Hoyle
-  @Date    01 Aug 2012
+  @Date    22 Feb 2018
 
 **)
 Program FldrSyncCmd;
@@ -16,14 +16,27 @@ Program FldrSyncCmd;
 {$R 'ITHelperVersionInfoCmd.res' 'ITHelperVersionInfoCmd.RC'}
 
 uses
-  ExceptionLog,
+  {$IFDEF EurekaLog}
+  EMemLeaks,
+  EResLeaks,
+  ESendMailMAPI,
+  ESendMailSMAPI,
+  EDialogConsole,
+  EDebugExports,
+  EDebugJCL,
+  EMapWin32,
+  EAppConsole,
+  ExceptionLog7,
+  {$ENDIF EurekaLog}
+  EExceptionManager,
   SysUtils,
   Windows,
   Graphics,
   CommandLineProcess in 'Source\CommandLineProcess.pas',
-  dghlibrary in '..\..\LIBRARY\dghlibrary.pas',
-  checkforupdates in '..\..\LIBRARY\checkforupdates.pas',
-  SyncModule in 'Source\SyncModule.pas';
+  dghlibrary in 'Externals\dghlibrary.pas',
+  checkforupdates in 'Externals\checkforupdates.pas',
+  SyncModule in 'Source\SyncModule.pas',
+  ApplicationFunctions in 'Source\ApplicationFunctions.pas';
 
 Var
   (** iStd and iErr are handles for the console. **)
@@ -34,10 +47,6 @@ Var
   CommandLineProcessing : TCommandLineProcessing;
 
 Begin
-  {$IFDEF EUREKALOG}
-  SetEurekaLogState(Not IsDebuggerPresent);
-  {$ENDIF}
-  ReportMemoryLeaksOnShutdown := IsDebuggerPresent;
   boolPause := True;
   iStd := GetStdHandle(STD_OUTPUT_HANDLE);
   iErr := GetStdHandle(STD_ERROR_HANDLE);
@@ -51,7 +60,16 @@ Begin
     End;
   Except
     On E: EFldrSyncException Do
-      OutputToConsoleLn(iErr, #13#10 + E.ClassName + ': ' + E.Message, clRed);
+      RaiseFldrSyncException(iErr, E);
+    On E : Exception Do
+      Begin
+        RaiseFldrSyncException(iErr, E);
+        {$IFDEF EUREKALOG_VER7}
+        If Not (ExceptionManager.StandardEurekaNotify(ExceptObject,
+          ExceptAddr).ErrorCode = ERROR_SUCCESS) Then
+          {$ENDIF}
+          OutputToConsoleLn(iErr, Format(strExpMsg, [E.ClassName, E.Message]), clRed);
+      End;
   End;
   If boolPause Then
     Begin

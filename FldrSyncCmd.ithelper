@@ -1,0 +1,39 @@
+[Setup]
+WarnBefore=0
+WarnAfter=0
+IncBuild=1
+CopyVersionInfoFrom=
+ExcludedResExts=.dcr
+EnabledVersionInfo=1
+MajorVer=2
+MinorVer=0
+ReleaseVer=0
+BuildVer=1719
+IncludeInProject=1
+CompileWithBRCC32=0
+ResourceName=ITHelperVersionInfoCmd
+
+[Zipping]
+Enabled=0
+ZipFile={$PROJDRIVE$}\HoylD\Web Page\Zips\fldrsync.zip
+BasePath={$PROJDRIVE$}\HoylD\Borland Studio Projects\
+ExclusionFiles=qwerty
+
+[Pre-Compilation]
+{$PROJDRIVE$}\HoylD\Borland Studio Projects\Applications\Folder Sync\Test\FldrSyncTests.exe||{$PROJDRIVE$}\HoylD\Borland Studio Projects\Applications\Folder Sync\Test\|FldrSyncTests.exe=0
+
+[VersionInfo]
+CompanyName=Season's Fall Music Limited (c) 1989
+FileDescription=A command line application to synchronise files between 2 folders.
+FileVersion=2.0.0.1719
+InternalName=FldrSyncCmd
+LegalCopyright=Season's Fall Music Limited (c) 1989
+LegalTrademarks=Season's Fall Music Limited (c) 1989
+OriginalFilename=FldrSyncCmd
+ProductName=FldrSyncCmd
+ProductVersion=2.0
+Comments=A command line application to synchronise files between 2 folders.
+
+[Additional Zip Files]
+Item0={$PROJDRIVE$}\HoylD\Borland Studio Projects\Applications\Folder Sync\*.bmp
+

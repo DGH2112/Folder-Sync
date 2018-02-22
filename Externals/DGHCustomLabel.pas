@@ -168,8 +168,13 @@ End;
 Procedure TDGHCustomLabelHelper.DrawNormalText(DC: HDC; Const Text: UnicodeString;
   Var TextRect: TRect; TextFlags: Cardinal);
 
+Var
+  strText : String;
+  
 Begin
-  Self.DoDrawNormalText(DC, Text, TextRect, TextFlags);
+  strText := Text;
+  DrawText(DC, strText, Length(strText), TextRect, TextFlags);
+  //Self.DoDrawNormalText(DC, Text, TextRect, TextFlags);
 End;
 
 (**

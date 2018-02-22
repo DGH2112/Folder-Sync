@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{0AF256CC-956C-4E95-B87A-41B774279FA0}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Test\FldrSyncTests.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FldrSyncCmd.dproj">
+            <Dependencies>Test\FldrSyncTests.dproj</Dependencies>
+        </Projects>
+        <Projects Include="FldrSync.dproj">
+            <Dependencies>FldrSyncCmd.dproj</Dependencies>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="FldrSyncTests">
+        <MSBuild Projects="Test\FldrSyncTests.dproj"/>
+    </Target>
+    <Target Name="FldrSyncTests:Clean">
+        <MSBuild Projects="Test\FldrSyncTests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FldrSyncTests:Make">
+        <MSBuild Projects="Test\FldrSyncTests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FldrSyncCmd" DependsOnTargets="FldrSyncTests">
+        <MSBuild Projects="FldrSyncCmd.dproj"/>
+    </Target>
+    <Target Name="FldrSyncCmd:Clean" DependsOnTargets="FldrSyncTests:Clean">
+        <MSBuild Projects="FldrSyncCmd.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FldrSyncCmd:Make" DependsOnTargets="FldrSyncTests:Make">
+        <MSBuild Projects="FldrSyncCmd.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FldrSync" DependsOnTargets="FldrSyncCmd">
+        <MSBuild Projects="FldrSync.dproj"/>
+    </Target>
+    <Target Name="FldrSync:Clean" DependsOnTargets="FldrSyncCmd:Clean">
+        <MSBuild Projects="FldrSync.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FldrSync:Make" DependsOnTargets="FldrSyncCmd:Make">
+        <MSBuild Projects="FldrSync.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="FldrSyncTests;FldrSyncCmd;FldrSync"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="FldrSyncTests:Clean;FldrSyncCmd:Clean;FldrSync:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="FldrSyncTests:Make;FldrSyncCmd:Make;FldrSync:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
