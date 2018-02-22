@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    10 Mar 2016
+  @Date    22 Feb 2018
   @Author  David Hoyle
 
 **)
@@ -3278,39 +3278,39 @@ End;
 **)
 Procedure TCompareFoldersCollection.DeleteEmptyFolders;
 
-Var
-  i : Integer;
-  iFileCount: NativeUInt;
-  iFolderCount : Integer;
-  iFolder : Integer;
+//Var
+//  i : Integer;
+//  iFileCount: NativeUInt;
+//  iFolderCount : Integer;
+//  iFolder : Integer;
 
 Begin
-  iFolderCount := 0;
-  For i := 0 To FEmptyFolders.Count - 1 Do
-    Begin
-      iFileCount := NativeUInt(FEmptyFolders.Objects[i]);
-      If iFileCount = 0 Then
-        Inc(iFolderCount);
-    End;
-  DoDeleteFoldersStart(iFolderCount);
-  iFolder := 0;
-  For i := FEmptyFolders.Count - 1 DownTo 0 Do
-    Begin
-      iFileCount := NativeUInt(FEmptyFolders.Objects[i]);
-      If iFileCount = 0 Then
-        Begin
-          {If }DecrementFolder(ExtractFilePath(Copy(FEmptyFolders[i], 1,
-            Length(FEmptyFolders[i]) - 1))){ Then
-            Inc(iFolderCount)};
-          RemoveDir(FEmptyFolders[i]);
-          DoDeleteFolders(Succ(iFolder), iFolderCount, FEmptyFolders[i]);
-          Inc(iFolder);
-          iFileCount := FileCount(FEmptyFolders[i]);
-          If iFileCount > 0 Then
-            CodeSite.SendWarning('%d = %s', [iFileCount, FEmptyFolders[i]]);
-        End;
-    End;
-  DoDeleteFoldersEnd;
+//  iFolderCount := 0;
+//  For i := 0 To FEmptyFolders.Count - 1 Do
+//    Begin
+//      iFileCount := NativeUInt(FEmptyFolders.Objects[i]);
+//      If iFileCount = 0 Then
+//        Inc(iFolderCount);
+//    End;
+//  DoDeleteFoldersStart(iFolderCount);
+//  iFolder := 0;
+//  For i := FEmptyFolders.Count - 1 DownTo 0 Do
+//    Begin
+//      iFileCount := NativeUInt(FEmptyFolders.Objects[i]);
+//      If iFileCount = 0 Then
+//        Begin
+//          {If }DecrementFolder(ExtractFilePath(Copy(FEmptyFolders[i], 1,
+//            Length(FEmptyFolders[i]) - 1))){ Then
+//            Inc(iFolderCount)};
+//          RemoveDir(FEmptyFolders[i]);
+//          DoDeleteFolders(Succ(iFolder), iFolderCount, FEmptyFolders[i]);
+//          Inc(iFolder);
+//          iFileCount := FileCount(FEmptyFolders[i]);
+//          If iFileCount > 0 Then
+//            CodeSite.SendWarning('%d = %s', [iFileCount, FEmptyFolders[i]]);
+//        End;
+//    End;
+//  DoDeleteFoldersEnd;
 End;
 
 (**
