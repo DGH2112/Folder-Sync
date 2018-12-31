@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    22 Feb 2018
+  @Date    31 Dec 2018
   @Author  David Hoyle
 
 **)
@@ -51,7 +51,7 @@ Type
     FDateTime  : Integer;
   Strict Protected
   Public
-    Constructor CreateBase(strName: String; iSize: Int64; iAttributes: Integer;
+    Constructor CreateBase(Const strName: String; Const iSize: Int64; Const iAttributes,
       dtDateTime: Integer); Virtual;
     (**
       A property to return the filename of the file in this class.
@@ -88,10 +88,10 @@ Type
   Strict Private
     FStatus    : TStatus;
   Strict Protected
-    Procedure SetStatus(Status: TStatus);
+    Procedure SetStatus(Const Status: TStatus);
   Public
-    Constructor CreateFile(strName: String; iSize: Int64; iAttributes: Integer;
-      dtDateTime: Integer; Status: TStatus); Virtual;
+    Constructor CreateFile(Const strName: String; Const iSize: Int64; Const iAttributes,
+      dtDateTime: Integer; Const Status: TStatus); Virtual;
     (**
       A property to return the status of the file in this class.
       @precon  None.
@@ -140,119 +140,119 @@ Type
   );
 
   (** An event signature for the start of a search. **)
-  TSearchStartNotifier = Procedure(strFolder: String) Of Object;
+  TSearchStartNotifier = Procedure(Const strFolder: String) Of Object;
   (** A event signature for feeding back progress during searching for files. **)
-  TSearchNotifier = Procedure(strFolder, strFileName: String; iCount: Integer;
-    Update : TUpdateType) Of Object;
+  TSearchNotifier = Procedure(Const strFolder, strFileName: String; Const iCount: Integer;
+    Const Update : TUpdateType) Of Object;
   (** An event signature for the end of a search. **)
-  TSearchEndNotifier = Procedure(iFileCount: Integer; iTotalSize: Int64) Of Object;
+  TSearchEndNotifier = Procedure(Const iFileCount: Integer; Const iTotalSize: Int64) Of Object;
 
   (** An event signature for the start of a comparison operation. **)
-  TCompareStartNotifier = Procedure(strLeftFldr, strRightFldr: String) Of Object;
+  TCompareStartNotifier = Procedure(Const strLeftFldr, strRightFldr: String) Of Object;
   (** An event signature for feeding back progress during comparisons. **)
-  TCompareNotifier = Procedure(strLeftFldr, strRightFldr, strFileName: String;
-    iPosition, iMaxItems: Integer) Of Object;
+  TCompareNotifier = Procedure(Const strLeftFldr, strRightFldr, strFileName: String;
+    Const iPosition, iMaxItems: Integer) Of Object;
   (** An event signature for the end of the comparison operation. **)
   TCompareEndNotifier = Procedure Of Object;
 
   (** An event signature for the start of the Match List operation. **)
   TMatchListStartNotifier = Procedure Of Object;
   (** An event signature for feeding bacl progress during Matching List Items. **)
-  TMatchListNotifier = Procedure(iPosition, iMaxItems: Integer) Of Object;
+  TMatchListNotifier = Procedure(Const iPosition, iMaxItems: Integer) Of Object;
   (** An event signature for the end of the Match List operation. **)
   TMatchListEndNotifier = Procedure Of Object;
 
   (** An event signature for the start of the deletion process. **)
-  TDeleteStartNotifier = Procedure(iTotalFileCount: Integer;
-    iTotalFileSize: Int64) Of Object;
+  TDeleteStartNotifier = Procedure(Const iTotalFileCount: Integer;
+    Const iTotalFileSize: Int64) Of Object;
   (** An event signature for the start of the deletion of an individual file. **)
-  TDeletingNotifier = Procedure(iCurrentFileToDelete, iTotalFilesToDelete : Integer;
-    iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
-    strDeletePath, strFileNameToDelete: String) Of Object;
+  TDeletingNotifier = Procedure(Const iCurrentFileToDelete, iTotalFilesToDelete : Integer;
+    Const iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
+    Const strDeletePath, strFileNameToDelete: String) Of Object;
   (** An event signature for the end of the deletion of an individual file. **)
-  TDeletedNotifier = Procedure(iCurrentFileToDeleted, iTotalFilesToDelete: Integer;
-    iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
-    iSuccess : TProcessSuccess) Of Object;
+  TDeletedNotifier = Procedure(Const iCurrentFileToDeleted, iTotalFilesToDelete: Integer;
+    Const iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
+    Const iSuccess : TProcessSuccess) Of Object;
   (** An event signature to prompt for the deletion of a file. **)
-  TDeleteQueryNotifier = Procedure(strDeleteFilePath: String; DeleteFile : TFileRecord;
+  TDeleteQueryNotifier = Procedure(Const strDeleteFilePath: String; Const DeleteFile : TFileRecord;
     Var Option: TFileAction) Of Object;
   (** An event sighature for the end of the deletion process. **)
-  TDeleteEndNotifier = Procedure(iTotalDeletedFileCount, iTotalSkippedFileCount,
+  TDeleteEndNotifier = Procedure(Const iTotalDeletedFileCount, iTotalSkippedFileCount,
     iTotalErrorsFileCount: Integer) Of Object;
 
   (** An event signature for the start of the copying process. **)
-  TCopyStartNotifier = Procedure(iTotalFileCount: Integer;
-    iTotalFileSize: Int64) Of Object;
+  TCopyStartNotifier = Procedure(Const iTotalFileCount: Integer;
+    Const iTotalFileSize: Int64) Of Object;
   (** An event signature for the start of the copying of an individual file. **)
-  TCopyingNotifier = Procedure(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
-    iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; strSource, strDest,
+  TCopyingNotifier = Procedure(Const iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+    Const iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; Const strSource, strDest,
     strFileName: String) Of Object;
   (** An event signature for feeding back progress on the copying of a file. **)
-  TCopyContents = Procedure(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
-    iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy, iCurrentFileCopiedSizeSoFar,
+  TCopyContents = Procedure(Const iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+    Const iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy, iCurrentFileCopiedSizeSoFar,
     iTotalCurrentFileSize: Int64) Of Object;
   (** An event signature for the end of the copying of an individual file. **)
-  TCopiedNotifier = Procedure(iCurrentFileToCopy, iTotalFilesToCopy: Integer;
-    iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
+  TCopiedNotifier = Procedure(Const iCurrentFileToCopy, iTotalFilesToCopy: Integer;
+    Const iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
     iSuccess : TProcessSuccess) Of Object;
   (** An event signature to prompt for the overwriting of a file. **)
-  TCopyQueryNotifier = Procedure(strSrcPath, strDestPath : String; SourceFile,
+  TCopyQueryNotifier = Procedure(Const strSrcPath, strDestPath : String; Const SourceFile,
     DestFile: TFileRecord; Var Option: TFileAction) Of Object;
   (** An event signature for the end of the copying process. **)
-  TCopyEndNotifier = Procedure(iTotalCopiedFiles, iTotalSkippedFiles,
+  TCopyEndNotifier = Procedure(Const iTotalCopiedFiles, iTotalSkippedFiles,
     iTotalErrorFiles: Integer) Of Object;
 
   (** An event signature for the start of the different size process. **)
-  TDiffSizeStartNotifier = Procedure(iFileCount: Integer) Of Object;
+  TDiffSizeStartNotifier = Procedure(Const iFileCount: Integer) Of Object;
   (** An event signature for each file in the different size process. **)
-  TDiffSizeNotifier = Procedure(iFile, iFileCount: Integer; strLPath, strRPath,
+  TDiffSizeNotifier = Procedure(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
     strFileName: String) Of Object;
   (** An event signature for the end of the different size process. **)
   TDiffSizeEndNotifier = Procedure() Of Object;
 
   (** An event signature for the start of the Nothing to do Process. **)
-  TNothingToDoStartNotifier = Procedure(iFileCount: Integer) Of Object;
+  TNothingToDoStartNotifier = Procedure(Const iFileCount: Integer) Of Object;
   (** An event signature for each file in the Nothing to do Process. **)
-  TNothingToDoNotifier = Procedure(iFile, iFileCount: Integer; strLPath, strRPath,
+  TNothingToDoNotifier = Procedure(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
     strFileName: String) Of Object;
   (** An event signature for the end of the Nothing to do Process. **)
   TNothingToDoEndNotifier = Procedure() Of Object;
 
   (** An event signature for the start of the Size Limit Process. **)
-  TExceedsSizeLimitStartNotifier = Procedure(iFileCount: Integer) Of Object;
+  TExceedsSizeLimitStartNotifier = Procedure(Const iFileCount: Integer) Of Object;
   (** An event signature for each file in the Size Limit Process. **)
-  TExceedsSizeLimitNotifier = Procedure(iFile, iFileCount: Integer; strLPath, strRPath,
+  TExceedsSizeLimitNotifier = Procedure(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
     strFileName: String) Of Object;
   (** An event signature for the end of the Size Limit Process. **)
   TExceedsSizeLimitEndNotifier = Procedure() Of Object;
   (** An event signature for the start of the Error Message Process. **)
 
-  TErrorMsgsStartNotifier = Procedure(iFileCount: Integer) Of Object;
+  TErrorMsgsStartNotifier = Procedure(Const iFileCount: Integer) Of Object;
   (** An event signature for each error in the Error Message Process. **)
-  TErrorMsgsNotifier = Procedure(strErrorMsg: String) Of Object;
+  TErrorMsgsNotifier = Procedure(Const strErrorMsg: String) Of Object;
   (** An event signature for the end of the Error Message Process. **)
   TErrorMsgsEndNotifier = Procedure() Of Object;
 
   (** An event handler signature for the start of the deletion of empty folders. **)
-  TDeleteFoldersStartNotifier = Procedure(iFolderCount: Integer) Of Object;
+  TDeleteFoldersStartNotifier = Procedure(Const iFolderCount: Integer) Of Object;
   (** An event handler signature for the deletion of each empty folder. **)
-  TDeleteFoldersNotifier = Procedure(iFolder, iFolders : Integer;
-    strFolder: String) Of Object;
+  TDeleteFoldersNotifier = Procedure(Const iFolder, iFolders : Integer;
+    Const strFolder: String) Of Object;
   (** An event handler signature for the end of the deletion of empty folders. **)
   TDeleteFoldersEndNotifier = Procedure() Of Object;
 
   (** An event handler signature for adding folders to the empty folder list. **)
-  TAddEmptyFolder = Procedure(strFolder : String) Of Object;
+  TAddEmptyFolder = Procedure(Const strFolder : String) Of Object;
 
   (** An event handler signature for handling errors in copying. **)
-  TCopyErrorNotifier = Procedure(strSource, strDest, strErrorMsg : String;
-    iLastError : Cardinal; var iResult : TDGHErrorResult) Of Object;
+  TCopyErrorNotifier = Procedure(Const strSource, strDest, strErrorMsg : String;
+    Const iLastError : Cardinal; Var iResult : TDGHErrorResult) Of Object;
   (** An event handler signature for handling errors in deleting. **)
-  TDeleteErrorNotifier = Procedure(strSource, strErrorMsg : String;
-    iLastError : Cardinal; var iResult : TDGHErrorResult) Of Object;
+  TDeleteErrorNotifier = Procedure(Const strSource, strErrorMsg : String;
+    Const iLastError : Cardinal; Var iResult : TDGHErrorResult) Of Object;
 
   (** An event signature for updating the taskbar from a progress dialogue. **)
-  TUpdateProgress = Procedure(iPosition, iMaxPosition: Integer) Of Object;
+  TUpdateProgress = Procedure(Const iPosition, iMaxPosition: Integer) Of Object;
 
   (** A ercord to define the upper and lower limits of a progress section. **)
   TSectionRecord = Record
@@ -331,9 +331,9 @@ Type
     FMaxFileSize : Int64;
   Strict Protected
   Public
-    Constructor Create(strLeftFldr, strRightFldr, strPatterns : String;
-      iSyncOptions : TSyncOptions; iMaxFileSize : Int64);
-    Procedure Assign(AFolder : TFolder);
+    Constructor Create(Const strLeftFldr, strRightFldr, strPatterns : String;
+      Const iSyncOptions : TSyncOptions; Const iMaxFileSize : Int64);
+    Procedure Assign(Const AFolder : TFolder);
     (**
       This property defines the Left Folder in the comparison operation.
       @precon  None.
@@ -377,22 +377,22 @@ Type
     FFolders : TObjectList;
   Strict Protected
     Function GetCount : Integer;
-    Function GetFolder(iIndex : Integer) : TFolder;
+    Function GetFolder(Const iIndex : Integer) : TFolder;
   Public
     Constructor Create;
     Destructor Destroy; Override;
-    Function  Add(Folder : TFolder) : Integer;
-    Procedure Assign(Folders : TFolders);
-    Procedure Delete(iIndex : Integer);
-    Procedure Exchange(iIndex1, iIndex2 : Integer);
+    Function  Add(Const Folder : TFolder) : Integer;
+    Procedure Assign(Const Folders : TFolders);
+    Procedure Delete(Const iIndex : Integer);
+    Procedure Exchange(Const iIndex1, iIndex2 : Integer);
     (**
       This property returns the indexed folder from the collection.
       @precon  iIndex must be between 0 and Count - 1.
       @postcon Returns the indexed folder from the collection.
-      @param   iIndex as an Integer
+      @param   iIndex as an Integer as a Constant
       @return  a TFolder
     **)
-    Property Folder[iIndex : Integer] : TFolder Read GetFolder;
+    Property Folder[Const iIndex : Integer] : TFolder Read GetFolder;
     (**
       This property returns the number of folders in the collection.
       @precon  None.
@@ -419,18 +419,18 @@ Type
     FMaxFileSize        : Int64;
     FAddEmptyFolder     : TAddEmptyFolder;
   Strict Protected
-    Function InExclusions(strFileName: String): Boolean;
+    Function InExclusions(Const strFileName: String): Boolean;
     Function GetCount: Integer;
-    Function GetFiles(iIndex: Integer): TFileRecord;
-    Procedure RecurseFolder(strFolderPath: String); Virtual;
-    Procedure DoSearch(strFolder, strFile: String; iCount: Integer;
-      Update : TUpdateType);
-    Procedure DoSearchStart(strFolder: String);
-    Procedure DoSearchEnd(iFileCount: Integer; iTotalSize: Int64);
-    Procedure DoAddEmptyFolder(strFolder : String);
-    Function  Find(strFCName : String) : Integer;
-    Procedure Add(iIndex : Integer; strFileName : String; iSize : Int64;
-      iAttribs, iDateTime : Integer; iStatus : TStatus);
+    Function GetFiles(Const iIndex: Integer): TFileRecord;
+    Procedure RecurseFolder(Const strFolderPath: String); Virtual;
+    Procedure DoSearch(Const strFolder, strFile: String; Const iCount: Integer;
+      Const Update : TUpdateType);
+    Procedure DoSearchStart(Const strFolder: String);
+    Procedure DoSearchEnd(Const iFileCount: Integer; Const iTotalSize: Int64);
+    Procedure DoAddEmptyFolder(Const strFolder : String);
+    Function  Find(Const strFCName : String) : Integer;
+    Procedure Add(Const iIndex : Integer; Const strFileName : String; Const iSize : Int64;
+      Const iAttribs, iDateTime : Integer; Const iStatus : TStatus);
     {: Function  FindMovedFile(strFileName : String; iSize : Int64;
       iDateTime : Integer; var iFirst : Integer) : Boolean;
     Function  GetMovedFile(iIndex : Integer) : TMovedFileRecord;
@@ -438,9 +438,9 @@ Type
   Public
     Constructor Create; Virtual;
     Destructor Destroy; Override;
-    Procedure SearchFolder(strFolderPath, strFileFilter, strExclusions: String;
-      SyncOps : TSyncOptions; iMaxFileSize : Int64);
-    Procedure Delete(iIndex : Integer);
+    Procedure SearchFolder(Const strFolderPath, strFileFilter, strExclusions: String;
+      Const SyncOps : TSyncOptions; Const iMaxFileSize : Int64);
+    Procedure Delete(Const iIndex : Integer);
     (**
       Aa property to return the folder path for the class.
       @precon  None.
@@ -459,10 +459,10 @@ Type
       A property to return the relative path of the indexed filename.
       @precon  iIndex must be from 0 to FCount - 1
       @postcon Returns the relative path of the indexed filename.
-      @param   iIndex as       an Integer
+      @param   iIndex as an Integer as a Constant
       @return  a TFileRecord
     **)
-    Property Files[iIndex: Integer]: TFileRecord Read GetFiles; Default;
+    Property Files[Const iIndex: Integer]: TFileRecord Read GetFiles; Default;
     (**
       A property to get the total size of the file list.
       @precon  None.
@@ -529,22 +529,22 @@ Type
     FCompareEndNotifier  : TCompareEndNotifier;
   Strict Protected
     Procedure CompareFolders;
-    Procedure DoCompareStart(strLeftFldr, strRightFldr: String);
-    Procedure DoCompare(strLeftFldr, strRightFldr, strFileName: String;
-      iPosition, iMaxItems: Integer);
+    Procedure DoCompareStart(Const strLeftFldr, strRightFldr: String);
+    Procedure DoCompare(Const strLeftFldr, strRightFldr, strFileName: String;
+      Const iPosition, iMaxItems: Integer);
     Procedure DoCompareEnd;
-    Procedure SetSearchNotifier(SearchNotifier: TSearchNotifier);
-    Procedure SetSearchStartNotifier(SearchStartNotifier: TSearchStartNotifier);
-    Procedure SetSearchEndNotifier(SearchEndNotifier: TSearchEndNotifier);
+    Procedure SetSearchNotifier(Const SearchNotifier: TSearchNotifier);
+    Procedure SetSearchStartNotifier(Const SearchStartNotifier: TSearchStartNotifier);
+    Procedure SetSearchEndNotifier(Const SearchEndNotifier: TSearchEndNotifier);
     //: Procedure FindMovedFiles;
   Public
-    Constructor Create(AddEmptyFolderProc : TAddEmptyFolder); Virtual;
+    Constructor Create(Const AddEmptyFolderProc : TAddEmptyFolder); Virtual;
     Destructor Destroy; Override;
-    Procedure SearchFolders(strLeftFldr, strRightFldr, strPatterns: String;
-      strExclusions: String; iSection: Integer; SyncOps: TSyncOptions;
-      iMaxFileSize : Int64);
-    Function CheckDifference(iTimeDifference: Integer; iSizeDifference: Integer;
-      Check: TCheckDifference): Boolean;
+    Procedure SearchFolders(Const strLeftFldr, strRightFldr, strPatterns: String;
+      Const strExclusions: String; Const iSection: Integer; Const SyncOps: TSyncOptions;
+      Const iMaxFileSize : Int64);
+    Function CheckDifference(Const iTimeDifference: Integer; Const iSizeDifference: Integer;
+      Const Check: TCheckDifference): Boolean;
     Procedure ClearUnchangedItems;
     (**
       A property to reference the Left Folder file list.
@@ -643,8 +643,8 @@ Type
     FSyncOptions: TSyncOptions;
   Strict Protected
   Public
-    Constructor Create(strLPath, strRPath: String; LeftFile, RightFile: TFileRecord;
-      FileOp: TFileOp; SyncOptions: TSyncOptions);
+    Constructor Create(Const strLPath, strRPath: String; Const LeftFile, RightFile: TFileRecord;
+      Const FileOp: TFileOp; Const SyncOptions: TSyncOptions);
     (**
       This property returns the Left Path for the process item.
       @precon  None.
@@ -700,8 +700,8 @@ Type
   Strict Protected
     Function GetFreeAtFinish : Int64;
   Public
-    Constructor Create(strDrive : String);
-    Procedure AddOption(iSize : Int64; FileOp : TFileOp);
+    Constructor Create(Const strDrive : String);
+    Procedure AddOption(Const iSize : Int64; Const FileOp : TFileOp);
     (**
       This property returns the name of the drive.
       @precon  None.
@@ -752,12 +752,12 @@ Type
     FDrives : TObjectList;
   Strict Protected
     Function GetCount : Integer;
-    Function GetDriveTotal(iIndex : Integer) : TDriveTotal;
-    Function Find(strPath : String) : Integer;
+    Function GetDriveTotal(Const iIndex : Integer) : TDriveTotal;
+    Function Find(Const strPath : String) : Integer;
   Public
     Constructor Create;
     Destructor Destroy; Override;
-    Procedure ProcessOp(ProcessItem : TProcessItem);
+    Procedure ProcessOp(Const ProcessItem : TProcessItem);
     Procedure Sort;
     Procedure Clear;
     (**
@@ -771,10 +771,10 @@ Type
       This property retuns the instance of the indexed drive total.
       @precon  iIndex must be between 0 and Count - 1.
       @postcon Retuns the instance of the indexed drive total.
-      @param   iIndex as an Integer
+      @param   iIndex as an Integer as a Constant
       @return  a TDriveTotal
     **)
-    Property Drive[iIndex : Integer] : TDriveTotal Read GetDriveTotal;
+    Property Drive[Const iIndex : Integer] : TDriveTotal Read GetDriveTotal;
   End;
 
   (** A type to define an array of integers. **)
@@ -790,13 +790,13 @@ Type
       iCAPACITY: Integer = 100;
   Strict Protected
     Function GetCount : Integer;
-    Function GetValue(iIndex : Integer) : Integer;
-    Function Find(iValue : Integer) : Integer;
+    Function GetValue(Const iIndex : Integer) : Integer;
+    Function Find(Const iValue : Integer) : Integer;
   Public
     Constructor Create;
     Destructor Destroy; Override;
-    Procedure Add(iValue : Integer);
-    Function  IsInList(iValue : Integer) : Boolean;
+    Procedure Add(Const iValue : Integer);
+    Function  IsInList(Const iValue : Integer) : Boolean;
     Procedure Clear;
     (**
       This property returns the number of items in the collection.
@@ -809,10 +809,10 @@ Type
       This property returns the indexed integer.
       @precon  iIndex must be a valid inde between 1 and Count.
       @postcon Returns the indexed integer.
-      @param   iIndex as an Integer
+      @param   iIndex as an Integer as a Constant
       @return  an Integer
     **)
-    Property Value[iIndex : Integer] : Integer Read GetValue;
+    Property Value[Const iIndex : Integer] : Integer Read GetValue;
   End;
 
   (** An enumerate to define the File Operation Statistics that can be stored. **)
@@ -899,87 +899,87 @@ Type
     FCumulativeFileSize            : Int64;
   Strict Protected
     Function GetCount: Integer;
-    Function GetCompareFolders(iIndex: Integer): TCompareFolders;
+    Function GetCompareFolders(Const iIndex: Integer): TCompareFolders;
     Procedure BuildMatchLists;
-    Procedure FindNextNonSame(Lst: TFileList; Var iIndex: Integer);
+    Procedure FindNextNonSame(Const Lst: TFileList; Var iIndex: Integer);
     Procedure DoMatchListStart;
-    Procedure DoMatchList(iPosition, iMaxItems: Integer);
+    Procedure DoMatchList(Const iPosition, iMaxItems: Integer);
     Procedure DoMatchListEnd;
-    Procedure InsertItem(strLPath, strRPath: String; LeftFile, RightFile: TFileRecord;
-      SyncOptions: TSyncOptions);
-    Function OperationStatus(LeftFile, RightFile: TFileRecord;
-      SyncOptions: TSyncOptions): TFileOp;
+    Procedure InsertItem(Const strLPath, strRPath: String; Const LeftFile, RightFile: TFileRecord;
+      Const SyncOptions: TSyncOptions);
+    Function OperationStatus(Const LeftFile, RightFile: TFileRecord;
+      Const SyncOptions: TSyncOptions): TFileOp;
     Function GetProcessCount: Integer;
-    Function GetProcessItem(iIndex: Integer): TProcessItem;
-    Procedure DoDeleteStart(iTotalFileCount: Integer; iTotalFileSize: Int64);
-    Procedure DoDeleting(iCurrentFileToDelete, iTotalFilesToDelete : Integer;
-      iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete : Int64;
-      strDeletePath, strFileNameToDelete: String);
-    Procedure DoDeleted(iCurrentFileDeleted, iTotalFilesToDelete: Integer;
-      iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
-      iSuccess: TProcessSuccess);
-    Procedure DoDeleteQuery(strDeleteFilePath: String; DeleteFile : TFileRecord;
-      Var Option: TFileAction;  SyncOptions: TSyncOptions);
-    Procedure DoDeleteReadOnlyQuery(strDeleteFilePath: String; DeleteFile : TFileRecord;
-      Var Option: TFileAction; SyncOptions: TSyncOptions);
-    Procedure DoDeleteEnd(iTotalDeletedFileCount, iTotalSkippedFileCount,
+    Function GetProcessItem(Const iIndex: Integer): TProcessItem;
+    Procedure DoDeleteStart(Const iTotalFileCount: Integer; Const iTotalFileSize: Int64);
+    Procedure DoDeleting(Const iCurrentFileToDelete, iTotalFilesToDelete : Integer;
+      Const iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete : Int64;
+      Const strDeletePath, strFileNameToDelete: String);
+    Procedure DoDeleted(Const iCurrentFileDeleted, iTotalFilesToDelete: Integer;
+      Const iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
+      Const iSuccess: TProcessSuccess);
+    Procedure DoDeleteQuery(Const strDeleteFilePath: String; Const DeleteFile : TFileRecord;
+      Var Option: TFileAction; Const SyncOptions: TSyncOptions);
+    Procedure DoDeleteReadOnlyQuery(Const strDeleteFilePath: String; Const DeleteFile : TFileRecord;
+      Var Option: TFileAction; Const SyncOptions: TSyncOptions);
+    Procedure DoDeleteEnd(Const iTotalDeletedFileCount, iTotalSkippedFileCount,
       iTotalErrorsFileCount: Integer);
-    Procedure DoCopyStart(iTotalCount: Integer; iTotalSize: Int64);
-    Procedure DoCopying(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
-      iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy : Int64; strSource, strDest,
+    Procedure DoCopyStart(Const iTotalCount: Integer; Const iTotalSize: Int64);
+    Procedure DoCopying(Const iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+      Const iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy : Int64; Const strSource, strDest,
       strFileName: String);
-    Procedure DoCopied(iCurrentFileToCopy, iTotalFilesToCopy: Integer;
-      iCopiedFileTotalSize, iCopiedTotalSize: Int64; iSuccess: TProcessSuccess);
-    Procedure DoCopyQuery(strSourcePath, strDestPath: String; SourceFile,
-      DestFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
-    Procedure DoCopyReadOnlyQuery(strSourcePath, strDestPath: String; SourceFile,
-      DestFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
-    Procedure DoCopyEnd(iCopied, iSkipped, iError: Integer);
-    Procedure DoDiffSizeStart(iFileCount: Integer);
-    Procedure DoDiffSize(iFile, iFileCount : Integer; strLPath, strRPath,
+    Procedure DoCopied(Const iCurrentFileToCopy, iTotalFilesToCopy: Integer;
+      Const iCopiedFileTotalSize, iCopiedTotalSize: Int64; Const iSuccess: TProcessSuccess);
+    Procedure DoCopyQuery(Const strSourcePath, strDestPath: String; Const SourceFile,
+      DestFile : TFileRecord; Var Option: TFileAction; Const SyncOptions: TSyncOptions);
+    Procedure DoCopyReadOnlyQuery(Const strSourcePath, strDestPath: String; Const SourceFile,
+      DestFile : TFileRecord; Var Option: TFileAction; Const SyncOptions: TSyncOptions);
+    Procedure DoCopyEnd(Const iCopied, iSkipped, iError: Integer);
+    Procedure DoDiffSizeStart(Const iFileCount: Integer);
+    Procedure DoDiffSize(Const iFile, iFileCount : Integer; Const strLPath, strRPath,
       strFileName: String);
     Procedure DoDiffSizeEnd;
-    Procedure DoNothingToDoStart(iFileCount: Integer);
-    Procedure DoNothingToDo(iFile, iFileCount : Integer; strLPath, strRPath,
+    Procedure DoNothingToDoStart(Const iFileCount: Integer);
+    Procedure DoNothingToDo(Const iFile, iFileCount : Integer; Const strLPath, strRPath,
       strFileName: String);
     Procedure DoNothingToDoEnd;
-    Procedure DoExceedsSizeLimitStart(iFileCount: Integer);
-    Procedure DoExceedsSizeLimit(iFile, iFileCount : Integer; strLPath, strRPath,
+    Procedure DoExceedsSizeLimitStart(Const iFileCount: Integer);
+    Procedure DoExceedsSizeLimit(Const iFile, iFileCount : Integer; Const strLPath, strRPath,
       strFileName: String);
     Procedure DoExceedsSizeLimitEnd;
-    Procedure DoErrorsMsgsStart(iErrorCount: Integer);
-    Procedure DoErrorMsgs(strErrorMsg: String);
+    Procedure DoErrorsMsgsStart(Const iErrorCount: Integer);
+    Procedure DoErrorMsgs(Const strErrorMsg: String);
     Procedure DoErrorMsgsEnd;
-    Procedure DoDeleteFoldersStart(iFolderCount: Integer);
-    Procedure DoDeleteFolders(iFolder, iFolders : Integer; strFolder: String);
+    Procedure DoDeleteFoldersStart(Const iFolderCount: Integer);
+    Procedure DoDeleteFolders(Const iFolder, iFolders : Integer; Const strFolder: String);
     Procedure DoDeleteFoldersEnd;
     Procedure DeleteFiles;
     Procedure CopyFiles;
     Procedure DifferentSize;
     Procedure DoNothing;
     Procedure DoSizeLimit;
-    Function CopyFileContents(strSourceFile, strDestFile: String;
+    Function CopyFileContents(Const strSourceFile, strDestFile: String;
       Var iCopied: Integer): TProcessSuccess;
-    Function CountFileOps(FileOps: TFileOps; Var iOperationSize{, iTotalSize}: Int64;
-      CountOp : TCountOp): Integer;
-    Procedure DeleteIndividualFile(strPath: String; F: TFileRecord; iCurrentFileToDelete,
-      iTotalFilesToDelete: Integer; Var FileActions : TFileActions; SyncOps: TSyncOptions);
-    Function CopyIndividualFile(strSource, strDest: String; SourceFile,
+    Function CountFileOps(Const FileOps: TFileOps; Var iOperationSize{, iTotalSize}: Int64;
+      Const CountOp : TCountOp): Integer;
+    Procedure DeleteIndividualFile(Const strPath: String; Const F: TFileRecord; Const iCurrentFileToDelete,
+      iTotalFilesToDelete: Integer; Var FileActions : TFileActions; Const SyncOps: TSyncOptions);
+    Function CopyIndividualFile(Const strSource, strDest: String; Const SourceFile,
       DestFile: TFileRecord; Var FileActions : TFileActions;
-      SyncOps: TSyncOptions): TProcessSuccess;
-    Function CanByPassQuery(SyncOps: TSyncOptions; boolReadOnly : Boolean;
+      Const SyncOps: TSyncOptions): TProcessSuccess;
+    Function CanByPassQuery(Const SyncOps: TSyncOptions; Const boolReadOnly : Boolean;
       Var Option: TFileAction): Boolean;
-    Procedure AddToErrors(strErrorMsg : String);
+    Procedure AddToErrors(Const strErrorMsg : String);
     Procedure DoErrorMessages;
     Procedure DeleteEmptyFolders;
     (**
       This property returns an indexed CompareFolders class.
       @precon  The index but be between 0 and Count - 1.
       @postcon Returns the indexed CompareFolders class.
-      @param   iIndex as       an Integer
+      @param   iIndex as an Integer as a Constant
       @return  a TCompareFolders
     **)
-    Property CompareFolders[iIndex: Integer]: TCompareFolders Read GetCompareFolders;
+    Property CompareFolders[Const iIndex: Integer]: TCompareFolders Read GetCompareFolders;
     (**
       This property represents the number of CompareFolder classes in the
       collection.
@@ -988,22 +988,22 @@ Type
       @return  an Integer
     **)
     Property  Count: Integer Read GetCount;
-    Procedure AddEmptyFolder(strFolder : String);
-    Procedure IncrementFolder(strFolder : String);
-    Function  DecrementFolder(strFolder : String) : Boolean;
-    Function  FileCount(strFolder : String) : NativeUInt;
-    Procedure AddFileOpStat(FileOpStat : TFileOpStat; strName : String; iCount,
+    Procedure AddEmptyFolder(Const strFolder: String);
+    Procedure IncrementFolder(Const strFolder : String);
+    Function  DecrementFolder(Const strFolder : String) : Boolean;
+    Function  FileCount(Const strFolder : String) : NativeUInt;
+    Procedure AddFileOpStat(Const FileOpStat : TFileOpStat; Const strName : String; Const iCount,
       iSize : Int64);
-    Function  GetStatistics(FileOpStat : TFileOpStat) : TFileOpStatRec;
-    Function  DeleteFileFromDisk(strFileName : String) : Boolean;
+    Function  GetStatistics(Const FileOpStat : TFileOpStat) : TFileOpStatRec;
+    Function  DeleteFileFromDisk(Const strFileName : String) : Boolean;
   Protected
     Procedure FileCounters(var iCurrentFileToCopy, iTotalFilesToCopy : Integer;
       var iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy : Int64);
   Public
-    Constructor Create(iAppHnd : THandle); Virtual;
+    Constructor Create(Const iAppHnd : THandle); Virtual;
     Destructor Destroy; Override;
-    Function ProcessFolders(Folders: TFolders; strExclusions: String): Boolean;
-    Procedure ProcessFiles(FldrSyncOptions : TFldrSyncOptions);
+    Function ProcessFolders(Const Folders: TFolders; Const strExclusions: String): Boolean;
+    Procedure ProcessFiles(Const FldrSyncOptions : TFldrSyncOptions);
     Procedure Clear;
     Procedure BuildStats;
     Procedure BuildTotals;
@@ -1019,10 +1019,10 @@ Type
       This property returns the process information for the indexed process item.
       @precon  iIndex must be between 0 and ProcessCount - 1.
       @postcon Returns the process information for the indexed process item.
-      @param   iIndex as an Integer
+      @param   iIndex as an Integer as a Constant
       @return  a TProcessItem
     **)
-    Property Process[iIndex: Integer]: TProcessItem Read GetProcessItem;
+    Property Process[Const iIndex: Integer]: TProcessItem Read GetProcessItem;
     (**
       This property returns the drive total collection for inspecting available disk
       space.
@@ -1318,10 +1318,10 @@ Type
       This property provides access to the list of statistics stored in a string list.
       @precon  None.
       @postcon Get the string list of statistics.
-      @param   FileOpStat as a TFileOpStat
+      @param   FileOpStat as a TFileOpStat as a Constant
       @return  a TFileOpStatRec
     **)
-    Property Statistics[FileOpStat : TFileOpStat] : TFileOpStatRec Read GetStatistics;
+    Property Statistics[Const FileOpStat : TFileOpStat] : TFileOpStatRec Read GetStatistics;
     (**
       This property defines an event handler for the start of the deletion of empty
       folders.
@@ -1369,7 +1369,7 @@ Type
   (** A custom exception for exception raised by FldrSync. **)
   EFldrSyncException = Class(Exception);
 
-Function Expand(strFileName: String): String;
+Function Expand(Const strFileName: String): String;
 
 Const
   (** A constant array to define string representation of the TFileAction enumerates.  **)
@@ -1406,6 +1406,9 @@ Uses
 
   @precon  None.
   @postcon Calls the on copy contents event handler and feeds back progress.
+
+  @nocheck MissingCONSTInParam
+  @nohint  StreamSize StreamBytesTransferred dwStreamNumber hSourceFile hDestinationFile
 
   @param   TotalFileSize          as an Int64
   @param   TotalBytesTransferred  as an Int64
@@ -1448,18 +1451,17 @@ End;
 
 (**
 
-  This method expands the passed files name to a fuilly qualitied filename and adds an
-  appropriate Unicode modifier to workaround long file names with the Unicode versions of
-  the windows API.
+  This method expands the passed files name to a fuilly qualitied filename and adds an appropriate 
+  Unicode modifier to workaround long file names with the Unicode versions of the windows API.
 
   @precon  None.
   @postcon Returns an expanded fully qualitied Unicode path.
 
-  @param   strFileName as a String
+  @param   strFileName as a String as a constant
   @return  a String
 
 **)
-Function Expand(strFileName: String): String;
+Function Expand(Const strFileName: String): String;
 
 Begin
   Result := ExpandFileName(strFileName);
@@ -1481,14 +1483,14 @@ End;
   @precon  None.
   @postcon Intialises the class fields based on the file information passed.
 
-  @param   strName     as a String
-  @param   iSize       as an Int64
-  @param   iAttributes as an Integer
-  @param   dtDateTime  as an Integer
+  @param   strName     as a String as a constant
+  @param   iSize       as an Int64 as a constant
+  @param   iAttributes as an Integer as a constant
+  @param   dtDateTime  as an Integer as a constant
 
 **)
-Constructor TBaseFileRecord.CreateBase(strName: String; iSize: Int64;
-  iAttributes, dtDateTime: Integer);
+Constructor TBaseFileRecord.CreateBase(Const strName: String; Const iSize: Int64;
+  Const iAttributes, dtDateTime: Integer);
 
 Begin
   FFileName   := strName;
@@ -1519,17 +1521,15 @@ End; }
 
 (**
 
-  This method assigns the properties of the given folder to the current instance of a
-  folder.
+  This method assigns the properties of the given folder to the current instance of a folder.
 
   @precon  AFolder must be a valid instance.
-  @postcon Assigns the properties of the given folder to the current instance of a
-           folder.
+  @postcon Assigns the properties of the given folder to the current instance of a folder.
 
-  @param   AFolder as a TFolder
+  @param   AFolder as a TFolder as a constant
 
 **)
-Procedure TFolder.Assign(AFolder: TFolder);
+Procedure TFolder.Assign(Const AFolder: TFolder);
 
 Begin
   FLeftFldr := AFolder.LeftFldr;
@@ -1545,15 +1545,15 @@ End;
   @precon  None.
   @postcon Initialises an instance of a TFolder class.
 
-  @param   strLeftFldr  as a String
-  @param   strRightFldr as a String
-  @param   strPatterns  as a String
-  @param   iSyncOptions as a TSyncOptions
-  @param   iMaxFileSize as an Int64
+  @param   strLeftFldr  as a String as a constant
+  @param   strRightFldr as a String as a constant
+  @param   strPatterns  as a String as a constant
+  @param   iSyncOptions as a TSyncOptions as a constant
+  @param   iMaxFileSize as an Int64 as a constant
 
 **)
-Constructor TFolder.Create(strLeftFldr, strRightFldr, strPatterns: String;
-  iSyncOptions: TSyncOptions; iMaxFileSize: Int64);
+Constructor TFolder.Create(Const strLeftFldr, strRightFldr, strPatterns: String;
+  Const iSyncOptions: TSyncOptions; Const iMaxFileSize: Int64);
 
 Begin
   FLeftFldr := ExpandFileName(strLeftFldr);
@@ -1572,11 +1572,11 @@ End;
   @precon  None.
   @postcon Adds the passed folder to the folders collection.
 
-  @param   Folder as a TFolder
+  @param   Folder as a TFolder as a constant
   @return  an Integer
 
 **)
-Function TFolders.Add(Folder: TFolder) : Integer;
+Function TFolders.Add(Const Folder: TFolder) : Integer;
 
 Begin
   Result := FFolders.Add(Folder);
@@ -1584,17 +1584,15 @@ End;
 
 (**
 
-  This method assigns the givens folders to a new collection of folders in the current
-  instance.
+  This method assigns the givens folders to a new collection of folders in the current instance.
 
   @precon  Folders must be a valid instance.
-  @postcon Assigns the givens folders to a new collection of folders in the current
-           instance.
+  @postcon Assigns the givens folders to a new collection of folders in the current instance.
 
-  @param   Folders as a TFolders
+  @param   Folders as a TFolders as a constant
 
 **)
-Procedure TFolders.Assign(Folders: TFolders);
+Procedure TFolders.Assign(Const Folders: TFolders);
 
 Var
   i : Integer;
@@ -1628,13 +1626,13 @@ End;
 
   This method deletes the indexed folder in the collection.
 
-  @precon  iIndex must be a valid index between 0 and Count  - 1.
+  @precon  iIndex must be a valid index between 0 and Count - 1.
   @postcon Deletes the indexed folder in the collection.
 
-  @param   iIndex as an Integer
+  @param   iIndex as an Integer as a constant
 
 **)
-Procedure TFolders.Delete(iIndex: Integer);
+Procedure TFolders.Delete(Const iIndex: Integer);
 
 Begin
   FFolders.Delete(iIndex);
@@ -1662,11 +1660,11 @@ End;
   @precon  None.
   @postcon The two index items are exchanged.
 
-  @param   iIndex1 as an Integer
-  @param   iIndex2 as an Integer
+  @param   iIndex1 as an Integer as a constant
+  @param   iIndex2 as an Integer as a constant
 
 **)
-Procedure TFolders.Exchange(iIndex1, iIndex2 : Integer);
+Procedure TFolders.Exchange(Const iIndex1, iIndex2 : Integer);
 
 Begin
   FFolders.Exchange(iIndex1, iIndex2);
@@ -1695,11 +1693,11 @@ End;
   @precon  iIndex must be a valid value between 0 and Count - 1.
   @postcon Returns a TFolder instance of the indexed folder.
 
-  @param   iIndex as an Integer
+  @param   iIndex as an Integer as a constant
   @return  a TFolder
 
 **)
-Function TFolders.GetFolder(iIndex: Integer): TFolder;
+Function TFolders.GetFolder(Const iIndex: Integer): TFolder;
 
 Begin
   Result := FFolders[iIndex] As TFolder;
@@ -1714,15 +1712,15 @@ End;
   @precon  None.
   @postcon Initialises the file record with a filename, size, date and time and a status.
 
-  @param   strName     as a String
-  @param   iSize       as an Int64
-  @param   iAttributes as an Integer
-  @param   dtDateTime  as an Integer
-  @param   Status      as a TStatus
+  @param   strName     as a String as a constant
+  @param   iSize       as an Int64 as a constant
+  @param   iAttributes as an Integer as a constant
+  @param   dtDateTime  as an Integer as a constant
+  @param   Status      as a TStatus as a constant
 
 **)
-Constructor TFileRecord.CreateFile(strName: String; iSize: Int64; iAttributes: Integer;
-  dtDateTime: Integer; Status: TStatus);
+Constructor TFileRecord.CreateFile(Const strName: String; Const iSize: Int64; Const iAttributes,
+  dtDateTime: Integer; Const Status: TStatus);
 
 Begin
   Inherited CreateBase(strName, iSize, iAttributes, dtDateTime);
@@ -1736,10 +1734,10 @@ End;
   @precon  None.
   @postcon Sets the status of the file record.
 
-  @param   Status     as a TStatus
+  @param   Status as a TStatus as a constant
 
 **)
-Procedure TFileRecord.SetStatus(Status: TStatus);
+Procedure TFileRecord.SetStatus(Const Status: TStatus);
 
 Begin
   If FStatus <> Status Then
@@ -1780,16 +1778,16 @@ End; }
   @precon  None.
   @postcon The file is added to the file list.
 
-  @param   iIndex      as an Integer
-  @param   strFileName as a String
-  @param   iSize       as an Int64
-  @param   iAttribs    as an Integer
-  @param   iDateTime   as an Integer
-  @param   iStatus     as a TStatus
+  @param   iIndex      as an Integer as a constant
+  @param   strFileName as a String as a constant
+  @param   iSize       as an Int64 as a constant
+  @param   iAttribs    as an Integer as a constant
+  @param   iDateTime   as an Integer as a constant
+  @param   iStatus     as a TStatus as a constant
 
 **)
-Procedure TFileList.Add(iIndex : Integer; strFileName : String; iSize : Int64;
-  iAttribs, iDateTime : Integer; iStatus : TStatus);
+Procedure TFileList.Add(Const iIndex : Integer; Const strFileName : String; Const iSize : Int64;
+  Const iAttribs, iDateTime : Integer; Const iStatus : TStatus);
 
 Var
   // iMovedIndex: Integer;
@@ -1834,10 +1832,10 @@ End;
   @precon  None.
   @postcon The indexed item is deleted.
 
-  @param   iIndex as an Integer
+  @param   iIndex as an Integer as a constant
 
 **)
-Procedure TFileList.Delete(iIndex: Integer);
+Procedure TFileList.Delete(Const iIndex: Integer);
 
 Begin
   FFiles.Delete(iIndex);
@@ -1869,10 +1867,10 @@ End;
   @precon  None.
   @postcon the OnAddEmptyFolder event is invoked if assigned.
 
-  @param   strFolder as a String
+  @param   strFolder as a String as a constant
 
 **)
-Procedure TFileList.DoAddEmptyFolder(strFolder: String);
+Procedure TFileList.DoAddEmptyFolder(Const strFolder: String);
 
 Begin
   If Assigned(FAddEmptyFolder) Then
@@ -1886,14 +1884,14 @@ End;
   @precon  None.
   @postcon Fires the progress event if the event handler is hooked.
 
-  @param   strFolder as a String
-  @param   strFile   as a String
-  @param   iCount    as an Integer
-  @param   Update    as a TUpdateType
+  @param   strFolder as a String as a constant
+  @param   strFile   as a String as a constant
+  @param   iCount    as an Integer as a constant
+  @param   Update    as a TUpdateType as a constant
 
 **)
-Procedure TFileList.DoSearch(strFolder, strFile: String; iCount: Integer;
-  Update : TUpdateType);
+Procedure TFileList.DoSearch(Const strFolder, strFile: String; Const iCount: Integer;
+  Const Update : TUpdateType);
 
 Begin
   If Assigned(FSearchNotifier) Then
@@ -1907,11 +1905,11 @@ End;
   @precon  None.
   @postcon Fires the SearchEnd event if the event has a handler installed.
 
-  @param   iFileCount as an Integer
-  @param   iTotalSize as an Int64
+  @param   iFileCount as an Integer as a constant
+  @param   iTotalSize as an Int64 as a constant
 
 **)
-Procedure TFileList.DoSearchEnd(iFileCount: Integer; iTotalSize: Int64);
+Procedure TFileList.DoSearchEnd(Const iFileCount: Integer; Const iTotalSize: Int64);
 
 Begin
   If Assigned(FSearchEndNotifier) Then
@@ -1925,10 +1923,10 @@ End;
   @precon  None.
   @postcon Fires the SearchStart event if the event has a handler installed.
 
-  @param   strFolder as a String
+  @param   strFolder as a String as a constant
 
 **)
-Procedure TFileList.DoSearchStart(strFolder: String);
+Procedure TFileList.DoSearchStart(Const strFolder: String);
 
 Begin
   If Assigned(FSearchStartNotifier) Then
@@ -1940,14 +1938,14 @@ End;
   This method find the index position of the given file in the Files list.
 
   @precon  None.
-  @postcon Returns the position of the file if found else returns the position that the
-           file needs to tbe inserted into the list.
+  @postcon Returns the position of the file if found else returns the position that the file needs to 
+           tbe inserted into the list.
 
-  @param   strFCName as a String
+  @param   strFCName as a String as a constant
   @return  an Integer
 
 **)
-Function TFileList.Find(strFCName : String): Integer;
+Function TFileList.Find(Const strFCName : String): Integer;
 
 Var
   iFirst, iLast, iMid   : Integer;
@@ -2012,24 +2010,24 @@ End; **)
 
 (**
 
-  This method searches the give folder for files matching the file filters and excluding
-  any files that match one of the exclusions somewhere in their path and adds them to the
-  folder collection.
+  This method searches the give folder for files matching the file filters and excluding any files that 
+  match one of the exclusions somewhere in their path and adds them to the folder collection.
 
   @precon  None.
-  @postcon Searches the give folder for files matching the file filters and excluding any
-           files that match one of the exclusions somewhere in their path and adds them
-           to the folder collection.
+  @postcon Searches the give folder for files matching the file filters and excluding any files that 
+           match one of the exclusions somewhere in their path and adds them to the folder collection.
 
-  @param   strFolderPath as a String
-  @param   strFileFilter as a String
-  @param   strExclusions as a String
-  @param   SyncOps       as a TSyncOptions
-  @param   iMaxFileSize  as an Int64
+  @nohint  iMaxFileSize
+
+  @param   strFolderPath as a String as a constant
+  @param   strFileFilter as a String as a constant
+  @param   strExclusions as a String as a constant
+  @param   SyncOps       as a TSyncOptions as a constant
+  @param   iMaxFileSize  as an Int64 as a constant
 
 **)
-Procedure TFileList.SearchFolder(strFolderPath, strFileFilter, strExclusions: String;
-  SyncOps : TSyncOptions; iMaxFileSize : Int64);
+Procedure TFileList.SearchFolder(Const strFolderPath, strFileFilter, strExclusions: String;
+  Const SyncOps : TSyncOptions; Const iMaxFileSize : Int64);
 
 Var
   iFilter: Integer;
@@ -2075,11 +2073,11 @@ End;
   @precon  iIndex must be a valid index between 0 and Count -1.
   @postcon Returns the indexed TFileRecord.
 
-  @param   iIndex as an Integer
+  @param   iIndex as an Integer as a constant
   @return  a TFileRecord
 
 **)
-Function TFileList.GetFiles(iIndex: Integer): TFileRecord;
+Function TFileList.GetFiles(Const iIndex: Integer): TFileRecord;
 
 Begin
   Result := FFiles.Items[iIndex] As TFileRecord;
@@ -2099,17 +2097,15 @@ End; }
 
 (**
 
-  This method recurses the passed folder for file name and adds them to the file
-  collection.
+  This method recurses the passed folder for file name and adds them to the file collection.
 
   @precon  None.
-  @postcon Recurses the passed folder for file name and adds them to the file
-           collection.
+  @postcon Recurses the passed folder for file name and adds them to the file collection.
 
-  @param   strFolderPath as a String
+  @param   strFolderPath as a String as a constant
 
 **)
-Procedure TFileList.RecurseFolder(strFolderPath: String);
+Procedure TFileList.RecurseFolder(Const strFolderPath: String);
 
 Var
   rec                   : TSearchRec;
@@ -2176,49 +2172,50 @@ End;
 
 (**
 
-  This method check that a filename does not contain any of the list of
-  exclusion strings.
+  This method check that a filename does not contain any of the list of exclusion strings.
 
   @precon  None.
-  @postcon Returns true if the filename contains one of the exclusion strings
-           else returns false.
+  @postcon Returns true if the filename contains one of the exclusion strings else returns false.
 
-  @param   strFileName as a String
+  @param   strFileName as a String as a constant
   @return  a Boolean
 
 **)
-Function TFileList.InExclusions(strFileName: String): Boolean;
+Function TFileList.InExclusions(Const strFileName: String): Boolean;
 
 Var
   i: Integer;
+  strLFileName : String;
 
 Begin
-  strFileName := LowerCase(strFileName);
+  strLFileName := LowerCase(strFileName);
   Result      := False;
   For i       := 0 To FExclusions.Count - 1 Do
-    Result    := Result Or (Like(FExclusions[i], strFileName));
-    //Result    := Result Or (Pos(FExclusions[i], strFileName) > 0);
+    Result    := Result Or (Like(FExclusions[i], strLFileName));
+    //Result    := Result Or (Pos(FExclusions[i], strLFileName) > 0);
 End;
 
 { TCompareFolders }
 
 (**
 
-  This function checks the different between the file dates accounting for day light
-  saving (i.e. exactly 1 hour on files of the same size).
+  This function checks the different between the file dates accounting for day light saving (i.e. exactly
+  1 hour on files of the same size).
 
   @precon  None.
-  @postcon Checks the different between the file dates accounting for day light saving (i
-           .e. exactly 1 hour on files of the same size). Returns true if different.
+  @postcon Checks the different between the file dates accounting for day light saving (i .e. exactly 1 
+           hour on files of the same size). Returns true if different.
 
-  @param   iTimeDifference   as an Integer
-  @param   iSizeDifference   as an Integer
-  @param   Check             as a TCheckDifference
+  @nohint  iSizeDifference
+
+  @param   iTimeDifference as an Integer as a constant
+  @param   iSizeDifference as an Integer as a constant
+  @param   Check           as a TCheckDifference as a constant
   @return  a Boolean
 
 **)
-Function TCompareFolders.CheckDifference(iTimeDifference: Integer;
-  iSizeDifference: Integer; Check: TCheckDifference): Boolean;
+Function TCompareFolders.CheckDifference(Const iTimeDifference: Integer;
+  Const iSizeDifference: Integer; Const Check: TCheckDifference): Boolean;
 
 Const
   Direction: Array [cdNewer .. cdOlder] Of Integer = (1, -1);
@@ -2356,10 +2353,10 @@ End;
   @precon  None.
   @postcon Creates an instance of TFileList for ther left and right folder.
 
-  @param   AddEmptyFolderProc as a TAddEmptyFolder
+  @param   AddEmptyFolderProc as a TAddEmptyFolder as a constant
 
 **)
-Constructor TCompareFolders.Create(AddEmptyFolderProc : TAddEmptyFolder);
+Constructor TCompareFolders.Create(Const AddEmptyFolderProc : TAddEmptyFolder);
 
 Begin
   FLeftFldr  := TFileList.Create;
@@ -2391,15 +2388,15 @@ End;
   @precon  None.
   @postcon Fires the CompareNotifier event if the event has a handler installed.
 
-  @param   strLeftFldr  as a String
-  @param   strRightFldr as a String
-  @param   strFileName  as a String
-  @param   iPosition    as an Integer
-  @param   iMaxItems    as an Integer
+  @param   strLeftFldr  as a String as a constant
+  @param   strRightFldr as a String as a constant
+  @param   strFileName  as a String as a constant
+  @param   iPosition    as an Integer as a constant
+  @param   iMaxItems    as an Integer as a constant
 
 **)
-Procedure TCompareFolders.DoCompare(strLeftFldr, strRightFldr, strFileName: String;
-  iPosition, iMaxItems: Integer);
+Procedure TCompareFolders.DoCompare(Const strLeftFldr, strRightFldr, strFileName: String;
+  Const iPosition, iMaxItems: Integer);
 
 Begin
   If Assigned(FCompareNotifier) Then
@@ -2428,11 +2425,11 @@ End;
   @precon  None.
   @postcon Fires the CompareStart event if the event has a handler installed.
 
-  @param   strLeftFldr  as a String
-  @param   strRightFldr as a String
+  @param   strLeftFldr  as a String as a constant
+  @param   strRightFldr as a String as a constant
 
 **)
-Procedure TCompareFolders.DoCompareStart(strLeftFldr, strRightFldr: String);
+Procedure TCompareFolders.DoCompareStart(Const strLeftFldr, strRightFldr: String);
 
 Begin
   If Assigned(FCompareStartNotifier) Then
@@ -2478,17 +2475,20 @@ End; }
   @precon  None.
   @postcon Starts the process of searching the give folders for files.
 
-  @param   strLeftFldr   as a String
-  @param   strRightFldr  as a String
-  @param   strPatterns   as a String
-  @param   strExclusions as a String
-  @param   iSection      as an Integer
-  @param   SyncOps       as a TSyncOptions
-  @param   iMaxFileSize  as an Int64
+  @nohint  iSection
+
+  @param   strLeftFldr   as a String as a constant
+  @param   strRightFldr  as a String as a constant
+  @param   strPatterns   as a String as a constant
+  @param   strExclusions as a String as a constant
+  @param   iSection      as an Integer as a constant
+  @param   SyncOps       as a TSyncOptions as a constant
+  @param   iMaxFileSize  as an Int64 as a constant
 
 **)
-Procedure TCompareFolders.SearchFolders(strLeftFldr, strRightFldr, strPatterns,
-  strExclusions: String; iSection: Integer; SyncOps: TSyncOptions; iMaxFileSize : Int64);
+Procedure TCompareFolders.SearchFolders(Const strLeftFldr, strRightFldr, strPatterns,
+  strExclusions: String; Const iSection: Integer; Const SyncOps: TSyncOptions;
+  Const iMaxFileSize : Int64);
 
 Begin
   FSyncOptions     := SyncOps;
@@ -2511,10 +2511,10 @@ End;
   @precon  None.
   @postcon Hooks the Search End Notifier for the LEft and Right Folder classes.
 
-  @param   SearchEndNotifier as a TSearchEndNotifier
+  @param   SearchEndNotifier as a TSearchEndNotifier as a constant
 
 **)
-Procedure TCompareFolders.SetSearchEndNotifier(SearchEndNotifier: TSearchEndNotifier);
+Procedure TCompareFolders.SetSearchEndNotifier(Const SearchEndNotifier: TSearchEndNotifier);
 
 Begin
   FSearchEndNotifier     := SearchEndNotifier;
@@ -2529,10 +2529,10 @@ End;
   @precon  None.
   @postcon Hooks the Search Notifier for the LEft and Right Folder classes.
 
-  @param   SearchNotifier as a TSearchNotifier
+  @param   SearchNotifier as a TSearchNotifier as a constant
 
 **)
-Procedure TCompareFolders.SetSearchNotifier(SearchNotifier: TSearchNotifier);
+Procedure TCompareFolders.SetSearchNotifier(Const SearchNotifier: TSearchNotifier);
 
 Begin
   FSearchNotifier     := SearchNotifier;
@@ -2547,10 +2547,10 @@ End;
   @precon  None.
   @postcon Hooks the Search Start Notifier for the LEft and Right Folder classes.
 
-  @param   SearchStartNotifier as a TSearchStartNotifier
+  @param   SearchStartNotifier as a TSearchStartNotifier as a constant
 
 **)
-Procedure TCompareFolders.SetSearchStartNotifier(SearchStartNotifier
+Procedure TCompareFolders.SetSearchStartNotifier(Const SearchStartNotifier
     : TSearchStartNotifier);
 
 Begin
@@ -2568,16 +2568,16 @@ End;
   @precon  None.
   @postcon Initialises the class with the passed values.
 
-  @param   strLPath        as a String
-  @param   strRPath        as a String
-  @param   LeftFile        as a TFileRecord
-  @param   RightFile       as a TFileRecord
-  @param   FileOp          as a TFileOp
-  @param   SyncOptions     as a TSyncOptions
+  @param   strLPath    as a String as a constant
+  @param   strRPath    as a String as a constant
+  @param   LeftFile    as a TFileRecord as a constant
+  @param   RightFile   as a TFileRecord as a constant
+  @param   FileOp      as a TFileOp as a constant
+  @param   SyncOptions as a TSyncOptions as a constant
 
 **)
-Constructor TProcessItem.Create(strLPath, strRPath: String;
-  LeftFile, RightFile: TFileRecord; FileOp: TFileOp; SyncOptions: TSyncOptions);
+Constructor TProcessItem.Create(Const strLPath, strRPath: String;
+  Const LeftFile, RightFile: TFileRecord; Const FileOp: TFileOp; Const SyncOptions: TSyncOptions);
 
 Begin
   FLPath       := strLPath;
@@ -2592,17 +2592,17 @@ End;
 
 (**
 
-  This method adds an empty folder with its number of files and sub folders to the empty
-  folder string list.
+  This method adds an empty folder with its number of files and sub folders to the empty folder string 
+  list.
 
   @precon  None.
-  @postcon An empty folder with its number of files and sub folders is added to the empty
-           folder string list.
+  @postcon An empty folder with its number of files and sub folders is added to the empty folder string 
+           list.
 
-  @param   strFolder as a String
+  @param   strFolder as a String as a constant
 
 **)
-Procedure TCompareFoldersCollection.AddEmptyFolder(strFolder: String);
+Procedure TCompareFoldersCollection.AddEmptyFolder(Const strFolder: String);
 
 Var
   iCount : Integer;
@@ -2630,14 +2630,14 @@ End;
   @precon  None.
   @postcon Adds a set of file statistics to the given enumerate position.
 
-  @param   FileOpStat as a TFileOpStat
-  @param   strName    as a String
-  @param   iCount     as an Int64
-  @param   iSize      as an Int64
+  @param   FileOpStat as a TFileOpStat as a constant
+  @param   strName    as a String as a constant
+  @param   iCount     as an Int64 as a constant
+  @param   iSize      as an Int64 as a constant
 
 **)
-Procedure TCompareFoldersCollection.AddFileOpStat(FileOpStat: TFileOpStat;
-  strName: String; iCount, iSize: Int64);
+Procedure TCompareFoldersCollection.AddFileOpStat(Const FileOpStat: TFileOpStat;
+  Const strName: String; Const iCount, iSize: Int64);
 
 Begin
   FStatistics[FileOpStat].FName := strName;
@@ -2652,10 +2652,10 @@ End;
   @precon  None.
   @postcon Adds an error message to the error list.
 
-  @param   strErrorMsg as a String
+  @param   strErrorMsg as a String as a constant
 
 **)
-Procedure TCompareFoldersCollection.AddToErrors(strErrorMsg: String);
+Procedure TCompareFoldersCollection.AddToErrors(Const strErrorMsg: String);
 
 Begin
   FErrorMsgs.Add(strErrorMsg);
@@ -2809,23 +2809,23 @@ End;
 
 (**
 
-  This method determines whether the querying call back procedures can be by passed based
-  on the options provided in the SyncOps parameter. If these are either soConfirmCopyYes,
-  soConfirmDeleteYes, soConfirmCopyNo or soConfirmDeleteNo then the function returns TRUE
-  and the file action options is set appropriately.
+  This method determines whether the querying call back procedures can be by passed based on the options 
+  provided in the SyncOps parameter. If these are either soConfirmCopyYes, soConfirmDeleteYes, 
+  soConfirmCopyNo or soConfirmDeleteNo then the function returns TRUE and the file action options is set 
+  appropriately.
 
   @precon  None.
-  @postcon Returns whether the querying process snhould be bypassed and modifies the file
-           action appropriately.
+  @postcon Returns whether the querying process snhould be bypassed and modifies the file action 
+           appropriately.
 
-  @param   SyncOps      as a TSyncOptions
-  @param   boolReadOnly as a Boolean
+  @param   SyncOps      as a TSyncOptions as a constant
+  @param   boolReadOnly as a Boolean as a constant
   @param   Option       as a TFileAction as a reference
   @return  a Boolean
 
 **)
-Function TCompareFoldersCollection.CanByPassQuery(SyncOps: TSyncOptions;
-  boolReadOnly : Boolean; Var Option: TFileAction): Boolean;
+Function TCompareFoldersCollection.CanByPassQuery(Const SyncOps: TSyncOptions;
+  Const boolReadOnly : Boolean; Var Option: TFileAction): Boolean;
 
 Var
   Op: TFileAction;
@@ -2868,16 +2868,15 @@ End;
   This method copies the contents of a files from the source to the destination.
 
   @precon  None.
-  @postcon Coppies the sourcefile to the destination file and increments the numver of
-           files copied.
+  @postcon Coppies the sourcefile to the destination file and increments the numver of files copied.
 
-  @param   strSourceFile as a String
-  @param   strDestFile   as a String
+  @param   strSourceFile as a String as a constant
+  @param   strDestFile   as a String as a constant
   @param   iCopied       as an Integer as a reference
   @return  a TProcessSuccess
 
 **)
-Function TCompareFoldersCollection.CopyFileContents(strSourceFile, strDestFile: String;
+Function TCompareFoldersCollection.CopyFileContents(Const strSourceFile, strDestFile: String;
   Var iCopied: Integer): TProcessSuccess;
 
   (**
@@ -2887,11 +2886,11 @@ Function TCompareFoldersCollection.CopyFileContents(strSourceFile, strDestFile: 
     @precon  None.
     @postcon Returns the size of the given file if found else returns 0.
 
-    @param   strFileName as a String
+    @param   strFileName as a String as a constant
     @return  an Int64
 
   **)
-  Function GetFileSize(strFileName : String): Int64;
+  Function GetFileSize(Const strFileName : String): Int64;
 
   Var
     recSearch: TSearchRec;
@@ -3068,18 +3067,18 @@ End;
   @precon  FName must be a valid instance.
   @postcon Copies an individual file after querying the user for a response.
 
-  @param   strSource   as a String
-  @param   strDest     as a String
-  @param   SourceFile  as a TFileRecord
-  @param   DestFile    as a TFileRecord
+  @param   strSource   as a String as a constant
+  @param   strDest     as a String as a constant
+  @param   SourceFile  as a TFileRecord as a constant
+  @param   DestFile    as a TFileRecord as a constant
   @param   FileActions as a TFileActions as a reference
-  @param   SyncOps     as a TSyncOptions
+  @param   SyncOps     as a TSyncOptions as a constant
   @return  a TProcessSuccess
 
 **)
-Function TCompareFoldersCollection.CopyIndividualFile(strSource, strDest: String;
-  SourceFile, DestFile: TFileRecord; Var FileActions : TFileActions;
-  SyncOps: TSyncOptions): TProcessSuccess;
+Function TCompareFoldersCollection.CopyIndividualFile(Const strSource, strDest: String;
+  Const SourceFile, DestFile: TFileRecord; Var FileActions : TFileActions;
+  Const SyncOps: TSyncOptions): TProcessSuccess;
 
 Var
   FA   : TFileAction;
@@ -3147,21 +3146,21 @@ End;
 
 (**
 
-  This method counts the number of files to operated on depending on the file operation
-  and the files available. Also returns the size if the files.
+  This method counts the number of files to operated on depending on the file operation and the files 
+  available. Also returns the size if the files.
 
   @precon  None.
-  @postcon Counts the number of files to operated on depending on the file operation and
-           the files available. Also returns the size if the files.
+  @postcon Counts the number of files to operated on depending on the file operation and the files 
+           available. Also returns the size if the files.
 
-  @param   FileOps        as a TFileOps
+  @param   FileOps        as a TFileOps as a constant
   @param   iOperationSize as an Int64 as a reference
-  @param   CountOp        as a TCountOp
+  @param   CountOp        as a TCountOp as a constant
   @return  an Integer
 
 **)
-Function TCompareFoldersCollection.CountFileOps(FileOps: TFileOps;
-  Var iOperationSize{, iTotalSize}: Int64; CountOp : TCountOp): Integer;
+Function TCompareFoldersCollection.CountFileOps(Const FileOps: TFileOps;
+  Var iOperationSize{, iTotalSize}: Int64; Const CountOp : TCountOp): Integer;
 
 Var
   i: Integer;
@@ -3213,10 +3212,10 @@ End;
   @precon  None.
   @postcon Creates a collection for the folder lists.
 
-  @param   iAppHnd as a THandle
+  @param   iAppHnd as a THandle as a constant
 
 **)
-Constructor TCompareFoldersCollection.Create(iAppHnd : THandle);
+Constructor TCompareFoldersCollection.Create(Const iAppHnd : THandle);
 
 Begin
   FCompareFolders := TObjectList.Create(True);
@@ -3234,18 +3233,17 @@ End;
 
 (**
 
-  This method decrements the number of files and sub-folders associated with a folder in
-  the empty folder collection.
+  This method decrements the number of files and sub-folders associated with a folder in the empty folder
+  collection.
 
   @precon  None.
-  @postcon The number of files and sub-folders associated with the folder is decremented
-           by 1.
+  @postcon The number of files and sub-folders associated with the folder is decremented by 1.
 
-  @param   strFolder as a String
+  @param   strFolder as a String as a constant
   @return  a Boolean
 
 **)
-Function TCompareFoldersCollection.DecrementFolder(strFolder: String) : Boolean;
+Function TCompareFoldersCollection.DecrementFolder(Const strFolder: String) : Boolean;
 
 Var
   iIndex : Integer;
@@ -3269,8 +3267,8 @@ End;
 
 (**
 
-  This method cycles through the emprt folders string list backwards deleting an folder
-  with zero files and sub-folders.
+  This method cycles through the emprt folders string list backwards deleting an folder with zero files 
+  and sub-folders.
 
   @precon  None.
   @postcon Any folder with zero files and sub-folders is deleted.
@@ -3315,21 +3313,22 @@ End;
 
 (**
 
-  This method deletes the given file from disk either to the recycle bin or permanently
-  depending upon the global options.
+  This method deletes the given file from disk either to the recycle bin or permanently depending upon 
+  the global options.
 
   @precon  None.
   @postcon The file is deleted.
 
-  @param   strFileName as a String
+  @param   strFileName as a String as a constant
   @return  a Boolean
 
 **)
-Function TCompareFoldersCollection.DeleteFileFromDisk(strFileName: String): Boolean;
+Function TCompareFoldersCollection.DeleteFileFromDisk(Const strFileName: String): Boolean;
 
 Var
   FileOp : TSHFileOpStruct;
   iResult : Integer;
+  strLFileName: String;
 
 Begin
   If (fsoPermanentlyDeleteFiles In FFldrSyncOptions) Or (Length(strFileName) > MAX_PATH) Then
@@ -3338,16 +3337,17 @@ Begin
   Else
     Begin
       // SHFileOperation does not support Unicode filenames.
-      If Copy(strFileName, 1, 4) = '\\?\UNC\' Then
-        Delete(strFileName, 1, 8);
-      If Copy(strFileName, 1, 4) = '\\?\' Then
-        Delete(strFileName, 1, 4);
-      strFileName := strFileName + #0#0;
+      strLFileName := strFileName;
+      If Copy(strLFileName, 1, 4) = '\\?\UNC\' Then
+        Delete(strLFileName, 1, 8);
+      If Copy(strLFileName, 1, 4) = '\\?\' Then
+        Delete(strLFileName, 1, 4);
+      strLFileName := strLFileName + #0#0;
       with FileOp do
          begin
            wnd := FAppHnd;
            wFunc := FO_DELETE;
-           pFrom := PChar(strFileName);
+           pFrom := PChar(strLFileName);
            pTo := Nil;
            fFlags := FOF_ALLOWUNDO Or FOF_NOCONFIRMATION;
            fAnyOperationsAborted := False;
@@ -3372,25 +3372,24 @@ Procedure TCompareFoldersCollection.DeleteFiles;
 
   (**
 
-    This method adds the given file to a string list for the specified path for later
-    deletion.
+    This method adds the given file to a string list for the specified path for later deletion.
 
     @precon  None.
     @postcon The file is added to the path string list to be deleted.
 
-    @param   iCurrentFileToDelete            as an Integer
-    @param   iTotalFilesToDelete             as an Integer
-    @param   iCumulativeFileSizeBeforeDelete as an Int64
-    @param   iTotalFileSizeToDelete          as an Int64
-    @param   strPath                         as a String
-    @param   strFileName                     as a String
-    @param   iFileSize                       as an Int64
-    @param   slRecycleFiles                  as a TStringList
+    @param   iCurrentFileToDelete            as an Integer as a constant
+    @param   iTotalFilesToDelete             as an Integer as a constant
+    @param   iCumulativeFileSizeBeforeDelete as an Int64 as a constant
+    @param   iTotalFileSizeToDelete          as an Int64 as a constant
+    @param   strPath                         as a String as a constant
+    @param   strFileName                     as a String as a constant
+    @param   iFileSize                       as an Int64 as a constant
+    @param   slRecycleFiles                  as a TStringList as a constant
 
   **)
-  Procedure AddToRecycler(iCurrentFileToDelete, iTotalFilesToDelete : Integer;
-    iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete : Int64; strPath,
-    strFileName : String; iFileSize : Int64; slRecycleFiles : TStringList);
+  Procedure AddToRecycler(Const iCurrentFileToDelete, iTotalFilesToDelete : Integer;
+    Const iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete : Int64; Const strPath,
+    strFileName : String; Const iFileSize : Int64; Const slRecycleFiles : TStringList);
 
   Begin
     DoDeleting(iCurrentFileToDelete, iTotalFilesToDelete, iCumulativeFileSizeBeforeDelete,
@@ -3407,16 +3406,15 @@ Procedure TCompareFoldersCollection.DeleteFiles;
 
   (**
 
-    This method cycles through the paths to have file deleted and recycles each set of
-    files separately.
+    This method cycles through the paths to have file deleted and recycles each set of files separately.
 
     @precon  None.
     @postcon The files are recycled if they can be esle deleted.
 
-    @param   slRecycleFiles as a TstringList
+    @param   slRecycleFiles as a TstringList as a constant
 
   **)
-  Procedure RecycleFiles(slRecycleFiles : TstringList);
+  Procedure RecycleFiles(Const slRecycleFiles : TstringList);
 
   Var
     FileOp : TSHFileOpStruct;
@@ -3530,17 +3528,17 @@ End;
   @precon  None.
   @postcon Deletes the given files from the drive structure.
 
-  @param   strPath              as a String
-  @param   F                    as a TFileRecord
-  @param   iCurrentFileToDelete as an Integer
-  @param   iTotalFilesToDelete  as an Integer
+  @param   strPath              as a String as a constant
+  @param   F                    as a TFileRecord as a constant
+  @param   iCurrentFileToDelete as an Integer as a constant
+  @param   iTotalFilesToDelete  as an Integer as a constant
   @param   FileActions          as a TFileActions as a reference
-  @param   SyncOps              as a TSyncOptions
+  @param   SyncOps              as a TSyncOptions as a constant
 
 **)
-Procedure TCompareFoldersCollection.DeleteIndividualFile(strPath: String; F: TFileRecord;
-  iCurrentFileToDelete, iTotalFilesToDelete: Integer; Var FileActions : TFileActions;
-  SyncOps: TSyncOptions);
+Procedure TCompareFoldersCollection.DeleteIndividualFile(Const strPath: String; Const F: TFileRecord;
+  Const iCurrentFileToDelete, iTotalFilesToDelete: Integer; Var FileActions : TFileActions;
+  Const SyncOps: TSyncOptions);
 
 Const
   strExceptionMsg = 'Deletion of file "%s" failed (%s)!';
@@ -3714,16 +3712,16 @@ End;
   @precon  None.
   @postcon Fires the Copied event if the event has a handler installed.
 
-  @param   iCurrentFileToCopy   as an Integer
-  @param   iTotalFilesToCopy    as an Integer
-  @param   iCopiedFileTotalSize as an Int64
-  @param   iCopiedTotalSize     as an Int64
-  @param   iSuccess             as a TProcessSuccess
+  @param   iCurrentFileToCopy   as an Integer as a constant
+  @param   iTotalFilesToCopy    as an Integer as a constant
+  @param   iCopiedFileTotalSize as an Int64 as a constant
+  @param   iCopiedTotalSize     as an Int64 as a constant
+  @param   iSuccess             as a TProcessSuccess as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoCopied(iCurrentFileToCopy,
-  iTotalFilesToCopy: Integer; iCopiedFileTotalSize, iCopiedTotalSize: Int64;
-  iSuccess: TProcessSuccess);
+Procedure TCompareFoldersCollection.DoCopied(Const iCurrentFileToCopy,
+  iTotalFilesToCopy: Integer; Const iCopiedFileTotalSize, iCopiedTotalSize: Int64;
+  Const iSuccess: TProcessSuccess);
 
 Begin
   If Assigned(FCopiedNotifier) Then
@@ -3738,12 +3736,12 @@ End;
   @precon  None.
   @postcon Fires the CopyEnd event if the event has a handler installed.
 
-  @param   iCopied  as an Integer
-  @param   iSkipped as an Integer
-  @param   iError   as an Integer
+  @param   iCopied  as an Integer as a constant
+  @param   iSkipped as an Integer as a constant
+  @param   iError   as an Integer as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoCopyEnd(iCopied, iSkipped, iError: Integer);
+Procedure TCompareFoldersCollection.DoCopyEnd(Const iCopied, iSkipped, iError: Integer);
 
 Begin
   If Assigned(FCopyEndNotifier) Then
@@ -3752,25 +3750,25 @@ End;
 
 (**
 
-  This event fires any hook DoCopying events but issuing events for each files giving the
-  source, destination and filename.
+  This event fires any hook DoCopying events but issuing events for each files giving the source, 
+  destination and filename.
 
   @precon  None.
-  @postcon Fires any hook DoCopying events but issuing events for each files giving the
-           source, destination and filename.
+  @postcon Fires any hook DoCopying events but issuing events for each files giving the source, 
+           destination and filename.
 
-  @param   iCurrentFileToCopy            as an Integer
-  @param   iTotalFilesToCopy             as an Integer
-  @param   iCumulativeFileSizeBeforeCopy as an Int64
-  @param   iTotalFileSizeToCopy          as an Int64
-  @param   strSource                     as a String
-  @param   strDest                       as a String
-  @param   strFileName                   as a String
+  @param   iCurrentFileToCopy            as an Integer as a constant
+  @param   iTotalFilesToCopy             as an Integer as a constant
+  @param   iCumulativeFileSizeBeforeCopy as an Int64 as a constant
+  @param   iTotalFileSizeToCopy          as an Int64 as a constant
+  @param   strSource                     as a String as a constant
+  @param   strDest                       as a String as a constant
+  @param   strFileName                   as a String as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoCopying(iCurrentFileToCopy,
-  iTotalFilesToCopy : Integer; iCumulativeFileSizeBeforeCopy,
-  iTotalFileSizeToCopy : Int64; strSource, strDest, strFileName: String);
+Procedure TCompareFoldersCollection.DoCopying(Const iCurrentFileToCopy,
+  iTotalFilesToCopy : Integer; Const iCumulativeFileSizeBeforeCopy,
+  iTotalFileSizeToCopy : Int64; Const strSource, strDest, strFileName: String);
 
 Begin
   If Assigned(FCopyingNotifier) Then
@@ -3785,16 +3783,16 @@ End;
   @precon  None.
   @postcon Fires the CopyQuery event if the event has a handler installed.
 
-  @param   strSourcePath as a String
-  @param   strDestPath   as a String
-  @param   SourceFile    as a TFileRecord
-  @param   DestFile      as a TFileRecord
+  @param   strSourcePath as a String as a constant
+  @param   strDestPath   as a String as a constant
+  @param   SourceFile    as a TFileRecord as a constant
+  @param   DestFile      as a TFileRecord as a constant
   @param   Option        as a TFileAction as a reference
-  @param   SyncOptions   as a TSyncOptions
+  @param   SyncOptions   as a TSyncOptions as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoCopyQuery(strSourcePath, strDestPath: String;
-  SourceFile, DestFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
+Procedure TCompareFoldersCollection.DoCopyQuery(Const strSourcePath, strDestPath: String;
+  Const SourceFile, DestFile : TFileRecord; Var Option: TFileAction; Const SyncOptions: TSyncOptions);
 
 Begin
   If Not CanByPassQuery(SyncOptions, False, Option) Then
@@ -3809,17 +3807,17 @@ End;
   @precon  None.
   @postcon Fires the CopyReadOnlyQuery event if the event has a handler installed.
 
-  @param   strSourcePath as a String
-  @param   strDestPath   as a String
-  @param   SourceFile    as a TFileRecord
-  @param   DestFile      as a TFileRecord
+  @param   strSourcePath as a String as a constant
+  @param   strDestPath   as a String as a constant
+  @param   SourceFile    as a TFileRecord as a constant
+  @param   DestFile      as a TFileRecord as a constant
   @param   Option        as a TFileAction as a reference
-  @param   SyncOptions   as a TSyncOptions
+  @param   SyncOptions   as a TSyncOptions as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoCopyReadOnlyQuery(strSourcePath,
-  strDestPath: String; SourceFile, DestFile : TFileRecord; Var Option: TFileAction;
-  SyncOptions: TSyncOptions);
+Procedure TCompareFoldersCollection.DoCopyReadOnlyQuery(Const strSourcePath,
+  strDestPath: String; Const SourceFile, DestFile : TFileRecord; Var Option: TFileAction;
+  Const SyncOptions: TSyncOptions);
 
 Begin
   If Not CanByPassQuery(SyncOptions, True, Option) Then
@@ -3834,11 +3832,11 @@ End;
   @precon  None.
   @postcon Fires the CopyStart event if the event has a handler installed.
 
-  @param   iTotalCount as an Integer
-  @param   iTotalSize  as an Int64
+  @param   iTotalCount as an Integer as a constant
+  @param   iTotalSize  as an Int64 as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoCopyStart(iTotalCount: Integer; iTotalSize: Int64);
+Procedure TCompareFoldersCollection.DoCopyStart(Const iTotalCount: Integer; Const iTotalSize: Int64);
 
 Begin
   If Assigned(FCopyStartNotifier) Then
@@ -3852,17 +3850,17 @@ End;
   @precon  None.
   @postcon Fires the Deleting event if the event has a handler installed.
 
-  @param   iCurrentFileToDelete            as an Integer
-  @param   iTotalFilesToDelete             as an Integer
-  @param   iCumulativeFileSizeBeforeDelete as an Int64
-  @param   iTotalFileSizeToDelete          as an Int64
-  @param   strDeletePath                   as a String
-  @param   strFileNameToDelete             as a String
+  @param   iCurrentFileToDelete            as an Integer as a constant
+  @param   iTotalFilesToDelete             as an Integer as a constant
+  @param   iCumulativeFileSizeBeforeDelete as an Int64 as a constant
+  @param   iTotalFileSizeToDelete          as an Int64 as a constant
+  @param   strDeletePath                   as a String as a constant
+  @param   strFileNameToDelete             as a String as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoDeleting(iCurrentFileToDelete,
-  iTotalFilesToDelete : Integer; iCumulativeFileSizeBeforeDelete,
-  iTotalFileSizeToDelete : Int64; strDeletePath, strFileNameToDelete: String);
+Procedure TCompareFoldersCollection.DoDeleting(Const iCurrentFileToDelete,
+  iTotalFilesToDelete : Integer; Const iCumulativeFileSizeBeforeDelete,
+  iTotalFileSizeToDelete : Int64; Const strDeletePath, strFileNameToDelete: String);
 
 Begin
   If Assigned(FDeletingNotifier) Then
@@ -3878,14 +3876,14 @@ End;
   @precon  None.
   @postcon Fires an event for each file with a different size only.
 
-  @param   iFile       as an Integer
-  @param   iFileCount  as an Integer
-  @param   strLPath    as a String
-  @param   strRPath    as a String
-  @param   strFileName as a String
+  @param   iFile       as an Integer as a constant
+  @param   iFileCount  as an Integer as a constant
+  @param   strLPath    as a String as a constant
+  @param   strRPath    as a String as a constant
+  @param   strFileName as a String as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoDiffSize(iFile, iFileCount : Integer; strLPath,
+Procedure TCompareFoldersCollection.DoDiffSize(Const iFile, iFileCount : Integer; Const strLPath,
   strRPath, strFileName: String);
 
 Begin
@@ -3917,10 +3915,10 @@ End;
   @precon  None.
   @postcon Fires an event before the processing of files with only sizr difference.
 
-  @param   iFileCount as an Integer
+  @param   iFileCount as an Integer as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoDiffSizeStart(iFileCount: Integer);
+Procedure TCompareFoldersCollection.DoDiffSizeStart(Const iFileCount: Integer);
 
 Begin
   If Assigned(FDiffSizeStartNotifier) Then
@@ -3955,10 +3953,10 @@ End;
   @precon  None.
   @postcon Calls the On Error Msgs event handler if it is assigned.
 
-  @param   strErrorMsg as a String
+  @param   strErrorMsg as a String as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoErrorMsgs(strErrorMsg: String);
+Procedure TCompareFoldersCollection.DoErrorMsgs(Const strErrorMsg: String);
 
 Begin
   If Assigned(FErrorMsgsNotifier) Then
@@ -3987,10 +3985,10 @@ End;
   @precon  None.
   @postcon Calls the On Error Msgs Start event handler if it is assigned.
 
-  @param   iErrorCount as an Integer
+  @param   iErrorCount as an Integer as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoErrorsMsgsStart(iErrorCount: Integer);
+Procedure TCompareFoldersCollection.DoErrorsMsgsStart(Const iErrorCount: Integer);
 
 Begin
   If Assigned(FErrorMsgsStartNotifier) Then
@@ -4004,15 +4002,15 @@ End;
   @precon  None.
   @postcon Calls the FExceeedsSizeLimit is it has been assigned.
 
-  @param   iFile       as an Integer
-  @param   iFileCount  as an Integer
-  @param   strLPath    as a String
-  @param   strRPath    as a String
-  @param   strFileName as a String
+  @param   iFile       as an Integer as a constant
+  @param   iFileCount  as an Integer as a constant
+  @param   strLPath    as a String as a constant
+  @param   strRPath    as a String as a constant
+  @param   strFileName as a String as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoExceedsSizeLimit(iFile, iFileCount : Integer;
-  strLPath, strRPath, strFileName: String);
+Procedure TCompareFoldersCollection.DoExceedsSizeLimit(Const iFile, iFileCount : Integer;
+  Const strLPath, strRPath, strFileName: String);
 
 Begin
   If Assigned(FExceedsSizeLimitNotifier) Then
@@ -4041,10 +4039,10 @@ End;
   @precon  None.
   @postcon Calls the FExceeedsSizeLimitStart is it has been assigned.
 
-  @param   iFileCount as an Integer
+  @param   iFileCount as an Integer as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoExceedsSizeLimitStart(iFileCount: Integer);
+Procedure TCompareFoldersCollection.DoExceedsSizeLimitStart(Const iFileCount: Integer);
 
 Begin
   If Assigned(FExceedsSizeLimitStartNotifier) Then
@@ -4058,16 +4056,16 @@ End;
   @precon  None.
   @postcon Fires the Deleted event if the event has a handler installed.
 
-  @param   iCurrentFileDeleted            as an Integer
-  @param   iTotalFilesToDelete            as an Integer
-  @param   iCumulativeFileSizeAfterDelete as an Int64
-  @param   iTotalFileSizeToDelete         as an Int64
-  @param   iSuccess                       as a TProcessSuccess
+  @param   iCurrentFileDeleted            as an Integer as a constant
+  @param   iTotalFilesToDelete            as an Integer as a constant
+  @param   iCumulativeFileSizeAfterDelete as an Int64 as a constant
+  @param   iTotalFileSizeToDelete         as an Int64 as a constant
+  @param   iSuccess                       as a TProcessSuccess as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoDeleted(iCurrentFileDeleted,
-  iTotalFilesToDelete: Integer; iCumulativeFileSizeAfterDelete,
-  iTotalFileSizeToDelete: Int64; iSuccess: TProcessSuccess);
+Procedure TCompareFoldersCollection.DoDeleted(Const iCurrentFileDeleted,
+  iTotalFilesToDelete: Integer; Const iCumulativeFileSizeAfterDelete,
+  iTotalFileSizeToDelete: Int64; Const iSuccess: TProcessSuccess);
 
 Begin
   If Assigned(FDeletedNotifier) Then
@@ -4082,12 +4080,12 @@ End;
   @precon  None.
   @postcon Fires the DeletedEnd event if the event has a handler installed.
 
-  @param   iTotalDeletedFileCount as an Integer
-  @param   iTotalSkippedFileCount as an Integer
-  @param   iTotalErrorsFileCount  as an Integer
+  @param   iTotalDeletedFileCount as an Integer as a constant
+  @param   iTotalSkippedFileCount as an Integer as a constant
+  @param   iTotalErrorsFileCount  as an Integer as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoDeleteEnd(iTotalDeletedFileCount,
+Procedure TCompareFoldersCollection.DoDeleteEnd(Const iTotalDeletedFileCount,
   iTotalSkippedFileCount, iTotalErrorsFileCount: Integer);
 
 Begin
@@ -4103,13 +4101,13 @@ End;
   @precon  None.
   @postcon the OnDeleteFolders event handler is invoked if assigned.
 
-  @param   iFolder   as an Integer
-  @param   iFolders  as an Integer
-  @param   strFolder as a String
+  @param   iFolder   as an Integer as a constant
+  @param   iFolders  as an Integer as a constant
+  @param   strFolder as a String as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoDeleteFolders(iFolder, iFolders : Integer;
-  strFolder: String);
+Procedure TCompareFoldersCollection.DoDeleteFolders(Const iFolder, iFolders : Integer;
+  Const strFolder: String);
 
 Begin
   If Assigned(FDeleteFoldersNotifier) Then
@@ -4138,10 +4136,10 @@ End;
   @precon  None.
   @postcon the OnDeleteFoldersStart event handler is invoked if assigned.
 
-  @param   iFolderCount as an Integer
+  @param   iFolderCount as an Integer as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoDeleteFoldersStart(iFolderCount: Integer);
+Procedure TCompareFoldersCollection.DoDeleteFoldersStart(Const iFolderCount: Integer);
 
 Begin
   If Assigned(FDeleteFoldersStartNotifier) Then
@@ -4155,14 +4153,14 @@ End;
   @precon  None.
   @postcon Fires the DeleteQuery event if the event has a handler installed.
 
-  @param   strDeleteFilePath as a String
-  @param   DeleteFile        as a TFileRecord
+  @param   strDeleteFilePath as a String as a constant
+  @param   DeleteFile        as a TFileRecord as a constant
   @param   Option            as a TFileAction as a reference
-  @param   SyncOptions       as a TSyncOptions
+  @param   SyncOptions       as a TSyncOptions as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoDeleteQuery(strDeleteFilePath: String;
-  DeleteFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
+Procedure TCompareFoldersCollection.DoDeleteQuery(Const strDeleteFilePath: String;
+  Const DeleteFile : TFileRecord; Var Option: TFileAction; Const SyncOptions: TSyncOptions);
 
 Begin
   If Not CanByPassQuery(SyncOptions, False, Option) Then
@@ -4177,14 +4175,14 @@ End;
   @precon  None.
   @postcon Fires the DeleteReadOnlyQuery event if the event has a handler installed.
 
-  @param   strDeleteFilePath as a String
-  @param   DeleteFile        as a TFileRecord
+  @param   strDeleteFilePath as a String as a constant
+  @param   DeleteFile        as a TFileRecord as a constant
   @param   Option            as a TFileAction as a reference
-  @param   SyncOptions       as a TSyncOptions
+  @param   SyncOptions       as a TSyncOptions as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoDeleteReadOnlyQuery(strDeleteFilePath: String;
-  DeleteFile : TFileRecord; Var Option: TFileAction; SyncOptions: TSyncOptions);
+Procedure TCompareFoldersCollection.DoDeleteReadOnlyQuery(Const strDeleteFilePath: String;
+  Const DeleteFile : TFileRecord; Var Option: TFileAction; Const SyncOptions: TSyncOptions);
 
 Begin
   If Not CanByPassQuery(SyncOptions, True, Option) Then
@@ -4199,12 +4197,12 @@ End;
   @precon  None.
   @postcon Fires the DeleteStart event if the event has a handler installed.
 
-  @param   iTotalFileCount as an Integer
-  @param   iTotalFileSize  as an Int64
+  @param   iTotalFileCount as an Integer as a constant
+  @param   iTotalFileSize  as an Int64 as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoDeleteStart(iTotalFileCount: Integer;
-  iTotalFileSize: Int64);
+Procedure TCompareFoldersCollection.DoDeleteStart(Const iTotalFileCount: Integer;
+  Const iTotalFileSize: Int64);
 
 Begin
   If Assigned(FDeleteStartNotifier) Then
@@ -4218,11 +4216,11 @@ End;
   @precon  None.
   @postcon Fires the MatchList event if the event has a handler installed.
 
-  @param   iPosition as an Integer
-  @param   iMaxItems as an Integer
+  @param   iPosition as an Integer as a constant
+  @param   iMaxItems as an Integer as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoMatchList(iPosition, iMaxItems: Integer);
+Procedure TCompareFoldersCollection.DoMatchList(Const iPosition, iMaxItems: Integer);
 
 Begin
   If Assigned(FMatchListNotifier) Then
@@ -4304,14 +4302,14 @@ End;
   @precon  None.
   @postcon Fires an event for each file with nothing to do.
 
-  @param   iFile       as an Integer
-  @param   iFileCount  as an Integer
-  @param   strLPath    as a String
-  @param   strRPath    as a String
-  @param   strFileName as a String
+  @param   iFile       as an Integer as a constant
+  @param   iFileCount  as an Integer as a constant
+  @param   strLPath    as a String as a constant
+  @param   strRPath    as a String as a constant
+  @param   strFileName as a String as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoNothingToDo(iFile, iFileCount : Integer; strLPath,
+Procedure TCompareFoldersCollection.DoNothingToDo(Const iFile, iFileCount : Integer; Const strLPath,
   strRPath, strFileName: String);
 
 Begin
@@ -4341,10 +4339,10 @@ End;
   @precon  None.
   @postcon Fires an event before the processing of files with nothing to do.
 
-  @param   iFileCount as an Integer
+  @param   iFileCount as an Integer as a constant
 
 **)
-Procedure TCompareFoldersCollection.DoNothingToDoStart(iFileCount: Integer);
+Procedure TCompareFoldersCollection.DoNothingToDoStart(Const iFileCount: Integer);
 
 Begin
   If Assigned(FNothingToDoStartNotifier) Then
@@ -4396,11 +4394,11 @@ End;
   @precon  None.
   @postcon Returns the number of files and sub-folders in the given folder.
 
-  @param   strFolder as a String
+  @param   strFolder as a String as a constant
   @return  a NativeUInt
 
 **)
-Function TCompareFoldersCollection.FileCount(strFolder: String): NativeUInt;
+Function TCompareFoldersCollection.FileCount(Const strFolder: String): NativeUInt;
 
 Var
   recSearch : TSearchRec;
@@ -4447,19 +4445,18 @@ End;
 
 (**
 
-  This method finds the next item in the file list that has not got the status
-  of stSame and moved the iIndex value to the new position else return Count.
+  This method finds the next item in the file list that has not got the status of stSame and moved the 
+  iIndex value to the new position else return Count.
 
   @precon  None.
-  @postcon Finds the next item in the file list that has not got the status
-           of stSame and moved the iIndex value to the new position else return
-           Count.
+  @postcon Finds the next item in the file list that has not got the status of stSame and moved the 
+           iIndex value to the new position else return Count.
 
-  @param   Lst    as a TFileList
+  @param   Lst    as a TFileList as a constant
   @param   iIndex as an Integer as a reference
 
 **)
-Procedure TCompareFoldersCollection.FindNextNonSame(Lst: TFileList; Var iIndex: Integer);
+Procedure TCompareFoldersCollection.FindNextNonSame(Const Lst: TFileList; Var iIndex: Integer);
 
 Var
   i: Integer;
@@ -4486,11 +4483,11 @@ End;
   @precon  The index value must be between 0 and Count - 1 to be valid.
   @postcon Returns the indexed object cast as a TCompareFolders class.
 
-  @param   iIndex as an Integer
+  @param   iIndex as an Integer as a constant
   @return  a TCompareFolders
 
 **)
-Function TCompareFoldersCollection.GetCompareFolders(iIndex: Integer): TCompareFolders;
+Function TCompareFoldersCollection.GetCompareFolders(Const iIndex: Integer): TCompareFolders;
 
 Begin
   Result := FCompareFolders[iIndex] As TCompareFolders;
@@ -4535,11 +4532,11 @@ End;
   @precon  iIndex must be between 0 an ProcessCount - 1.
   @postcon Returns the indexed process item.
 
-  @param   iIndex as an Integer
+  @param   iIndex as an Integer as a constant
   @return  a TProcessItem
 
 **)
-Function TCompareFoldersCollection.GetProcessItem(iIndex: Integer): TProcessItem;
+Function TCompareFoldersCollection.GetProcessItem(Const iIndex: Integer): TProcessItem;
 
 Begin
   Result := FProcessList[iIndex] As TProcessItem;
@@ -4552,11 +4549,11 @@ End;
   @precon  None.
   @postcon Returns the enumerated file statistic.
 
-  @param   FileOpStat as a TFileOpStat
+  @param   FileOpStat as a TFileOpStat as a constant
   @return  a TFileOpStatRec
 
 **)
-Function TCompareFoldersCollection.GetStatistics(FileOpStat: TFileOpStat): TFileOpStatRec;
+Function TCompareFoldersCollection.GetStatistics(Const FileOpStat: TFileOpStat): TFileOpStatRec;
 
 Begin
   Result := FStatistics[FileOpStat];
@@ -4564,17 +4561,16 @@ End;
 
 (**
 
-  This method increments the number of files and sub-folders associated with a folder
-  in the empty folder collection.
+  This method increments the number of files and sub-folders associated with a folder in the empty folder
+  collection.
 
   @precon  None.
-  @postcon The number of files and sub-folders associated with the folder is incremented
-           by 1.
+  @postcon The number of files and sub-folders associated with the folder is incremented by 1.
 
-  @param   strFolder as a String
+  @param   strFolder as a String as a constant
 
 **)
-Procedure TCompareFoldersCollection.IncrementFolder(strFolder: String);
+Procedure TCompareFoldersCollection.IncrementFolder(Const strFolder: String);
 
 Var
   iIndex : Integer;
@@ -4599,15 +4595,15 @@ End;
   @precon  None.
   @postcon Inserts a process item into the process item list.
 
-  @param   strLPath        as a String
-  @param   strRPath        as a String
-  @param   LeftFile        as a TFileRecord
-  @param   RightFile       as a TFileRecord
-  @param   SyncOptions     as a TSyncOptions
+  @param   strLPath    as a String as a constant
+  @param   strRPath    as a String as a constant
+  @param   LeftFile    as a TFileRecord as a constant
+  @param   RightFile   as a TFileRecord as a constant
+  @param   SyncOptions as a TSyncOptions as a constant
 
 **)
-Procedure TCompareFoldersCollection.InsertItem(strLPath, strRPath: String;
-  LeftFile, RightFile: TFileRecord; SyncOptions: TSyncOptions);
+Procedure TCompareFoldersCollection.InsertItem(Const strLPath, strRPath: String;
+  Const LeftFile, RightFile: TFileRecord; Const SyncOptions: TSyncOptions);
 
 Var
   FileOp: TFileOp;
@@ -4638,21 +4634,21 @@ End;
 
 (**
 
-  This method updates the operational status of the files based on their date and time and
-  also whether they are reasd only or not.
+  This method updates the operational status of the files based on their date and time and also whether 
+  they are reasd only or not.
 
   @precon  None.
-  @postcon Updates the operational status of the files based on their date and time and
-           also whether they are reasd only or not.
+  @postcon Updates the operational status of the files based on their date and time and also whether 
+           they are reasd only or not.
 
-  @param   LeftFile        as a TFileRecord
-  @param   RightFile       as a TFileRecord
-  @param   SyncOptions     as a TSyncOptions
+  @param   LeftFile    as a TFileRecord as a constant
+  @param   RightFile   as a TFileRecord as a constant
+  @param   SyncOptions as a TSyncOptions as a constant
   @return  a TFileOp
 
 **)
-Function TCompareFoldersCollection.OperationStatus(LeftFile, RightFile: TFileRecord;
-  SyncOptions: TSyncOptions): TFileOp;
+Function TCompareFoldersCollection.OperationStatus(Const LeftFile, RightFile: TFileRecord;
+  Const SyncOptions: TSyncOptions): TFileOp;
 
 Var
   boolROLeft : Boolean;
@@ -4720,10 +4716,10 @@ End;
   @precon  None.
   @postcon Processes the file for copying and deletion.
 
-  @param   FldrSyncOptions as a TFldrSyncOptions
+  @param   FldrSyncOptions as a TFldrSyncOptions as a constant
 
 **)
-Procedure TCompareFoldersCollection.ProcessFiles(FldrSyncOptions : TFldrSyncOptions);
+Procedure TCompareFoldersCollection.ProcessFiles(Const FldrSyncOptions : TFldrSyncOptions);
 
 Begin
   FFldrSyncOptions := FldrSyncOptions;
@@ -4746,13 +4742,13 @@ End;
   @precon  slFolders must contain pairs folders fld1=fld2 etc.
   @postcon Creates an instance of the compare folder classes for each pairing.
 
-  @param   Folders       as a TFolders
-  @param   strExclusions as a String
+  @param   Folders       as a TFolders as a constant
+  @param   strExclusions as a String as a constant
   @return  a Boolean
 
 **)
-Function TCompareFoldersCollection.ProcessFolders(Folders: TFolders;
-  strExclusions: String): Boolean;
+Function TCompareFoldersCollection.ProcessFolders(Const Folders: TFolders;
+  Const strExclusions: String): Boolean;
 
 Var
   i  : Integer;
@@ -4796,11 +4792,11 @@ End;
   @precon  None.
   @postcon Adds a file operation to the drive totals.
 
-  @param   iSize  as an Int64
-  @param   FileOp as a TFileOp
+  @param   iSize  as an Int64 as a constant
+  @param   FileOp as a TFileOp as a constant
 
 **)
-Procedure TDriveTotal.AddOption(iSize: Int64; FileOp: TFileOp);
+Procedure TDriveTotal.AddOption(Const iSize: Int64; Const FileOp: TFileOp);
 
 Begin
   Case FileOp Of
@@ -4817,10 +4813,10 @@ End;
   @precon  None.
   @postcon Initialises the class with a drive mapping and this initial space.
 
-  @param   strDrive as a String
+  @param   strDrive as a String as a constant
 
 **)
-Constructor TDriveTotal.Create(strDrive: String);
+Constructor TDriveTotal.Create(Const strDrive: String);
 
 Var
   iTotalNumberOfFreeBytes: Int64;
@@ -4895,18 +4891,16 @@ End;
 
 (**
 
-  This method find the drive mapping in the collection else creates a new one and returns
-  its index.
+  This method find the drive mapping in the collection else creates a new one and returns its index.
 
   @precon  None.
-  @postcon Find the drive mapping in the collection else creates a new one and returns
-           its index.
+  @postcon Find the drive mapping in the collection else creates a new one and returns its index.
 
-  @param   strPath as a String
+  @param   strPath as a String as a constant
   @return  an Integer
 
 **)
-Function TDriveTotals.Find(strPath: String): Integer;
+Function TDriveTotals.Find(Const strPath: String): Integer;
 
 Var
   iDrive : Integer;
@@ -4958,11 +4952,11 @@ End;
   @precon  The index must be between 0 and Count - 1.
   @postcon Returns the instance of the index drive total.
 
-  @param   iIndex as an Integer
+  @param   iIndex as an Integer as a constant
   @return  a TDriveTotal
 
 **)
-Function TDriveTotals.GetDriveTotal(iIndex: Integer): TDriveTotal;
+Function TDriveTotals.GetDriveTotal(Const iIndex: Integer): TDriveTotal;
 
 Begin
   Result := FDrives[iIndex] As TDriveTotal;
@@ -4970,17 +4964,15 @@ End;
 
 (**
 
-  This method processes the given process item and adds the information to the appropriate
-  drive total.
+  This method processes the given process item and adds the information to the appropriate drive total.
 
   @precon  ProcessItem must be a vaild instance.
-  @postcon Processes the given process item and adds the information to the appropriate
-           drive total.
+  @postcon Processes the given process item and adds the information to the appropriate drive total.
 
-  @param   ProcessItem as a TProcessItem
+  @param   ProcessItem as a TProcessItem as a constant
 
 **)
-Procedure TDriveTotals.ProcessOp(ProcessItem: TProcessItem);
+Procedure TDriveTotals.ProcessOp(Const ProcessItem: TProcessItem);
 
 Var
   iFileRight, iFileLeft : Int64;
@@ -5033,6 +5025,8 @@ End;
   @precon  None.
   @postcon Returns the comparison between the item1 and item 2 drive names.
 
+  @nocheck MissingCONSTINParam
+
   @param   Item1 as a Pointer
   @param   Item2 as a Pointer
   @return  an Integer
@@ -5067,10 +5061,10 @@ End;
   @precon  None.
   @postcon The given integer is added to the collection if it does not already exist.
 
-  @param   iValue as an Integer
+  @param   iValue as an Integer as a constant
 
 **)
-Procedure TSortedIntegerList.Add(iValue: Integer);
+Procedure TSortedIntegerList.Add(Const iValue: Integer);
 
 Var
   iIndex : Integer;
@@ -5142,18 +5136,18 @@ End;
 
 (**
 
-  This method returns the index of the given integer in the colection if found else
-  returns the location where the integer should be inserted as a negative value.
+  This method returns the index of the given integer in the colection if found else returns the location 
+  where the integer should be inserted as a negative value.
 
   @precon  None.
-  @postcon Returns the index of the given integer in the colection if found else
-           returns the location where the integer should be inserted as a negative value.
+  @postcon Returns the index of the given integer in the colection if found else returns the location 
+           where the integer should be inserted as a negative value.
 
-  @param   iValue as an Integer
+  @param   iValue as an Integer as a constant
   @return  an Integer
 
 **)
-Function TSortedIntegerList.Find(iValue: Integer): Integer;
+Function TSortedIntegerList.Find(Const iValue: Integer): Integer;
 
 Var
   iFirst, iMid, iLast : Integer;
@@ -5200,11 +5194,11 @@ End;
   @precon  iIndex must be between 1 and Count.
   @postcon Returns the integer from the collection at the index.
 
-  @param   iIndex as an Integer
+  @param   iIndex as an Integer as a constant
   @return  an Integer
 
 **)
-Function TSortedIntegerList.GetValue(iIndex: Integer): Integer;
+Function TSortedIntegerList.GetValue(Const iIndex: Integer): Integer;
 
 Begin
   Result := FSortedIntegerList[iIndex];
@@ -5217,11 +5211,11 @@ End;
   @precon  None.
   @postcon Returns whether the given integer is in the collection.
 
-  @param   iValue as an Integer
+  @param   iValue as an Integer as a constant
   @return  a Boolean
 
 **)
-Function TSortedIntegerList.IsInList(iValue: Integer): Boolean;
+Function TSortedIntegerList.IsInList(Const iValue: Integer): Boolean;
 
 Begin
   Result := Find(iValue) > 0;
