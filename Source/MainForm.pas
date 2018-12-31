@@ -119,13 +119,12 @@ Type
     Procedure actToolsCompareUpdate(Sender: TObject);
     procedure actEditClearLogExecute(Sender: TObject);
     procedure actHelpContentsExecute(Sender: TObject);
-    procedure stbrStatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
+    procedure stbrStatusBarDrawPanel(Sender: TStatusBar; Panel: TStatusPanel;
       const Rect: TRect);
     procedure actEditFileOperationsUpdate(Sender: TObject);
     procedure actToolsConfigMemMonExecute(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure vstFileListFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure FormShow(Sender: TObject);
     procedure vstFileListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var CellText: string);
     procedure vstFileListGetImageIndexEx(Sender: TBaseVirtualTree; Node:
@@ -181,90 +180,90 @@ Type
     FConfirmDlgWidth : Integer;
     Procedure LoadSettings();
     Procedure SaveSettings();
-    Procedure UpgradeINIFolderOptions(iniMemFile : TMemIniFile);
+    Procedure UpgradeINIFolderOptions(Const iniMemFile : TMemIniFile);
     Procedure ApplicationHint(Sender: TObject);
-    Function GetImageIndex(ProcessItem : TProcessItem; strFileName: String): NativeInt;
+    Function GetImageIndex(Const strFileName: String): NativeInt;
     Procedure FixUpPanes;
     Procedure InsertListItem(Const iProcessItem : Integer; Const ProcessItem : TProcessItem);
     Procedure SetFileOperation(Const FileOp: TFileOp);
     Function CheckFolders: Boolean;
     Procedure ImageIndexes(Const ProcessItem : TProcessItem; Const NodeData : PFSFileListNode);
-    Procedure ExceptionProc(strExceptionMsg: String);
+    Procedure ExceptionProc(Const strExceptionMsg: String);
     Procedure CloseTimerEvent(Sender: TObject);
-    Procedure SearchStartProc(strFolder: String);
-    Procedure SearchProc(strFolder, strFileName: String; iCount: Integer;
-      Update : TUpdateType);
-    Procedure SearchEndProc(iFileCount: Integer; iTotalSize: int64);
-    Procedure CompareStartProc(strLeftFldr, strRightFldr: String);
-    Procedure CompareProc(strLeftFldr, strRightFldr, strFileName: String;
-      iPosition, iMaxItems: Integer);
+    Procedure SearchStartProc(Const strFolder: String);
+    Procedure SearchProc(Const strFolder, strFileName: String; Const iCount: Integer;
+      Const Update : TUpdateType);
+    Procedure SearchEndProc(Const iFileCount: Integer; Const iTotalSize: int64);
+    Procedure CompareStartProc(Const strLeftFldr, strRightFldr: String);
+    Procedure CompareProc(Const strLeftFldr, strRightFldr, strFileName: String;
+      Const iPosition, iMaxItems: Integer);
     Procedure CompareEndProc;
     Procedure MatchListStartProc;
-    Procedure MatchListProc(iPosition, iMaxItems: Integer);
+    Procedure MatchListProc(Const iPosition, iMaxItems: Integer);
     Procedure MatchListEndProc;
-    Procedure DeleteStartProc(iFileCount: Integer; iTotalSize: int64);
-    Procedure DeletingProc(iCurrentFileToDelete, iTotalFilesToDelete : Integer;
-      iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
-      strDeletePath, strFileNameToDelete: String);
-    Procedure DeletedProc(iCurrentFileToDeleted, iTotalFilesToDelete: Integer;
-      iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
-      iSuccess : TProcessSuccess);
-    Procedure DeleteQueryProc(strFilePath: String; DeleteFile : TFileRecord;
+    Procedure DeleteStartProc(Const iFileCount: Integer; Const iTotalSize: int64);
+    Procedure DeletingProc(Const iCurrentFileToDelete, iTotalFilesToDelete : Integer;
+      Const iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
+      Const strDeletePath, strFileNameToDelete: String);
+    Procedure DeletedProc(Const iCurrentFileToDeleted, iTotalFilesToDelete: Integer;
+      Const iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
+      Const iSuccess : TProcessSuccess);
+    Procedure DeleteQueryProc(Const strFilePath: String; Const DeleteFile : TFileRecord;
       Var Option: TFileAction);
-    Procedure DeleteReadOnlyQueryProc(strFilePath: String; DeleteFile : TFileRecord;
+    Procedure DeleteReadOnlyQueryProc(Const strFilePath: String; Const DeleteFile : TFileRecord;
       Var Option: TFileAction);
-    Procedure DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
-    Procedure CopyStartProc(iTotalCount: Integer; iTotalSize: int64);
-    Procedure CopyContentsProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
-      iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy, iCurrentFileCopiedSizeSoFar,
+    Procedure DeleteEndProc(Const iDeleted, iSkipped, iErrors: Integer);
+    Procedure CopyStartProc(Const iTotalCount: Integer; Const iTotalSize: int64);
+    Procedure CopyContentsProc(Const iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+      Const iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy, iCurrentFileCopiedSizeSoFar,
       iTotalCurrentFileSize: Int64);
-    Procedure CopyingProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
-      iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; strSource, strDest,
+    Procedure CopyingProc(Const iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+      Const iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; Const strSource, strDest,
       strFileName: String);
-    Procedure CopiedProc(iCurrentFileToCopy, iTotalFilesToCopy: Integer;
-      iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
-      iSuccess : TProcessSuccess);
-    Procedure CopyQueryProc(strSourcePath, strDestPath: String; SourceFile,
+    Procedure CopiedProc(Const iCurrentFileToCopy, iTotalFilesToCopy: Integer;
+      Const iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
+      Const iSuccess : TProcessSuccess);
+    Procedure CopyQueryProc(Const strSourcePath, strDestPath: String; Const SourceFile,
       DestFile : TFileRecord; Var Option: TFileAction);
-    Procedure CopyReadOnlyQueryProc(strSourcePath, strDestPath: String; SourceFile,
+    Procedure CopyReadOnlyQueryProc(Const strSourcePath, strDestPath: String; Const SourceFile,
       DestFile : TFileRecord;  Var Option: TFileAction);
-    Procedure CopyEndProc(iCopied, iSkipped, iError: Integer);
-    Procedure FileQuery(strMsg, strConsoleMsg, strSourcePath, strDestPath: String;
-      SourceFile, DestFile : TFileRecord; Var Option: TFileAction; boolReadOnly : Boolean);
-    Procedure DiffSizeStart(iFileCount : Integer);
-    Procedure DiffSize(iFile, iFileCount: Integer; strLPath, strRPath,
+    Procedure CopyEndProc(Const iCopied, iSkipped, iError: Integer);
+    Procedure FileQuery(Const strMsg, strConsoleMsg, strSourcePath, strDestPath: String;
+      Const SourceFile, DestFile : TFileRecord; Var Option: TFileAction; Const boolReadOnly : Boolean);
+    Procedure DiffSizeStart(Const iFileCount : Integer);
+    Procedure DiffSize(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
       strFileName: String);
     Procedure DiffSizeEnd();
-    Procedure NothingToDoStart(iFileCount : Integer);
-    Procedure NothingToDo(iFile, iFileCount: Integer; strLPath, strRPath,
-    strFileName: String);
+    Procedure NothingToDoStart(Const iFileCount : Integer);
+    Procedure NothingToDo(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
+      strFileName: String);
     Procedure NothingToDoEnd();
-    Procedure ExceedsSizeLimitStart(iFileCount : Integer);
-    Procedure ExceedsSizeLimit(iFile, iFileCount: Integer; strLPath, strRPath,
+    Procedure ExceedsSizeLimitStart(Const iFileCount : Integer);
+    Procedure ExceedsSizeLimit(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
       strFileName: String);
     Procedure ExceedsSizeLimitEnd();
-    Procedure ErrorMessageStart(iFileCount : Integer);
-    Procedure ErrorMessage(strErrorMsg : String);
+    Procedure ErrorMessageStart(Const iFileCount : Integer);
+    Procedure ErrorMessage(Const strErrorMsg : String);
     Procedure ErrorMessageEnd();
-    Procedure DeleteFoldersStart(iFolderCount : Integer);
-    Procedure DeleteFolders(iFolder, iFolders : Integer; strFolder : String);
+    Procedure DeleteFoldersStart(Const iFolderCount : Integer);
+    Procedure DeleteFolders(Const iFolder, iFolders : Integer; Const strFolder : String);
     Procedure DeleteFoldersEnd();
-    Procedure CopyError(strSource, strDest, strErrorMsg : String;
-      iLastError : Cardinal; var iResult : TDGHErrorResult);
-    Procedure DeleteError(strSource, strErrorMsg : String;
-      iLastError : Cardinal; var iResult : TDGHErrorResult);
-    Procedure UpdateTaskBar(ProgressType: TTaskbarProgressType; iPosition: Integer = 0;
-      iMaxPosition: Integer = 100);
-    Procedure UpdateProgress(iPosition, iMaxPosition: Integer);
+    Procedure CopyError(Const strSource, strDest, strErrorMsg : String;
+      Const iLastError : Cardinal; var iResult : TDGHErrorResult);
+    Procedure DeleteError(Const strSource, strErrorMsg : String;
+      Const iLastError : Cardinal; var iResult : TDGHErrorResult);
+    Procedure UpdateTaskBar(Const ProgressType: TTaskbarProgressType; Const iPosition: Integer = 0;
+      Const iMaxPosition: Integer = 100);
+    Procedure UpdateProgress(Const iPosition, iMaxPosition: Integer);
     Procedure StartTimerEvent(Sender: TObject);
-    Procedure OutputResult(strMsg: String = '');
-    Procedure OutputResultLn(strMsg: String = '');
+    Procedure OutputResult(Const strMsg: String = '');
+    Procedure OutputResultLn(Const strMsg: String = '');
     Procedure DisableActions;
-    Procedure EnableActions(boolSuccess: Boolean);
+    Procedure EnableActions(Const boolSuccess: Boolean);
     Procedure LogSize;
     Procedure OutputStats;
     Procedure MemoryPopupMenu(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
-    Procedure OutputFileNumber(iCurrentFile, iTotal : Integer);
+    Procedure OutputFileNumber(Const iCurrentFile, iTotal : Integer);
   End;
 
   (** This is a custon exception for folders not found or created. **)
@@ -335,16 +334,16 @@ Type
 
 (**
 
-  This method returns a string representation of a files attrivutes [RASH].
+  This method returns a string representation of a files attributes [RASH].
 
   @precon  None.
-  @postcon Returns a string representation of a files attrivutes [RASH].
+  @postcon Returns a string representation of a files attributes [RASH].
 
-  @param   iAttr as an Cardinal
+  @param   iAttr as a Cardinal as a constant
   @return  a String
 
 **)
-Function GetAttributeString(iAttr: Cardinal): String;
+Function GetAttributeString(Const iAttr: Cardinal): String;
 
 Begin
   Result := '....'; //: @todo Add full set of attributes
@@ -860,20 +859,20 @@ Function TfrmMainForm.CheckFolders: Boolean;
 
   (**
 
-    This is a local method to check and confirm the creation of a folder. It raises an 
-    exception if the folder could not be created. The drive of the folder mapping is
-    returned in the strDrive var parameter.
+    This is a local method to check and confirm the creation of a folder. It raises an exception if the 
+    folder could not be created. The drive of the folder mapping is returned in the strDrive var 
+    parameter.
 
     @precon  None.
-    @postcon Checks and confirms the creation of a folder. It raises an exception if the 
-             folder could not be created.
+    @postcon Checks and confirms the creation of a folder. It raises an exception if the folder could 
+             not be created.
 
-    @param   strFolder as a String
+    @param   strFolder as a String as a constant
     @param   strDrive  as a String as a reference
     @return  a Boolean
 
   **)
-  Function CheckAndCreateFolder(strFolder: String;  var strDrive : String) : Boolean;
+  Function CheckAndCreateFolder(Const strFolder: String;  var strDrive : String) : Boolean;
 
   Const
     strExcepMsg  = 'Could not create the folder "%s".';
@@ -917,10 +916,10 @@ Function TfrmMainForm.CheckFolders: Boolean;
     @precon  None.
     @postcon Disabled all folder pairs with the given drive mapping.
 
-    @param   strDrive as a String
+    @param   strDrive as a String as a constant
 
   **)
-  Procedure DisableDrive(strDrive : String);
+  Procedure DisableDrive(Const strDrive : String);
 
   Var
     i : Integer;
@@ -999,20 +998,19 @@ End;
   This is an on compare event handler for the sync module.
 
   @precon  None.
-  @postcon Updates the progress dialogue with the current progress through the comparison
-           process.
+  @postcon Updates the progress dialogue with the current progress through the comparison process.
 
   @nohint  strLeftFldr strRightFldr
 
-  @param   strLeftFldr  as a String
-  @param   strRightFldr as a String
-  @param   strFileName  as a String
-  @param   iPosition    as an Integer
-  @param   iMaxItems    as an Integer
+  @param   strLeftFldr  as a String as a constant
+  @param   strRightFldr as a String as a constant
+  @param   strFileName  as a String as a constant
+  @param   iPosition    as an Integer as a constant
+  @param   iMaxItems    as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.CompareProc(strLeftFldr, strRightFldr, strFileName: String;
-  iPosition, iMaxItems: Integer);
+Procedure TfrmMainForm.CompareProc(Const strLeftFldr, strRightFldr, strFileName: String;
+  Const iPosition, iMaxItems: Integer);
 
 Begin
   If iPosition Mod 10 = 0 Then
@@ -1028,11 +1026,11 @@ End;
   @precon  None.
   @postcon Increments the progress section and initialises the progress dialogue.
 
-  @param   strLeftFldr  as a String
-  @param   strRightFldr as a String
+  @param   strLeftFldr  as a String as a constant
+  @param   strRightFldr as a String as a constant
 
 **)
-Procedure TfrmMainForm.CompareStartProc(strLeftFldr, strRightFldr: String);
+Procedure TfrmMainForm.CompareStartProc(Const strLeftFldr, strRightFldr: String);
 
 Begin
   OutputResult(Format('Comparing: ', [strLeftFldr, strRightFldr]));
@@ -1049,16 +1047,16 @@ End;
 
   @nohint  iCurrentFileToCopy iTotalFilesToCopy
 
-  @param   iCurrentFileToCopy           as an Integer
-  @param   iTotalFilesToCopy            as an Integer
-  @param   iCumulativeFileSizeAfterCopy as an Int64
-  @param   iTotalFileSizeToCopy         as an Int64
-  @param   iSuccess                     as a TProcessSuccess
+  @param   iCurrentFileToCopy           as an Integer as a constant
+  @param   iTotalFilesToCopy            as an Integer as a constant
+  @param   iCumulativeFileSizeAfterCopy as an Int64 as a constant
+  @param   iTotalFileSizeToCopy         as an Int64 as a constant
+  @param   iSuccess                     as a TProcessSuccess as a constant
 
 **)
-Procedure TfrmMainForm.CopiedProc(iCurrentFileToCopy, iTotalFilesToCopy: Integer;
-    iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
-    iSuccess : TProcessSuccess);
+Procedure TfrmMainForm.CopiedProc(Const iCurrentFileToCopy, iTotalFilesToCopy: Integer;
+    Const iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
+    Const iSuccess : TProcessSuccess);
 
 Begin
   FCopyForm.IndividualProgress(0, 0 ,iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy);
@@ -1081,16 +1079,16 @@ End;
 
   @nohint  iCurrentFileToCopy iTotalFilesToCopy
 
-  @param   iCurrentFileToCopy            as an Integer
-  @param   iTotalFilesToCopy             as an Integer
-  @param   iCumulativeFileSizeBeforeCopy as an Int64
-  @param   iTotalFileSizeToCopy          as an Int64
-  @param   iCurrentFileCopiedSizeSoFar   as an Int64
-  @param   iTotalCurrentFileSize         as an Int64
+  @param   iCurrentFileToCopy            as an Integer as a constant
+  @param   iTotalFilesToCopy             as an Integer as a constant
+  @param   iCumulativeFileSizeBeforeCopy as an Int64 as a constant
+  @param   iTotalFileSizeToCopy          as an Int64 as a constant
+  @param   iCurrentFileCopiedSizeSoFar   as an Int64 as a constant
+  @param   iTotalCurrentFileSize         as an Int64 as a constant
 
 **)
-Procedure TfrmMainForm.CopyContentsProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
-    iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy, iCurrentFileCopiedSizeSoFar,
+Procedure TfrmMainForm.CopyContentsProc(Const iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+    Const iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy, iCurrentFileCopiedSizeSoFar,
     iTotalCurrentFileSize: Int64);
 
 Begin
@@ -1105,12 +1103,12 @@ End;
   @precon  None.
   @postcon Outputs the number of files copied, skipped, etc and frees the copy dialogue.
 
-  @param   iCopied  as an Integer
-  @param   iSkipped as an Integer
-  @param   iError   as an Integer
+  @param   iCopied  as an Integer as a constant
+  @param   iSkipped as an Integer as a constant
+  @param   iError   as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.CopyEndProc(iCopied, iSkipped, iError: Integer);
+Procedure TfrmMainForm.CopyEndProc(Const iCopied, iSkipped, iError: Integer);
 
 Begin
   OutputResult(Format('  Copied %1.0n (Skipped %1.0n file(s)',
@@ -1130,15 +1128,15 @@ End;
   @precon  None.
   @postcon Displays the error message on the screen and asks the user what to do.
 
-  @param   strSource   as a String
-  @param   strDest     as a String
-  @param   strErrorMsg as a String
-  @param   iLastError  as a Cardinal
+  @param   strSource   as a String as a constant
+  @param   strDest     as a String as a constant
+  @param   strErrorMsg as a String as a constant
+  @param   iLastError  as a Cardinal as a constant
   @param   iResult     as a TDGHErrorResult as a reference
 
 **)
-Procedure TfrmMainForm.CopyError(strSource, strDest, strErrorMsg: String;
-  iLastError: Cardinal; Var iResult: TDGHErrorResult);
+Procedure TfrmMainForm.CopyError(Const strSource, strDest, strErrorMsg: String;
+  Const iLastError: Cardinal; Var iResult: TDGHErrorResult);
 
 Begin
   UpdateTaskBar(ptError, 0, 1);
@@ -1177,17 +1175,17 @@ End;
 
   @nohint  iCumulativeFileSizeBeforeCopy iTotalFileSizeToCopy
 
-  @param   iCurrentFileToCopy            as an Integer
-  @param   iTotalFilesToCopy             as an Integer
-  @param   iCumulativeFileSizeBeforeCopy as an Int64
-  @param   iTotalFileSizeToCopy          as an Int64
-  @param   strSource                     as a String
-  @param   strDest                       as a String
-  @param   strFileName                   as a String
+  @param   iCurrentFileToCopy            as an Integer as a constant
+  @param   iTotalFilesToCopy             as an Integer as a constant
+  @param   iCumulativeFileSizeBeforeCopy as an Int64 as a constant
+  @param   iTotalFileSizeToCopy          as an Int64 as a constant
+  @param   strSource                     as a String as a constant
+  @param   strDest                       as a String as a constant
+  @param   strFileName                   as a String as a constant
 
 **)
-Procedure TfrmMainForm.CopyingProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
-    iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; strSource, strDest,
+Procedure TfrmMainForm.CopyingProc(Const iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+    Const iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; Const strSource, strDest,
     strFileName: String);
 
 Begin
@@ -1207,18 +1205,17 @@ End;
   This is an on copy query event handler for the sync module.
 
   @precon  None.
-  @postcon Displays a confirmation dialogue to the user to ask whether the file should be
-           overwritten.
+  @postcon Displays a confirmation dialogue to the user to ask whether the file should be overwritten.
 
-  @param   strSourcePath as a String
-  @param   strDestPath   as a String
-  @param   SourceFile    as a TFileRecord
-  @param   DestFile      as a TFileRecord
+  @param   strSourcePath as a String as a constant
+  @param   strDestPath   as a String as a constant
+  @param   SourceFile    as a TFileRecord as a constant
+  @param   DestFile      as a TFileRecord as a constant
   @param   Option        as a TFileAction as a reference
 
 **)
-Procedure TfrmMainForm.CopyQueryProc(strSourcePath, strDestPath: String;
-  SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
+Procedure TfrmMainForm.CopyQueryProc(Const strSourcePath, strDestPath: String;
+  Const SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
 
 Const
   strMsg = 'Are you sure you want to overwrite the following file?';
@@ -1234,18 +1231,18 @@ End;
   This is an on copy read only query event handler for the sync module.
 
   @precon  None.
-  @postcon Displays a confirmation dialogue to the user to ask whether the read only file
-           should be overwritten.
+  @postcon Displays a confirmation dialogue to the user to ask whether the read only file should be 
+           overwritten.
 
-  @param   strSourcePath as a String
-  @param   strDestPath   as a String
-  @param   SourceFile    as a TFileRecord
-  @param   DestFile      as a TFileRecord
+  @param   strSourcePath as a String as a constant
+  @param   strDestPath   as a String as a constant
+  @param   SourceFile    as a TFileRecord as a constant
+  @param   DestFile      as a TFileRecord as a constant
   @param   Option        as a TFileAction as a reference
 
 **)
-Procedure TfrmMainForm.CopyReadOnlyQueryProc(strSourcePath, strDestPath: String;
-  SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
+Procedure TfrmMainForm.CopyReadOnlyQueryProc(Const strSourcePath, strDestPath: String;
+  Const SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
 
 Const
   strMsg = 'Are you sure you want to overwrite the following READ-ONLY file?';
@@ -1263,11 +1260,11 @@ End;
   @precon  None.
   @postcon Initialises the copy progress dialogue.
 
-  @param   iTotalCount as an Integer
-  @param   iTotalSize  as an int64
+  @param   iTotalCount as an Integer as a constant
+  @param   iTotalSize  as an int64 as a constant
 
 **)
-Procedure TfrmMainForm.CopyStartProc(iTotalCount: Integer; iTotalSize: int64);
+Procedure TfrmMainForm.CopyStartProc(Const iTotalCount: Integer; Const iTotalSize: int64);
 
 Begin
   FTotalSize := iTotalSize;
@@ -1289,18 +1286,18 @@ End;
   @precon  None.
   @postcon Updates the progress dialogue is successful or outputs an error message.
 
-  @nohint  iCurrentFileToDeleted iTotalFilesToDelete 
+  @nohint  iCurrentFileToDeleted iTotalFilesToDelete
 
-  @param   iCurrentFileToDeleted          as an Integer
-  @param   iTotalFilesToDelete            as an Integer
-  @param   iCumulativeFileSizeAfterDelete as an Int64
-  @param   iTotalFileSizeToDelete         as an Int64
-  @param   iSuccess                       as a TProcessSuccess
+  @param   iCurrentFileToDeleted          as an Integer as a constant
+  @param   iTotalFilesToDelete            as an Integer as a constant
+  @param   iCumulativeFileSizeAfterDelete as an Int64 as a constant
+  @param   iTotalFileSizeToDelete         as an Int64 as a constant
+  @param   iSuccess                       as a TProcessSuccess as a constant
 
 **)
-Procedure TfrmMainForm.DeletedProc(iCurrentFileToDeleted, iTotalFilesToDelete: Integer;
-    iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
-    iSuccess : TProcessSuccess);
+Procedure TfrmMainForm.DeletedProc(Const iCurrentFileToDeleted, iTotalFilesToDelete: Integer;
+    Const iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
+    Const iSuccess : TProcessSuccess);
 
 Begin
   FDeleteForm.Progress(iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete);
@@ -1321,12 +1318,12 @@ End;
   @precon  None.
   @postcon Frees the deletion progress form.
 
-  @param   iDeleted as an Integer
-  @param   iSkipped as an Integer
-  @param   iErrors  as an Integer
+  @param   iDeleted as an Integer as a constant
+  @param   iSkipped as an Integer as a constant
+  @param   iErrors  as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
+Procedure TfrmMainForm.DeleteEndProc(Const iDeleted, iSkipped, iErrors: Integer);
 
 Begin
   OutputResult(Format('  Deleted %1.0n file(s) (Skipped %1.0n file(s)', [Int(iDeleted),
@@ -1346,13 +1343,13 @@ End;
   @precon  None.
   @postcon Displays the error message on the screen and asks the user what to do.
 
-  @param   strSource   as a String
-  @param   strErrorMsg as a String
-  @param   iLastError  as a Cardinal
+  @param   strSource   as a String as a constant
+  @param   strErrorMsg as a String as a constant
+  @param   iLastError  as a Cardinal as a constant
   @param   iResult     as a TDGHErrorResult as a reference
 
 **)
-Procedure TfrmMainForm.DeleteError(strSource, strErrorMsg: String; iLastError: Cardinal;
+Procedure TfrmMainForm.DeleteError(Const strSource, strErrorMsg: String; Const iLastError: Cardinal;
   Var iResult: TDGHErrorResult);
 
 Begin
@@ -1389,12 +1386,12 @@ End;
   @precon  None.
   @postcon Outputs the folder to be deleted to the log and updates the progress.
 
-  @param   iFolder   as an Integer
-  @param   iFolders  as an Integer
-  @param   strFolder as a String
+  @param   iFolder   as an Integer as a constant
+  @param   iFolders  as an Integer as a constant
+  @param   strFolder as a String as a constant
 
 **)
-Procedure TfrmMainForm.DeleteFolders(iFolder, iFolders : Integer; strFolder: String);
+Procedure TfrmMainForm.DeleteFolders(Const iFolder, iFolders : Integer; Const strFolder: String);
 
 Begin
   FDeleteForm.InitialiseFileName(dtFiles, iFolder, iFolders, strFolder);
@@ -1424,13 +1421,12 @@ End;
   This is an on delete folders start event handler.
 
   @precon  None.
-  @postcon Outputs the number of folders to be deleted to the log and initialises the
-           delete form.
+  @postcon Outputs the number of folders to be deleted to the log and initialises the delete form.
 
-  @param   iFolderCount as an Integer
+  @param   iFolderCount as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.DeleteFoldersStart(iFolderCount: Integer);
+Procedure TfrmMainForm.DeleteFoldersStart(Const iFolderCount: Integer);
 
 Begin
   If iFolderCount > 0 Then
@@ -1448,15 +1444,14 @@ End;
   This method is an on delete query event handler for the sync module.
 
   @precon  None.
-  @postcon Displays a confirmation dialogue to the user asking whether the file should be
-           deleted.
+  @postcon Displays a confirmation dialogue to the user asking whether the file should be deleted.
 
-  @param   strFilePath as a String
-  @param   DeleteFile  as a TFileRecord
+  @param   strFilePath as a String as a constant
+  @param   DeleteFile  as a TFileRecord as a constant
   @param   Option      as a TFileAction as a reference
 
 **)
-Procedure TfrmMainForm.DeleteQueryProc(strFilePath: String; DeleteFile : TFileRecord;
+Procedure TfrmMainForm.DeleteQueryProc(Const strFilePath: String; Const DeleteFile : TFileRecord;
   Var Option: TFileAction);
 
 Const
@@ -1472,16 +1467,16 @@ End;
   This method is an on delete readonly query event handler for the sync module.
 
   @precon  None.
-  @postcon Displays a confirmation dialogue to the user asking whether the read only file
-           should be deleted.
+  @postcon Displays a confirmation dialogue to the user asking whether the read only file should be 
+           deleted.
 
-  @param   strFilePath as a String
-  @param   DeleteFile  as a TFileRecord
+  @param   strFilePath as a String as a constant
+  @param   DeleteFile  as a TFileRecord as a constant
   @param   Option      as a TFileAction as a reference
 
 **)
-Procedure TfrmMainForm.DeleteReadOnlyQueryProc(strFilePath: String;
-  DeleteFile : TFileRecord; Var Option: TFileAction);
+Procedure TfrmMainForm.DeleteReadOnlyQueryProc(Const strFilePath: String;
+  Const DeleteFile : TFileRecord; Var Option: TFileAction);
 
 Const
   strMsg = 'Are you sure you want to delete the READ-ONLY file?';
@@ -1498,11 +1493,11 @@ End;
   @precon  None.
   @postcon Creates an instance of the deletion progress form.
 
-  @param   iFileCount as an Integer
-  @param   iTotalSize as an Int64
+  @param   iFileCount as an Integer as a constant
+  @param   iTotalSize as an int64 as a constant
 
 **)
-Procedure TfrmMainForm.DeleteStartProc(iFileCount: Integer; iTotalSize: int64);
+Procedure TfrmMainForm.DeleteStartProc(Const iFileCount: Integer; Const iTotalSize: int64);
 
 Begin
   FTotalSize := iTotalSize;
@@ -1526,17 +1521,17 @@ End;
 
   @nohint  iCumulativeFileSizeBeforeDelete iTotalFileSizeToDelete
 
-  @param   iCurrentFileToDelete            as an Integer
-  @param   iTotalFilesToDelete             as an Integer
-  @param   iCumulativeFileSizeBeforeDelete as an Int64
-  @param   iTotalFileSizeToDelete          as an Int64
-  @param   strDeletePath                   as a String
-  @param   strFileNameToDelete             as a String
+  @param   iCurrentFileToDelete            as an Integer as a constant
+  @param   iTotalFilesToDelete             as an Integer as a constant
+  @param   iCumulativeFileSizeBeforeDelete as an Int64 as a constant
+  @param   iTotalFileSizeToDelete          as an Int64 as a constant
+  @param   strDeletePath                   as a String as a constant
+  @param   strFileNameToDelete             as a String as a constant
 
 **)
-Procedure TfrmMainForm.DeletingProc(iCurrentFileToDelete, iTotalFilesToDelete : Integer;
-    iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
-    strDeletePath, strFileNameToDelete: String);
+Procedure TfrmMainForm.DeletingProc(Const iCurrentFileToDelete, iTotalFilesToDelete : Integer;
+    Const iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
+    Const strDeletePath, strFileNameToDelete: String);
 
 Begin
   FDeleteForm.InitialiseFileName(dtFiles, iCurrentFileToDelete, iTotalFilesToDelete,
@@ -1550,17 +1545,16 @@ End;
   This is an on diff size event handler for the sync module.
 
   @precon  None.
-  @postcon Outputs the name of the files that have a difference size but the same date
-           and time.
+  @postcon Outputs the name of the files that have a difference size but the same date and time.
 
-  @param   iFile       as an Integer
-  @param   iFileCount  as an Integer
-  @param   strLPath    as a String
-  @param   strRPath    as a String
-  @param   strFileName as a String
+  @param   iFile       as an Integer as a constant
+  @param   iFileCount  as an Integer as a constant
+  @param   strLPath    as a String as a constant
+  @param   strRPath    as a String as a constant
+  @param   strFileName as a String as a constant
 
 **)
-procedure TfrmMainForm.DiffSize(iFile, iFileCount: Integer; strLPath, strRPath,
+procedure TfrmMainForm.DiffSize(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
     strFileName: String);
 
 begin
@@ -1590,10 +1584,10 @@ end;
   @precon  None.
   @postcon Displays a header is there are files to output.
 
-  @param   iFileCount as an Integer
+  @param   iFileCount as an Integer as a constant
 
 **)
-procedure TfrmMainForm.DiffSizeStart(iFileCount: Integer);
+procedure TfrmMainForm.DiffSizeStart(Const iFileCount: Integer);
 
 begin
   If iFileCount > 0 Then
@@ -1626,10 +1620,10 @@ End;
   @precon  None.
   @postcon All actions are enabled.
 
-  @param   boolSuccess as a Boolean
+  @param   boolSuccess as a Boolean as a constant
 
 **)
-Procedure TfrmMainForm.EnableActions(boolSuccess: Boolean);
+Procedure TfrmMainForm.EnableActions(Const boolSuccess: Boolean);
 
 Var
   i: Integer;
@@ -1649,16 +1643,16 @@ End;
 
 (**
 
-  This is an on error message event handler for outputting error message from the deleting
-  ans copying process.
+  This is an on error message event handler for outputting error message from the deleting ans copying 
+  process.
 
   @precon  None.
   @postcon Outputs an error message to the log file.
 
-  @param   strErrorMsg as a String
+  @param   strErrorMsg as a String as a constant
 
 **)
-Procedure TfrmMainForm.ErrorMessage(strErrorMsg : String);
+Procedure TfrmMainForm.ErrorMessage(Const strErrorMsg : String);
 
 Begin
   OutputResultLn(Format('  %s', [strErrorMsg]));
@@ -1682,16 +1676,16 @@ End;
 
 (**
 
-  This is an on error message start event handler for the outputting of error messages
-  from the deleting and copyin processes.
+  This is an on error message start event handler for the outputting of error messages from the deleting 
+  and copyin processes.
 
   @precon  None.
   @postcon Ouputs an error message header to the log file if there are errors to output.
 
-  @param   iFileCount as an Integer
+  @param   iFileCount as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.ErrorMessageStart(iFileCount: Integer);
+Procedure TfrmMainForm.ErrorMessageStart(Const iFileCount: Integer);
 
 Begin
   If iFileCount > 0 Then
@@ -1705,14 +1699,14 @@ End;
   @precon  None.
   @postcon Outputs the given file to the log.
 
-  @param   iFile       as an Integer
-  @param   iFileCount  as an Integer
-  @param   strLPath    as a String
-  @param   strRPath    as a String
-  @param   strFileName as a String
+  @param   iFile       as an Integer as a constant
+  @param   iFileCount  as an Integer as a constant
+  @param   strLPath    as a String as a constant
+  @param   strRPath    as a String as a constant
+  @param   strFileName as a String as a constant
 
 **)
-Procedure TfrmMainForm.ExceedsSizeLimit(iFile, iFileCount: Integer; strLPath, strRPath,
+Procedure TfrmMainForm.ExceedsSizeLimit(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
     strFileName: String);
 
 Begin
@@ -1742,10 +1736,10 @@ End;
   @precon  None.
   @postcon Outputs a header for the list of over sizeed files in the log.
 
-  @param   iFileCount as an Integer
+  @param   iFileCount as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.ExceedsSizeLimitStart(iFileCount: Integer);
+Procedure TfrmMainForm.ExceedsSizeLimitStart(Const iFileCount: Integer);
 
 Begin
   If iFileCount > 0 Then
@@ -1759,10 +1753,10 @@ End;
   @precon  None.
   @postcon Displays the exception message in a dialogue.
 
-  @param   strExceptionMsg as a String
+  @param   strExceptionMsg as a String as a constant
 
 **)
-Procedure TfrmMainForm.ExceptionProc(strExceptionMsg: String);
+Procedure TfrmMainForm.ExceptionProc(Const strExceptionMsg: String);
 
 Begin
   MessageDlg(strExceptionMsg, mtError, [mbOK], 0);
@@ -1770,26 +1764,25 @@ End;
 
 (**
 
-  This method displays a dialogue asking the user to confirm the file action they wish to 
-  take based on the message displayed. The answer to the dialogue is returned to the sync 
-  module.
+  This method displays a dialogue asking the user to confirm the file action they wish to take based on 
+  the message displayed. The answer to the dialogue is returned to the sync module.
 
   @precon  None.
   @postcon The users response to the query is passed back to the sync module.
 
-  @param   strMsg        as a String
-  @param   strConsoleMsg as a String
-  @param   strSourcePath as a String
-  @param   strDestPath   as a String
-  @param   SourceFile    as a TFileRecord
-  @param   DestFile      as a TFileRecord
+  @param   strMsg        as a String as a constant
+  @param   strConsoleMsg as a String as a constant
+  @param   strSourcePath as a String as a constant
+  @param   strDestPath   as a String as a constant
+  @param   SourceFile    as a TFileRecord as a constant
+  @param   DestFile      as a TFileRecord as a constant
   @param   Option        as a TFileAction as a reference
-  @param   boolReadOnly  as a Boolean
+  @param   boolReadOnly  as a Boolean as a constant
 
 **)
-Procedure TfrmMainForm.FileQuery(strMsg, strConsoleMsg, strSourcePath,
-  strDestPath: String; SourceFile, DestFile : TFileRecord; Var Option: TFileAction;
-  boolReadOnly : Boolean);
+Procedure TfrmMainForm.FileQuery(Const strMsg, strConsoleMsg, strSourcePath,
+  strDestPath: String; Const SourceFile, DestFile : TFileRecord; Var Option: TFileAction;
+  Const boolReadOnly : Boolean);
 
 Begin
   If (Not (Option In [faYesToAll, faNoToAll])     And Not boolReadOnly) Or
@@ -1906,9 +1899,9 @@ Begin
   DGHMemoryMonitor.LowPoint       := 80;
   DGHMemoryMonitor.UpdateInterval := 500;
   FRootKey                        := BuildRootKey(FParams, ExceptionProc);
-  FFolders                       := TFolders.Create;
-  FProgressForm                  := TfrmProgress.Create(Self);
-  FProgressForm.OnUpdateProgress := UpdateProgress;
+  FFolders                        := TFolders.Create;
+  FProgressForm                   := TfrmProgress.Create(Self);
+  FProgressForm.OnUpdateProgress  := UpdateProgress;
   Application.HelpFile := ExtractFilePath(ParamStr(0)) + 'FldrSync.chm';
   LoadSettings();
   actHelpCheckForUpdatesExecute(Nil);
@@ -1979,6 +1972,7 @@ Begin
   actEditDelete.Tag := Integer(foDelete);
   actEditDoNothing.Tag := Integer(foNothing);
   DGHMemoryMonitor.OnContextPopup := MemoryPopupMenu;
+  FStartTimer.Enabled := True;
 End;
 
 (**
@@ -2037,35 +2031,18 @@ End;
 
 (**
 
-  This is an on show event handler for the form.
+  This method retrieves from the system the icon for the specified file, places it in a list and returns 
+  the index of the index in the list.
 
   @precon  None.
-  @postcon Starts the start time.
+  @postcon Retrieves from the system the icon for the specified file, places it in a list and returns 
+           the index of the index in the list
 
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.FormShow(Sender: TObject);
-
-Begin
-  FStartTimer.Enabled := True;
-End;
-
-(**
-
-  This method retrieves from the system the icon for the specified file, places it in a 
-  list and returns the index of the index in the list.
-
-  @precon  None.
-  @postcon Retrieves from the system the icon for the specified file, places it in a list
-           and returns the index of the index in the list
-
-  @param   ProcessItem as a TProcessItem
-  @param   strFileName as a String
+  @param   strFileName as a String as a constant
   @return  a NativeInt
 
 **)
-Function TfrmMainForm.GetImageIndex(ProcessItem : TProcessItem; strFileName: String): NativeInt;
+Function TfrmMainForm.GetImageIndex(Const strFileName: String): NativeInt;
 
 Var
   strExt        : String;
@@ -2826,11 +2803,11 @@ End;
   @precon  None.
   @postcon Updates the progress dialogue with the progress through the matching process.
 
-  @param   iPosition as an Integer
-  @param   iMaxItems as an Integer
+  @param   iPosition as an Integer as a constant
+  @param   iMaxItems as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.MatchListProc(iPosition, iMaxItems: Integer);
+Procedure TfrmMainForm.MatchListProc(Const iPosition, iMaxItems: Integer);
 
 Begin
   If iPosition Mod 10 = 0 Then
@@ -2878,17 +2855,16 @@ End;
   This is an on Nothing To Do event handler for the sync module.
 
   @precon  None.
-  @postcon Outputs the name of the files that have a difference size but the same date
-           and time.
+  @postcon Outputs the name of the files that have a difference size but the same date and time.
 
-  @param   iFile       as an Integer
-  @param   iFileCount  as an Integer
-  @param   strLPath    as a String
-  @param   strRPath    as a String
-  @param   strFileName as a String
+  @param   iFile       as an Integer as a constant
+  @param   iFileCount  as an Integer as a constant
+  @param   strLPath    as a String as a constant
+  @param   strRPath    as a String as a constant
+  @param   strFileName as a String as a constant
 
 **)
-procedure TfrmMainForm.NothingToDo(iFile, iFileCount: Integer; strLPath, strRPath,
+procedure TfrmMainForm.NothingToDo(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
     strFileName: String);
 
 begin
@@ -2918,10 +2894,10 @@ End;
   @precon  None.
   @postcon Displays a header is there are files to output.
 
-  @param   iFileCount as an Integer
+  @param   iFileCount as an Integer as a constant
 
 **)
-procedure TfrmMainForm.NothingToDoStart(iFileCount: Integer);
+procedure TfrmMainForm.NothingToDoStart(Const iFileCount: Integer);
 
 begin
   If iFileCount > 0 Then
@@ -2936,11 +2912,11 @@ end;
   @precon  None.
   @postcon Outputs the file number and the total number of files to the output window.
 
-  @param   iCurrentFile as an Integer
-  @param   iTotal       as an Integer
+  @param   iCurrentFile as an Integer as a constant
+  @param   iTotal       as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.OutputFileNumber(iCurrentFile, iTotal : Integer);
+Procedure TfrmMainForm.OutputFileNumber(Const iCurrentFile, iTotal : Integer);
 
 Var
   strTotal : String;
@@ -2955,16 +2931,16 @@ End;
 
 (**
 
-  This method outputs the given message to the output window with the optional colour but
-  without a line feed and carraige return.
+  This method outputs the given message to the output window with the optional colour but without a line 
+  feed and carraige return.
 
   @precon  None.
   @postcon The messages is output to the end of output window.
 
-  @param   strMsg     as a String
+  @param   strMsg as a String as a constant
 
 **)
-Procedure TfrmMainForm.OutputResult(strMsg: String = '');
+Procedure TfrmMainForm.OutputResult(Const strMsg: String = '');
 
 Begin
   redtOutputResults.SelLength           := 0;
@@ -2975,16 +2951,16 @@ End;
 
 (**
 
-  This method outputs the given message to the output window with the optional colour but
-  WITH a line feed and carraige return.
+  This method outputs the given message to the output window with the optional colour but WITH a line 
+  feed and carraige return.
 
   @precon  None.
   @postcon The messages is output to the end of output window.
 
-  @param   strMsg     as a String
+  @param   strMsg as a String as a constant
 
 **)
-Procedure TfrmMainForm.OutputResultLn(strMsg: String = '');
+Procedure TfrmMainForm.OutputResultLn(Const strMsg: String = '');
 
 Begin
   OutputResult(strMsg + #13#10);
@@ -3147,11 +3123,11 @@ End;
   @precon  None.
   @postcon Outputs the results of the search.
 
-  @param   iFileCount as an Integer
-  @param   iTotalSize as an int64
+  @param   iFileCount as an Integer as a constant
+  @param   iTotalSize as an int64 as a constant
 
 **)
-Procedure TfrmMainForm.SearchEndProc(iFileCount: Integer; iTotalSize: int64);
+Procedure TfrmMainForm.SearchEndProc(Const iFileCount: Integer; Const iTotalSize: int64);
 
 Begin
   FProgressForm.Progress(FProgressSection, 1, ' Done!', '');
@@ -3164,17 +3140,17 @@ End;
   This is an on search event handler for the sync module.
 
   @precon  None.
-  @postcon Updates the progress dialogue with the current number of files found and the 
-           current folder and filename being searched.
+  @postcon Updates the progress dialogue with the current number of files found and the current folder 
+           and filename being searched.
 
-  @param   strFolder   as a String
-  @param   strFileName as a String
-  @param   iCount      as an Integer
-  @param   Update      as a TUpdateType
+  @param   strFolder   as a String as a constant
+  @param   strFileName as a String as a constant
+  @param   iCount      as an Integer as a constant
+  @param   Update      as a TUpdateType as a constant
 
 **)
-Procedure TfrmMainForm.SearchProc(strFolder, strFileName: String; iCount: Integer;
-  Update : TUpdateType);
+Procedure TfrmMainForm.SearchProc(Const strFolder, strFileName: String; Const iCount: Integer;
+  Const Update : TUpdateType);
 
 Begin
   If strFolder = FLastFolder Then
@@ -3193,10 +3169,10 @@ End;
   @precon  None.
   @postcon Increments the progress section and initialises the progress bar.
 
-  @param   strFolder as a String
+  @param   strFolder as a String as a constant
 
 **)
-Procedure TfrmMainForm.SearchStartProc(strFolder: String);
+Procedure TfrmMainForm.SearchStartProc(Const strFolder: String);
 
 Begin
   OutputResult(Format('Searching: %s', [strFolder]));
@@ -3265,12 +3241,12 @@ End;
   @precon  None.
   @postcon Renders the Panels with bold text for the title and the rest as panel text.
 
-  @param   StatusBar as a TStatusBar
-  @param   Panel     as a TStatusPanel
-  @param   Rect      as a TRect as a constant
+  @param   Sender as a TStatusBar
+  @param   Panel  as a TStatusPanel
+  @param   Rect   as a TRect as a constant
 
 **)
-Procedure TfrmMainForm.stbrStatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
+Procedure TfrmMainForm.stbrStatusBarDrawPanel(Sender: TStatusBar; Panel: TStatusPanel;
   Const Rect: TRect);
 
 Var
@@ -3282,15 +3258,15 @@ Begin
   iPos := Pos(':', Panel.Text);
   strText := Copy(Panel.Text, 1, iPos);
   R := Rect;
-  StatusBar.Canvas.FillRect(R);
+  Sender.Canvas.FillRect(R);
   Inc(R.Left, 4);
-  StatusBar.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);
-  StatusBar.Canvas.Font.Style := [fsBold];
-  StatusBar.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
-  Inc(R.Left, StatusBar.Canvas.TextWidth(strText) + 2);
-  StatusBar.Canvas.Font.Style := [];
+  Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);
+  Sender.Canvas.Font.Style := [fsBold];
+  Sender.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
+  Inc(R.Left, Sender.Canvas.TextWidth(strText) + 2);
+  Sender.Canvas.Font.Style := [];
   strText := Copy(Panel.Text, iPos + 1, Length(Panel.Text) - iPos);
-  StatusBar.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
+  Sender.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
 End;
 
 (**
@@ -3300,11 +3276,11 @@ End;
   @precon  None.
   @postcon Updates the applications task bar with the current progress position.
 
-  @param   iPosition    as an Integer
-  @param   iMaxPosition as an Integer
+  @param   iPosition    as an Integer as a constant
+  @param   iMaxPosition as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.UpdateProgress(iPosition, iMaxPosition: Integer);
+Procedure TfrmMainForm.UpdateProgress(Const iPosition, iMaxPosition: Integer);
 
 Begin
   UpdateTaskBar(ptNormal, iPosition, iMaxPosition);
@@ -3312,19 +3288,19 @@ End;
 
 (**
 
-  This method updates the windows taskbar progress in windows 7 and above. The progress
-  of the bar is only updated IF the progress type is normal.
+  This method updates the windows taskbar progress in windows 7 and above. The progress of the bar is 
+  only updated IF the progress type is normal.
 
   @precon  None.
   @postcon The progress bar on the applications taskbar is updated.
 
-  @param   ProgressType as a TTaskbarProgressType
-  @param   iPosition    as an Integer
-  @param   iMaxPosition as an Integer
+  @param   ProgressType as a TTaskbarProgressType as a constant
+  @param   iPosition    as an Integer as a constant
+  @param   iMaxPosition as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.UpdateTaskBar(ProgressType: TTaskbarProgressType;
-  iPosition: Integer = 0; iMaxPosition: Integer = 100);
+Procedure TfrmMainForm.UpdateTaskBar(Const ProgressType: TTaskbarProgressType;
+  Const iPosition: Integer = 0; Const iMaxPosition: Integer = 100);
 
 Const
   ProgressTypeValues: Array [Low(TTaskbarProgressType) .. High(TTaskbarProgressType)
@@ -3342,17 +3318,15 @@ End;
 
 (**
 
-  This method upgrades the old limited Folder options in the INI file to more flexible 
-  options.
+  This method upgrades the old limited Folder options in the INI file to more flexible options.
 
   @precon  iniMemFile must be a valid instance.
-  @postcon Upgrades the old limited Folder options in the INI file to more flexible 
-           options.
+  @postcon Upgrades the old limited Folder options in the INI file to more flexible options.
 
-  @param   iniMemFile as a TMemIniFile
+  @param   iniMemFile as a TMemIniFile as a constant
 
 **)
-Procedure TfrmMainForm.UpgradeINIFolderOptions(iniMemFile: TMemIniFile);
+Procedure TfrmMainForm.UpgradeINIFolderOptions(Const iniMemFile: TMemIniFile);
 
 Var
   sl : TStringList;

@@ -194,7 +194,7 @@ Type
   (** An event signature for the end of the copying of an individual file. **)
   TCopiedNotifier = Procedure(Const iCurrentFileToCopy, iTotalFilesToCopy: Integer;
     Const iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
-    iSuccess : TProcessSuccess) Of Object;
+    Const iSuccess : TProcessSuccess) Of Object;
   (** An event signature to prompt for the overwriting of a file. **)
   TCopyQueryNotifier = Procedure(Const strSrcPath, strDestPath : String; Const SourceFile,
     DestFile: TFileRecord; Var Option: TFileAction) Of Object;

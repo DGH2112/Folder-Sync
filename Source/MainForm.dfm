@@ -44,7 +44,6 @@ object frmMainForm: TfrmMainForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
-  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 16
   object stbrStatusBar: TStatusBar

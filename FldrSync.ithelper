@@ -11,7 +11,7 @@ CompileWithBRCC32=0
 MajorVer=2
 MinorVer=0
 ReleaseVer=0
-BuildVer=1769
+BuildVer=1777
 ResourceName=ITHelperVersionInfoGUI
 
 [Zipping]
@@ -27,7 +27,7 @@ Item1={$PROJDRIVE$}\HoylD\Borland Studio Projects\Applications\Folder Sync\HTML 
 [VersionInfo]
 CompanyName=Season's Fall Music Limited (c) 1989
 FileDescription=A GUI application to synchronise files in folders.
-FileVersion=2.0.0.1769
+FileVersion=2.0.0.1777
 InternalName=FldrSync
 LegalCopyright=Season's Fall Music Limited (c) 1989
 LegalTrademarks=Season's Fall Music Limited (c) 1989
