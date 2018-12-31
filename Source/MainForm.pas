@@ -129,6 +129,8 @@ Type
     procedure FormShow(Sender: TObject);
     procedure vstFileListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var CellText: string);
+    procedure vstFileListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
+      Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
   Strict Private
     Type
       (** A record to describe the data stored in the File List nodes of the VTV control. **)
@@ -268,6 +270,7 @@ Type
   (** This is a custon exception for folders not found or created. **)
   TFolderNotFoundException = Class(Exception);
 
+  (** An enumerate to define the Virtual string tree fields of data. **)
   TFSVTVFields = (
     vfState,
     vfLeftFileName,
@@ -283,28 +286,6 @@ Type
 ResourceString
     (** A resource string for the Update Software ID **)
   strSoftwareID = 'FldrSync';
-
-Const
-    (** Constant to represent the Left File Name position in the list view **)
-  iLDisplayCol = 1;
-    (** Constant to represent the Left File Attributes position in the list view **)
-  iLAttrCol = 2;
-    (** Constant to represent the Left File Size position in the list view **)
-  iLSizeCol = 3;
-    (** Constant to represent the Left File Date position in the list view **)
-  iLDateCol = 4;
-    (** Constant to represent the Right File Name position in the list view **)
-  iRDisplayCol = 5;
-    (** Constant to represent the Right File Attributes position in the list view **)
-  iRAttrCol = 6;
-    (** Constant to represent the Right File Size position in the list view **)
-  iRSizeCol = 7;
-    (** Constant to represent the Right File Date position in the list view **)
-  iRDateCol = 8;
-    (** Constant to represent the Left Folder position in the list view **)
-  iLFullFileNameCol = 9;
-    (** Constant to represent the Right Folder position in the list view **)
-  iRFullFileNameCol = 10;
 
 Var
     (** A global variable used by Delphis auto create form process. **)
@@ -354,6 +335,31 @@ Type
 
 (**
 
+  This method returns a string representation of a files attrivutes [RASH].
+
+  @precon  None.
+  @postcon Returns a string representation of a files attrivutes [RASH].
+
+  @param   iAttr as an Cardinal
+  @return  a String
+
+**)
+Function GetAttributeString(iAttr: Cardinal): String;
+
+Begin
+  Result := '....'; //: @todo Add full set of attributes
+  If iAttr And faReadOnly > 0 Then
+    Result[1] := 'R';
+  If iAttr And faArchive > 0 Then
+    Result[2] := 'A';
+  If iAttr And faSysFile > 0 Then
+    Result[3] := 'S';
+  If iAttr And faHidden > 0 Then
+    Result[4] := 'H';
+End;
+
+(**
+
   This method is an Action List Execute method.
 
   @precon  None.
@@ -388,17 +394,27 @@ Begin
   H := vstFileList.Header;
   i := vstFileList.ClientWidth Div 2
      - H.Columns[0].Width Div 2
-     - H.Columns[iLAttrCol].Width
-     - H.Columns[iLSizeCol].Width
-     - H.Columns[iLDateCol].Width
+     - H.Columns[Integer(vfLeftAttr)].Width
+     - H.Columns[Integer(vfLeftSize)].Width
+     - H.Columns[Integer(vfLeftDate)].Width
      - 2;
   If i > 0 Then
     Begin
-      H.Columns[iLDisplayCol].Width := i;
-      H.Columns[iRDisplayCol].Width := i;
+      H.Columns[Integer(vfLeftFileName)].Width := i;
+      H.Columns[Integer(vfRightFilename)].Width := i;
     End;
 End;
 
+(**
+
+  This is an on show event handler for the form.
+
+  @precon  None.
+  @postcon Starts the start time.
+
+  @param   Sender as a TObject
+
+**)
 Procedure TfrmMainForm.FormShow(Sender: TObject);
 
 Begin
@@ -438,12 +454,12 @@ Begin
     Left := iniMemFile.ReadInteger('Setup', 'Left', 100);
     Height := iniMemFile.ReadInteger('Setup', 'Height', 300);
     Width := iniMemFile.ReadInteger('Setup', 'Width', 450);
-    vstFileList.Header.Columns[iLAttrCol].Width := iniMemFile.ReadInteger('ColumnWidths', 'LAttr', 50);
-    vstFileList.Header.Columns[iLSizeCol].Width := iniMemFile.ReadInteger('ColumnWidths', 'LSize', 85);
-    vstFileList.Header.Columns[iLDateCol].Width := iniMemFile.ReadInteger('ColumnWidths', 'LDAte', 150);
-    vstFileList.Header.Columns[iRAttrCol].Width := iniMemFile.ReadInteger('ColumnWidths', 'RAttr', 50);
-    vstFileList.Header.Columns[iRSizeCol].Width := iniMemFile.ReadInteger('ColumnWidths', 'RSize', 85);
-    vstFileList.Header.Columns[iRDateCol].Width := iniMemFile.ReadInteger('ColumnWidths', 'RDate', 150);
+    vstFileList.Header.Columns[Integer(vfLeftAttr)].Width := iniMemFile.ReadInteger('ColumnWidths', 'LAttr', 50);
+    vstFileList.Header.Columns[Integer(vfLeftSize)].Width := iniMemFile.ReadInteger('ColumnWidths', 'LSize', 85);
+    vstFileList.Header.Columns[Integer(vfLeftDate)].Width := iniMemFile.ReadInteger('ColumnWidths', 'LDAte', 150);
+    vstFileList.Header.Columns[Integer(vfRightAttr)].Width := iniMemFile.ReadInteger('ColumnWidths', 'RAttr', 50);
+    vstFileList.Header.Columns[Integer(vfRightSize)].Width := iniMemFile.ReadInteger('ColumnWidths', 'RSize', 85);
+    vstFileList.Header.Columns[Integer(vfRightDate)].Width := iniMemFile.ReadInteger('ColumnWidths', 'RDate', 150);
     FInterfaceFonts[ifTableFont].FFontName :=
       iniMemFile.ReadString('ListViewFont', 'Name', InterfaceFontDefaults[ifTableFont].FFontName);
     vstFileList.Font.Name               := FInterfaceFonts[ifTableFont].FFontName;
@@ -613,339 +629,339 @@ End;
 Procedure TfrmMainForm.lvFileListCustomDrawItem(Sender: TCustomListView; Item: TListItem;
   State: TCustomDrawState; Var DefaultDraw: Boolean);
 
-Type
-  TBackground = (bgLeft, bgRight);
+//Type
+//  TBackground = (bgLeft, bgRight);
 
-Var
-  R, ItemR     : TRect;
-  Buffer       : Array [0 .. MAX_PATH * 2] Of Char;
-  Ops          : Integer;
-  iBufferLen   : Integer;
-  iFileOp      : TFileOp;
-  SubItemRects : Array Of TRect;
+//Var
+//  R, ItemR     : TRect;
+//  Buffer       : Array [0 .. MAX_PATH * 2] Of Char;
+//  Ops          : Integer;
+//  iBufferLen   : Integer;
+//  iFileOp      : TFileOp;
+//  SubItemRects : Array Of TRect;
 
-  (**
+//  (**
+//
+//    This function returns display rectangle for the given indexed sub item.
+//
+//    @precon  iIndex must be a valid SubItem index..
+//    @postcon Returns display rectangle for the given indexed sub item.
+//
+//  **)
+//  Procedure GetSubItemRects;
+//
+//  Var
+//    LR : TRect;
+//    j: Integer;
+//
+//  Begin
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Start('GetSubItemRect');
+//    {$ENDIF}
+//    SetLength(SubItemRects, vstFileList.Header.Columns.Count);
+//    LR := Item.DisplayRect(drBounds);
+//    Inc(LR.Top, 2);    // Padding / Margin
+//    Inc(LR.Bottom, 2); // Padding / Margin
+//    For j  := 0 To vstFileList.Header.Columns.Count - 1 - 1 Do
+//      Begin
+//        Inc(LR.Left, Sender.Column[j].Width);
+//        LR.Right := LR.Left + Sender.Column[j + 1].Width;
+//        SubItemRects[j] := LR;
+//        Inc(SubItemRects[j].Left, 6);   // Padding / Margin
+//        Dec(SubItemRects[j].Right, 6);  // Padding / Margin
+//      End;
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Stop;
+//    {$ENDIF}
+//  End;
 
-    This function returns display rectangle for the given indexed sub item.
+//  (**
+//
+//    This method draws the background for the left and right displays of file informations.
+//
+//    @precon  None.
+//    @postcon Draws the background for the left and right displays of file informations.
+//
+//    @param   iColumn    as an Integer as a constant
+//    @param   Background as a TBackground as a constant
+//
+//  **)
+//  Procedure DrawBackground(Const iColumn: Integer; Const Background: TBackground);
+//
+//  Begin
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Start('DrawBackground');
+//    {$ENDIF}
+//    If Item.Selected Then
+//      Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight)
+//    Else If (Pos('R', Item.SubItems[iColumn - 1]) > 0) Then
+//      Sender.Canvas.Brush.Color :=
+//        StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour)
+//    Else
+//      Sender.Canvas.Brush.Color :=
+//        StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
+//    //Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clWindow);
+//    If Background = bgLeft Then
+//      R := SubItemRects[iLDateCol - 1]
+//    Else
+//      R := SubItemRects[iRDisplayCol - 1];
+//    ItemR := Item.DisplayRect(drBounds);
+//    If Background = bgLeft Then
+//      ItemR.Right := R.Right + 6
+//    Else
+//      ItemR.Left := R.Left - 6;
+//    Sender.Canvas.FillRect(ItemR);
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Stop;
+//    {$ENDIF}
+//  End;
 
-    @precon  iIndex must be a valid SubItem index..
-    @postcon Returns display rectangle for the given indexed sub item.
+//  (**
+//
+//    This procedure sets the font colour and style attributes depending on the
+//    status of the list item.
+//
+//    @precon  None.
+//    @postcon Sets the font colour and style attributes depending on the
+//    status of the list item.
+//
+//  **)
+//  Procedure SetTextAttributes;
+//
+//  Begin
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Start('SetTextAttributes');
+//    {$ENDIF}
+//    Sender.Canvas.Font.Color :=
+//      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
+//    Sender.Canvas.Font.Style := FFileOpFonts[TFileOpFont(iFileOp)].FFontStyle;
+//    If Item.Selected Then
+//      Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Stop;
+//    {$ENDIF}
+//  End;
 
-  **)
-  Procedure GetSubItemRects;
+//  (**
+//
+//    This procedure sets the text drawing options (alignment, etc) for the different columns to be 
+//    displayed.
+//
+//    @precon  None.
+//    @postcon Sets the text drawing options (alignment, etc) for the different columns to be displayed.
+//
+//    @param   iSubItem as an Integer as a constant
+//
+//  **)
+//  Procedure SetTextDrawingOptions(Const iSubItem : Integer);
+//
+//  Begin
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Start('SetTextDrawingOptions');
+//    {$ENDIF}
+//    Case iSubItem Of
+//      0, 4:
+//        Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS Or DT_NOPREFIX;
+//      2, 3, 6, 7:
+//        Ops := DT_RIGHT;
+//    Else
+//      Ops := DT_LEFT;
+//    End;
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Stop;
+//    {$ENDIF}
+//  End;
 
-  Var
-    LR : TRect;
-    j: Integer;
+//  (**
+//
+//    This procedure returns the display rectangle (adjusted for file icon image) for the text to be 
+//    displayed in the report column.
+//
+//    @precon  None.
+//    @postcon Returns the display rectangle (adjusted for file icon image) for the text to be displayed 
+//             in the report column.
+//
+//    @param   iSubItem as an Integer as a constant
+//    @return  a TRect
+//
+//  **)
+//  Function DrawFileIcon(Const iSubItem : Integer): TRect;
+//
+//  Var
+//    iImage     : Integer;
+//    boolEnabled: Boolean;
+//
+//  Begin
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Start('DrawFileIcon');
+//    {$ENDIF}
+//    Result := SubItemRects[iSubItem];
+//    If iSubItem In [0, 4] Then
+//      Begin
+//        Dec(Result.Left, 3);
+//        iImage      := Item.SubItemImages[iSubItem];
+//        boolEnabled := (iImage > -1);
+//        If Not boolEnabled Then
+//          Begin
+//            If iSubItem = 0 Then
+//              iImage := Item.SubItemImages[4]
+//            Else
+//              iImage := Item.SubItemImages[0];
+//            ilFileTypeIcons.Draw(Sender.Canvas, Result.Left, Result.Top, iImage, boolEnabled);
+//          End;
+//        Inc(Result.Left, 16 + 3);
+//      End;
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Stop;
+//    {$ENDIF}
+//  End;
 
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('GetSubItemRect');
-    {$ENDIF}
-    SetLength(SubItemRects, vstFileList.Header.Columns.Count);
-    LR := Item.DisplayRect(drBounds);
-    Inc(LR.Top, 2);    // Padding / Margin
-    Inc(LR.Bottom, 2); // Padding / Margin
-    For j  := 0 To vstFileList.Header.Columns.Count - 1 - 1 Do
-      Begin
-        Inc(LR.Left, Sender.Column[j].Width);
-        LR.Right := LR.Left + Sender.Column[j + 1].Width;
-        SubItemRects[j] := LR;
-        Inc(SubItemRects[j].Left, 6);   // Padding / Margin
-        Dec(SubItemRects[j].Right, 6);  // Padding / Margin
-      End;
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
+//  (**
+//
+//    This procedure sets the text background for the columns of information.
+//
+//    @precon  None.
+//    @postcon Sets the text background for the columns of information.
+//
+//    @param   FileSide as a TBackground as a constant
+//
+//  **)
+//  Procedure SetTextFontBackground(Const FileSide : TBackground);
+//
+//  Begin
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Start('SetTextFontBackground');
+//    {$ENDIF}
+//    Sender.Canvas.Brush.Color :=
+//      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
+//    Sender.Canvas.Font.Color :=
+//      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
+//    If Item.Selected Then
+//      Begin
+//        Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
+//        Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+//      End
+//    Else If FileSide = bgLeft Then
+//      Begin
+//        If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
+//          Begin
+//            Sender.Canvas.Brush.Color :=
+//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
+//            Sender.Canvas.Font.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
+//          End;
+//      End  Else
+//      Begin
+//        If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
+//          Begin
+//            Sender.Canvas.Brush.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
+//            Sender.Canvas.Font.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
+//          End;
+//      End;
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Stop;
+//    {$ENDIF}
+//  End;
 
-  (**
+//  (**
+//
+//    This procedure displays a grayed out destination path for files which don`t have a destination file, 
+//    else sets up the font colours and style attributes for displaying the text.
+//
+//    @precon  None.
+//    @postcon Displays a grayed out destination path for files which don`t have a destination file, else 
+//             sets up the font colours and style attributes for displaying the text.
+//
+//    @param   iSubItem as an Integer as a constant
+//    @param   iFileOp  as a TFileOp as a constant
+//
+//  **)
+//  Procedure FixUpEmptyFilePaths(Const iSubItem : Integer; Const iFileOp : TFileOp);
+//
+//  Begin
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Start('FixUpEmptyFilePaths');
+//    {$ENDIF}
+//    If (iSubItem = 0) And (Item.SubItems[iSubItem] = '') Then
+//      Begin
+//        StrPCopy(Buffer, Item.SubItems[iLFullFileNameCol - 1]);
+//        iBufferLen               := Length(Item.SubItems[iLFullFileNameCol - 1]);
+//        If Item.Selected Then
+//          Begin
+//            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+//            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
+//          End Else
+//          Begin
+//            Sender.Canvas.Font.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
+//            Sender.Canvas.Brush.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
+//          End;
+//      End
+//    Else If (iSubItem = 4) And (Item.SubItems[iSubItem] = '') Then
+//      Begin
+//        StrPCopy(Buffer, Item.SubItems[iRFullFileNameCol - 1]);
+//        iBufferLen               := Length(Item.SubItems[iRFullFileNameCol - 1]);
+//        If Item.Selected Then
+//          Begin
+//            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+//            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
+//          End Else
+//          Begin
+//            Sender.Canvas.Font.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
+//            Sender.Canvas.Brush.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
+//          End;
+//      End
+//    Else
+//      SetTextAttributes;
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Stop;
+//    {$ENDIF}
+//  End;
 
-    This method draws the background for the left and right displays of file informations.
-
-    @precon  None.
-    @postcon Draws the background for the left and right displays of file informations.
-
-    @param   iColumn    as an Integer as a constant
-    @param   Background as a TBackground as a constant
-
-  **)
-  Procedure DrawBackground(Const iColumn: Integer; Const Background: TBackground);
-
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('DrawBackground');
-    {$ENDIF}
-    If Item.Selected Then
-      Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight)
-    Else If (Pos('R', Item.SubItems[iColumn - 1]) > 0) Then
-      Sender.Canvas.Brush.Color :=
-        StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour)
-    Else
-      Sender.Canvas.Brush.Color :=
-        StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-    //Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clWindow);
-    If Background = bgLeft Then
-      R := SubItemRects[iLDateCol - 1]
-    Else
-      R := SubItemRects[iRDisplayCol - 1];
-    ItemR := Item.DisplayRect(drBounds);
-    If Background = bgLeft Then
-      ItemR.Right := R.Right + 6
-    Else
-      ItemR.Left := R.Left - 6;
-    Sender.Canvas.FillRect(ItemR);
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
-
-  (**
-
-    This procedure sets the font colour and style attributes depending on the
-    status of the list item.
-
-    @precon  None.
-    @postcon Sets the font colour and style attributes depending on the
-    status of the list item.
-
-  **)
-  Procedure SetTextAttributes;
-
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('SetTextAttributes');
-    {$ENDIF}
-    Sender.Canvas.Font.Color :=
-      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
-    Sender.Canvas.Font.Style := FFileOpFonts[TFileOpFont(iFileOp)].FFontStyle;
-    If Item.Selected Then
-      Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
-
-  (**
-
-    This procedure sets the text drawing options (alignment, etc) for the different columns to be 
-    displayed.
-
-    @precon  None.
-    @postcon Sets the text drawing options (alignment, etc) for the different columns to be displayed.
-
-    @param   iSubItem as an Integer as a constant
-
-  **)
-  Procedure SetTextDrawingOptions(Const iSubItem : Integer);
-
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('SetTextDrawingOptions');
-    {$ENDIF}
-    Case iSubItem Of
-      0, 4:
-        Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS Or DT_NOPREFIX;
-      2, 3, 6, 7:
-        Ops := DT_RIGHT;
-    Else
-      Ops := DT_LEFT;
-    End;
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
-
-  (**
-
-    This procedure returns the display rectangle (adjusted for file icon image) for the text to be 
-    displayed in the report column.
-
-    @precon  None.
-    @postcon Returns the display rectangle (adjusted for file icon image) for the text to be displayed 
-             in the report column.
-
-    @param   iSubItem as an Integer as a constant
-    @return  a TRect
-
-  **)
-  Function DrawFileIcon(Const iSubItem : Integer): TRect;
-
-  Var
-    iImage     : Integer;
-    boolEnabled: Boolean;
-
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('DrawFileIcon');
-    {$ENDIF}
-    Result := SubItemRects[iSubItem];
-    If iSubItem In [0, 4] Then
-      Begin
-        Dec(Result.Left, 3);
-        iImage      := Item.SubItemImages[iSubItem];
-        boolEnabled := (iImage > -1);
-        If Not boolEnabled Then
-          Begin
-            If iSubItem = 0 Then
-              iImage := Item.SubItemImages[4]
-            Else
-              iImage := Item.SubItemImages[0];
-            ilFileTypeIcons.Draw(Sender.Canvas, Result.Left, Result.Top, iImage, boolEnabled);
-          End;
-        Inc(Result.Left, 16 + 3);
-      End;
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
-
-  (**
-
-    This procedure sets the text background for the columns of information.
-
-    @precon  None.
-    @postcon Sets the text background for the columns of information.
-
-    @param   FileSide as a TBackground as a constant
-
-  **)
-  Procedure SetTextFontBackground(Const FileSide : TBackground);
-
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('SetTextFontBackground');
-    {$ENDIF}
-    Sender.Canvas.Brush.Color :=
-      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-    Sender.Canvas.Font.Color :=
-      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
-    If Item.Selected Then
-      Begin
-        Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
-        Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-      End
-    Else If FileSide = bgLeft Then
-      Begin
-        If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
-          Begin
-            Sender.Canvas.Brush.Color :=
-              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
-            Sender.Canvas.Font.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
-          End;
-      End  Else
-      Begin
-        If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
-          Begin
-            Sender.Canvas.Brush.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
-            Sender.Canvas.Font.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
-          End;
-      End;
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
-
-  (**
-
-    This procedure displays a grayed out destination path for files which don`t have a destination file, 
-    else sets up the font colours and style attributes for displaying the text.
-
-    @precon  None.
-    @postcon Displays a grayed out destination path for files which don`t have a destination file, else 
-             sets up the font colours and style attributes for displaying the text.
-
-    @param   iSubItem as an Integer as a constant
-    @param   iFileOp  as a TFileOp as a constant
-
-  **)
-  Procedure FixUpEmptyFilePaths(Const iSubItem : Integer; Const iFileOp : TFileOp);
-
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('FixUpEmptyFilePaths');
-    {$ENDIF}
-    If (iSubItem = 0) And (Item.SubItems[iSubItem] = '') Then
-      Begin
-        StrPCopy(Buffer, Item.SubItems[iLFullFileNameCol - 1]);
-        iBufferLen               := Length(Item.SubItems[iLFullFileNameCol - 1]);
-        If Item.Selected Then
-          Begin
-            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
-          End Else
-          Begin
-            Sender.Canvas.Font.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
-            Sender.Canvas.Brush.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-          End;
-      End
-    Else If (iSubItem = 4) And (Item.SubItems[iSubItem] = '') Then
-      Begin
-        StrPCopy(Buffer, Item.SubItems[iRFullFileNameCol - 1]);
-        iBufferLen               := Length(Item.SubItems[iRFullFileNameCol - 1]);
-        If Item.Selected Then
-          Begin
-            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
-          End Else
-          Begin
-            Sender.Canvas.Font.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
-            Sender.Canvas.Brush.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-          End;
-      End
-    Else
-      SetTextAttributes;
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
-
-Var
-  iSubItem  : Integer;
+//Var
+//  iSubItem  : Integer;
 
 Begin
   {$IFDEF PROFILECODE}
   CodeProfiler.Start('TfrmMainForm.lvFileListCustomDrawItem');
   {$ENDIF}
   DefaultDraw := False;
-  iFileOp := TFileOp(Item.StateIndex);
-  GetSubItemRects;
-  DrawBackground(iLAttrCol, bgLeft);
-  DrawBackground(iRAttrCol, bgRight);
-  R := Item.DisplayRect(drBounds);
-  ilActionImages.Draw(Sender.Canvas, R.Left + vstFileList.Header.Columns[0].Width Div 2 - 8, R.Top,
-    Item.StateIndex, True);
-  // Draw Left File
-  SetTextFontBackground(bgLeft);
-  For iSubItem := iLDisplayCol - 1 To iLDateCol - 1 Do
-    Begin
-      SetTextDrawingOptions(iSubItem);
-      R := DrawFileIcon(iSubItem);
-      StrPCopy(Buffer, Item.SubItems[iSubItem]);
-      iBufferLen := Length(Item.SubItems[iSubItem]);
-      FixUpEmptyFilePaths(iSubItem, iFileOp);
-      Sender.Canvas.Refresh;
-      DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
-    End;
-  // Draw Left File
-  SetTextFontBackground(bgRight);
-  For iSubItem := iRDisplayCol - 1 To iRDateCol - 1 Do
-    Begin
-      SetTextDrawingOptions(iSubItem);
-      R := DrawFileIcon(iSubItem);
-      StrPCopy(Buffer, Item.SubItems[iSubItem]);
-      iBufferLen := Length(Item.SubItems[iSubItem]);
-      FixUpEmptyFilePaths(iSubItem, iFileOp);
-      Sender.Canvas.Refresh;
-      DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
-    End;
+//  iFileOp := TFileOp(Item.StateIndex);
+//  GetSubItemRects;
+//  DrawBackground(iLAttrCol, bgLeft);
+//  DrawBackground(iRAttrCol, bgRight);
+//  R := Item.DisplayRect(drBounds);
+//  ilActionImages.Draw(Sender.Canvas, R.Left + vstFileList.Header.Columns[0].Width Div 2 - 8, R.Top,
+//    Item.StateIndex, True);
+//  // Draw Left File
+//  SetTextFontBackground(bgLeft);
+//  For iSubItem := iLDisplayCol - 1 To iLDateCol - 1 Do
+//    Begin
+//      SetTextDrawingOptions(iSubItem);
+//      R := DrawFileIcon(iSubItem);
+//      StrPCopy(Buffer, Item.SubItems[iSubItem]);
+//      iBufferLen := Length(Item.SubItems[iSubItem]);
+//      FixUpEmptyFilePaths(iSubItem, iFileOp);
+//      Sender.Canvas.Refresh;
+//      DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
+//    End;
+//  // Draw Left File
+//  SetTextFontBackground(bgRight);
+//  For iSubItem := iRDisplayCol - 1 To iRDateCol - 1 Do
+//    Begin
+//      SetTextDrawingOptions(iSubItem);
+//      R := DrawFileIcon(iSubItem);
+//      StrPCopy(Buffer, Item.SubItems[iSubItem]);
+//      iBufferLen := Length(Item.SubItems[iSubItem]);
+//      FixUpEmptyFilePaths(iSubItem, iFileOp);
+//      Sender.Canvas.Refresh;
+//      DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
+//    End;
   {$IFDEF PROFILECODE}
   CodeProfiler.Stop;
   {$ENDIF}
@@ -1184,12 +1200,12 @@ Begin
         recWndPlmt.rcNormalPosition.Top);
     iniMemFile.WriteInteger('Setup', 'Width', recWndPlmt.rcNormalPosition.Right -
         recWndPlmt.rcNormalPosition.Left);
-    iniMemFile.WriteInteger('ColumnWidths', 'LAttr', vstFileList.Header.Columns[iLAttrCol].Width);
-    iniMemFile.WriteInteger('ColumnWidths', 'LSize', vstFileList.Header.Columns[iLSizeCol].Width);
-    iniMemFile.WriteInteger('ColumnWidths', 'LDAte', vstFileList.Header.Columns[iLDateCol].Width);
-    iniMemFile.WriteInteger('ColumnWidths', 'RAttr', vstFileList.Header.Columns[iRAttrCol].Width);
-    iniMemFile.WriteInteger('ColumnWidths', 'RSize', vstFileList.Header.Columns[iRSizeCol].Width);
-    iniMemFile.WriteInteger('ColumnWidths', 'RDate', vstFileList.Header.Columns[iRDateCol].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'LAttr', vstFileList.Header.Columns[Integer(vfLeftAttr)].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'LSize', vstFileList.Header.Columns[Integer(vfLeftSize)].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'LDAte', vstFileList.Header.Columns[Integer(vfLeftDate)].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'RAttr', vstFileList.Header.Columns[Integer(vfRightAttr)].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'RSize', vstFileList.Header.Columns[Integer(vfRightSize)].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'RDate', vstFileList.Header.Columns[Integer(vfRightDate)].Width);
     iniMemFile.WriteString('ListViewFont', 'Name', FInterfaceFonts[ifTableFont].FFontName);
     iniMemFile.WriteInteger('ListViewFont', 'Size', FInterfaceFonts[ifTableFont].FFontSize);
     iniMemFile.WriteString('LogFont', 'Name', FInterfaceFonts[ifLogFont].FFontName);
@@ -1571,31 +1587,6 @@ End;
 **)
 Procedure TfrmMainForm.InsertListItem(Const iProcessItem : Integer; Const ProcessItem : TProcessItem);
 
-  (**
-
-    This method returns a string representation of a files attrivutes [RASH].
-
-    @precon  None.
-    @postcon Returns a string representation of a files attrivutes [RASH].
-
-    @param   iAttr as an Integer
-    @return  a String
-
-  **)
-  Function GetAttributeString(iAttr: Integer): String;
-
-  Begin
-    Result := '....'; //: @todo Add full set of attributes
-    If iAttr And faReadOnly > 0 Then
-      Result[1] := 'R';
-    If iAttr And faArchive > 0 Then
-      Result[2] := 'A';
-    If iAttr And faSysFile > 0 Then
-      Result[3] := 'S';
-    If iAttr And faHidden > 0 Then
-      Result[4] := 'H';
-  End;
-
 Var
   Node : PVirtualNode;
   NodeData : PFSFileListNode;
@@ -1640,7 +1631,6 @@ Begin
   NodeData.FLeftFullFileName := ProcessItem.LPath + strFileName;
   NodeData.FRightFullFileName := ProcessItem.RPath + strFileName;
   NodeData.FState := ProcessItem.FileOp;
-  //: @debug ImageIndexes(ProcessItem, NodeData);
 End;
 
 {$HINTS OFF}
@@ -2049,13 +2039,7 @@ Procedure TfrmMainForm.StartTimerEvent(Sender: TObject);
 
 Begin
   FStartTimer.Enabled := False;
-  Try
-    actFileCompareExecute(Self);
-  Except
-    On E : EAbort Do
-
-      ShowMessage(E.Message);
-  End;
+  actFileCompareExecute(Self);
 End;
 
 (**
@@ -2201,6 +2185,49 @@ Begin
   Finalize(NodeData^);
 End;
 
+(**
+
+  This is an on get image index event handler for the tree view.
+
+  @precon  None.
+  @postcon Returns the image index for the appropriate column.
+
+  @param   Sender     as a TBaseVirtualTree
+  @param   Node       as a PVirtualNode
+  @param   Kind       as a TVTImageKind
+  @param   Column     as a TColumnIndex
+  @param   Ghosted    as a Boolean as a reference
+  @param   ImageIndex as a TImageIndex as a reference
+
+**)
+Procedure TfrmMainForm.vstFileListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Kind: TVTImageKind; Column: TColumnIndex; Var Ghosted: Boolean; Var ImageIndex: TImageIndex);
+
+Var
+  NodeData : PFSFileListNode;
+  
+Begin
+  NodeData := Sender.GetNodeData(Node);
+  If Kind In [ikNormal, ikSelected] Then
+    Case Column Of
+      0: ImageIndex := Integer(NodeData.FState);
+    End;
+End;
+
+(**
+
+  This is an on get text event handler for the vstTreeView.
+
+  @precon  None.
+  @postcon Returns the apporpriate text for the specified node and column.
+
+  @param   Sender   as a TBaseVirtualTree
+  @param   Node     as a PVirtualNode
+  @param   Column   as a TColumnIndex
+  @param   TextType as a TVSTTextType
+  @param   CellText as a String as a reference
+
+**)
 Procedure TfrmMainForm.vstFileListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; Var CellText: String);
 
@@ -2217,14 +2244,14 @@ Begin
   boolHasLeftFile := Length(NodeData.FLeftFilename) > 0;
   boolHasRightFile := Length(NodeData.FRightFilename) > 0;
   Case TFSVTVFields(Column) Of
-    vfState:         CellText := GetEnumName(TypeInfo(TFileOp), Ord(NodeData.FState));
+    vfState:         CellText := '';
     vfLeftFileName:  CellText := NodeData.FLeftFilename;
-    vfLeftAttr:      CellText := IfThen(boolHasLeftFile, NodeData.FLeftAttr.ToString, '');
-    vfLeftSize:      CellText := IfThen(boolHasLeftFile, NodeData.FLeftSize.ToString, '');
+    vfLeftAttr:      CellText := IfThen(boolHasLeftFile, GetAttributeString(NodeData.FLeftAttr), '');
+    vfLeftSize:      CellText := IfThen(boolHasLeftFile, Format('%1.0n', [Int(NodeData.FLeftSize)]), '');
     vfLeftDate:      CellText := IfThen(boolHasLeftFile, FormatDateTime(strDateFmt, NodeData.FLeftDate), '');
     vfRightFileName: CellText := NodeData.FRightFilename;
-    vfRightAttr:     CellText := IfThen(boolHasRightFile, NodeData.FRightAttr.ToString, '');
-    vfRightSize:     CellText := IfThen(boolHasRightFile, NodeData.FRightSize.ToString, '');
+    vfRightAttr:     CellText := IfThen(boolHasRightFile, GetAttributeString(NodeData.FRightAttr), '');
+    vfRightSize:     CellText := IfThen(boolHasRightFile, Format('%1.0n', [Int(NodeData.FRightSize)]), '');
     vfRightDate:     CellText := IfThen(boolHasRightFile, FormatDateTime(strDateFmt, NodeData.FRightDate), '');
   End;
 End;
@@ -2458,12 +2485,6 @@ Begin
           Except
             On E : EAbort Do
               boolAbort := True;
-            On E : Exception Do
-              {$IFDEF EUREKALOG_VER7}
-              If Not (ExceptionManager.StandardEurekaNotify(ExceptObject,
-                ExceptAddr).ErrorCode = ERROR_SUCCESS) Then
-                {$ENDIF}
-              MessageDlg(E.Message, mtError, [mbOK], 0);
           End;
         Finally
           EnableActions(True);

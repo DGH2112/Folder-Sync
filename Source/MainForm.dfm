@@ -2,8 +2,8 @@ object frmMainForm: TfrmMainForm
   Left = 429
   Top = 289
   Caption = 'Folder Sync'
-  ClientHeight = 758
-  ClientWidth = 948
+  ClientHeight = 752
+  ClientWidth = 927
   Color = clBtnFace
   Constraints.MinHeight = 591
   Constraints.MinWidth = 788
@@ -49,8 +49,8 @@ object frmMainForm: TfrmMainForm
   TextHeight = 16
   object stbrStatusBar: TStatusBar
     Left = 0
-    Top = 739
-    Width = 948
+    Top = 733
+    Width = 927
     Height = 19
     Margins.Left = 4
     Margins.Top = 4
@@ -62,11 +62,13 @@ object frmMainForm: TfrmMainForm
         Width = 125
       end>
     OnDrawPanel = stbrStatusBarDrawPanel
+    ExplicitTop = 739
+    ExplicitWidth = 948
   end
   object ambMenuBar: TActionMainMenuBar
     Left = 0
     Top = 0
-    Width = 948
+    Width = 927
     Height = 25
     Margins.Left = 2
     Margins.Top = 2
@@ -87,11 +89,12 @@ object frmMainForm: TfrmMainForm
     Font.Style = []
     PersistentHotKeys = True
     Spacing = 0
+    ExplicitWidth = 948
   end
   object pnlTop: TPanel
     Left = 0
     Top = 25
-    Width = 948
+    Width = 927
     Height = 32
     Margins.Left = 4
     Margins.Top = 4
@@ -100,8 +103,9 @@ object frmMainForm: TfrmMainForm
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
+    ExplicitWidth = 948
     object DGHMemoryMonitor: TDGHMemoryMonitor
-      Left = 724
+      Left = 703
       Top = 0
       Width = 224
       Height = 32
@@ -114,9 +118,10 @@ object frmMainForm: TfrmMainForm
       HighPoint = 100
       Align = alRight
       BevelOuter = bvLowered
+      ExplicitLeft = 724
     end
     object Splitter: TSplitter
-      Left = 720
+      Left = 699
       Top = 0
       Width = 4
       Height = 32
@@ -126,11 +131,12 @@ object frmMainForm: TfrmMainForm
       Margins.Bottom = 4
       Align = alRight
       ResizeStyle = rsUpdate
+      ExplicitLeft = 720
     end
     object atbToolbar: TActionToolBar
       Left = 0
       Top = 0
-      Width = 720
+      Width = 699
       Height = 32
       Margins.Left = 2
       Margins.Top = 2
@@ -153,13 +159,14 @@ object frmMainForm: TfrmMainForm
       ParentShowHint = False
       ShowHint = True
       Spacing = 0
+      ExplicitWidth = 720
     end
   end
   object pnlMainArea: TPanel
     Left = 0
     Top = 57
-    Width = 948
-    Height = 682
+    Width = 927
+    Height = 676
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
@@ -167,10 +174,12 @@ object frmMainForm: TfrmMainForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 3
+    ExplicitWidth = 948
+    ExplicitHeight = 682
     object splOutputResults: TSplitter
       Left = 0
-      Top = 559
-      Width = 948
+      Top = 553
+      Width = 927
       Height = 4
       Cursor = crVSplit
       Margins.Left = 4
@@ -180,11 +189,13 @@ object frmMainForm: TfrmMainForm
       Align = alBottom
       MinSize = 50
       ResizeStyle = rsUpdate
+      ExplicitTop = 559
+      ExplicitWidth = 948
     end
     object redtOutputResults: TMemo
       Left = 0
-      Top = 563
-      Width = 948
+      Top = 557
+      Width = 927
       Height = 119
       Margins.Left = 4
       Margins.Top = 4
@@ -203,20 +214,27 @@ object frmMainForm: TfrmMainForm
       ScrollBars = ssBoth
       TabOrder = 1
       WordWrap = False
+      ExplicitTop = 563
+      ExplicitWidth = 948
     end
     object vstFileList: TVirtualStringTree
       Left = 0
       Top = 0
-      Width = 948
-      Height = 559
+      Width = 927
+      Height = 553
       Align = alClient
       Header.AutoSizeIndex = 0
       Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
+      Images = ilActionImages
       TabOrder = 0
+      TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
       TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseBlendedSelection]
       TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
       OnFreeNode = vstFileListFreeNode
       OnGetText = vstFileListGetText
+      OnGetImageIndex = vstFileListGetImageIndex
+      ExplicitWidth = 948
+      ExplicitHeight = 559
       Columns = <
         item
           Position = 0
