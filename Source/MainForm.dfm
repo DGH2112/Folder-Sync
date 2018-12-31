@@ -62,8 +62,6 @@ object frmMainForm: TfrmMainForm
         Width = 125
       end>
     OnDrawPanel = stbrStatusBarDrawPanel
-    ExplicitTop = 739
-    ExplicitWidth = 948
   end
   object ambMenuBar: TActionMainMenuBar
     Left = 0
@@ -89,7 +87,6 @@ object frmMainForm: TfrmMainForm
     Font.Style = []
     PersistentHotKeys = True
     Spacing = 0
-    ExplicitWidth = 948
   end
   object pnlTop: TPanel
     Left = 0
@@ -103,7 +100,6 @@ object frmMainForm: TfrmMainForm
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitWidth = 948
     object DGHMemoryMonitor: TDGHMemoryMonitor
       Left = 703
       Top = 0
@@ -159,7 +155,6 @@ object frmMainForm: TfrmMainForm
       ParentShowHint = False
       ShowHint = True
       Spacing = 0
-      ExplicitWidth = 720
     end
   end
   object pnlMainArea: TPanel
@@ -174,8 +169,6 @@ object frmMainForm: TfrmMainForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 3
-    ExplicitWidth = 948
-    ExplicitHeight = 682
     object splOutputResults: TSplitter
       Left = 0
       Top = 553
@@ -214,8 +207,6 @@ object frmMainForm: TfrmMainForm
       ScrollBars = ssBoth
       TabOrder = 1
       WordWrap = False
-      ExplicitTop = 563
-      ExplicitWidth = 948
     end
     object vstFileList: TVirtualStringTree
       Left = 0
@@ -232,9 +223,7 @@ object frmMainForm: TfrmMainForm
       TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
       OnFreeNode = vstFileListFreeNode
       OnGetText = vstFileListGetText
-      OnGetImageIndex = vstFileListGetImageIndex
-      ExplicitWidth = 948
-      ExplicitHeight = 559
+      OnGetImageIndexEx = vstFileListGetImageIndexEx
       Columns = <
         item
           Position = 0
