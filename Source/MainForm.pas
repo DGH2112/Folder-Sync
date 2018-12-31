@@ -2059,7 +2059,6 @@ Var
   iOutputSize   : Integer;
 
 Begin
-  Result := -1;
   strExt := LowerCase(ExtractFileExt(strFileName));
   If FIconFiles.Find(strExt, iIndex) Then
     Begin
@@ -2118,21 +2117,21 @@ Begin
   End;
   If strExt <> '.exe' Then
     FIconFiles.AddObject(strExt, TObject(Result));
-  //-------------------------------------------------------------------------------------
-  If Result < 0 Then
-    Begin
-      CodeSite.Send('Ext', strExt);
-      CodeSite.Send('Extension List', FIconFiles);
-      CodeSite.Send('Class', strClassName);
-      CodeSite.Send(strFileName, Result);
-      CodeSite.Send('LPath', ProcessItem.LPath);
-      CodeSite.Send('RPath', ProcessItem.RPath);
-      CodeSite.Send('LeftFile', ProcessItem.LeftFile);
-      CodeSite.Send('RightFile', ProcessItem.RightFile);
-      CodeSite.SendEnum('FileOp', TypeInfo(TFileOp), Ord(ProcessItem.FileOp));
-      CodeSite.SendSet('SynvOptions', TypeInfo(TSyncOptions), ProcessItem.SyncOptions);
-      CodeSite.AddSeparator;
-    End;
+//  //-------------------------------------------------------------------------------------
+//  If Result < 0 Then
+//    Begin
+//      CodeSite.Send('Ext', strExt);
+//      CodeSite.Send('Extension List', FIconFiles);
+//      CodeSite.Send('Class', strClassName);
+//      CodeSite.Send(strFileName, Result);
+//      CodeSite.Send('LPath', ProcessItem.LPath);
+//      CodeSite.Send('RPath', ProcessItem.RPath);
+//      CodeSite.Send('LeftFile', ProcessItem.LeftFile);
+//      CodeSite.Send('RightFile', ProcessItem.RightFile);
+//      CodeSite.SendEnum('FileOp', TypeInfo(TFileOp), Ord(ProcessItem.FileOp));
+//      CodeSite.SendSet('SynvOptions', TypeInfo(TSyncOptions), ProcessItem.SyncOptions);
+//      CodeSite.AddSeparator;
+//    End;
 End;
 
 (**
@@ -2148,29 +2147,25 @@ End;
 **)
 Procedure TfrmMainForm.ImageIndexes(Const ProcessItem : TProcessItem; Const NodeData : PFSFileListNode);
 
-Begin //: @todo Defer until the display of text!
+Begin
   If Assigned(ProcessItem.LeftFile) Then
     Begin
       If Assigned(ProcessItem.LeftFile) Then
-        NodeData.FLeftFileIndex := GetImageIndex(ProcessItem,
-          ProcessItem.LPath + ProcessItem.LeftFile.FileName)
+        NodeData.FLeftFileIndex := GetImageIndex(ProcessItem.LPath + ProcessItem.LeftFile.FileName)
       Else
         NodeData.FLeftFileIndex := -1;
       If Assigned(ProcessItem.RightFile) Then
-        NodeData.FRightFileIndex := GetImageIndex(ProcessItem,
-          ProcessItem.LPath + ProcessItem.RightFile.FileName)
+        NodeData.FRightFileIndex := GetImageIndex(ProcessItem.LPath + ProcessItem.RightFile.FileName)
       Else
         NodeData.FRightFileIndex := -1;
     End Else
     Begin
       If Assigned(ProcessItem.LeftFile) Then
-        NodeData.FLeftFileIndex := GetImageIndex(ProcessItem,
-          ProcessItem.RPath + ProcessItem.LeftFile.FileName)
+        NodeData.FLeftFileIndex := GetImageIndex(ProcessItem.RPath + ProcessItem.LeftFile.FileName)
       Else
         NodeData.FLeftFileIndex := -1;
       If Assigned(ProcessItem.RightFile) Then
-        NodeData.FRightFileIndex := GetImageIndex(ProcessItem,
-          ProcessItem.RPath + ProcessItem.RightFile.FileName)
+        NodeData.FRightFileIndex := GetImageIndex(ProcessItem.RPath + ProcessItem.RightFile.FileName)
       Else
         NodeData.FRightFileIndex := -1;
     End;
@@ -3401,11 +3396,25 @@ Var
 Begin
   NodeData := Sender.GetNodeData(Node);
   If Kind In [ikNormal, ikSelected] Then
-    Case Column Of
-      0:
+    Case TFSVTVFields(Column) Of
+      vfState:
         Begin
           ImageIndex := Integer(NodeData.FState);
           ImageList := ilActionImages;
+        End;
+      vfLeftFileName:
+        Begin
+          If (NodeData.FLeftFileIndex = -1) And (Length(NodeData.FLeftFilename) > 0) Then
+            NodeData.FLeftFileIndex := GetImageIndex(NodeData.FLeftFilename);
+          ImageIndex := NodeData.FLeftFileIndex;
+          ImageList := ilFileTypeIcons;
+        End;
+      vfRightFilename:
+        Begin
+          If (NodeData.FRightFileIndex = -1) And (Length(NodeData.FRightFilename) > 0) Then
+            NodeData.FRightFileIndex := GetImageIndex(NodeData.FRightFilename);
+          ImageIndex := NodeData.FRightFileIndex;
+          ImageList := ilFileTypeIcons;
         End;
     End;
 End;
