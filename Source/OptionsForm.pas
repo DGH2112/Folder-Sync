@@ -25,7 +25,7 @@ Uses
   ComCtrls,
   CheckLst,
   SyncModule,
-  ImgList;
+  ImgList, System.ImageList;
 
 Type
   (** An enumerate to describe the Interface fonts that can be modified. **)

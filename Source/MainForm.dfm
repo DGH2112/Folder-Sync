@@ -1,7 +1,6 @@
 object frmMainForm: TfrmMainForm
   Left = 429
   Top = 289
-  ActiveControl = lvFileList
   Caption = 'Folder Sync'
   ClientHeight = 758
   ClientWidth = 948
@@ -45,6 +44,7 @@ object frmMainForm: TfrmMainForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 16
   object stbrStatusBar: TStatusBar
@@ -181,82 +181,6 @@ object frmMainForm: TfrmMainForm
       MinSize = 50
       ResizeStyle = rsUpdate
     end
-    object lvFileList: TListView
-      Left = 0
-      Top = 0
-      Width = 948
-      Height = 559
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Align = alClient
-      Columns = <
-        item
-          Caption = 'Action'
-          MaxWidth = 48
-          MinWidth = 48
-          Width = 48
-        end
-        item
-          Caption = 'Filename'
-          MinWidth = 50
-          Width = 123
-        end
-        item
-          Caption = 'Attr'
-          Width = 49
-        end
-        item
-          Alignment = taRightJustify
-          Caption = 'Size'
-          Width = 85
-        end
-        item
-          Alignment = taRightJustify
-          Caption = 'Date'
-          Width = 150
-        end
-        item
-          Caption = 'Filename'
-          MinWidth = 50
-          Width = 123
-        end
-        item
-          Caption = 'Attr'
-          Width = 49
-        end
-        item
-          Alignment = taRightJustify
-          Caption = 'Size'
-          Width = 85
-        end
-        item
-          Alignment = taRightJustify
-          Caption = 'Date'
-          Width = 150
-        end>
-      ColumnClick = False
-      DoubleBuffered = True
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = []
-      HideSelection = False
-      MultiSelect = True
-      ReadOnly = True
-      RowSelect = True
-      ParentDoubleBuffered = False
-      ParentFont = False
-      ParentShowHint = False
-      PopupMenu = pmFiles
-      ShowHint = False
-      StateImages = ilActionImages
-      TabOrder = 0
-      ViewStyle = vsReport
-      OnCustomDrawItem = lvFileListCustomDrawItem
-    end
     object redtOutputResults: TMemo
       Left = 0
       Top = 563
@@ -280,12 +204,71 @@ object frmMainForm: TfrmMainForm
       TabOrder = 1
       WordWrap = False
     end
+    object vstFileList: TVirtualStringTree
+      Left = 0
+      Top = 0
+      Width = 948
+      Height = 559
+      Align = alClient
+      Header.AutoSizeIndex = 0
+      Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
+      TabOrder = 0
+      TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseBlendedSelection]
+      TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
+      OnFreeNode = vstFileListFreeNode
+      OnGetText = vstFileListGetText
+      Columns = <
+        item
+          Position = 0
+          WideText = 'Action'
+        end
+        item
+          Position = 1
+          WideText = 'Filename'
+        end
+        item
+          Alignment = taCenter
+          BiDiMode = bdRightToLeft
+          Options = [coAllowClick, coDraggable, coEnabled, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus, coEditable, coStyleColor]
+          Position = 2
+          WideText = 'Attr'
+        end
+        item
+          Alignment = taRightJustify
+          Position = 3
+          WideText = 'Size'
+        end
+        item
+          Alignment = taRightJustify
+          Position = 4
+          WideText = 'Date'
+        end
+        item
+          Position = 5
+          WideText = 'Filename'
+        end
+        item
+          Alignment = taCenter
+          Position = 6
+          WideText = 'Attr'
+        end
+        item
+          Alignment = taRightJustify
+          Position = 7
+          WideText = 'Size'
+        end
+        item
+          Alignment = taRightJustify
+          Position = 8
+          WideText = 'Date'
+        end>
+    end
   end
   object ilActionImages: TImageList
     Left = 33
     Top = 151
     Bitmap = {
-      494C01010F001300600110001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010F001300040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

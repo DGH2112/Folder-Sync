@@ -1,12 +1,12 @@
 ﻿
 [Exception Log]
 EurekaLog Version=8000
+_CustomProfile=""
 Activate=1
 atVCL=1
 atWin32=1
 AutoCrashOperation=2
 boHandleSafeCallExceptions=1
-boSaveCompressedCopyInCaseOfError=1
 boUseMainModuleOptions=1
 csoAllowedRenderMethods=64
 csoShowELThreads=1
@@ -105,12 +105,6 @@ soActCtlsControlClass=1
 soActCtlsControlText=1
 soActCtlsFormClass=1
 soActCtlsFormText=1
-soAppCompilationDate=1
-soAppName=1
-soAppParameters=1
-soAppStartDate=1
-soAppUpTime=1
-soAppVersionNumber=1
 soCmpDisplayDPI=1
 soCmpDisplayMode=1
 soCmpFreeDisk=1
@@ -122,10 +116,6 @@ soCmpSysUpTime=1
 soCmpTotalDisk=1
 soCmpTotalMemory=1
 soCmpVideoCard=1
-soExcCount=1
-soExcDate=1
-soExcModuleName=1
-soExcModuleVersion=1
 soExcNote=1
 soExcStatus=1
 soNetDHCP=1

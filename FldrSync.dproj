@@ -4,7 +4,7 @@
         <MainSource>FldrSync.dpr</MainSource>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-        <ProjectVersion>18.3</ProjectVersion>
+        <ProjectVersion>18.5</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
@@ -72,6 +72,7 @@
         <DCC_DcuOutput>$(Platform)\$(Config)</DCC_DcuOutput>
         <DCC_ExeOutput>$(Platform)\$(Config)</DCC_ExeOutput>
         <DCC_UnitSearchPath>D:\Documents\RAD Studio\Library\Virtual Treeview 6.5.0\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_Define>EUREKALOG_VER7;$(DCC_Define)</DCC_Define>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
@@ -293,58 +294,63 @@
             </Platforms>
             <Deployment Version="3">
                 <DeployFile LocalName="ModelSupport_FldrSync\MainForm\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\EditDelete.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\Welcome.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\FileComparision\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\HelpAbout.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\About\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\FileComparision\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\MainForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\OptionsForm\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\Table of Contents.hhc" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\HelpCheckForUpdates.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\EditDoNothing.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\OptionsForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\FileCompare.html" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="HTML Help\HelpStyles.css" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\CommandLine.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\FileExit.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\EditSelectAll.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\FldrSync\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\FolderPathsForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\EditCopyRightToLeft.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\ProgressForm\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\EditClearLog.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\ProjectHistory.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\FileProcessFiles.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\ProgressForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\Sequence Diagram1.txvint" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\EditCopyLeftToRight.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="FldrSync.exe" Configuration="Debug" Class="ProjectOutput"/>
-                <DeployFile LocalName="ITHelperVersionInfoGUI.RC" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\About\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\FldrSync.hhp" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\OptionsForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="ModelSupport_FldrSync\Use Case Diagram1.txvuse" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\FolderPathsForm\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\ToolsOptions.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\ToolsCompare.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\OptionsForm\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\EditCopyRightToLeft.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\HelpCheckForUpdates.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\EditSelectAll.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\Welcome.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\ProjectHistory.html" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="ModelSupport_FldrSync\FldrSync\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\HelpContents.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\ProgressForm\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\EditDelete.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\CommandLine.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="..\..\LIBRARY\CompilerDefinitions.inc" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\FileExit.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\Sequence Diagram1.txvint" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ITHelperVersionInfoGUI.RC" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\About\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\FileCompare.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\EditCopyLeftToRight.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\HelpAbout.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\ToolsOptions.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\ProgressForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\FileComparision\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\FldrSync\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\MainForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\FileProcessFiles.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\FileComparision\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\EditClearLog.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\FolderPathsForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="FldrSync.exe" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="HTML Help\FldrSync.hhp" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\EditDoNothing.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\ToolsCompare.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\HelpContents.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\Table of Contents.hhc" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\About\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\FolderPathsForm\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="OSX32">
                         <Operation>1</Operation>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>Contents\MacOS</RemoteDir>
                         <Operation>0</Operation>
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="AndroidClassesDexFile">
                     <Platform Name="Android">
                         <RemoteDir>classes</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="AndroidFileProvider">
+                    <Platform Name="Android">
+                        <RemoteDir>res\xml</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
@@ -381,6 +387,12 @@
                 <DeployClass Name="AndroidSplashStyles">
                     <Platform Name="Android">
                         <RemoteDir>res\values</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="AndroidSplashStylesV21">
+                    <Platform Name="Android">
+                        <RemoteDir>res\values-v21</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
@@ -460,12 +472,20 @@
                         <Operation>1</Operation>
                         <Extensions>.framework</Extensions>
                     </Platform>
+                    <Platform Name="OSX64">
+                        <Operation>1</Operation>
+                        <Extensions>.framework</Extensions>
+                    </Platform>
                     <Platform Name="Win32">
                         <Operation>0</Operation>
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="DependencyModule">
                     <Platform Name="OSX32">
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="OSX64">
                         <Operation>1</Operation>
                         <Extensions>.dylib</Extensions>
                     </Platform>
@@ -491,6 +511,10 @@
                         <Operation>1</Operation>
                         <Extensions>.dylib</Extensions>
                     </Platform>
+                    <Platform Name="OSX64">
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
                     <Platform Name="Win32">
                         <Operation>0</Operation>
                         <Extensions>.bpl</Extensions>
@@ -510,6 +534,9 @@
                         <Operation>0</Operation>
                     </Platform>
                     <Platform Name="OSX32">
+                        <Operation>0</Operation>
+                    </Platform>
+                    <Platform Name="OSX64">
                         <Operation>0</Operation>
                     </Platform>
                     <Platform Name="Win32">
@@ -622,10 +649,15 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
+                <DeployClass Name="ProjectOSXDebug"/>
                 <DeployClass Name="ProjectOSXEntitlements"/>
                 <DeployClass Name="ProjectOSXInfoPList"/>
                 <DeployClass Name="ProjectOSXResource">
                     <Platform Name="OSX32">
+                        <RemoteDir>Contents\Resources</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                    <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
@@ -648,6 +680,9 @@
                         <Operation>1</Operation>
                     </Platform>
                     <Platform Name="OSX32">
+                        <Operation>1</Operation>
+                    </Platform>
+                    <Platform Name="OSX64">
                         <Operation>1</Operation>
                     </Platform>
                     <Platform Name="Win32">
@@ -689,6 +724,7 @@
                 <ProjectRoot Platform="Linux64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
+                <ProjectRoot Platform="OSX64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
             </Deployment>
         </BorlandProject>

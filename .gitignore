@@ -70,3 +70,16 @@ __recovery/
 *.txt
 *.rtf
 *.elf
+*.txvpck
+*.txaPackage
+*.txvuse
+*.elp
+*.chp
+*.zip
+*.profile
+*.gex
+*.css
+*.txvint
+*.chm
+*.aqt
+*.vsd

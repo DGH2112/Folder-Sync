@@ -3,9 +3,12 @@
   This module if a class to represent the applications main form interface.
   This form provide the display of differences between two folders.
 
-  @Version 1.0
-  @Date    11 Mar 2016
+  @Version 2.0
+  @Date    31 Dec 2018
   @Author  David Hoyle
+
+  @nocheck HardCodedInteger HardCodedString HardCodedNumber UnsortedModule
+  @nometrics
 
 **)
 Unit MainForm;
@@ -47,7 +50,7 @@ Uses
   FileDeleteProgressForm,
   FileCopyProgressForm,
   DiskSpaceForm,
-  System.Actions;
+  System.Actions, System.ImageList, VirtualTrees;
 
 Type
   (** This enumerate determines the type of progress to be shown in the taskbar in
@@ -64,7 +67,6 @@ Type
     actToolsOptions: TAction;
     actEditCopyRightToLeft: TAction;
     actEditCopyLeftToRight: TAction;
-    lvFileList: TListView;
     actEditDelete: TAction;
     actEditDoNothing: TAction;
     mmiCopyLefttoRight: TMenuItem;
@@ -96,6 +98,7 @@ Type
     redtOutputResults: TMemo;
     actToolsConfigMemMon: TAction;
     Splitter: TSplitter;
+    vstFileList: TVirtualStringTree;
     Procedure actHelpAboutExecute(Sender: TObject);
     Procedure actFileExitExecute(Sender: TObject);
     Procedure FormResize(Sender: TObject);
@@ -122,8 +125,32 @@ Type
     procedure actEditFileOperationsUpdate(Sender: TObject);
     procedure actToolsConfigMemMonExecute(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure vstFileListFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure FormShow(Sender: TObject);
+    procedure vstFileListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+      TextType: TVSTTextType; var CellText: string);
   Strict Private
-    { Private declarations }
+    Type
+      (** A record to describe the data stored in the File List nodes of the VTV control. **)
+      TFSFileListNode = Record
+        FProcessIndex      : Integer;   
+        FState             : TFileOp;
+        FLeftFilename      : String;
+        FLeftAttr          : Cardinal;
+        FLeftSize          : Int64;
+        FLeftDate          : TDateTime;
+        FLeftFileIndex     : INteger;
+        FRightFilename     : String;
+        FRightAttr         : Cardinal;
+        FRightSize         : Int64;
+        FRightDate         : TDateTime;
+        FRightFileIndex     : INteger;
+        FLeftFullFileName  : String;
+        FRightFullFileName : String;
+      End;
+      (** A poiner to be above file list node structure **)
+      PFSFileListNode = ^TFSFileListNode;
+  Strict Private
     FFolders         : TFolders;
     FExclusions      : String;
     FIconFiles       : TStringList;
@@ -156,10 +183,10 @@ Type
     Procedure ApplicationHint(Sender: TObject);
     Function GetImageIndex(ProcessItem : TProcessItem; strFileName: String): NativeInt;
     Procedure FixUpPanes;
-    Procedure InsertListItem(ProcessItem : TProcessItem);
-    Procedure SetFileOperation(FileOp: TFileOp);
+    Procedure InsertListItem(Const iProcessItem : Integer; Const ProcessItem : TProcessItem);
+    Procedure SetFileOperation(Const FileOp: TFileOp);
     Function CheckFolders: Boolean;
-    Procedure ImageIndexes(ProcessItem : TProcessItem; Item: TListItem);
+    Procedure ImageIndexes(Const ProcessItem : TProcessItem; Const NodeData : PFSFileListNode);
     Procedure ExceptionProc(strExceptionMsg: String);
     Procedure CloseTimerEvent(Sender: TObject);
     Procedure SearchStartProc(strFolder: String);
@@ -241,6 +268,18 @@ Type
   (** This is a custon exception for folders not found or created. **)
   TFolderNotFoundException = Class(Exception);
 
+  TFSVTVFields = (
+    vfState,
+    vfLeftFileName,
+    vfLeftAttr,
+    vfLeftSize,
+    vfLeftDate,
+    vfRightFilename,
+    vfRightAttr,
+    vfRightSize,
+    vfRightDate
+  );
+
 ResourceString
     (** A resource string for the Update Software ID **)
   strSoftwareID = 'FldrSync';
@@ -293,7 +332,9 @@ Uses
   {$ENDIF}
   UITypes,
   Types,
-  ApplicationFunctions;
+  ApplicationFunctions,
+  TypInfo,
+  StrUtils;
 
 {$R *.DFM}
 
@@ -340,19 +381,28 @@ End;
 Procedure TfrmMainForm.FormResize(Sender: TObject);
 
 Var
+  H: TVTHeader;
   i: Integer;
 
 Begin
-  With lvFileList Do
+  H := vstFileList.Header;
+  i := vstFileList.ClientWidth Div 2
+     - H.Columns[0].Width Div 2
+     - H.Columns[iLAttrCol].Width
+     - H.Columns[iLSizeCol].Width
+     - H.Columns[iLDateCol].Width
+     - 2;
+  If i > 0 Then
     Begin
-      i := ClientWidth Div 2 - Column[0].Width Div 2 - Column[iLAttrCol].Width -
-        Column[iLSizeCol].Width - Column[iLDateCol].Width - 2;
-      If i > 0 Then
-        Begin
-          Column[iLDisplayCol].Width := i;
-          Column[iRDisplayCol].Width := i;
-        End;
+      H.Columns[iLDisplayCol].Width := i;
+      H.Columns[iRDisplayCol].Width := i;
     End;
+End;
+
+Procedure TfrmMainForm.FormShow(Sender: TObject);
+
+Begin
+  FStartTimer.Enabled := True;
 End;
 
 (**
@@ -381,155 +431,154 @@ Var
 
 Begin
   iniMemFile := TMemIniFile.Create(FRootKey);
-  With iniMemFile Do
-    Try
-      TStyleManager.SetStyle(ReadString('Setup', 'Theme',
-        TStyleManager.ActiveStyle.Name));
-      Top                                := ReadInteger('Setup', 'Top', 100);
-      Left                               := ReadInteger('Setup', 'Left', 100);
-      Height                             := ReadInteger('Setup', 'Height', 300);
-      Width                              := ReadInteger('Setup', 'Width', 450);
-      lvFileList.Column[iLAttrCol].Width := ReadInteger('ColumnWidths', 'LAttr', 50);
-      lvFileList.Column[iLSizeCol].Width := ReadInteger('ColumnWidths', 'LSize', 85);
-      lvFileList.Column[iLDateCol].Width := ReadInteger('ColumnWidths', 'LDAte', 150);
-      lvFileList.Column[iRAttrCol].Width := ReadInteger('ColumnWidths', 'RAttr', 50);
-      lvFileList.Column[iRSizeCol].Width := ReadInteger('ColumnWidths', 'RSize', 85);
-      lvFileList.Column[iRDateCol].Width := ReadInteger('ColumnWidths', 'RDate', 150);
-      FInterfaceFonts[ifTableFont].FFontName :=
-        ReadString('ListViewFont', 'Name', InterfaceFontDefaults[ifTableFont].FFontName);
-      lvFileList.Font.Name               := FInterfaceFonts[ifTableFont].FFontName;
-      FInterfaceFonts[ifTableFont].FFontSize :=
-        ReadInteger('ListViewFont', 'Size', InterfaceFontDefaults[ifTableFont].FFontSize);
-      lvFileList.Font.Size               := FInterfaceFonts[ifTableFont].FFontSize;
-      FInterfaceFonts[ifLogFont].FFontName :=
-        ReadString('LogFont', 'Name', InterfaceFontDefaults[ifLogFont].FFontName);
-      redtOutputResults.Font.Name        := FInterfaceFonts[ifLogFont].FFontName;
-      FInterfaceFonts[ifLogFont].FFontSize :=
-        ReadInteger('LogFont', 'Size', InterfaceFontDefaults[ifLogFont].FFontSize);
-      redtOutputResults.Font.Size        := FInterfaceFonts[ifLogFont].FFontSize;
-      For k := Low(TFileOpFont) To High(TFileOpFont) Do
-        Begin
-          FFileOpFonts[k].FFontColour := StringToColor(
-            ReadString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Colour',
-              ColorToString(FileOperationFontDefaults[k].FFontColour)));
-          FFileOpFonts[k].FBGFontColour := StringToColor(
-            ReadString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'BGColour',
-              ColorToString(FileOperationFontDefaults[k].FBGFontColour)));
-          FFileOpFonts[k].FFontStyle := TFontStyles(Byte(
-            ReadInteger('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Style',
-              Byte(FileOperationFontDefaults[k].FFontStyle))));
+  Try
+    TStyleManager.SetStyle(iniMemFile.ReadString('Setup', 'Theme',
+      TStyleManager.ActiveStyle.Name));
+    Top := iniMemFile.ReadInteger('Setup', 'Top', 100);
+    Left := iniMemFile.ReadInteger('Setup', 'Left', 100);
+    Height := iniMemFile.ReadInteger('Setup', 'Height', 300);
+    Width := iniMemFile.ReadInteger('Setup', 'Width', 450);
+    vstFileList.Header.Columns[iLAttrCol].Width := iniMemFile.ReadInteger('ColumnWidths', 'LAttr', 50);
+    vstFileList.Header.Columns[iLSizeCol].Width := iniMemFile.ReadInteger('ColumnWidths', 'LSize', 85);
+    vstFileList.Header.Columns[iLDateCol].Width := iniMemFile.ReadInteger('ColumnWidths', 'LDAte', 150);
+    vstFileList.Header.Columns[iRAttrCol].Width := iniMemFile.ReadInteger('ColumnWidths', 'RAttr', 50);
+    vstFileList.Header.Columns[iRSizeCol].Width := iniMemFile.ReadInteger('ColumnWidths', 'RSize', 85);
+    vstFileList.Header.Columns[iRDateCol].Width := iniMemFile.ReadInteger('ColumnWidths', 'RDate', 150);
+    FInterfaceFonts[ifTableFont].FFontName :=
+      iniMemFile.ReadString('ListViewFont', 'Name', InterfaceFontDefaults[ifTableFont].FFontName);
+    vstFileList.Font.Name               := FInterfaceFonts[ifTableFont].FFontName;
+    FInterfaceFonts[ifTableFont].FFontSize :=
+      iniMemFile.ReadInteger('ListViewFont', 'Size', InterfaceFontDefaults[ifTableFont].FFontSize);
+    vstFileList.Font.Size               := FInterfaceFonts[ifTableFont].FFontSize;
+    FInterfaceFonts[ifLogFont].FFontName :=
+      iniMemFile.ReadString('LogFont', 'Name', InterfaceFontDefaults[ifLogFont].FFontName);
+    redtOutputResults.Font.Name        := FInterfaceFonts[ifLogFont].FFontName;
+    FInterfaceFonts[ifLogFont].FFontSize :=
+      iniMemFile.ReadInteger('LogFont', 'Size', InterfaceFontDefaults[ifLogFont].FFontSize);
+    redtOutputResults.Font.Size        := FInterfaceFonts[ifLogFont].FFontSize;
+    For k := Low(TFileOpFont) To High(TFileOpFont) Do
+      Begin
+        FFileOpFonts[k].FFontColour := StringToColor(
+          iniMemFile.ReadString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Colour',
+            ColorToString(FileOperationFontDefaults[k].FFontColour)));
+        FFileOpFonts[k].FBGFontColour := StringToColor(
+          iniMemFile.ReadString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'BGColour',
+            ColorToString(FileOperationFontDefaults[k].FBGFontColour)));
+        FFileOpFonts[k].FFontStyle := TFontStyles(Byte(
+          iniMemFile.ReadInteger('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Style',
+            Byte(FileOperationFontDefaults[k].FFontStyle))));
+      End;
+    strLog := ChangeFileExt(FRootKey, '_log.txt');
+    If FileExists(strLog) Then
+      redtOutputResults.Lines.LoadFromFile(strLog);
+    LogSize;
+    WindowState := TWindowState(iniMemFile.ReadInteger('Setup', 'WindowState', Byte(wsNormal)));
+    redtOutputResults.Height := iniMemFile.ReadInteger('Setup', 'OutputResultsHeight', 100);
+    FCompareEXE := iniMemFile.ReadString('Setup', 'CompareEXE', '');
+    FCopyDlgWidth := iniMemFile.ReadInteger('DlgWidths', 'CopyDlg', 0);
+    FDeleteDlgWidth := iniMemFile.ReadInteger('DlgWidths', 'DeleteDlg', 0);
+    FConfirmDlgWidth := iniMemFile.ReadInteger('DlgWidths', 'ConfirmDlg', 0);
+    iDefaultOps := [fosDelete..fosDifference];
+    FFileOpStats := TFileOpStats(Byte(iniMemFile.ReadInteger('Setup', 'FileOpStats',
+      Byte(iDefaultOps))));
+    UpgradeINIFolderOptions(iniMemFile);
+    If FParams.Count = 0 Then
+      Begin
+        FFldrSyncOptions := [];
+        For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
+          If iniMemFile.ReadBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
+            strFldrSyncOptions[j].fDefault) Then
+            Include(FFldrSyncOptions, j);
+        sl := TStringList.Create;
+        Try
+          iniMemFile.ReadSection('NewFolders', sl);
+          For i := 0 To sl.Count - 1 Do
+            Begin
+              iSyncOptions := TSyncOptions(SmallInt(iniMemFile.ReadInteger('NewFolderStatus', sl[i],
+                SmallInt(iSyncOptions))));
+              strMaxValue := iniMemFile.ReadString('NewFolderMaxFileSize', sl[i], '0,0,0,0');
+              iMaxValue.Value := 0;
+              iMaxValue.iFirst := StrToInt(GetField(strMaxValue, ',', 1));
+              iMaxValue.iSecond := StrToInt(GetField(strMaxValue, ',', 2));
+              iMaxValue.iThird := StrToInt(GetField(strMaxValue, ',', 3));
+              iMaxValue.iFourth := StrToInt(GetField(strMaxValue, ',', 4));
+              strLeftFldr := GetShortHint(iniMemFile.ReadString('NewFolders', sl[i], ''));
+              strRightFldr := GetLongHint(iniMemFile.ReadString('NewFolders', sl[i], ''));
+              FFolders.Add(
+                TFolder.Create(
+                  ExtractFilePath(strLeftFldr),
+                  ExtractFilePath(strRightFldr),
+                  ExtractFileName(strLeftFldr),
+                  iSyncOptions,
+                  iMaxValue.Value
+                )
+              );
+            End;
+        Finally
+          sl.Free;
         End;
-      strLog := ChangeFileExt(FRootKey, '_log.txt');
-      If FileExists(strLog) Then
-        redtOutputResults.Lines.LoadFromFile(strLog);
-      LogSize;
-      WindowState := TWindowState(ReadInteger('Setup', 'WindowState', Byte(wsNormal)));
-      redtOutputResults.Height := ReadInteger('Setup', 'OutputResultsHeight', 100);
-      FCompareEXE      := ReadString('Setup', 'CompareEXE', '');
-      FCopyDlgWidth := ReadInteger('DlgWidths', 'CopyDlg', 0);
-      FDeleteDlgWidth := ReadInteger('DlgWidths', 'DeleteDlg', 0);
-      FConfirmDlgWidth := ReadInteger('DlgWidths', 'ConfirmDlg', 0);
-      iDefaultOps := [fosDelete..fosDifference];
-      FFileOpStats := TFileOpStats(Byte(ReadInteger('Setup', 'FileOpStats',
-        Byte(iDefaultOps))));
-      UpgradeINIFolderOptions(iniMemFile);
-      If FParams.Count = 0 Then
-        Begin
-          FFldrSyncOptions := [];
-          For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
-            If ReadBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
-              strFldrSyncOptions[j].fDefault) Then
-              Include(FFldrSyncOptions, j);
-          sl := TStringList.Create;
-          Try
-            ReadSection('NewFolders', sl);
-            For i := 0 To sl.Count - 1 Do
-              Begin
-                iSyncOptions := TSyncOptions(SmallInt(ReadInteger('NewFolderStatus', sl[i],
-                  SmallInt(iSyncOptions))));
-                strMaxValue := ReadString('NewFolderMaxFileSize', sl[i], '0,0,0,0');
-                iMaxValue.Value := 0;
-                iMaxValue.iFirst := StrToInt(GetField(strMaxValue, ',', 1));
-                iMaxValue.iSecond := StrToInt(GetField(strMaxValue, ',', 2));
-                iMaxValue.iThird := StrToInt(GetField(strMaxValue, ',', 3));
-                iMaxValue.iFourth := StrToInt(GetField(strMaxValue, ',', 4));
-                strLeftFldr := GetShortHint(ReadString('NewFolders', sl[i], ''));
-                strRightFldr := GetLongHint(ReadString('NewFolders', sl[i], ''));
-                FFolders.Add(
-                  TFolder.Create(
-                    ExtractFilePath(strLeftFldr),
-                    ExtractFilePath(strRightFldr),
-                    ExtractFileName(strLeftFldr),
-                    iSyncOptions,
-                    iMaxValue.Value
-                  )
-                );
-              End;
-          Finally
-            sl.Free;
-          End;
-          FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|', #13#10,
-            [rfReplaceAll]);
-        End Else
-        Begin
-          ComOps.iSyncOptions := [soEnabled];
-          ProcessCommandLine(FParams, ComOps);
-          FFolders.Add(
-            TFolder.Create(
-              ComOps.strSourceFldr,
-              ComOps.strDestFldr,
-              ComOps.strFilePatterns,
-              ComOps.iSyncOptions,
-              ComOps.iMaxFileSize
-            ));
-          If clsDeletePermentently In ComOps.iCommandLineOptions Then
-            Include(FFldrSyncOptions, fsoPermanentlyDeleteFiles)
-          Else
-            Exclude(FFldrSyncOptions, fsoPermanentlyDeleteFiles);
-          If clsBatchRecycleFiles In ComOps.iCommandLineOptions Then
-            Include(FFldrSyncOptions, fsoBatchRecycleFiles)
-          Else
-            Exclude(FFldrSyncOptions, fsoBatchRecycleFiles);
-          If clsProceedAutomatically In ComOps.iCommandLineOptions Then
-            Include(FFldrSyncOptions, fsoStartProcessingAutomatically)
-          Else
-            Exclude(FFldrSyncOptions, fsoStartProcessingAutomatically);
-        End;
-      DGHMemoryMonitor.UpdateInterval := ReadInteger('MemoryMonitor', 'UpdateInterval',
-        DGHMemoryMonitor.UpdateInterval);
-      DGHMemoryMonitor.BackColour := StringToColor(ReadString('MemoryMonitor',
-        'BackColour', ColorToString(DGHMemoryMonitor.BackColour)));
-      DGHMemoryMonitor.BackFontColour := StringToColor(ReadString('MemoryMonitor',
-        'BackFontColour', ColorToString(DGHMemoryMonitor.BackFontColour)));
-      DGHMemoryMonitor.HighColour := StringToColor(ReadString('MemoryMonitor',
-        'HighColour', ColorToString(DGHMemoryMonitor.HighColour)));
-      DGHMemoryMonitor.HalfColour := StringToColor(ReadString('MemoryMonitor',
-        'HalfColour', ColorToString(DGHMemoryMonitor.HalfColour)));
-      DGHMemoryMonitor.LowColour := StringToColor(ReadString('MemoryMonitor',
-        'LowColour', ColorToString(DGHMemoryMonitor.LowColour)));
-      DGHMemoryMonitor.HighFontColour := StringToColor(ReadString('MemoryMonitor',
-        'HighFontColour', ColorToString(DGHMemoryMonitor.HighFontColour)));
-      DGHMemoryMonitor.HalfFontColour := StringToColor(ReadString('MemoryMonitor',
-        'HalfFontColour', ColorToString(DGHMemoryMonitor.HalfFontColour)));
-      DGHMemoryMonitor.LowFontColour := StringToColor(ReadString('MemoryMonitor',
-        'LowFontColour', ColorToString(DGHMemoryMonitor.LowFontColour)));
-      DGHMemoryMonitor.LowPoint := ReadInteger('MemoryMonitor', 'LowPoint',
-        DGHMemoryMonitor.LowPoint);
-      DGHMemoryMonitor.HalfPoint := ReadInteger('MemoryMonitor', 'HalfPoint',
-        DGHMemoryMonitor.HalfPoint);
-      DGHMemoryMonitor.HighPoint := ReadInteger('MemoryMonitor', 'HighPoint',
-        DGHMemoryMonitor.HighPoint);
-      DGHMemoryMonitor.Font.Name := ReadString('MemoryMonitor', 'FontName',
-        DGHMemoryMonitor.Font.Name);
-      DGHMemoryMonitor.Font.Size := ReadInteger('MemoryMonitor', 'FontSize',
-        DGHMemoryMonitor.Font.Size);
-      DGHMemoryMonitor.Font.Style := TFontStyles(Byte(ReadInteger('MemoryMonitor', 'FontStyle',
-        Byte(DGHMemoryMonitor.Font.Style))));
-      DGHMemoryMonitor.Width := ReadInteger('MemoryMonitor', 'Width',
-        DGHMemoryMonitor.Width);
-    Finally
-      Free;
-    End;
+        FExclusions := StringReplace(iniMemFile.ReadString('Setup', 'Exclusions', ''), '|', #13#10,
+          [rfReplaceAll]);
+      End Else
+      Begin
+        ComOps.iSyncOptions := [soEnabled];
+        ProcessCommandLine(FParams, ComOps);
+        FFolders.Add(
+          TFolder.Create(
+            ComOps.strSourceFldr,
+            ComOps.strDestFldr,
+            ComOps.strFilePatterns,
+            ComOps.iSyncOptions,
+            ComOps.iMaxFileSize
+          ));
+        If clsDeletePermentently In ComOps.iCommandLineOptions Then
+          Include(FFldrSyncOptions, fsoPermanentlyDeleteFiles)
+        Else
+          Exclude(FFldrSyncOptions, fsoPermanentlyDeleteFiles);
+        If clsBatchRecycleFiles In ComOps.iCommandLineOptions Then
+          Include(FFldrSyncOptions, fsoBatchRecycleFiles)
+        Else
+          Exclude(FFldrSyncOptions, fsoBatchRecycleFiles);
+        If clsProceedAutomatically In ComOps.iCommandLineOptions Then
+          Include(FFldrSyncOptions, fsoStartProcessingAutomatically)
+        Else
+          Exclude(FFldrSyncOptions, fsoStartProcessingAutomatically);
+      End;
+    DGHMemoryMonitor.UpdateInterval := iniMemFile.ReadInteger('MemoryMonitor', 'UpdateInterval',
+      DGHMemoryMonitor.UpdateInterval);
+    DGHMemoryMonitor.BackColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'BackColour', ColorToString(DGHMemoryMonitor.BackColour)));
+    DGHMemoryMonitor.BackFontColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'BackFontColour', ColorToString(DGHMemoryMonitor.BackFontColour)));
+    DGHMemoryMonitor.HighColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'HighColour', ColorToString(DGHMemoryMonitor.HighColour)));
+    DGHMemoryMonitor.HalfColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'HalfColour', ColorToString(DGHMemoryMonitor.HalfColour)));
+    DGHMemoryMonitor.LowColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'LowColour', ColorToString(DGHMemoryMonitor.LowColour)));
+    DGHMemoryMonitor.HighFontColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'HighFontColour', ColorToString(DGHMemoryMonitor.HighFontColour)));
+    DGHMemoryMonitor.HalfFontColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'HalfFontColour', ColorToString(DGHMemoryMonitor.HalfFontColour)));
+    DGHMemoryMonitor.LowFontColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'LowFontColour', ColorToString(DGHMemoryMonitor.LowFontColour)));
+    DGHMemoryMonitor.LowPoint := iniMemFile.ReadInteger('MemoryMonitor', 'LowPoint',
+      DGHMemoryMonitor.LowPoint);
+    DGHMemoryMonitor.HalfPoint := iniMemFile.ReadInteger('MemoryMonitor', 'HalfPoint',
+      DGHMemoryMonitor.HalfPoint);
+    DGHMemoryMonitor.HighPoint := iniMemFile.ReadInteger('MemoryMonitor', 'HighPoint',
+      DGHMemoryMonitor.HighPoint);
+    DGHMemoryMonitor.Font.Name := iniMemFile.ReadString('MemoryMonitor', 'FontName',
+      DGHMemoryMonitor.Font.Name);
+    DGHMemoryMonitor.Font.Size := iniMemFile.ReadInteger('MemoryMonitor', 'FontSize',
+      DGHMemoryMonitor.Font.Size);
+    DGHMemoryMonitor.Font.Style := TFontStyles(Byte(iniMemFile.ReadInteger('MemoryMonitor', 'FontStyle',
+      Byte(DGHMemoryMonitor.Font.Style))));
+    DGHMemoryMonitor.Width := iniMemFile.ReadInteger('MemoryMonitor', 'Width',
+      DGHMemoryMonitor.Width);
+  Finally
+    iniMemFile.Free;
+  End;
 End;
 
 (**
@@ -545,8 +594,7 @@ Procedure TfrmMainForm.LogSize;
 Begin
   stbrStatusBar.Panels[0].Text := Format('Log size: %1.1n kbytes',
     [Int(Length(redtOutputResults.Lines.Text)) / 1024.0]);
-  With stbrStatusBar Do
-    Panels[0].Width := Canvas.TextWidth(Panels[0].Text) + 25;
+  stbrStatusBar.Panels[0].Width := stbrStatusBar.Canvas.TextWidth(stbrStatusBar.Panels[0].Text) + 25;
 End;
 
 (**
@@ -587,22 +635,22 @@ Var
   Procedure GetSubItemRects;
 
   Var
-    R : TRect;
+    LR : TRect;
     j: Integer;
 
   Begin
     {$IFDEF PROFILECODE}
     CodeProfiler.Start('GetSubItemRect');
     {$ENDIF}
-    SetLength(SubItemRects, lvFileList.Columns.Count);
-    R := Item.DisplayRect(drBounds);
-    Inc(R.Top, 2);    // Padding / Margin
-    Inc(R.Bottom, 2); // Padding / Margin
-    For j  := 0 To lvFileList.Columns.Count - 1 - 1 Do
+    SetLength(SubItemRects, vstFileList.Header.Columns.Count);
+    LR := Item.DisplayRect(drBounds);
+    Inc(LR.Top, 2);    // Padding / Margin
+    Inc(LR.Bottom, 2); // Padding / Margin
+    For j  := 0 To vstFileList.Header.Columns.Count - 1 - 1 Do
       Begin
-        Inc(R.Left, Sender.Column[j].Width);
-        R.Right := R.Left + Sender.Column[j + 1].Width;
-        SubItemRects[j] := R;
+        Inc(LR.Left, Sender.Column[j].Width);
+        LR.Right := LR.Left + Sender.Column[j + 1].Width;
+        SubItemRects[j] := LR;
         Inc(SubItemRects[j].Left, 6);   // Padding / Margin
         Dec(SubItemRects[j].Right, 6);  // Padding / Margin
       End;
@@ -613,18 +661,16 @@ Var
 
   (**
 
-    This method draws the background for the left and right displays of file
-    informations.
+    This method draws the background for the left and right displays of file informations.
 
     @precon  None.
-    @postcon Draws the background for the left and right displays of file
-             informations.
+    @postcon Draws the background for the left and right displays of file informations.
 
-    @param   iColumn    as an Integer
-    @param   Background as a TBackground
+    @param   iColumn    as an Integer as a constant
+    @param   Background as a TBackground as a constant
 
   **)
-  Procedure DrawBackground(iColumn: Integer; Background: TBackground);
+  Procedure DrawBackground(Const iColumn: Integer; Const Background: TBackground);
 
   Begin
     {$IFDEF PROFILECODE}
@@ -682,17 +728,16 @@ Var
 
   (**
 
-    This procedure sets the text drawing options (alignment, etc) for the different 
-    columns to be displayed.
+    This procedure sets the text drawing options (alignment, etc) for the different columns to be 
+    displayed.
 
     @precon  None.
-    @postcon Sets the text drawing options (alignment, etc) for the different columns to 
-             be displayed.
+    @postcon Sets the text drawing options (alignment, etc) for the different columns to be displayed.
 
-    @param   iSubItem as an Integer
+    @param   iSubItem as an Integer as a constant
 
   **)
-  Procedure SetTextDrawingOptions(iSubItem : Integer);
+  Procedure SetTextDrawingOptions(Const iSubItem : Integer);
 
   Begin
     {$IFDEF PROFILECODE}
@@ -713,18 +758,18 @@ Var
 
   (**
 
-    This procedure returns the display rectangle (adjusted for file icon image) for the 
-    text to be displayed in the report column.
+    This procedure returns the display rectangle (adjusted for file icon image) for the text to be 
+    displayed in the report column.
 
     @precon  None.
-    @postcon Returns the display rectangle (adjusted for file icon image) for the text to
-             be displayed in the report column.
+    @postcon Returns the display rectangle (adjusted for file icon image) for the text to be displayed 
+             in the report column.
 
-    @param   iSubItem as an Integer
+    @param   iSubItem as an Integer as a constant
     @return  a TRect
 
   **)
-  Function DrawFileIcon(iSubItem : Integer): TRect;
+  Function DrawFileIcon(Const iSubItem : Integer): TRect;
 
   Var
     iImage     : Integer;
@@ -762,10 +807,10 @@ Var
     @precon  None.
     @postcon Sets the text background for the columns of information.
 
-    @param   FileSide as a TBackground
+    @param   FileSide as a TBackground as a constant
 
   **)
-  Procedure SetTextFontBackground(FileSide : TBackground);
+  Procedure SetTextFontBackground(Const FileSide : TBackground);
 
   Begin
     {$IFDEF PROFILECODE}
@@ -806,20 +851,18 @@ Var
 
   (**
 
-    This procedure displays a grayed out destination path for files which don`t have a 
-    destination file, else sets up the font colours and style attributes for displaying 
-    the text.
+    This procedure displays a grayed out destination path for files which don`t have a destination file, 
+    else sets up the font colours and style attributes for displaying the text.
 
     @precon  None.
-    @postcon Displays a grayed out destination path for files which don`t have a 
-             destination file, else sets up the font colours and style attributes for 
-             displaying the text.
+    @postcon Displays a grayed out destination path for files which don`t have a destination file, else 
+             sets up the font colours and style attributes for displaying the text.
 
-    @param   iSubItem as an Integer
-    @param   iFileOp  as a TFileOp
+    @param   iSubItem as an Integer as a constant
+    @param   iFileOp  as a TFileOp as a constant
 
   **)
-  Procedure FixUpEmptyFilePaths(iSubItem : Integer; iFileOp : TFileOp);
+  Procedure FixUpEmptyFilePaths(Const iSubItem : Integer; Const iFileOp : TFileOp);
 
   Begin
     {$IFDEF PROFILECODE}
@@ -877,7 +920,7 @@ Begin
   DrawBackground(iLAttrCol, bgLeft);
   DrawBackground(iRAttrCol, bgRight);
   R := Item.DisplayRect(drBounds);
-  ilActionImages.Draw(Sender.Canvas, R.Left + lvFileList.Column[0].Width Div 2 - 8, R.Top,
+  ilActionImages.Draw(Sender.Canvas, R.Left + vstFileList.Header.Columns[0].Width Div 2 - 8, R.Top,
     Item.StateIndex, True);
   // Draw Left File
   SetTextFontBackground(bgLeft);
@@ -1007,6 +1050,8 @@ end;
   @precon  None.
   @postcon None.
 
+  @nocheck EmptyMethod
+
 **)
 Procedure TfrmMainForm.NothingToDoEnd;
 
@@ -1126,95 +1171,96 @@ Var
   iMaxValue : TInt64Ex;
   k: TFileOpFont;
   Ops: TSyncOptions;
+  iniMemFile: TMemIniFile;
 
 Begin
-  With TMemIniFile.Create(FRootKey) Do
-    Try
-      recWndPlmt.Length := SizeOf(TWindowPlacement);
-      GetWindowPlacement(Handle, @recWndPlmt);
-      WriteInteger('Setup', 'Top', recWndPlmt.rcNormalPosition.Top);
-      WriteInteger('Setup', 'Left', recWndPlmt.rcNormalPosition.Left);
-      WriteInteger('Setup', 'Height', recWndPlmt.rcNormalPosition.Bottom -
-          recWndPlmt.rcNormalPosition.Top);
-      WriteInteger('Setup', 'Width', recWndPlmt.rcNormalPosition.Right -
-          recWndPlmt.rcNormalPosition.Left);
-      WriteInteger('ColumnWidths', 'LAttr', lvFileList.Column[iLAttrCol].Width);
-      WriteInteger('ColumnWidths', 'LSize', lvFileList.Column[iLSizeCol].Width);
-      WriteInteger('ColumnWidths', 'LDAte', lvFileList.Column[iLDateCol].Width);
-      WriteInteger('ColumnWidths', 'RAttr', lvFileList.Column[iRAttrCol].Width);
-      WriteInteger('ColumnWidths', 'RSize', lvFileList.Column[iRSizeCol].Width);
-      WriteInteger('ColumnWidths', 'RDate', lvFileList.Column[iRDateCol].Width);
-      WriteString('ListViewFont', 'Name', FInterfaceFonts[ifTableFont].FFontName);
-      WriteInteger('ListViewFont', 'Size', FInterfaceFonts[ifTableFont].FFontSize);
-      WriteString('LogFont', 'Name', FInterfaceFonts[ifLogFont].FFontName);
-      WriteInteger('LogFont', 'Size', FInterfaceFonts[ifLogFont].FFontSize);
-      For k := Low(TFileOpFont) To High(TFileOpFont) Do
-        Begin
-          WriteString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Colour',
-            ColorToString(FFileOpFonts[k].FFontColour));
-          WriteString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'BGColour',
-            ColorToString(FFileOpFonts[k].FBGFontColour));
-          WriteInteger('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Style',
-            Byte(FFileOpFonts[k].FFontStyle));
-        End;
-      redtOutputResults.Lines.SaveToFile(ChangeFileExt(FRootKey, '_log.txt'));
-      WriteInteger('Setup', 'WindowState', Byte(WindowState));
-      WriteInteger('Setup', 'OutputResultsHeight', redtOutputResults.Height);
-      WriteString('Setup', 'CompareEXE', FCompareEXE);
-      WriteInteger('DlgWidths', 'CopyDlg', FCopyDlgWidth);
-      WriteInteger('DlgWidths', 'DeleteDlg', FDeleteDlgWidth);
-      WriteInteger('DlgWidths', 'ConfirmDlg', FConfirmDlgWidth);
-      WriteInteger('Setup', 'FileOpStats', Byte(FFileOpStats));
-      WriteString('Setup', 'Theme', TStyleManager.ActiveStyle.Name);
-      If FParams.Count = 0 Then
-        Begin
-          For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
-            WriteBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
-              j In FFldrSyncOptions);
-          EraseSection('Folders');
-          EraseSection('FolderStatus');
-          EraseSection('FolderMaxFileSize');
-          EraseSection('NewFolders');
-          EraseSection('NewFolderStatus');
-          EraseSection('NewFolderMaxFileSize');
-          For i := 0 To FFolders.Count - 1 Do
-            Begin
-              WriteString('NewFolders', Format('Folder%2.2d', [i]),
-                FFolders.Folder[i].LeftFldr + FFolders.Folder[i].Patterns + '|' +
-                FFolders.Folder[i].RightFldr + FFolders.Folder[i].Patterns);
-              Ops := FFolders.Folder[i].SyncOptions;
-              Exclude(Ops, soTempDisabled);
-              WriteInteger('NewFolderStatus', Format('Folder%2.2d', [i]), SmallInt(Ops));
-              iMaxValue.Value := FFolders.Folder[i].MaxFileSize;
-              WriteString('NewFolderMaxFileSize', Format('Folder%2.2d', [i]),
-                Format('%d,%d,%d,%d', [iMaxValue.iFirst, iMaxValue.iSecond,
-                  iMaxValue.iThird, iMaxValue.iFourth]));
-            End;
-          WriteString('Setup', 'Exclusions', StringReplace(FExclusions, #13#10, '|',
-              [rfReplaceAll]));
-          //FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|', #13#10,
-          //  [rfReplaceAll]);
-        End;
-      WriteInteger('MemoryMonitor', 'UpdateInterval', DGHMemoryMonitor.UpdateInterval);
-      WriteString('MemoryMonitor', 'BackColour', ColorToString(DGHMemoryMonitor.BackColour));
-      WriteString('MemoryMonitor', 'BackFontColour', ColorToString(DGHMemoryMonitor.BackFontColour));
-      WriteString('MemoryMonitor', 'HighColour', ColorToString(DGHMemoryMonitor.HighColour));
-      WriteString('MemoryMonitor', 'HalfColour', ColorToString(DGHMemoryMonitor.HalfColour));
-      WriteString('MemoryMonitor', 'LowColour', ColorToString(DGHMemoryMonitor.LowColour));
-      WriteString('MemoryMonitor', 'HighFontColour', ColorToString(DGHMemoryMonitor.HighFontColour));
-      WriteString('MemoryMonitor', 'HalfFontColour', ColorToString(DGHMemoryMonitor.HalfFontColour));
-      WriteString('MemoryMonitor', 'LowFontColour', ColorToString(DGHMemoryMonitor.LowFontColour));
-      WriteInteger('MemoryMonitor', 'LowPoint', DGHMemoryMonitor.LowPoint);
-      WriteInteger('MemoryMonitor', 'HalfPoint', DGHMemoryMonitor.HalfPoint);
-      WriteInteger('MemoryMonitor', 'HighPoint', DGHMemoryMonitor.HighPoint);
-      WriteString('MemoryMonitor', 'FontName', DGHMemoryMonitor.Font.Name);
-      WriteInteger('MemoryMonitor', 'FontSize', DGHMemoryMonitor.Font.Size);
-      WriteInteger('MemoryMonitor', 'FontStyle', Byte(DGHMemoryMonitor.Font.Style));
-      WriteInteger('MemoryMonitor', 'Width', DGHMemoryMonitor.Width);
-      UpdateFile;
-    Finally
-      Free;
-    End;
+  iniMemFile := TMemIniFile.Create(FRootKey);
+  Try
+    recWndPlmt.Length := SizeOf(TWindowPlacement);
+    GetWindowPlacement(Handle, @recWndPlmt);
+    iniMemFile.WriteInteger('Setup', 'Top', recWndPlmt.rcNormalPosition.Top);
+    iniMemFile.WriteInteger('Setup', 'Left', recWndPlmt.rcNormalPosition.Left);
+    iniMemFile.WriteInteger('Setup', 'Height', recWndPlmt.rcNormalPosition.Bottom -
+        recWndPlmt.rcNormalPosition.Top);
+    iniMemFile.WriteInteger('Setup', 'Width', recWndPlmt.rcNormalPosition.Right -
+        recWndPlmt.rcNormalPosition.Left);
+    iniMemFile.WriteInteger('ColumnWidths', 'LAttr', vstFileList.Header.Columns[iLAttrCol].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'LSize', vstFileList.Header.Columns[iLSizeCol].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'LDAte', vstFileList.Header.Columns[iLDateCol].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'RAttr', vstFileList.Header.Columns[iRAttrCol].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'RSize', vstFileList.Header.Columns[iRSizeCol].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'RDate', vstFileList.Header.Columns[iRDateCol].Width);
+    iniMemFile.WriteString('ListViewFont', 'Name', FInterfaceFonts[ifTableFont].FFontName);
+    iniMemFile.WriteInteger('ListViewFont', 'Size', FInterfaceFonts[ifTableFont].FFontSize);
+    iniMemFile.WriteString('LogFont', 'Name', FInterfaceFonts[ifLogFont].FFontName);
+    iniMemFile.WriteInteger('LogFont', 'Size', FInterfaceFonts[ifLogFont].FFontSize);
+    For k := Low(TFileOpFont) To High(TFileOpFont) Do
+      Begin
+        iniMemFile.WriteString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Colour',
+          ColorToString(FFileOpFonts[k].FFontColour));
+        iniMemFile.WriteString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'BGColour',
+          ColorToString(FFileOpFonts[k].FBGFontColour));
+        iniMemFile.WriteInteger('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Style',
+          Byte(FFileOpFonts[k].FFontStyle));
+      End;
+    redtOutputResults.Lines.SaveToFile(ChangeFileExt(FRootKey, '_log.txt'));
+    iniMemFile.WriteInteger('Setup', 'WindowState', Byte(WindowState));
+    iniMemFile.WriteInteger('Setup', 'OutputResultsHeight', redtOutputResults.Height);
+    iniMemFile.WriteString('Setup', 'CompareEXE', FCompareEXE);
+    iniMemFile.WriteInteger('DlgWidths', 'CopyDlg', FCopyDlgWidth);
+    iniMemFile.WriteInteger('DlgWidths', 'DeleteDlg', FDeleteDlgWidth);
+    iniMemFile.WriteInteger('DlgWidths', 'ConfirmDlg', FConfirmDlgWidth);
+    iniMemFile.WriteInteger('Setup', 'FileOpStats', Byte(FFileOpStats));
+    iniMemFile.WriteString('Setup', 'Theme', TStyleManager.ActiveStyle.Name);
+    If FParams.Count = 0 Then
+      Begin
+        For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
+          iniMemFile.WriteBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
+            j In FFldrSyncOptions);
+        iniMemFile.EraseSection('Folders');
+        iniMemFile.EraseSection('FolderStatus');
+        iniMemFile.EraseSection('FolderMaxFileSize');
+        iniMemFile.EraseSection('NewFolders');
+        iniMemFile.EraseSection('NewFolderStatus');
+        iniMemFile.EraseSection('NewFolderMaxFileSize');
+        For i := 0 To FFolders.Count - 1 Do
+          Begin
+            iniMemFile.WriteString('NewFolders', Format('Folder%2.2d', [i]),
+              FFolders.Folder[i].LeftFldr + FFolders.Folder[i].Patterns + '|' +
+              FFolders.Folder[i].RightFldr + FFolders.Folder[i].Patterns);
+            Ops := FFolders.Folder[i].SyncOptions;
+            Exclude(Ops, soTempDisabled);
+            iniMemFile.WriteInteger('NewFolderStatus', Format('Folder%2.2d', [i]), SmallInt(Ops));
+            iMaxValue.Value := FFolders.Folder[i].MaxFileSize;
+            iniMemFile.WriteString('NewFolderMaxFileSize', Format('Folder%2.2d', [i]),
+              Format('%d,%d,%d,%d', [iMaxValue.iFirst, iMaxValue.iSecond,
+                iMaxValue.iThird, iMaxValue.iFourth]));
+          End;
+        iniMemFile.WriteString('Setup', 'Exclusions', StringReplace(FExclusions, #13#10, '|',
+            [rfReplaceAll]));
+        //FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|', #13#10,
+        //  [rfReplaceAll]);
+      End;
+    iniMemFile.WriteInteger('MemoryMonitor', 'UpdateInterval', DGHMemoryMonitor.UpdateInterval);
+    iniMemFile.WriteString('MemoryMonitor', 'BackColour', ColorToString(DGHMemoryMonitor.BackColour));
+    iniMemFile.WriteString('MemoryMonitor', 'BackFontColour', ColorToString(DGHMemoryMonitor.BackFontColour));
+    iniMemFile.WriteString('MemoryMonitor', 'HighColour', ColorToString(DGHMemoryMonitor.HighColour));
+    iniMemFile.WriteString('MemoryMonitor', 'HalfColour', ColorToString(DGHMemoryMonitor.HalfColour));
+    iniMemFile.WriteString('MemoryMonitor', 'LowColour', ColorToString(DGHMemoryMonitor.LowColour));
+    iniMemFile.WriteString('MemoryMonitor', 'HighFontColour', ColorToString(DGHMemoryMonitor.HighFontColour));
+    iniMemFile.WriteString('MemoryMonitor', 'HalfFontColour', ColorToString(DGHMemoryMonitor.HalfFontColour));
+    iniMemFile.WriteString('MemoryMonitor', 'LowFontColour', ColorToString(DGHMemoryMonitor.LowFontColour));
+    iniMemFile.WriteInteger('MemoryMonitor', 'LowPoint', DGHMemoryMonitor.LowPoint);
+    iniMemFile.WriteInteger('MemoryMonitor', 'HalfPoint', DGHMemoryMonitor.HalfPoint);
+    iniMemFile.WriteInteger('MemoryMonitor', 'HighPoint', DGHMemoryMonitor.HighPoint);
+    iniMemFile.WriteString('MemoryMonitor', 'FontName', DGHMemoryMonitor.Font.Name);
+    iniMemFile.WriteInteger('MemoryMonitor', 'FontSize', DGHMemoryMonitor.Font.Size);
+    iniMemFile.WriteInteger('MemoryMonitor', 'FontStyle', Byte(DGHMemoryMonitor.Font.Style));
+    iniMemFile.WriteInteger('MemoryMonitor', 'Width', DGHMemoryMonitor.Width);
+    iniMemFile.UpdateFile;
+  Finally
+    iniMemFile.Free;
+  End;
 End;
 
 (**
@@ -1253,6 +1299,7 @@ End;
 Procedure TfrmMainForm.FormCreate(Sender: TObject);
 
 Begin
+  vstFileList.NodeDataSize := SizeOf(TFSFileListNode);
   FParams                         := TStringList.Create;
   FCloseTimer                     := TTimer.Create(Nil);
   FCloseTimer.Enabled             := False;
@@ -1340,7 +1387,6 @@ Begin
   actEditDelete.Tag := Integer(foDelete);
   actEditDoNothing.Tag := Integer(foNothing);
   DGHMemoryMonitor.OnContextPopup := MemoryPopupMenu;
-  FStartTimer.Enabled := True;
 End;
 
 (**
@@ -1403,6 +1449,8 @@ Var
   i              : Integer;
   boolSuccess    : Boolean;
   iCount         : Integer;
+  NodeData       : PFSFileListNode;
+  Node: PVirtualNode;
 
 Begin
   OutputResultLn('Comparison started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
@@ -1414,18 +1462,18 @@ Begin
     DisableActions;
     Try
       iEnabledFolders := 0;
-      For i           := 0 To FFolders.Count - 1 Do
+      For i := 0 To FFolders.Count - 1 Do
         Begin
           If [soEnabled, soTempDisabled] * FFolders.Folder[i].SyncOptions = [soEnabled] Then
             Inc(iEnabledFolders);
         End;
       FProgressForm.RegisterSections(iEnabledFolders * 3 + 2);
       FProgressSection := -1;
-      lvFileList.Items.BeginUpdate;
+      vstFileList.BeginUpdate;
       Try
-        lvFileList.Clear;
+        vstFileList.Clear;
       Finally
-        lvFileList.Items.EndUpdate;
+        vstFileList.EndUpdate;
       End;
       Try
         FSyncModule.Clear;
@@ -1433,9 +1481,14 @@ Begin
         FixUpPanes;
         FormResize(Sender);
         iCount := 0;
-        For i := 0 To lvFileList.Items.Count - 1 Do
-          If lvFileList.Items[i].StateIndex <> Integer(fofExceedsSizeLimit) Then
-            Inc(iCount);
+        Node := vstFileList.GetFirst;
+        While Assigned(Node) Do
+          Begin
+            NodeData := vstFileList.GetNodeData(Node);
+            If Integer(NodeData.FState) <> Integer(fofExceedsSizeLimit) Then
+              Inc(iCount);
+            Node := vstFileList.GetNext(Node);
+          End;
         If (fsoCloseIFNoFilesAfterComparison In FFldrSyncOptions) And (iCount = 0) Then
           Begin
             FProgressForm.InitialiseSection(FProgressSection, 0, 1);
@@ -1489,19 +1542,19 @@ Var
 Begin
   Inc(FProgressSection);
   FProgressForm.InitialiseSection(FProgressSection, 0, FSyncModule.ProcessCount);
-  lvFileList.Items.BeginUpdate;
+  vstFileList.BeginUpdate;
   Try
     For iProcessItem := 0 To FSyncModule.ProcessCount - 1 Do
       Begin
         P := FSyncModule.Process[iProcessItem];
-        InsertListItem(P);
+        InsertListItem(iProcessItem, P);
         If iProcessItem Mod 10 = 0 Then
           FProgressForm.Progress(FProgressSection, iProcessItem,
             Format('Building ListView... %1.0n in %1.0n', [Int(iProcessItem),
                 Int(FSyncModule.ProcessCount)]), '');
       End;
   Finally
-    lvFileList.Items.EndUpdate;
+    vstFileList.EndUpdate;
   End;
 End;
 
@@ -1512,10 +1565,11 @@ End;
   @precon  None.
   @postcon Adds a pair of filenames with sizes and dates to the list view.
 
-  @param   ProcessItem as a TProcessItem
+  @param   iProcessItem as an Integer as a constant
+  @param   ProcessItem  as a TProcessItem as a constant
 
 **)
-Procedure TfrmMainForm.InsertListItem(ProcessItem : TProcessItem);
+Procedure TfrmMainForm.InsertListItem(Const iProcessItem : Integer; Const ProcessItem : TProcessItem);
 
   (**
 
@@ -1531,7 +1585,7 @@ Procedure TfrmMainForm.InsertListItem(ProcessItem : TProcessItem);
   Function GetAttributeString(iAttr: Integer): String;
 
   Begin
-    Result := '....';
+    Result := '....'; //: @todo Add full set of attributes
     If iAttr And faReadOnly > 0 Then
       Result[1] := 'R';
     If iAttr And faArchive > 0 Then
@@ -1542,56 +1596,51 @@ Procedure TfrmMainForm.InsertListItem(ProcessItem : TProcessItem);
       Result[4] := 'H';
   End;
 
-Const
-  strSize = '%1.0n';
-
 Var
-  Item       : TListItem;
+  Node : PVirtualNode;
+  NodeData : PFSFileListNode;
   strFileName: String;
 
 Begin
-  Item            := lvFileList.Items.Add;
-  Item.ImageIndex := -1;
-  // Action
-  Item.Caption := '';
+  Node := vstFileList.AddChild(Nil);
+  NodeData := vstFileList.GetNodeData(Node);
+  NodeData.FProcessIndex := iProcessItem;
   // Left File
-  If ProcessItem.LeftFile <> Nil Then
+  NodeData.FLeftFileIndex := -1;
+  NodeData.FRightFileIndex := -1;
+  If Assigned(ProcessItem.LeftFile) Then
     Begin
-      Item.SubItems.Add(ProcessItem.LPath + ProcessItem.LeftFile.FileName);
-      Item.SubItems.Add(GetAttributeString(ProcessItem.LeftFile.Attributes));
-      Item.SubItems.Add(Format(strSize, [ProcessItem.LeftFile.Size + 0.1]));
-      Item.SubItems.Add(FormatDateTime('ddd dd/mmm/yyyy hh:mm:ss',
-          FileDateToDateTime(ProcessItem.LeftFile.DateTime)));
+      NodeData.FLeftFilename := ProcessItem.LPath + ProcessItem.LeftFile.FileName;
+      NodeData.FLeftAttr := ProcessItem.LeftFile.Attributes;
+      NodeData.FLeftSize := ProcessItem.LeftFile.Size;
+      NodeData.FLeftDate := FileDateToDateTime(ProcessItem.LeftFile.DateTime);
       strFileName := ProcessItem.LeftFile.FileName;
-    End
-  Else
+    End Else
     Begin
-      Item.SubItems.Add('');
-      Item.SubItems.Add('');
-      Item.SubItems.Add('');
-      Item.SubItems.Add('');
+      NodeData.FLeftFilename := '';
+      NodeData.FLeftAttr := 0;
+      NodeData.FLeftSize := 0;
+      NodeData.FLeftDate := 0;
     End;
   // Right File
-  If ProcessItem.RightFile <> Nil Then
+  If Assigned(ProcessItem.RightFile) Then
     Begin
-      Item.SubItems.Add(ProcessItem.RPath + ProcessItem.RightFile.FileName);
-      Item.SubItems.Add(GetAttributeString(ProcessItem.RightFile.Attributes));
-      Item.SubItems.Add(Format(strSize, [ProcessItem.RightFile.Size + 0.1]));
-      Item.SubItems.Add(FormatDateTime('ddd dd/mmm/yyyy hh:mm:ss',
-          FileDateToDateTime(ProcessItem.RightFile.DateTime)));
+      NodeData.FRightFilename := ProcessItem.RPath + ProcessItem.RightFile.FileName;
+      NodeData.FRightAttr := ProcessItem.RightFile.Attributes;
+      NodeData.FRightSize := ProcessItem.RightFile.Size;
+      NodeData.FRightDate := FileDateToDateTime(ProcessItem.RightFile.DateTime);
       strFileName := ProcessItem.RightFile.FileName;
-    End
-  Else
+    End Else
     Begin
-      Item.SubItems.Add('');
-      Item.SubItems.Add('');
-      Item.SubItems.Add('');
-      Item.SubItems.Add('');
+      NodeData.FRightFilename := '';
+      NodeData.FRightAttr := 00;
+      NodeData.FRightSize := 0;
+      NodeData.FRightDate := 0;
     End;
-  Item.SubItems.Add(ProcessItem.LPath + strFileName);
-  Item.SubItems.Add(ProcessItem.RPath + strFileName);
-  Item.StateIndex := Integer(ProcessItem.FileOp);
-  ImageIndexes(ProcessItem, Item);
+  NodeData.FLeftFullFileName := ProcessItem.LPath + strFileName;
+  NodeData.FRightFullFileName := ProcessItem.RPath + strFileName;
+  NodeData.FState := ProcessItem.FileOp;
+  //: @debug ImageIndexes(ProcessItem, NodeData);
 End;
 
 {$HINTS OFF}
@@ -1716,13 +1765,14 @@ End;
 Procedure TfrmMainForm.actToolsCompareExecute(Sender: TObject);
 
 Var
-  S: TListItem;
+  NodeData : PFSFileListNode;
 
 Begin
-  S := lvFileList.Selected;
-  ShellExecute(Application.Handle, 'Open', PChar(FCompareEXE),
-    PChar(Format('"%s" "%s"', [S.SubItems[iLDisplayCol - 1], S.SubItems[iRDisplayCol - 1]]
-        )), PChar(ExtractFilePath(FCompareEXE)), SW_SHOWNORMAL)
+  NodeData := vstFileList.GetNodeData(vstFileList.FocusedNode);
+  ShellExecute(Application.Handle, 'Open', PChar(FCompareEXE), PChar(Format('"%s" "%s"', [
+    NodeData.FLeftFullFileName,
+    NodeData.FRightFullFileName
+  ])), PChar(ExtractFilePath(FCompareEXE)), SW_SHOWNORMAL)
 End;
 
 (**
@@ -1739,12 +1789,19 @@ End;
 Procedure TfrmMainForm.actToolsCompareUpdate(Sender: TObject);
 
 Var
-  S: TListItem;
+  boolEnabled: Boolean;
+  NodeData : PFSFileListNode;
 
 Begin
-  S                           := lvFileList.Selected;
-  (Sender As TAction).Enabled := (S <> Nil) And FileExists(FCompareEXE) And
-    FileExists(S.SubItems[iLDisplayCol - 1]) And FileExists(S.SubItems[iRDisplayCol - 1]);
+  boolEnabled := Assigned(vstFileList.FocusedNode);
+  If boolEnabled Then
+    Begin
+      NodeData := vstFileList.GetNodeData(vstFileList.FocusedNode);
+    boolEnabled := boolEnabled
+      And FileExists(NodeData.FLeftFullFileName)
+      And FileExists(NodeData.FRightFullFileName);
+    End;
+  (Sender As TAction).Enabled := boolEnabled;
 End;
 
 (**
@@ -1780,15 +1837,15 @@ Var
   strTheme : String;
   
 Begin
-  FInterfaceFonts[ifTableFont].FFontName := lvFileList.Font.Name;
-  FInterfaceFonts[ifTableFont].FFontSize :=lvFileList.Font.Size;
+  FInterfaceFonts[ifTableFont].FFontName := vstFileList.Font.Name;
+  FInterfaceFonts[ifTableFont].FFontSize :=vstFileList.Font.Size;
   FInterfaceFonts[ifLogFont].FFontName := redtOutputResults.Font.Name;
   FInterfaceFonts[ifLogFont].FFontSize := redtOutputResults.Font.Size;
   If TfrmOptions.Execute(FFolders, FExclusions, FCompareEXE, FRootKey, FInterfaceFonts,
     FFileOpFonts, FFldrSyncOptions, strTheme, FFileOpStats) Then
     Begin
-      lvFileList.Font.Name := FInterfaceFonts[ifTableFont].FFontName;
-      lvFileList.Font.Size:= FInterfaceFonts[ifTableFont].FFontSize;
+      vstFileList.Font.Name := FInterfaceFonts[ifTableFont].FFontName;
+      vstFileList.Font.Size:= FInterfaceFonts[ifTableFont].FFontSize;
       redtOutputResults.Font.Name := FInterfaceFonts[ifLogFont].FFontName;
       redtOutputResults.Font.Size := FInterfaceFonts[ifLogFont].FFontSize;
       If CompareText(strTheme, TStyleManager.ActiveStyle.Name) <> 0 Then
@@ -1848,30 +1905,33 @@ End;
 Procedure TfrmMainForm.actEditFileOperationsUpdate(Sender: TObject);
 
 Var
-  Item: TListItem;
   boolEnabled : Boolean;
+  Node: PVirtualNode;
+  NodeData : PFSFileListNode;
+  Action: TAction;
   
 Begin
   If Sender Is TAction Then
-    With Sender As TAction Do
-      Begin
-        boolEnabled := lvFileList.SelCount > 0;
-        Item := lvFileList.Selected;
-        While Item <> Nil Do
-          Begin
-            boolEnabled := boolEnabled And (Item.StateIndex <> Tag);
-            Case TFileOp(Tag) Of
-              foLeftToRight:
-                If lvFileList.Items[Item.Index].SubItems[iLDisplayCol - 1] = '' Then
-                  boolEnabled := False;
-              foRightToLeft:
-                If lvFileList.Items[Item.Index].SubItems[iRDisplayCol - 1] = '' Then
-                  boolEnabled := False;
-            End;
-            Item := lvFileList.GetNextItem(Item, sdAll, [isSelected]);
-          End; 
-        Enabled := boolEnabled;
-      End;        
+    Begin
+      Action := Sender As TAction;
+      boolEnabled := vstFileList.SelectedCount > 0;
+      Node := vstFileList.GetFirstSelected;
+      While Assigned(Node) Do
+        Begin
+          NodeData := vstFileList.GetNodeData(Node);
+          boolEnabled := boolEnabled And (Integer(NodeData.FState) <> Action.Tag);
+          Case TFileOp(Tag) Of
+            foLeftToRight:
+              If NodeData.FLeftFilename = '' Then
+                boolEnabled := False;
+            foRightToLeft:
+              If NodeData.FRightFilename = '' Then
+                boolEnabled := False;
+          End;
+          Node := vstFileList.GetNextSelected(Node);
+        End; 
+      Action.Enabled := boolEnabled;
+    End;
 End;
 
 (**
@@ -1943,33 +2003,34 @@ End;
   This method sets the file operations for the selected list view items.
 
   @precon  None.
-  @postcon Sets the selected items in the list view to the File op state passed
-           while also checking that the operation is valid for that item.
+  @postcon Sets the selected items in the list view to the File op state passed while also checking that
+           the operation is valid for that item.
 
-  @param   FileOp as a TFileOp
+  @param   FileOp as a TFileOp as a constant
 
 **)
-Procedure TfrmMainForm.SetFileOperation(FileOp: TFileOp);
+Procedure TfrmMainForm.SetFileOperation(Const FileOp: TFileOp);
 
 Var
-  i: Integer;
+  Node : PVirtualNode;
+  NodeData : PFSFileListNode;
 
 Begin
-  For i := 0 To lvFileList.Items.Count - 1 Do
+  Node := vstFileList.GetFirstSelected();
+  While Assigned(Node) Do
     Begin
-      If lvFileList.Items[i].Selected Then
-        Begin
-          Case FileOp Of
-            foLeftToRight:
-              If lvFileList.Items[i].SubItems[iLDisplayCol - 1] = '' Then
-                Continue;
-            foRightToLeft:
-              If lvFileList.Items[i].SubItems[iRDisplayCol - 1] = '' Then
-                Continue;
-          End;
-          lvFileList.Items[i].StateIndex := Integer(FileOp);
-          FSyncModule.Process[i].FileOp := FileOp;
-        End;
+      NodeData := vstFileList.GetNodeData(Node);
+      Case FileOp Of
+        foLeftToRight:
+          If NodeData.FLeftFilename = '' Then
+            Continue;
+        foRightToLeft:
+          If NodeData.FRightFilename = '' Then
+            Continue;
+      End;
+      NodeData.FState := FileOp;
+      FSyncModule.Process[NodeData.FProcessIndex].FileOp := FileOp;
+      Node := vstFileList.GetNextSelected(Node);
     End;
   OutputStats;
 End;
@@ -1988,7 +2049,13 @@ Procedure TfrmMainForm.StartTimerEvent(Sender: TObject);
 
 Begin
   FStartTimer.Enabled := False;
-  actFileCompareExecute(Self);
+  Try
+    actFileCompareExecute(Self);
+  Except
+    On E : EAbort Do
+
+      ShowMessage(E.Message);
+  End;
 End;
 
 (**
@@ -2115,6 +2182,55 @@ End;
 
 (**
 
+  This is an on free event handler for the virtual treeview.
+
+  @precon  None.
+  @postcon Ensures that managed types are freed from the node data.
+
+  @param   Sender as a TBaseVirtualTree
+  @param   Node   as a PVirtualNode
+
+**)
+Procedure TfrmMainForm.vstFileListFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+
+Var
+  NodeData : PFSFileListNode;
+  
+Begin
+  NodeData := vstFileList.GetNodeData(Node);
+  Finalize(NodeData^);
+End;
+
+Procedure TfrmMainForm.vstFileListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; TextType: TVSTTextType; Var CellText: String);
+
+Const
+  strDateFmt = 'dd/mmm/yyyy hh:nn';
+
+Var
+  NodeData : PFSFileListNode;
+  boolHasLeftFile: Boolean;
+  boolHasRightFile: Boolean;
+  
+Begin
+  NodeData := Sender.GetNodeData(Node);
+  boolHasLeftFile := Length(NodeData.FLeftFilename) > 0;
+  boolHasRightFile := Length(NodeData.FRightFilename) > 0;
+  Case TFSVTVFields(Column) Of
+    vfState:         CellText := GetEnumName(TypeInfo(TFileOp), Ord(NodeData.FState));
+    vfLeftFileName:  CellText := NodeData.FLeftFilename;
+    vfLeftAttr:      CellText := IfThen(boolHasLeftFile, NodeData.FLeftAttr.ToString, '');
+    vfLeftSize:      CellText := IfThen(boolHasLeftFile, NodeData.FLeftSize.ToString, '');
+    vfLeftDate:      CellText := IfThen(boolHasLeftFile, FormatDateTime(strDateFmt, NodeData.FLeftDate), '');
+    vfRightFileName: CellText := NodeData.FRightFilename;
+    vfRightAttr:     CellText := IfThen(boolHasRightFile, NodeData.FRightAttr.ToString, '');
+    vfRightSize:     CellText := IfThen(boolHasRightFile, NodeData.FRightSize.ToString, '');
+    vfRightDate:     CellText := IfThen(boolHasRightFile, FormatDateTime(strDateFmt, NodeData.FRightDate), '');
+  End;
+End;
+
+(**
+
   This is an on execute event handler for the CopyRightToLeft action.
 
   @precon  None.
@@ -2215,6 +2331,8 @@ End;
   @precon  None.
   @postcon Does nothing.
 
+  @nocheck EmptyMethod
+
 **)
 Procedure TfrmMainForm.ErrorMessageEnd;
 
@@ -2267,6 +2385,8 @@ End;
 
   @precon  None.
   @postcon Does nothing.
+
+  @nocheck EmptyMethod
 
 **)
 Procedure TfrmMainForm.ExceedsSizeLimitEnd;
@@ -2336,7 +2456,8 @@ Begin
           Try
             FSyncModule.ProcessFiles(FFldrSyncOptions);
           Except
-            On E : EAbort Do boolAbort := True;
+            On E : EAbort Do
+              boolAbort := True;
             On E : Exception Do
               {$IFDEF EUREKALOG_VER7}
               If Not (ExceptionManager.StandardEurekaNotify(ExceptObject,
@@ -2416,20 +2537,8 @@ End;
 **)
 Procedure TfrmMainForm.actEditSelectAllExecute(Sender: TObject);
 
-Var
-  i: Integer;
-
 Begin
-  With lvFileList Do
-    Begin
-      Items.BeginUpdate;
-      Try
-        For i               := 0 To Items.Count - 1 Do
-          Items[i].Selected := True;
-      Finally
-        Items.EndUpdate;
-      End;
-    End;
+  vstFileList.SelectAll(True);
 End;
 
 (**
@@ -2592,6 +2701,8 @@ End;
   @postcon Updates the progress dialogue with the current progress through the comparison
            process.
 
+  @nohint  strLeftFldr strRightFldr
+
   @param   strLeftFldr  as a String
   @param   strRightFldr as a String
   @param   strFileName  as a String
@@ -2635,6 +2746,8 @@ End;
   @precon  None.
   @postcon Updates the copy progress or if an error outputs the error message.
 
+  @nohint  iCurrentFileToCopy iTotalFilesToCopy
+
   @param   iCurrentFileToCopy           as an Integer
   @param   iTotalFilesToCopy            as an Integer
   @param   iCumulativeFileSizeAfterCopy as an Int64
@@ -2664,6 +2777,8 @@ End;
 
   @precon  None.
   @postcon Updates the progress of the individual file copy.
+
+  @nohint  iCurrentFileToCopy iTotalFilesToCopy
 
   @param   iCurrentFileToCopy            as an Integer
   @param   iTotalFilesToCopy             as an Integer
@@ -2758,6 +2873,8 @@ End;
 
   @precon  None.
   @postcon Updates the copy dialogue.
+
+  @nohint  iCumulativeFileSizeBeforeCopy iTotalFileSizeToCopy
 
   @param   iCurrentFileToCopy            as an Integer
   @param   iTotalFilesToCopy             as an Integer
@@ -2922,6 +3039,8 @@ End;
 
   @precon  None.
   @postcon Updates the progress dialogue is successful or outputs an error message.
+
+  @nohint  iCurrentFileToDeleted iTotalFilesToDelete 
 
   @param   iCurrentFileToDeleted          as an Integer
   @param   iTotalFilesToDelete            as an Integer
@@ -3156,6 +3275,8 @@ End;
   @precon  None.
   @postcon Output the file to be deleted to the deletion progress form.
 
+  @nohint  iCumulativeFileSizeBeforeDelete iTotalFileSizeToDelete
+
   @param   iCurrentFileToDelete            as an Integer
   @param   iTotalFilesToDelete             as an Integer
   @param   iCumulativeFileSizeBeforeDelete as an Int64
@@ -3205,6 +3326,8 @@ end;
   @precon  None.
   @postcon None.
 
+  @nocheck EmptyMethod
+
 **)
 procedure TfrmMainForm.DiffSizeEnd;
 
@@ -3249,45 +3372,42 @@ End;
 
 (**
 
-  This method updates the status images of the list view based on the filename / extension
-  of the file.
+  This method updates the status images of the list view based on the filename / extension of the file.
 
   @precon  None.
-  @postcon Updates the status images of the list view based on the filename / extension
-           of the file.
+  @postcon Updates the status images of the list view based on the filename / extension of the file.
 
-  @param   ProcessItem as a TProcessItem
-  @param   Item        as a TListItem
+  @param   ProcessItem as a TProcessItem as a constant
+  @param   NodeData    as a PFSFileListNode as a constant
 
 **)
-Procedure TfrmMainForm.ImageIndexes(ProcessItem : TProcessItem; Item: TListItem);
+Procedure TfrmMainForm.ImageIndexes(Const ProcessItem : TProcessItem; Const NodeData : PFSFileListNode);
 
-Begin
-  If ProcessItem.LeftFile <> Nil Then
+Begin //: @todo Defer until the display of text!
+  If Assigned(ProcessItem.LeftFile) Then
     Begin
-      If ProcessItem.LeftFile <> Nil Then
-        Item.SubItemImages[iLDisplayCol - 1] :=
-          GetImageIndex(ProcessItem, ProcessItem.LPath + ProcessItem.LeftFile.FileName)
+      If Assigned(ProcessItem.LeftFile) Then
+        NodeData.FLeftFileIndex := GetImageIndex(ProcessItem,
+          ProcessItem.LPath + ProcessItem.LeftFile.FileName)
       Else
-        Item.SubItemImages[iLDisplayCol - 1] := -1;
-      If ProcessItem.RightFile <> Nil Then
-        Item.SubItemImages[iRDisplayCol - 1] :=
-          GetImageIndex(ProcessItem, ProcessItem.LPath + ProcessItem.RightFile.FileName)
+        NodeData.FLeftFileIndex := -1;
+      If Assigned(ProcessItem.RightFile) Then
+        NodeData.FRightFileIndex := GetImageIndex(ProcessItem,
+          ProcessItem.LPath + ProcessItem.RightFile.FileName)
       Else
-        Item.SubItemImages[iRDisplayCol - 1] := -1;
-    End
-  Else
+        NodeData.FRightFileIndex := -1;
+    End Else
     Begin
-      If ProcessItem.LeftFile <> Nil Then
-        Item.SubItemImages[iLDisplayCol - 1] :=
-          GetImageIndex(ProcessItem, ProcessItem.RPath + ProcessItem.LeftFile.FileName)
+      If Assigned(ProcessItem.LeftFile) Then
+        NodeData.FLeftFileIndex := GetImageIndex(ProcessItem,
+          ProcessItem.RPath + ProcessItem.LeftFile.FileName)
       Else
-        Item.SubItemImages[iLDisplayCol - 1] := -1;
-      If ProcessItem.RightFile <> Nil Then
-        Item.SubItemImages[iRDisplayCol - 1] :=
-          GetImageIndex(ProcessItem, ProcessItem.RPath + ProcessItem.RightFile.FileName)
+        NodeData.FLeftFileIndex := -1;
+      If Assigned(ProcessItem.RightFile) Then
+        NodeData.FRightFileIndex := GetImageIndex(ProcessItem,
+          ProcessItem.RPath + ProcessItem.RightFile.FileName)
       Else
-        Item.SubItemImages[iRDisplayCol - 1] := -1;
+        NodeData.FRightFileIndex := -1;
     End;
 End;
 

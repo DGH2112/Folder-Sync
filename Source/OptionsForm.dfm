@@ -2,7 +2,7 @@ object frmOptions: TfrmOptions
   Left = 502
   Top = 310
   Caption = 'Folder Sync Options'
-  ClientHeight = 442
+  ClientHeight = 445
   ClientWidth = 624
   Color = clBtnFace
   Constraints.MinHeight = 480
@@ -19,7 +19,7 @@ object frmOptions: TfrmOptions
   OnDestroy = FormDestroy
   DesignSize = (
     624
-    442)
+    445)
   PixelsPerInch = 96
   TextHeight = 13
   object btnOK: TBitBtn
@@ -84,6 +84,10 @@ object frmOptions: TfrmOptions
     TabOrder = 0
     object tabFolders: TTabSheet
       Caption = '&Folders'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         600
         365)
@@ -276,6 +280,10 @@ object frmOptions: TfrmOptions
     object tabGlobalOptions: TTabSheet
       Caption = '&Global Options'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         600
         365)
@@ -394,6 +402,10 @@ object frmOptions: TfrmOptions
       Caption = 'F&onts'
       ImageIndex = 1
       OnResize = tabFontsResize
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         600
         365)
@@ -459,6 +471,10 @@ object frmOptions: TfrmOptions
     object tabExclusions: TTabSheet
       Caption = '&Exclusions'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         600
         365)
@@ -514,7 +530,7 @@ object frmOptions: TfrmOptions
     Left = 232
     Top = 390
     Bitmap = {
-      494C010102000500440010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000500040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
