@@ -35,7 +35,7 @@ object frmAboutDialogue: TfrmAboutDialogue
     ExplicitWidth = 495
     ExplicitHeight = 247
   end
-  object lblAppName: TDGHCustomLabel
+  object lblAppName: TLabel
     Left = 20
     Top = 20
     Width = 253
@@ -55,7 +55,7 @@ object frmAboutDialogue: TfrmAboutDialogue
     Transparent = True
     OnClick = AboutClick
   end
-  object lblBuild: TDGHCustomLabel
+  object lblBuild: TLabel
     Left = 40
     Top = 55
     Width = 233
@@ -72,7 +72,7 @@ object frmAboutDialogue: TfrmAboutDialogue
     Transparent = True
     OnClick = AboutClick
   end
-  object lblCopyright: TDGHCustomLabel
+  object lblCopyright: TLabel
     Left = 20
     Top = 125
     Width = 253
@@ -88,7 +88,7 @@ object frmAboutDialogue: TfrmAboutDialogue
     ParentFont = False
     Transparent = True
   end
-  object lblPlatform: TDGHCustomLabel
+  object lblPlatform: TLabel
     Left = 40
     Top = 77
     Width = 233
