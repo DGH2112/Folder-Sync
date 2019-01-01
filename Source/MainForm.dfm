@@ -1,17 +1,16 @@
 object frmMainForm: TfrmMainForm
   Left = 429
   Top = 289
-  ActiveControl = lvFileList
   Caption = 'Folder Sync'
-  ClientHeight = 758
-  ClientWidth = 948
+  ClientHeight = 752
+  ClientWidth = 927
   Color = clBtnFace
   Constraints.MinHeight = 591
   Constraints.MinWidth = 788
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -13
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   Icon.Data = {
@@ -49,8 +48,8 @@ object frmMainForm: TfrmMainForm
   TextHeight = 16
   object stbrStatusBar: TStatusBar
     Left = 0
-    Top = 739
-    Width = 948
+    Top = 733
+    Width = 927
     Height = 19
     Margins.Left = 4
     Margins.Top = 4
@@ -66,7 +65,7 @@ object frmMainForm: TfrmMainForm
   object ambMenuBar: TActionMainMenuBar
     Left = 0
     Top = 0
-    Width = 948
+    Width = 927
     Height = 25
     Margins.Left = 2
     Margins.Top = 2
@@ -91,7 +90,7 @@ object frmMainForm: TfrmMainForm
   object pnlTop: TPanel
     Left = 0
     Top = 25
-    Width = 948
+    Width = 927
     Height = 32
     Margins.Left = 4
     Margins.Top = 4
@@ -101,7 +100,7 @@ object frmMainForm: TfrmMainForm
     BevelOuter = bvNone
     TabOrder = 2
     object DGHMemoryMonitor: TDGHMemoryMonitor
-      Left = 724
+      Left = 703
       Top = 0
       Width = 224
       Height = 32
@@ -114,9 +113,10 @@ object frmMainForm: TfrmMainForm
       HighPoint = 100
       Align = alRight
       BevelOuter = bvLowered
+      ExplicitLeft = 724
     end
     object Splitter: TSplitter
-      Left = 720
+      Left = 699
       Top = 0
       Width = 4
       Height = 32
@@ -126,11 +126,12 @@ object frmMainForm: TfrmMainForm
       Margins.Bottom = 4
       Align = alRight
       ResizeStyle = rsUpdate
+      ExplicitLeft = 720
     end
     object atbToolbar: TActionToolBar
       Left = 0
       Top = 0
-      Width = 720
+      Width = 699
       Height = 32
       Margins.Left = 2
       Margins.Top = 2
@@ -158,8 +159,8 @@ object frmMainForm: TfrmMainForm
   object pnlMainArea: TPanel
     Left = 0
     Top = 57
-    Width = 948
-    Height = 682
+    Width = 927
+    Height = 676
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
@@ -169,8 +170,8 @@ object frmMainForm: TfrmMainForm
     TabOrder = 3
     object splOutputResults: TSplitter
       Left = 0
-      Top = 559
-      Width = 948
+      Top = 553
+      Width = 927
       Height = 4
       Cursor = crVSplit
       Margins.Left = 4
@@ -180,87 +181,13 @@ object frmMainForm: TfrmMainForm
       Align = alBottom
       MinSize = 50
       ResizeStyle = rsUpdate
-    end
-    object lvFileList: TListView
-      Left = 0
-      Top = 0
-      Width = 948
-      Height = 559
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Align = alClient
-      Columns = <
-        item
-          Caption = 'Action'
-          MaxWidth = 48
-          MinWidth = 48
-          Width = 48
-        end
-        item
-          Caption = 'Filename'
-          MinWidth = 50
-          Width = 123
-        end
-        item
-          Caption = 'Attr'
-          Width = 49
-        end
-        item
-          Alignment = taRightJustify
-          Caption = 'Size'
-          Width = 85
-        end
-        item
-          Alignment = taRightJustify
-          Caption = 'Date'
-          Width = 150
-        end
-        item
-          Caption = 'Filename'
-          MinWidth = 50
-          Width = 123
-        end
-        item
-          Caption = 'Attr'
-          Width = 49
-        end
-        item
-          Alignment = taRightJustify
-          Caption = 'Size'
-          Width = 85
-        end
-        item
-          Alignment = taRightJustify
-          Caption = 'Date'
-          Width = 150
-        end>
-      ColumnClick = False
-      DoubleBuffered = True
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = []
-      HideSelection = False
-      MultiSelect = True
-      ReadOnly = True
-      RowSelect = True
-      ParentDoubleBuffered = False
-      ParentFont = False
-      ParentShowHint = False
-      PopupMenu = pmFiles
-      ShowHint = False
-      StateImages = ilActionImages
-      TabOrder = 0
-      ViewStyle = vsReport
-      OnCustomDrawItem = lvFileListCustomDrawItem
+      ExplicitTop = 559
+      ExplicitWidth = 948
     end
     object redtOutputResults: TMemo
       Left = 0
-      Top = 563
-      Width = 948
+      Top = 557
+      Width = 927
       Height = 119
       Margins.Left = 4
       Margins.Top = 4
@@ -280,12 +207,76 @@ object frmMainForm: TfrmMainForm
       TabOrder = 1
       WordWrap = False
     end
+    object vstFileList: TVirtualStringTree
+      Left = 0
+      Top = 0
+      Width = 927
+      Height = 553
+      Align = alClient
+      Header.AutoSizeIndex = 0
+      Header.Height = 20
+      Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
+      Images = ilActionImages
+      PopupMenu = pmFiles
+      TabOrder = 0
+      TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+      TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseBlendedSelection]
+      TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
+      OnBeforeCellPaint = vstFileListBeforeCellPaint
+      OnFreeNode = vstFileListFreeNode
+      OnGetText = vstFileListGetText
+      OnPaintText = vstFileListPaintText
+      OnGetImageIndexEx = vstFileListGetImageIndexEx
+      Columns = <
+        item
+          Position = 0
+          WideText = 'Action'
+        end
+        item
+          Position = 1
+          WideText = 'Filename'
+        end
+        item
+          Alignment = taCenter
+          Position = 2
+          WideText = 'Attr'
+        end
+        item
+          Alignment = taRightJustify
+          Position = 3
+          WideText = 'Size'
+        end
+        item
+          Alignment = taRightJustify
+          Position = 4
+          WideText = 'Date'
+        end
+        item
+          Position = 5
+          WideText = 'Filename'
+        end
+        item
+          Alignment = taCenter
+          Position = 6
+          WideText = 'Attr'
+        end
+        item
+          Alignment = taRightJustify
+          Position = 7
+          WideText = 'Size'
+        end
+        item
+          Alignment = taRightJustify
+          Position = 8
+          WideText = 'Date'
+        end>
+    end
   end
   object ilActionImages: TImageList
     Left = 33
     Top = 151
     Bitmap = {
-      494C01010F001300600110001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010F001300040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -962,11 +953,6 @@ object frmMainForm: TfrmMainForm
                 Caption = '-'
               end
               item
-                Action = actHelpCheckForUpdates
-                Caption = 'C&heck for Updates...'
-                ImageIndex = 10
-              end
-              item
                 Caption = '-'
               end
               item
@@ -1044,11 +1030,6 @@ object frmMainForm: TfrmMainForm
             Caption = 'Con&tents'
             ImageIndex = 14
             ShortCut = 112
-          end
-          item
-            Action = actHelpCheckForUpdates
-            Caption = 'C&heck for Updates...'
-            ImageIndex = 10
           end
           item
             Action = actHelpAbout
@@ -1147,12 +1128,6 @@ object frmMainForm: TfrmMainForm
       ImageIndex = 14
       ShortCut = 112
       OnExecute = actHelpContentsExecute
-    end
-    object actHelpCheckForUpdates: TAction
-      Category = 'Help'
-      Caption = '&Check for Updates...'
-      ImageIndex = 10
-      OnExecute = actHelpCheckForUpdatesExecute
     end
     object actHelpAbout: TAction
       Category = 'Help'

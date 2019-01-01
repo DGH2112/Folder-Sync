@@ -3,7 +3,7 @@
   This module represents a form for displaying progress.
 
   @Version 1.0
-  @Date    22 Aug 2015
+  @Date    01 Jan 2019
   @Author  David Hoyle
 
 **)
@@ -12,18 +12,18 @@ Unit ProgressForm;
 Interface
 
 Uses
-  Windows,
-  Messages,
-  SysUtils,
-  Classes,
-  Graphics,
-  Controls,
-  Forms,
-  Dialogs,
-  ExtCtrls,
-  StdCtrls,
-  ComCtrls,
-  Buttons,
+  System.SysUtils,
+  System.Classes,
+  VCL.Graphics,
+  VCL.Controls,
+  VCL.Forms,
+  VCL.Dialogs,
+  VCL.ExtCtrls,
+  VCL.StdCtrls,
+  VCL.ComCtrls,
+  VCL.Buttons,
+  WinAPI.Windows,
+  WinAPI.Messages,
   SyncModule;
 
 Type
@@ -35,20 +35,24 @@ Type
     lblMessage: TLabel;
     lblFileName: TLabel;
     Procedure btnCancelClick(Sender: TObject);
-  Private
-    { Private declarations }
+  Strict Private
+    Const
+      (** A constant to define the period of time in milliseconds between updates. **)
+      iUpdateIntervalInMSecs = 25;
+  Strict Private
     FSections      : Array Of TSectionRecord;
     FAbort         : Boolean;
     FUpdateProgress: TUpdateProgress;
+    FLastUpdate    : Int64;
+  Strict Protected
     Procedure CheckForCancel;
-    Procedure DoUpdateProgress(iPosition, iMaxPosition: Integer);
+    Procedure DoUpdateProgress(Const iPosition, iMaxPosition: Integer);
   Public
-    { Public declarations }
     //Procedure Progress(strMessage: String; iCount: Integer; strFileName: String);
     //  Overload;
-    Procedure RegisterSections(iSections: Integer); Virtual;
-    Procedure InitialiseSection(iSection, iMin, iMax: Integer);
-    Procedure Progress(iSection, iPosition: Integer; strMsg, strFileName: String);
+    Procedure RegisterSections(Const iSections: Integer); Virtual;
+    Procedure InitialiseSection(Const iSection, iMin, iMax: Integer);
+    Procedure Progress(Const iSection, iPosition: Integer; Const strMsg, strFileName: String);
     (**
       This property defines a call back event handler for getting the current progress
       position from the dialogue.
@@ -68,7 +72,29 @@ Type
 Implementation
 
 {$R *.DFM}
-{ TfrmProgress }
+
+Uses
+  System.UITypes;
+
+(**
+
+  This is an on click event handler for the Cancel button.
+
+  @precon  None.
+  @postcon Sets the cancellation of the processing.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmProgress.btnCancelClick(Sender: TObject);
+
+ResourceString
+  strCancelPending = ' (Cancel Pending)';
+
+Begin
+  FAbort  := True;
+  Caption := Caption + strCancelPending;
+End;
 
 (**
 
@@ -102,11 +128,11 @@ End;
   @precon  None.
   @postcon Calls the Update Progress event handler if it is assigned.
 
-  @param   iPosition    as an Integer
-  @param   iMaxPosition as an Integer
+  @param   iPosition    as an Integer as a constant
+  @param   iMaxPosition as an Integer as a constant
 
 **)
-Procedure TfrmProgress.DoUpdateProgress(iPosition, iMaxPosition: Integer);
+Procedure TfrmProgress.DoUpdateProgress(Const iPosition, iMaxPosition: Integer);
 
 Begin
   If Assigned(FUpdateProgress) Then
@@ -117,17 +143,17 @@ End;
 
   This method sets the min and max values for the specified section in the progress.
 
-  @note RegisterSections should be called before using this method.
-
   @precon  iSection must be a valid index into the section array.
   @postcon The min and max values for the specified section in the progress are set.
 
-  @param   iSection as an Integer
-  @param   iMin     as an Integer
-  @param   iMax     as an Integer
+  @note    RegisterSections should be called before using this method.
+
+  @param   iSection as an Integer as a constant
+  @param   iMin     as an Integer as a constant
+  @param   iMax     as an Integer as a constant
 
 **)
-Procedure TfrmProgress.InitialiseSection(iSection, iMin, iMax: Integer);
+Procedure TfrmProgress.InitialiseSection(Const iSection, iMin, iMax: Integer);
 
 Begin
   CheckForCancel;
@@ -145,77 +171,68 @@ End;
   @precon  Position must be between 0 and Max inclusive.
   @postcon Updates the position of the progress bar.
 
-  @param   iSection    as an Integer
-  @param   iPosition   as an Integer
-  @param   strMsg      as a String
-  @param   strFileName as a String
+  @param   iSection    as an Integer as a constant
+  @param   iPosition   as an Integer as a constant
+  @param   strMsg      as a String as a constant
+  @param   strFileName as a String as a constant
 
 **)
-Procedure TfrmProgress.Progress(iSection, iPosition: Integer;
-  strMsg, strFileName: String);
+Procedure TfrmProgress.Progress(Const iSection, iPosition: Integer;
+  Const strMsg, strFileName: String);
 
 Var
   dblSectionWidth: Double;
   dblSectionPos  : Double;
   dblPosition    : Double;
   iDenominator   : Integer;
+  iCurrentTime   : Int64;
 
 Begin
-  SetFocus;
-  dblSectionWidth := pbrProgress.Max / Int(Succ(High(FSections)));
-  iDenominator := FSections[iSection].FMax - FSections[iSection].FMin;
-  If iDenominator <> 0 Then
-    dblSectionPos   := dblSectionWidth * iPosition / Int(iDenominator)
-  Else
-    dblSectionPos := 0;
-  dblPosition := pbrProgress.Max * (iSection / Succ(High(FSections))) + dblSectionPos;
-  pbrProgress.Position := Trunc(dblPosition);
-  // Workaround for windows 7 bug.
-  pbrProgress.Position := pbrProgress.Position - 1;
-  pbrProgress.Position := pbrProgress.Position + 1;
-  DoUpdateProgress(pbrProgress.Position, pbrProgress.Max);
-  lblMessage.Caption  := strMsg;
-  lblFileName.Caption := strFileName;
-  Application.ProcessMessages;
-  CheckForCancel;
+  iCurrentTime := GetTickCount64;
+  If FLastUpdate + iUpdateIntervalInMSecs <= iCurrentTime Then
+    Begin
+      SetFocus;
+      dblSectionWidth := pbrProgress.Max / Int(Succ(High(FSections)));
+      iDenominator := FSections[iSection].FMax - FSections[iSection].FMin;
+      If iDenominator <> 0 Then
+        dblSectionPos   := dblSectionWidth * iPosition / Int(iDenominator)
+      Else
+        dblSectionPos := 0;
+      dblPosition := pbrProgress.Max * (iSection / Succ(High(FSections))) + dblSectionPos;
+      pbrProgress.Position := Trunc(dblPosition);
+      // Workaround for windows 7 bug.
+      pbrProgress.Position := pbrProgress.Position - 1;
+      pbrProgress.Position := pbrProgress.Position + 1;
+      DoUpdateProgress(pbrProgress.Position, pbrProgress.Max);
+      lblMessage.Caption  := strMsg;
+      lblFileName.Caption := strFileName;
+      Application.ProcessMessages;
+      CheckForCancel;
+      FLastUpdate := iCurrentTime;
+    End; 
 End;
 
 (**
 
-  This method registers the number of sections in the progres dialogue, i.e.
-  folder pairs in the search.
+  This method registers the number of sections in the progres dialogue, i.e. folder pairs in the search.
 
   @precon  None.
-  @postcon Registers the number of sections in the progres dialogue, i.e.
-           folder pairs in the search.
+  @postcon Registers the number of sections in the progres dialogue, i.e. folder pairs in the search.
 
-  @param   iSections as an Integer
+  @param   iSections as an Integer as a constant
 
 **)
-Procedure TfrmProgress.RegisterSections(iSections: Integer);
+Procedure TfrmProgress.RegisterSections(Const iSections: Integer);
+
+Const
+  iMaxProgressUnits = 1000000;
 
 Begin
   SetLength(FSections, iSections);
   pbrProgress.Position := 0;
-  pbrProgress.Max      := 1000000;
+  pbrProgress.Max      := iMaxProgressUnits;
   FAbort               := False;
-End;
-
-(**
-
-  This is an on click event handler for the Cancel button.
-
-  @precon  None.
-  @postcon Sets the cancellation of the processing.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmProgress.btnCancelClick(Sender: TObject);
-
-Begin
-  FAbort  := True;
-  Caption := Caption + ' (Cancel Pending)';
+  FLastUpdate := GetTickCount64;
 End;
 
 End.

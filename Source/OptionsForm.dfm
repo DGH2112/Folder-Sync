@@ -2,7 +2,7 @@ object frmOptions: TfrmOptions
   Left = 502
   Top = 310
   Caption = 'Folder Sync Options'
-  ClientHeight = 442
+  ClientHeight = 445
   ClientWidth = 624
   Color = clBtnFace
   Constraints.MinHeight = 480
@@ -10,7 +10,7 @@ object frmOptions: TfrmOptions
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -13
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -19,9 +19,9 @@ object frmOptions: TfrmOptions
   OnDestroy = FormDestroy
   DesignSize = (
     624
-    442)
+    445)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 16
   object btnOK: TBitBtn
     Left = 457
     Top = 408
@@ -34,30 +34,7 @@ object frmOptions: TfrmOptions
     Anchors = [akRight, akBottom]
     Kind = bkOK
     NumGlyphs = 2
-    TabOrder = 2
-  end
-  object btnCheckforUpdates: TBitBtn
-    Left = 7
-    Top = 408
-    Width = 151
-    Height = 25
-    Margins.Left = 2
-    Margins.Top = 2
-    Margins.Right = 2
-    Margins.Bottom = 2
-    Anchors = [akLeft, akBottom]
-    Caption = 'Check for &Updates...'
-    Glyph.Data = {
-      F6000000424DF600000000000000760000002800000010000000100000000100
-      0400000000008000000000000000000000001000000000000000000000000000
-      8000008000000080800080000000800080008080000080808000C0C0C0000000
-      FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00DDDDDDDDDDDD
-      DDDDDDDDDDDDDDDDDDDDDCDCDCDDCDCDDDDDDCDCDCDDCDCDDDCDDCCCDCDDCDCC
-      CDDDDCDC1CDDCDCDCDCDDCD9CCCCCCCCCDDDDDDD1DDDDDDDDDDDDDD91DDDDDA2
-      DDDDDDD91DDDDDAA2DDDDDDD91DDDAAAA2DDDDDDD91DDA2DAA2DDDDDD91DAADD
-      DAA2D91119DDADDDDDAADD999DDDDDDDDDDADDDDDDDDDDDDDDDD}
     TabOrder = 1
-    OnClick = btnCheckforUpdatesClick
   end
   object btnHelp: TBitBtn
     Left = 374
@@ -71,7 +48,7 @@ object frmOptions: TfrmOptions
     Anchors = [akRight, akBottom]
     Kind = bkHelp
     NumGlyphs = 2
-    TabOrder = 3
+    TabOrder = 2
     OnClick = btnHelpClick
   end
   object pagPages: TPageControl
@@ -86,10 +63,10 @@ object frmOptions: TfrmOptions
       Caption = '&Folders'
       DesignSize = (
         600
-        365)
+        362)
       object btnAdd: TBitBtn
         Left = 4
-        Top = 336
+        Top = 333
         Width = 75
         Height = 25
         Margins.Left = 4
@@ -117,7 +94,7 @@ object frmOptions: TfrmOptions
       end
       object btnDelete: TBitBtn
         Left = 170
-        Top = 336
+        Top = 333
         Width = 75
         Height = 25
         Margins.Left = 4
@@ -145,7 +122,7 @@ object frmOptions: TfrmOptions
       end
       object btnEdit: TBitBtn
         Left = 87
-        Top = 336
+        Top = 333
         Width = 75
         Height = 25
         Margins.Left = 4
@@ -175,7 +152,7 @@ object frmOptions: TfrmOptions
         Left = 4
         Top = 4
         Width = 592
-        Height = 324
+        Height = 321
         Margins.Left = 4
         Margins.Top = 4
         Margins.Right = 4
@@ -207,7 +184,7 @@ object frmOptions: TfrmOptions
       end
       object btnUp: TBitBtn
         Left = 252
-        Top = 335
+        Top = 332
         Width = 75
         Height = 25
         Anchors = [akLeft, akBottom]
@@ -231,7 +208,7 @@ object frmOptions: TfrmOptions
       end
       object btnDown: TBitBtn
         Left = 333
-        Top = 335
+        Top = 332
         Width = 75
         Height = 25
         Anchors = [akLeft, akBottom]
@@ -255,7 +232,7 @@ object frmOptions: TfrmOptions
       end
       object btnCopy: TBitBtn
         Left = 414
-        Top = 335
+        Top = 332
         Width = 75
         Height = 25
         Anchors = [akLeft, akBottom]
@@ -276,14 +253,16 @@ object frmOptions: TfrmOptions
     object tabGlobalOptions: TTabSheet
       Caption = '&Global Options'
       ImageIndex = 2
+      ExplicitTop = 24
+      ExplicitHeight = 365
       DesignSize = (
         600
-        365)
+        362)
       object lblThemes: TLabel
         Left = 2
-        Top = 342
-        Width = 32
-        Height = 13
+        Top = 339
+        Width = 40
+        Height = 16
         Margins.Left = 2
         Margins.Top = 2
         Margins.Right = 2
@@ -291,12 +270,13 @@ object frmOptions: TfrmOptions
         Anchors = [akLeft, akBottom]
         Caption = '&Theme'
         FocusControl = cbxThemes
+        ExplicitTop = 342
       end
       object lblCompareFiles: TLabel
         Left = 2
         Top = 312
-        Width = 64
-        Height = 13
+        Width = 78
+        Height = 16
         Margins.Left = 4
         Margins.Top = 4
         Margins.Right = 4
@@ -329,7 +309,7 @@ object frmOptions: TfrmOptions
       end
       object btnBrowse: TButton
         Left = 521
-        Top = 307
+        Top = 304
         Width = 75
         Height = 25
         Margins.Left = 4
@@ -340,12 +320,13 @@ object frmOptions: TfrmOptions
         Caption = '&Browse'
         TabOrder = 1
         OnClick = btnBrowseClick
+        ExplicitTop = 307
       end
       object edtCompareEXE: TEdit
         Left = 108
-        Top = 309
+        Top = 306
         Width = 405
-        Height = 21
+        Height = 24
         Margins.Left = 4
         Margins.Top = 4
         Margins.Right = 4
@@ -356,9 +337,9 @@ object frmOptions: TfrmOptions
       end
       object cbxThemes: TComboBox
         Left = 108
-        Top = 339
+        Top = 336
         Width = 490
-        Height = 21
+        Height = 24
         Margins.Left = 2
         Margins.Top = 2
         Margins.Right = 2
@@ -371,7 +352,7 @@ object frmOptions: TfrmOptions
         Left = 4
         Top = 137
         Width = 592
-        Height = 162
+        Height = 159
         Margins.Left = 4
         Margins.Top = 4
         Margins.Right = 4
@@ -388,6 +369,7 @@ object frmOptions: TfrmOptions
         RowSelect = True
         TabOrder = 4
         ViewStyle = vsReport
+        ExplicitHeight = 162
       end
     end
     object tabFonts: TTabSheet
@@ -396,19 +378,19 @@ object frmOptions: TfrmOptions
       OnResize = tabFontsResize
       DesignSize = (
         600
-        365)
+        362)
       object lblInterfaceFonts: TLabel
         Left = 3
         Top = 3
-        Width = 75
-        Height = 13
+        Width = 86
+        Height = 16
         Caption = '&Interface Fonts'
       end
       object lblFileOperationFonts: TLabel
         Left = 3
         Top = 121
-        Width = 97
-        Height = 13
+        Width = 115
+        Height = 16
         Caption = 'File &Operation Fonts'
       end
       object lbxInterfaceFonts: TListBox
@@ -427,7 +409,7 @@ object frmOptions: TfrmOptions
         Left = 3
         Top = 140
         Width = 594
-        Height = 191
+        Height = 188
         Style = lbOwnerDrawFixed
         Anchors = [akLeft, akTop, akRight, akBottom]
         ItemHeight = 22
@@ -447,7 +429,7 @@ object frmOptions: TfrmOptions
       end
       object btnFileOperationFontEdit: TBitBtn
         Left = 3
-        Top = 337
+        Top = 334
         Width = 595
         Height = 25
         Anchors = [akLeft, akRight, akBottom]
@@ -461,12 +443,12 @@ object frmOptions: TfrmOptions
       ImageIndex = 3
       DesignSize = (
         600
-        365)
+        362)
       object lblExclusions: TLabel
         Left = 4
         Top = 4
-        Width = 88
-        Height = 13
+        Width = 103
+        Height = 16
         Margins.Left = 4
         Margins.Top = 4
         Margins.Right = 4
@@ -478,7 +460,7 @@ object frmOptions: TfrmOptions
         Left = 4
         Top = 28
         Width = 592
-        Height = 333
+        Height = 330
         Margins.Left = 4
         Margins.Top = 4
         Margins.Right = 4
@@ -502,7 +484,7 @@ object frmOptions: TfrmOptions
     Anchors = [akRight, akBottom]
     Kind = bkCancel
     NumGlyphs = 2
-    TabOrder = 4
+    TabOrder = 3
   end
   object dlgOpen: TOpenDialog
     Filter = 'Executables (*.exe)|*.exe'
@@ -514,7 +496,7 @@ object frmOptions: TfrmOptions
     Left = 232
     Top = 390
     Bitmap = {
-      494C010102000500440010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000500040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

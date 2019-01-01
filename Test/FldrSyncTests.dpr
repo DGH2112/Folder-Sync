@@ -30,12 +30,7 @@ uses
   EAppConsole,
   ExceptionLog7,
   {$ENDIF EurekaLog}
-  //ExceptionLog,
-  Forms,
-  TestFramework,
-  GUITestRunner,
-  TextTestRunner,
-  //JclDebug,
+  TestInsight.DUnit,
   TestFileComparision in 'Source\TestFileComparision.pas',
   SyncModule in '..\Source\SyncModule.pas',
   TestDGHLibrary in '..\Externals\TestDGHLibrary.pas',
@@ -47,25 +42,6 @@ uses
 
 {$R *.RES}
 
-Var
-  T : TTestResult;
-  iErrors : Integer;
-
 begin
-  iErrors := 0;
-  Application.Initialize;
-  if IsConsole then
-    Begin
-      T := TextTestRunner.RunRegisteredTests;
-      Try
-        iErrors := T.FailureCount + T.ErrorCount;
-      Finally
-        T.Free;
-      End;
-    End else
-      GUITestRunner.RunRegisteredTests;
-  If IsDebuggerPresent Then
-    ReadLn;
-  If iErrors > 0 Then
-    Halt(iErrors);
+  RunRegisteredTests;
 end.

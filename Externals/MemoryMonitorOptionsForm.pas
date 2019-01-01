@@ -4,7 +4,7 @@
   the memory monitor component.
 
   @Version 1.0
-  @Date    10 Nov 2014
+  @Date    01 Jan 2019
   @Author  David Hoyle
 
 **)
@@ -14,7 +14,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, DGHNumericEdit, ComCtrls, Buttons, ExtCtrls,
+  Dialogs, StdCtrls, ComCtrls, Buttons, ExtCtrls,
   DGHMemoryMonitorControl;
 
 type
@@ -22,7 +22,7 @@ type
   TfrmMemoryMonitorOptions = class(TForm)
     lblUpdateInterval: TLabel;
     udUpdateInterval: TUpDown;
-    edtUpdateInterval: TDGHEdit;
+    edtUpdateInterval: TEdit;
     cbxBackColour: TColorBox;
     cbxBackFontColour: TColorBox;
     cbxHighColour: TColorBox;
@@ -33,11 +33,11 @@ type
     cbxLowFontColour: TColorBox;
     btnOK: TBitBtn;
     btnCancel: TBitBtn;
-    edtHighPoint: TDGHEdit;
+    edtHighPoint: TEdit;
     udHighPoint: TUpDown;
-    edtMidPointPoint: TDGHEdit;
+    edtMidPointPoint: TEdit;
     udMidPointPoint: TUpDown;
-    edtLowPoint: TDGHEdit;
+    edtLowPoint: TEdit;
     udLowPoint: TUpDown;
     lblBackColour: TLabel;
     lblBackFontColour: TLabel;
@@ -53,7 +53,7 @@ type
     cbxFontName: TComboBox;
     lblFontName: TLabel;
     lblFontSize: TLabel;
-    edtFontSize: TDGHEdit;
+    edtFontSize: TEdit;
     udFontSize: TUpDown;
     grpFontStyles: TGroupBox;
     cbxBold: TCheckBox;

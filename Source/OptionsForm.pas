@@ -2,9 +2,11 @@
 
   This module defines the options dialogue.
 
-  @Date    11 Mar 2016
+  @Date    01 Jan 2019
   @Version 1.0
   @Author  David Hoyle
+
+  @nocheck HardCodedInteger HardCodedString
 
 **)
 Unit OptionsForm;
@@ -25,7 +27,7 @@ Uses
   ComCtrls,
   CheckLst,
   SyncModule,
-  ImgList;
+  ImgList, System.ImageList;
 
 Type
   (** An enumerate to describe the Interface fonts that can be modified. **)
@@ -72,7 +74,6 @@ Type
     lblCompareFiles: TLabel;
     btnBrowse: TButton;
     dlgOpen: TOpenDialog;
-    btnCheckforUpdates: TBitBtn;
     lblExclusions: TLabel;
     ilStatus: TImageList;
     btnHelp: TBitBtn;
@@ -102,15 +103,14 @@ Type
     Procedure FormCreate(Sender: TObject);
     Procedure FormDestroy(Sender: TObject);
     Procedure btnBrowseClick(Sender: TObject);
-    Procedure btnCheckforUpdatesClick(Sender: TObject);
     Procedure lvFoldersSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
     Procedure lvFoldersChange(Sender: TObject; Item: TListItem; Change: TItemChange);
     Procedure lvFoldersCustomDrawItem(Sender: TCustomListView; Item: TListItem;
       State: TCustomDrawState; Var DefaultDraw: Boolean);
     Procedure btnHelpClick(Sender: TObject);
-    procedure lbxInterfaceFontsDrawItem(Control: TWinControl; Index: Integer; Rect: TRect;
+    procedure lbxInterfaceFontsDrawItem(Sender: TWinControl; Index: Integer; Rect: TRect;
       State: TOwnerDrawState);
-    procedure lbxFileOperationFontsDrawItem(Control: TWinControl; Index: Integer;
+    procedure lbxFileOperationFontsDrawItem(Sender: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure btnInterfaceFontEditClick(Sender: TObject);
     procedure tabFontsResize(Sender: TObject);
@@ -145,11 +145,11 @@ Type
     Property LeftWidth: Integer Read FLeftWidth Write SetLeftWidth;
   Public
     { Public declarations }
-    Class Function Execute(Folders: TFolders; Var strExclusions, strCompareEXE: String;
-      strINIFileName: String; var InterfaceFonts : TInterfaceFontInfo;
+    Class Function Execute(Const Folders: TFolders; Var strExclusions, strCompareEXE: String;
+      Const strINIFileName: String; var InterfaceFonts : TInterfaceFontInfo;
       var FileOpFonts : TFileOperationFontInfo; Var FldrSyncOps: TFldrSyncOptions;
       var strTheme : String; var FileOpStats : TFileOpStats): Boolean;
-    Constructor CreateWithRootKey(AOwner: TComponent; strRootKey: String); Virtual;
+    Constructor CreateWithRootKey(Const AOwner: TComponent; Const strRootKey: String); Virtual;
   End;
 
   (** This is a record to describe the INI file parameters for storage of the
@@ -251,7 +251,6 @@ Uses
   CodeSiteLogging,
   FolderPathsForm,
   IniFiles,
-  CheckForUpdatesOptionsForm,
   Themes,
   InterfaceFontForm,
   OperationsFontForm,
@@ -266,13 +265,13 @@ Uses
   This is the classes main interface method for editing the applications options .
 
   @precon  None.
-  @postcon Returns true with the updated options in the var variables else returns false 
-           if the dialogue is cancelled.
+  @postcon Returns true with the updated options in the var variables else returns false if the dialogue
+           is cancelled.
 
-  @param   Folders        as a TFolders
+  @param   Folders        as a TFolders as a constant
   @param   strExclusions  as a String as a reference
   @param   strCompareEXE  as a String as a reference
-  @param   strINIFileName as a String
+  @param   strINIFileName as a String as a constant
   @param   InterfaceFonts as a TInterfaceFontInfo as a reference
   @param   FileOpFonts    as a TFileOperationFontInfo as a reference
   @param   FldrSyncOps    as a TFldrSyncOptions as a reference
@@ -281,8 +280,8 @@ Uses
   @return  a Boolean
 
 **)
-Class Function TfrmOptions.Execute(Folders: TFolders;
-  Var strExclusions, strCompareEXE: String; strINIFileName: String;
+Class Function TfrmOptions.Execute(Const Folders: TFolders;
+  Var strExclusions, strCompareEXE: String; Const strINIFileName: String;
   var InterfaceFonts : TInterfaceFontInfo; var FileOpFonts : TFileOperationFontInfo;
   Var FldrSyncOps: TFldrSyncOptions; var strTheme : String;
   var FileOpStats : TFileOpStats): Boolean;
@@ -456,23 +455,6 @@ End;
 
 (**
 
-  This is an on click event handler for the Check for Updates button.
-
-  @precon  None.
-  @postcon Displays a dialogue in which the Check for Updates functionality can be
-           configured.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmOptions.btnCheckforUpdatesClick(Sender: TObject);
-
-Begin
-  TfrmCheckForUpdatesOptions.Execute(FINIFileName);
-End;
-
-(**
-
   This is an on click event handler for the Copy button.
 
   @precon  None.
@@ -634,14 +616,13 @@ End;
   This is the constructor method for the TfrmOptions class.
 
   @precon  None.
-  @postcon Sets the FRootKey variable for loading an saving settings to the
-  registry.
+  @postcon Sets the FRootKey variable for loading an saving settings to the registry.
 
-  @param   AOwner     as a TComponent
-  @param   strRootKey as a String
+  @param   AOwner     as a TComponent as a constant
+  @param   strRootKey as a String as a constant
 
 **)
-Constructor TfrmOptions.CreateWithRootKey(AOwner: TComponent; strRootKey: String);
+Constructor TfrmOptions.CreateWithRootKey(Const AOwner: TComponent; Const strRootKey: String);
 
 Begin
   Inherited Create(AOwner);
@@ -695,20 +676,20 @@ End;
   @precon  None.
   @postcon Draws the file operations items in their specific font colours and styles.
 
-  @param   Control as a TWinControl
-  @param   Index   as an Integer
-  @param   Rect    as a TRect
-  @param   State   as a TOwnerDrawState
+  @param   Sender as a TWinControl
+  @param   Index  as an Integer
+  @param   Rect   as a TRect
+  @param   State  as a TOwnerDrawState
 
 **)
-Procedure TfrmOptions.lbxFileOperationFontsDrawItem(Control: TWinControl; Index: Integer;
+Procedure TfrmOptions.lbxFileOperationFontsDrawItem(Sender: TWinControl; Index: Integer;
   Rect: TRect; State: TOwnerDrawState);
 
 Var
   lbx: TListBox;
 
 Begin
-  lbx                  := Control As TListBox;
+  lbx                  := Sender As TListBox;
   lbx.Canvas.Font.Name := FInterfaceFonts[ifTableFont].FFontName;
   lbx.Canvas.Font.Size := FInterfaceFonts[ifTableFont].FFontSize;
   If odSelected In State Then
@@ -737,20 +718,20 @@ End;
   @precon  None.
   @postcon Draws the interface fonts in their font name and size.
 
-  @param   Control as a TWinControl
-  @param   Index   as an Integer
-  @param   Rect    as a TRect
-  @param   State   as a TOwnerDrawState
+  @param   Sender as a TWinControl
+  @param   Index  as an Integer
+  @param   Rect   as a TRect
+  @param   State  as a TOwnerDrawState
 
 **)
-Procedure TfrmOptions.lbxInterfaceFontsDrawItem(Control: TWinControl; Index: Integer;
+Procedure TfrmOptions.lbxInterfaceFontsDrawItem(Sender: TWinControl; Index: Integer;
   Rect: TRect; State: TOwnerDrawState);
 
 Var
   lbx : TListbox;
   
 Begin
-  lbx := Control As TListbox;
+  lbx := Sender As TListbox;
   lbx.Canvas.Font.Name := FInterfaceFonts[TInterfaceFont(Index)].FFontName;
   lbx.Canvas.Font.Size := FInterfaceFonts[TInterfaceFont(Index)].FFontSize;
   If odSelected In State Then
@@ -821,11 +802,11 @@ Var
     @precon  iIndex must be a valid SubItem index..
     @postcon Returns display rectangle for the given indexed sub item.
 
-    @param   iIndex as an Integer
+    @param   iIndex as an Integer as a constant
     @return  a TRect
 
   **)
-  Function GetSubItemRect(iIndex: Integer): TRect;
+  Function GetSubItemRect(Const iIndex: Integer): TRect;
 
   Var
     j: Integer;

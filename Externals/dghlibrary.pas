@@ -5,7 +5,7 @@
 
   @Version 1.0
   @Author  David Hoyle
-  @Date    11 Apr 2017
+  @Date    31 Dec 2018
 
 **)
 Unit DGHLibrary;
@@ -640,7 +640,7 @@ Type
   End;
 
   (** This is a procedure type for handling Exception messages in ParseMacro. **)
-  TExceptionProcedure = Procedure(strExceptionMsg : String) Of Object;
+  TExceptionProcedure = Procedure(Const strExceptionMsg : String) Of Object;
 
   (** A method signature for the DGHCreateProcess message event handler. **)
   TProcessMsgHandler = Procedure(strMsg : String; var boolAbort : Boolean) Of Object;

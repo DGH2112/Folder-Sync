@@ -1,6 +1,7 @@
 ﻿
 [Exception Log]
 EurekaLog Version=8000
+_CustomProfile=""
 Activate=1
 atConsole=1
 atWin32=1

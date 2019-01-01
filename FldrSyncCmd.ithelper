@@ -8,7 +8,7 @@ EnabledVersionInfo=1
 MajorVer=2
 MinorVer=0
 ReleaseVer=0
-BuildVer=1719
+BuildVer=1816
 IncludeInProject=1
 CompileWithBRCC32=0
 ResourceName=ITHelperVersionInfoCmd
@@ -25,7 +25,7 @@ ExclusionFiles=qwerty
 [VersionInfo]
 CompanyName=Season's Fall Music Limited (c) 1989
 FileDescription=A command line application to synchronise files between 2 folders.
-FileVersion=2.0.0.1719
+FileVersion=2.0.0.1816
 InternalName=FldrSyncCmd
 LegalCopyright=Season's Fall Music Limited (c) 1989
 LegalTrademarks=Season's Fall Music Limited (c) 1989

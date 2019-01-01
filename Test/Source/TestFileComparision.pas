@@ -101,7 +101,7 @@ end;
 procedure TestTFileList.SetUp;
 begin
   FFileList := TFileList.Create;
-  FFileList.SearchFolder('.\Test Compare Folders\Left Folder\', '*.*', '', [], $FFFFFFFF);
+  FFileList.SearchFolder('..\..\Test Compare Folders\Left Folder\', '*.*', '', [], $FFFFFFFF);
 end;
 
 procedure TestTFileList.TearDown;
@@ -123,7 +123,7 @@ end;
 
 procedure TestTFileList.TestFolderPath;
 begin
-  CheckEquals('.\Test Compare Folders\Left Folder\', FFileList.FolderPath);
+  CheckEquals('..\..\Test Compare Folders\Left Folder\', FFileList.FolderPath);
 end;
 
 procedure TestTFileList.TestTotalSize;
@@ -134,8 +134,8 @@ end;
 procedure TestTCompareFolders.SetUp;
 begin
   FCompareFolders := TCompareFolders.Create(Nil);
-  FCompareFolders.SearchFolders('.\Test Compare Folders\Left Folder\',
-    '.\Test Compare Folders\Right Folder\', '*.*', '', 0, [], $FFFFFFFF);
+  FCompareFolders.SearchFolders('..\..\Test Compare Folders\Left Folder\',
+    '..\..\Test Compare Folders\Right Folder\', '*.*', '', 0, [], $FFFFFFFF);
 end;
 
 procedure TestTCompareFolders.TearDown;
@@ -189,12 +189,12 @@ begin
   CheckEquals(4, FCompareFolders.LeftFldr.Count);
   CheckEquals('20 Bytes.Txt', FCompareFolders.LeftFldr[1].FileName);
   CheckEquals(20, FCompareFolders.LeftFldr[1].Size);
-  CheckEquals('.\Test Compare Folders\Left Folder\', FCompareFolders.LeftFldr.FolderPath);
+  CheckEquals('..\..\Test Compare Folders\Left Folder\', FCompareFolders.LeftFldr.FolderPath);
   CheckEquals(100, FCompareFolders.LeftFldr.TotalSize);
   CheckEquals(4, FCompareFolders.RightFldr.Count);
   CheckEquals('30 Bytes.Txt', FCompareFolders.RightFldr[1].FileName);
   CheckEquals(30, FCompareFolders.RightFldr[1].Size);
-  CheckEquals('.\Test Compare Folders\Right Folder\', FCompareFolders.RightFldr.FolderPath);
+  CheckEquals('..\..\Test Compare Folders\Right Folder\', FCompareFolders.RightFldr.FolderPath);
   CheckEquals(140, FCompareFolders.RightFldr.TotalSize);
 end;
 

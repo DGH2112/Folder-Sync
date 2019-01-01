@@ -137,7 +137,7 @@ object frmMemoryMonitorOptions: TfrmMemoryMonitorOptions
     Position = 1
     TabOrder = 1
   end
-  object edtUpdateInterval: TDGHEdit
+  object edtUpdateInterval: TEdit
     Left = 128
     Top = 8
     Width = 145
@@ -230,7 +230,7 @@ object frmMemoryMonitorOptions: TfrmMemoryMonitorOptions
     NumGlyphs = 2
     TabOrder = 21
   end
-  object edtHighPoint: TDGHEdit
+  object edtHighPoint: TEdit
     Left = 128
     Top = 147
     Width = 145
@@ -251,7 +251,7 @@ object frmMemoryMonitorOptions: TfrmMemoryMonitorOptions
     Position = 1
     TabOrder = 7
   end
-  object edtMidPointPoint: TDGHEdit
+  object edtMidPointPoint: TEdit
     Left = 128
     Top = 230
     Width = 145
@@ -272,7 +272,7 @@ object frmMemoryMonitorOptions: TfrmMemoryMonitorOptions
     Position = 1
     TabOrder = 11
   end
-  object edtLowPoint: TDGHEdit
+  object edtLowPoint: TEdit
     Left = 128
     Top = 313
     Width = 145
@@ -301,7 +301,7 @@ object frmMemoryMonitorOptions: TfrmMemoryMonitorOptions
     TabOrder = 16
     Text = 'cbxFontName'
   end
-  object edtFontSize: TDGHEdit
+  object edtFontSize: TEdit
     Left = 128
     Top = 367
     Width = 145

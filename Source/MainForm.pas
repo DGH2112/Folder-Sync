@@ -3,9 +3,11 @@
   This module if a class to represent the applications main form interface.
   This form provide the display of differences between two folders.
 
-  @Version 1.0
-  @Date    11 Mar 2016
+  @Version 2.0
+  @Date    01 Jan 2019
   @Author  David Hoyle
+
+  @nocheck HardCodedInteger HardCodedString HardCodedNumber
 
 **)
 Unit MainForm;
@@ -47,7 +49,7 @@ Uses
   FileDeleteProgressForm,
   FileCopyProgressForm,
   DiskSpaceForm,
-  System.Actions;
+  System.Actions, System.ImageList, VirtualTrees;
 
 Type
   (** This enumerate determines the type of progress to be shown in the taskbar in
@@ -64,7 +66,6 @@ Type
     actToolsOptions: TAction;
     actEditCopyRightToLeft: TAction;
     actEditCopyLeftToRight: TAction;
-    lvFileList: TListView;
     actEditDelete: TAction;
     actEditDoNothing: TAction;
     mmiCopyLefttoRight: TMenuItem;
@@ -79,7 +80,6 @@ Type
     mmiSelectAll: TMenuItem;
     appEvents: TApplicationEvents;
     actHelpAbout: TAction;
-    actHelpCheckForUpdates: TAction;
     ilFileTypeIcons: TImageList;
     actToolsCompare: TAction;
     N2: TMenuItem;
@@ -96,6 +96,7 @@ Type
     redtOutputResults: TMemo;
     actToolsConfigMemMon: TAction;
     Splitter: TSplitter;
+    vstFileList: TVirtualStringTree;
     Procedure actHelpAboutExecute(Sender: TObject);
     Procedure actFileExitExecute(Sender: TObject);
     Procedure FormResize(Sender: TObject);
@@ -110,20 +111,48 @@ Type
     Procedure actFileProcessFilesExecute(Sender: TObject);
     Procedure actEditSelectAllExecute(Sender: TObject);
     Procedure appEventsException(Sender: TObject; E: Exception);
-    Procedure lvFileListCustomDrawItem(Sender: TCustomListView; Item: TListItem;
-      State: TCustomDrawState; Var DefaultDraw: Boolean);
-    Procedure actHelpCheckForUpdatesExecute(Sender: TObject);
     Procedure actToolsCompareExecute(Sender: TObject);
     Procedure actToolsCompareUpdate(Sender: TObject);
     procedure actEditClearLogExecute(Sender: TObject);
     procedure actHelpContentsExecute(Sender: TObject);
-    procedure stbrStatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
+    procedure stbrStatusBarDrawPanel(Sender: TStatusBar; Panel: TStatusPanel;
       const Rect: TRect);
     procedure actEditFileOperationsUpdate(Sender: TObject);
     procedure actToolsConfigMemMonExecute(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure vstFileListBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas:
+        TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellPaintMode:
+        TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+    procedure vstFileListFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure vstFileListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+      TextType: TVSTTextType; var CellText: string);
+    procedure vstFileListGetImageIndexEx(Sender: TBaseVirtualTree; Node:
+        PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
+        Boolean; var ImageIndex: TImageIndex; var ImageList: TCustomImageList);
+    procedure vstFileListPaintText(Sender: TBaseVirtualTree; const TargetCanvas:
+        TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
   Strict Private
-    { Private declarations }
+    Type
+      (** A record to describe the data stored in the File List nodes of the VTV control. **)
+      TFSFileListNode = Record
+        FProcessIndex      : Integer;   
+        FState             : TFileOp;
+        FLeftFilename      : String;
+        FLeftAttr          : Cardinal;
+        FLeftSize          : Int64;
+        FLeftDate          : TDateTime;
+        FLeftFileIndex     : INteger;
+        FRightFilename     : String;
+        FRightAttr         : Cardinal;
+        FRightSize         : Int64;
+        FRightDate         : TDateTime;
+        FRightFileIndex     : INteger;
+        FLeftFullFileName  : String;
+        FRightFullFileName : String;
+      End;
+      (** A poiner to be above file list node structure **)
+      PFSFileListNode = ^TFSFileListNode;
+  Strict Private
     FFolders         : TFolders;
     FExclusions      : String;
     FIconFiles       : TStringList;
@@ -152,120 +181,106 @@ Type
     FConfirmDlgWidth : Integer;
     Procedure LoadSettings();
     Procedure SaveSettings();
-    Procedure UpgradeINIFolderOptions(iniMemFile : TMemIniFile);
+    Procedure UpgradeINIFolderOptions(Const iniMemFile : TMemIniFile);
     Procedure ApplicationHint(Sender: TObject);
-    Function GetImageIndex(ProcessItem : TProcessItem; strFileName: String): NativeInt;
+    Function GetImageIndex(Const strFileName: String): NativeInt;
     Procedure FixUpPanes;
-    Procedure InsertListItem(ProcessItem : TProcessItem);
-    Procedure SetFileOperation(FileOp: TFileOp);
+    Procedure InsertListItem(Const iProcessItem : Integer; Const ProcessItem : TProcessItem);
+    Procedure SetFileOperation(Const FileOp: TFileOp);
     Function CheckFolders: Boolean;
-    Procedure ImageIndexes(ProcessItem : TProcessItem; Item: TListItem);
-    Procedure ExceptionProc(strExceptionMsg: String);
+    Procedure ExceptionProc(Const strExceptionMsg: String);
     Procedure CloseTimerEvent(Sender: TObject);
-    Procedure SearchStartProc(strFolder: String);
-    Procedure SearchProc(strFolder, strFileName: String; iCount: Integer;
-      Update : TUpdateType);
-    Procedure SearchEndProc(iFileCount: Integer; iTotalSize: int64);
-    Procedure CompareStartProc(strLeftFldr, strRightFldr: String);
-    Procedure CompareProc(strLeftFldr, strRightFldr, strFileName: String;
-      iPosition, iMaxItems: Integer);
+    Procedure SearchStartProc(Const strFolder: String);
+    Procedure SearchProc(Const strFolder, strFileName: String; Const iCount: Integer;
+      Const Update : TUpdateType);
+    Procedure SearchEndProc(Const iFileCount: Integer; Const iTotalSize: int64);
+    Procedure CompareStartProc(Const strLeftFldr, strRightFldr: String);
+    Procedure CompareProc(Const strLeftFldr, strRightFldr, strFileName: String;
+      Const iPosition, iMaxItems: Integer);
     Procedure CompareEndProc;
     Procedure MatchListStartProc;
-    Procedure MatchListProc(iPosition, iMaxItems: Integer);
+    Procedure MatchListProc(Const iPosition, iMaxItems: Integer);
     Procedure MatchListEndProc;
-    Procedure DeleteStartProc(iFileCount: Integer; iTotalSize: int64);
-    Procedure DeletingProc(iCurrentFileToDelete, iTotalFilesToDelete : Integer;
-      iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
-      strDeletePath, strFileNameToDelete: String);
-    Procedure DeletedProc(iCurrentFileToDeleted, iTotalFilesToDelete: Integer;
-      iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
-      iSuccess : TProcessSuccess);
-    Procedure DeleteQueryProc(strFilePath: String; DeleteFile : TFileRecord;
+    Procedure DeleteStartProc(Const iFileCount: Integer; Const iTotalSize: int64);
+    Procedure DeletingProc(Const iCurrentFileToDelete, iTotalFilesToDelete : Integer;
+      Const iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
+      Const strDeletePath, strFileNameToDelete: String);
+    Procedure DeletedProc(Const iCurrentFileToDeleted, iTotalFilesToDelete: Integer;
+      Const iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
+      Const iSuccess : TProcessSuccess);
+    Procedure DeleteQueryProc(Const strFilePath: String; Const DeleteFile : TFileRecord;
       Var Option: TFileAction);
-    Procedure DeleteReadOnlyQueryProc(strFilePath: String; DeleteFile : TFileRecord;
+    Procedure DeleteReadOnlyQueryProc(Const strFilePath: String; Const DeleteFile : TFileRecord;
       Var Option: TFileAction);
-    Procedure DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
-    Procedure CopyStartProc(iTotalCount: Integer; iTotalSize: int64);
-    Procedure CopyContentsProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
-      iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy, iCurrentFileCopiedSizeSoFar,
+    Procedure DeleteEndProc(Const iDeleted, iSkipped, iErrors: Integer);
+    Procedure CopyStartProc(Const iTotalCount: Integer; Const iTotalSize: int64);
+    Procedure CopyContentsProc(Const iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+      Const iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy, iCurrentFileCopiedSizeSoFar,
       iTotalCurrentFileSize: Int64);
-    Procedure CopyingProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
-      iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; strSource, strDest,
+    Procedure CopyingProc(Const iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+      Const iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; Const strSource, strDest,
       strFileName: String);
-    Procedure CopiedProc(iCurrentFileToCopy, iTotalFilesToCopy: Integer;
-      iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
-      iSuccess : TProcessSuccess);
-    Procedure CopyQueryProc(strSourcePath, strDestPath: String; SourceFile,
+    Procedure CopiedProc(Const iCurrentFileToCopy, iTotalFilesToCopy: Integer;
+      Const iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
+      Const iSuccess : TProcessSuccess);
+    Procedure CopyQueryProc(Const strSourcePath, strDestPath: String; Const SourceFile,
       DestFile : TFileRecord; Var Option: TFileAction);
-    Procedure CopyReadOnlyQueryProc(strSourcePath, strDestPath: String; SourceFile,
+    Procedure CopyReadOnlyQueryProc(Const strSourcePath, strDestPath: String; Const SourceFile,
       DestFile : TFileRecord;  Var Option: TFileAction);
-    Procedure CopyEndProc(iCopied, iSkipped, iError: Integer);
-    Procedure FileQuery(strMsg, strConsoleMsg, strSourcePath, strDestPath: String;
-      SourceFile, DestFile : TFileRecord; Var Option: TFileAction; boolReadOnly : Boolean);
-    Procedure DiffSizeStart(iFileCount : Integer);
-    Procedure DiffSize(iFile, iFileCount: Integer; strLPath, strRPath,
+    Procedure CopyEndProc(Const iCopied, iSkipped, iError: Integer);
+    Procedure FileQuery(Const strMsg, strConsoleMsg, strSourcePath, strDestPath: String;
+      Const SourceFile, DestFile : TFileRecord; Var Option: TFileAction; Const boolReadOnly : Boolean);
+    Procedure DiffSizeStart(Const iFileCount : Integer);
+    Procedure DiffSize(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
       strFileName: String);
     Procedure DiffSizeEnd();
-    Procedure NothingToDoStart(iFileCount : Integer);
-    Procedure NothingToDo(iFile, iFileCount: Integer; strLPath, strRPath,
-    strFileName: String);
+    Procedure NothingToDoStart(Const iFileCount : Integer);
+    Procedure NothingToDo(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
+      strFileName: String);
     Procedure NothingToDoEnd();
-    Procedure ExceedsSizeLimitStart(iFileCount : Integer);
-    Procedure ExceedsSizeLimit(iFile, iFileCount: Integer; strLPath, strRPath,
+    Procedure ExceedsSizeLimitStart(Const iFileCount : Integer);
+    Procedure ExceedsSizeLimit(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
       strFileName: String);
     Procedure ExceedsSizeLimitEnd();
-    Procedure ErrorMessageStart(iFileCount : Integer);
-    Procedure ErrorMessage(strErrorMsg : String);
+    Procedure ErrorMessageStart(Const iFileCount : Integer);
+    Procedure ErrorMessage(Const strErrorMsg : String);
     Procedure ErrorMessageEnd();
-    Procedure DeleteFoldersStart(iFolderCount : Integer);
-    Procedure DeleteFolders(iFolder, iFolders : Integer; strFolder : String);
+    Procedure DeleteFoldersStart(Const iFolderCount : Integer);
+    Procedure DeleteFolders(Const iFolder, iFolders : Integer; Const strFolder : String);
     Procedure DeleteFoldersEnd();
-    Procedure CopyError(strSource, strDest, strErrorMsg : String;
-      iLastError : Cardinal; var iResult : TDGHErrorResult);
-    Procedure DeleteError(strSource, strErrorMsg : String;
-      iLastError : Cardinal; var iResult : TDGHErrorResult);
-    Procedure UpdateTaskBar(ProgressType: TTaskbarProgressType; iPosition: Integer = 0;
-      iMaxPosition: Integer = 100);
-    Procedure UpdateProgress(iPosition, iMaxPosition: Integer);
+    Procedure CopyError(Const strSource, strDest, strErrorMsg : String;
+      Const iLastError : Cardinal; var iResult : TDGHErrorResult);
+    Procedure DeleteError(Const strSource, strErrorMsg : String;
+      Const iLastError : Cardinal; var iResult : TDGHErrorResult);
+    Procedure UpdateTaskBar(Const ProgressType: TTaskbarProgressType; Const iPosition: Integer = 0;
+      Const iMaxPosition: Integer = 100);
+    Procedure UpdateProgress(Const iPosition, iMaxPosition: Integer);
     Procedure StartTimerEvent(Sender: TObject);
-    Procedure OutputResult(strMsg: String = '');
-    Procedure OutputResultLn(strMsg: String = '');
+    Procedure OutputResult(Const strMsg: String = '');
+    Procedure OutputResultLn(Const strMsg: String = '');
     Procedure DisableActions;
-    Procedure EnableActions(boolSuccess: Boolean);
+    Procedure EnableActions(Const boolSuccess: Boolean);
     Procedure LogSize;
     Procedure OutputStats;
     Procedure MemoryPopupMenu(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
-    Procedure OutputFileNumber(iCurrentFile, iTotal : Integer);
+    Procedure OutputFileNumber(Const iCurrentFile, iTotal : Integer);
   End;
 
   (** This is a custon exception for folders not found or created. **)
   TFolderNotFoundException = Class(Exception);
 
-ResourceString
-    (** A resource string for the Update Software ID **)
-  strSoftwareID = 'FldrSync';
-
-Const
-    (** Constant to represent the Left File Name position in the list view **)
-  iLDisplayCol = 1;
-    (** Constant to represent the Left File Attributes position in the list view **)
-  iLAttrCol = 2;
-    (** Constant to represent the Left File Size position in the list view **)
-  iLSizeCol = 3;
-    (** Constant to represent the Left File Date position in the list view **)
-  iLDateCol = 4;
-    (** Constant to represent the Right File Name position in the list view **)
-  iRDisplayCol = 5;
-    (** Constant to represent the Right File Attributes position in the list view **)
-  iRAttrCol = 6;
-    (** Constant to represent the Right File Size position in the list view **)
-  iRSizeCol = 7;
-    (** Constant to represent the Right File Date position in the list view **)
-  iRDateCol = 8;
-    (** Constant to represent the Left Folder position in the list view **)
-  iLFullFileNameCol = 9;
-    (** Constant to represent the Right Folder position in the list view **)
-  iRFullFileNameCol = 10;
+  (** An enumerate to define the Virtual string tree fields of data. **)
+  TFSVTVFields = (
+    vfState,
+    vfLeftFileName,
+    vfLeftAttr,
+    vfLeftSize,
+    vfLeftDate,
+    vfRightFilename,
+    vfRightAttr,
+    vfRightSize,
+    vfRightDate
+  );
 
 Var
     (** A global variable used by Delphis auto create form process. **)
@@ -281,7 +296,6 @@ Uses
   FileCtrl,
   ShellAPI,
   AboutForm,
-  CheckForUpdates,
   DGHLibrary,
   ConfirmationDlg,
   Themes,
@@ -293,7 +307,9 @@ Uses
   {$ENDIF}
   UITypes,
   Types,
-  ApplicationFunctions;
+  ApplicationFunctions,
+  TypInfo,
+  StrUtils;
 
 {$R *.DFM}
 
@@ -313,6 +329,310 @@ Type
 
 (**
 
+  This method returns a string representation of a files attributes [RASH].
+
+  @precon  None.
+  @postcon Returns a string representation of a files attributes [RASH].
+
+  @param   iAttributes as a Cardinal as a constant
+  @return  a String
+
+**)
+Function GetAttributeString(Const iAttributes: Cardinal): String;
+
+Type
+  TFSFileAttr = (
+    faReadOnly,
+    faArchive,
+    faSystem,
+    faHidden,
+    faDirectory,
+    faDevice,
+    faNormal,
+    faTemporary,
+    faSparseFile,
+    faReparsePoint,
+    faCompressed,
+    faOffLine,
+    faNotIndexed,
+    faEncrypted,
+    faVirtual
+  );
+  TFSAttrRec = Record
+    FAttribute : Integer;
+    FChar      : Char;
+  End;
+
+Const
+  Attributes : Array[Low(TFSFileAttr)..High(TFSFileAttr)] Of TFSAttrRec = (
+    (FAttribute: FILE_ATTRIBUTE_READONLY;              FChar: 'R'),
+    (FAttribute: FILE_ATTRIBUTE_ARCHIVE;               FChar: 'A'),
+    (FAttribute: FILE_ATTRIBUTE_SYSTEM;                FChar: 'S'),
+    (FAttribute: FILE_ATTRIBUTE_HIDDEN;                FChar: 'H'),
+    (FAttribute: FILE_ATTRIBUTE_DIRECTORY;             FChar: 'D'),
+    (FAttribute: FILE_ATTRIBUTE_DEVICE;                FChar: 'd'),
+    (FAttribute: FILE_ATTRIBUTE_NORMAL;                FChar: 'N'),
+    (FAttribute: FILE_ATTRIBUTE_TEMPORARY;             FChar: 'T'),
+    (FAttribute: FILE_ATTRIBUTE_SPARSE_FILE;           FChar: 'S'),
+    (FAttribute: FILE_ATTRIBUTE_REPARSE_POINT;         FChar: 'P'),
+    (FAttribute: FILE_ATTRIBUTE_COMPRESSED;            FChar: 'C'),
+    (FAttribute: FILE_ATTRIBUTE_OFFLINE;               FChar: 'O'),
+    (FAttribute: FILE_ATTRIBUTE_NOT_CONTENT_INDEXED;   FChar: 'I'),
+    (FAttribute: FILE_ATTRIBUTE_ENCRYPTED;             FChar: 'E'),
+    (FAttribute: FILE_ATTRIBUTE_VIRTUAL;               FChar: 'V')
+  );
+
+Var
+  iAttr: TFSFileAttr;
+
+Begin
+  SetLength(Result, 1 + Integer(High(TFSFileAttr)) - Integer(Low(TFSFileAttr)));
+  For iAttr := Low(TFSFileAttr) To High(TFSFileAttr) Do
+    If Attributes[iAttr].FAttribute And iAttributes <> 0 Then
+      Result[Succ(Integer(iAttr))] := Attributes[iAttr].FChar
+    Else
+      Result[Succ(Integer(iAttr))] := '.';
+  Result := '[' + Result + ']';
+End;
+
+(**
+
+  This is an on execute event handler for the Clear Log action.
+
+  @precon  None.
+  @postcon Clears the log.
+
+  @param   Sender as a TObject
+
+**)
+procedure TfrmMainForm.actEditClearLogExecute(Sender: TObject);
+
+begin
+  If redtOutputResults.SelLength > 0 Then
+    redtOutputResults.SelText := ''
+  Else
+    redtOutputResults.Clear;
+end;
+
+(**
+
+  This is an on execute event handler for the CopyLeftToRight Action.
+
+  @precon  None.
+  @postcon Sets the selected items in the list view to be Copied from Left to
+           Right.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actEditCopyLeftToRightExecute(Sender: TObject);
+
+Begin
+  SetFileOperation(foLeftToRight);
+End;
+
+(**
+
+  This is an on execute event handler for the CopyRightToLeft action.
+
+  @precon  None.
+  @postcon Sets the selected items in the list view to be Copies from Right
+           to Left.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actEditCopyRightToLeftExecute(Sender: TObject);
+
+Begin
+  SetFileOperation(foRightToLeft);
+End;
+
+(**
+
+  This is an on execute event handler for the Delete action.
+
+  @precon  None.
+  @postcon Sets the selected items in the list view to be Deleted.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actEditDeleteExecute(Sender: TObject);
+
+Begin
+  SetFileOperation(foDelete);
+End;
+
+(**
+
+  This is an on execute event handler for the DoNothing action.
+
+  @precon  None.
+  @postcon Sets the selected items in the listview to DoNothing.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actEditDoNothingExecute(Sender: TObject);
+
+Begin
+  SetFileOperation(foNothing);
+End;
+
+(**
+
+  This is an on update event handler for the Fiole Operation actions.
+
+  @precon  None.
+  @postcon Enables / disables the file operations based on the opertation and the selected
+           files.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actEditFileOperationsUpdate(Sender: TObject);
+
+Var
+  boolEnabled : Boolean;
+  Node: PVirtualNode;
+  NodeData : PFSFileListNode;
+  Action: TAction;
+  
+Begin
+  If Sender Is TAction Then
+    Begin
+      Action := Sender As TAction;
+      boolEnabled := vstFileList.SelectedCount > 0;
+      Node := vstFileList.GetFirstSelected;
+      While Assigned(Node) Do
+        Begin
+          NodeData := vstFileList.GetNodeData(Node);
+          boolEnabled := boolEnabled And (Integer(NodeData.FState) <> Action.Tag);
+          Case TFileOp(Tag) Of
+            foLeftToRight:
+              If NodeData.FLeftFilename = '' Then
+                boolEnabled := False;
+            foRightToLeft:
+              If NodeData.FRightFilename = '' Then
+                boolEnabled := False;
+          End;
+          Node := vstFileList.GetNextSelected(Node);
+        End; 
+      Action.Enabled := boolEnabled;
+    End;
+End;
+
+(**
+
+  This is an on execute event handler for the Select All action.
+
+  @precon  None.
+  @postcon Selects all the items in the list.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actEditSelectAllExecute(Sender: TObject);
+
+Begin
+  vstFileList.SelectAll(True);
+End;
+
+(**
+
+  This is an on execute method for the File Compare action.
+
+  @precon  None.
+  @postcon Start the process of comparing files and folders and output the
+           results in the list view.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actFileCompareExecute(Sender: TObject);
+
+Var
+  iEnabledFolders: Integer;
+  i              : Integer;
+  boolSuccess    : Boolean;
+  iCount         : Integer;
+  NodeData       : PFSFileListNode;
+  Node: PVirtualNode;
+
+Begin
+  OutputResultLn('Comparison started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
+    Now()));
+  boolSuccess := False;
+  If Not CheckFolders Then
+    Exit;
+  Try
+    DisableActions;
+    Try
+      iEnabledFolders := 0;
+      For i := 0 To FFolders.Count - 1 Do
+        Begin
+          If [soEnabled, soTempDisabled] * FFolders.Folder[i].SyncOptions = [soEnabled] Then
+            Inc(iEnabledFolders);
+        End;
+      FProgressForm.RegisterSections(iEnabledFolders * 3 + 2);
+      FProgressSection := -1;
+      vstFileList.BeginUpdate;
+      Try
+        vstFileList.Clear;
+      Finally
+        vstFileList.EndUpdate;
+      End;
+      Try
+        FSyncModule.Clear;
+        boolSuccess := FSyncModule.ProcessFolders(FFolders, FExclusions);
+        FixUpPanes;
+        FormResize(Sender);
+        iCount := 0;
+        Node := vstFileList.GetFirst;
+        While Assigned(Node) Do
+          Begin
+            NodeData := vstFileList.GetNodeData(Node);
+            If Integer(NodeData.FState) <> Integer(fofExceedsSizeLimit) Then
+              Inc(iCount);
+            Node := vstFileList.GetNext(Node);
+          End;
+        If (fsoCloseIFNoFilesAfterComparison In FFldrSyncOptions) And (iCount = 0) Then
+          Begin
+            FProgressForm.InitialiseSection(FProgressSection, 0, 1);
+            FProgressForm.Progress(FProgressSection, 1, 'Auto-exiting application...',
+              'as there are no more files to process...');
+            FCloseTimer.Enabled := True;
+          End;
+        If (fsoStartProcessingAutomatically In FFldrSyncOptions) And
+          Not FAutoProcessing Then
+          Try
+            FAutoProcessing := True;
+            actFileProcessFilesExecute(Sender);
+          Finally
+            FAutoProcessing := False;
+          End;
+      Finally
+        If Not boolSuccess Then
+          Begin
+            OutputResultLn;
+            OutputResultLn('Comparison cancelled by user!');
+          End;
+        UpdateTaskBar(ptNone);
+        If Not FCloseTimer.Enabled Then
+          FProgressForm.Hide;
+        OutputStats;
+      End;
+    Finally
+      EnableActions(boolSuccess);
+    End;
+  Finally
+    OutputResultLn();
+  End;
+End;
+
+(**
+
   This method is an Action List Execute method.
 
   @precon  None.
@@ -329,670 +649,934 @@ End;
 
 (**
 
-  This is a Form on Resize event handler.
+  This a an on execute event handler for the Process Files action.
 
   @precon  None.
-  @postcon Makes sure that the two sides of the interface are evenly spaced.
+  @postcon Firstly, it deletes any files need to be deleted from the list, then
+           copies any files that need to be copied and finally refreshes the
+           information in the list view.
 
   @param   Sender as a TObject
 
 **)
-Procedure TfrmMainForm.FormResize(Sender: TObject);
+Procedure TfrmMainForm.actFileProcessFilesExecute(Sender: TObject);
+
+Var
+  boolAbort : Boolean;
+  
+Begin
+  If TfrmDiskSpace.Execute(FSyncModule) Then
+    Begin
+      OutputResultLn('Processing started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
+        Now()));
+      Try
+        boolAbort := False;
+        DisableActions;
+        Try
+          Try
+            FSyncModule.ProcessFiles(FFldrSyncOptions);
+          Except
+            On E : EAbort Do
+              boolAbort := True;
+          End;
+        Finally
+          EnableActions(True);
+        End;
+        actFileProcessFiles.Enabled := Not boolAbort
+      Finally
+        OutputResultLn();
+      End;
+      If Not boolAbort Then
+        actFileCompareExecute(Self);
+    End;
+End;
+
+(**
+
+  This is an on execute event hanlder for the Help About action.
+
+  @precon  None.
+  @postcon Displays the about dialogue.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actHelpAboutExecute(Sender: TObject);
+
+Begin
+  TfrmAboutDialogue.ShowAbout(Self);
+End;
+
+(**
+
+  This is an on execute event handler for the Help Contents action.
+
+  @precon  None.
+  @postcon Displays the Contents and Welcome page of the HTML Help.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actHelpContentsExecute(Sender: TObject);
+
+Begin
+  Application.HelpShowTableOfContents;
+End;
+
+(**
+
+  This is an on execute event handler for the Tools Compare action.
+
+  @precon  None.
+  @postcon Opens the 2 selected files in the comparison tool.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actToolsCompareExecute(Sender: TObject);
+
+Var
+  NodeData : PFSFileListNode;
+
+Begin
+  NodeData := vstFileList.GetNodeData(vstFileList.FocusedNode);
+  ShellExecute(Application.Handle, 'Open', PChar(FCompareEXE), PChar(Format('"%s" "%s"', [
+    NodeData.FLeftFullFileName,
+    NodeData.FRightFullFileName
+  ])), PChar(ExtractFilePath(FCompareEXE)), SW_SHOWNORMAL)
+End;
+
+(**
+
+  This is an on update event handler for the Tools Compare action.
+
+  @precon  None.
+  @postcon Enables the option only if the EXE exists and the 2 files to compare
+           also exist.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actToolsCompareUpdate(Sender: TObject);
+
+Var
+  boolEnabled: Boolean;
+  NodeData : PFSFileListNode;
+
+Begin
+  boolEnabled := Assigned(vstFileList.FocusedNode);
+  If boolEnabled Then
+    Begin
+      NodeData := vstFileList.GetNodeData(vstFileList.FocusedNode);
+    boolEnabled := boolEnabled
+      And FileExists(NodeData.FLeftFullFileName)
+      And FileExists(NodeData.FRightFullFileName);
+    End;
+  (Sender As TAction).Enabled := boolEnabled;
+End;
+
+(**
+
+  This is an on execute event handler for the ConfigMemMon action.
+
+  @precon  None.
+  @postcon Displays a configuration form that allows you to edit the colours, fonts and
+           positions of the memory monitor information.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actToolsConfigMemMonExecute(Sender: TObject);
+
+Begin
+  TfrmMemoryMonitorOptions.Execute(DGHMemoryMonitor);
+End;
+
+(**
+
+  This is an on execute event handler for the Tools Options action.
+
+  @precon  None.
+  @postcon Displays the options dialogue for the application.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.actToolsOptionsExecute(Sender: TObject);
+
+Var
+  strTheme : String;
+  
+Begin
+  FInterfaceFonts[ifTableFont].FFontName := vstFileList.Font.Name;
+  FInterfaceFonts[ifTableFont].FFontSize :=vstFileList.Font.Size;
+  FInterfaceFonts[ifLogFont].FFontName := redtOutputResults.Font.Name;
+  FInterfaceFonts[ifLogFont].FFontSize := redtOutputResults.Font.Size;
+  If TfrmOptions.Execute(FFolders, FExclusions, FCompareEXE, FRootKey, FInterfaceFonts,
+    FFileOpFonts, FFldrSyncOptions, strTheme, FFileOpStats) Then
+    Begin
+      vstFileList.Font.Name := FInterfaceFonts[ifTableFont].FFontName;
+      vstFileList.Font.Size:= FInterfaceFonts[ifTableFont].FFontSize;
+      redtOutputResults.Font.Name := FInterfaceFonts[ifLogFont].FFontName;
+      redtOutputResults.Font.Size := FInterfaceFonts[ifLogFont].FFontSize;
+      If CompareText(strTheme, TStyleManager.ActiveStyle.Name) <> 0 Then
+        TStyleManager.SetStyle(strTheme);
+      OutputStats;
+      actFileCompareExecute(Self);
+    End;
+End;
+
+(**
+
+  This is an application on exception event handler. It displays a dialogue box
+  containing the message of the exception.
+
+  @precon  None.
+  @postcon Displays the exception message.
+
+  @param   Sender as a TObject
+  @param   E      as an Exception
+
+**)
+Procedure TfrmMainForm.appEventsException(Sender: TObject; E: Exception);
+
+Begin
+  MessageDlg('Exception: ' + E.Message, mtError, [mbOK], 0);
+End;
+
+(**
+
+  This is the applications on hint event handler.
+
+  @precon  None.
+  @postcon Updates the application status bar when menu to toolbar items are
+           used.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.ApplicationHint(Sender: TObject);
+
+Begin
+  stbrStatusBar.SimplePanel := Application.Hint <> '';
+  If Application.Hint <> '' Then
+    stbrStatusBar.SimpleText := GetLongHint(Application.Hint);
+End;
+
+(**
+
+  This method checks that all the folders exist and provides an option to create
+  them if they don`t. If it can not find a directory and can not create the
+  directory the function returns false else success is indicated by returning
+  True.
+
+  @precon  None.
+  @postcon Check the existence of the directories in the folders string list.
+           Returns true if they exist or are created else returns false.
+
+  @return  a Boolean
+
+**)
+Function TfrmMainForm.CheckFolders: Boolean;
+
+  (**
+
+    This is a local method to check and confirm the creation of a folder. It raises an exception if the 
+    folder could not be created. The drive of the folder mapping is returned in the strDrive var 
+    parameter.
+
+    @precon  None.
+    @postcon Checks and confirms the creation of a folder. It raises an exception if the folder could 
+             not be created.
+
+    @param   strFolder as a String as a constant
+    @param   strDrive  as a String as a reference
+    @return  a Boolean
+
+  **)
+  Function CheckAndCreateFolder(Const strFolder: String;  var strDrive : String) : Boolean;
+
+  Const
+    strExcepMsg  = 'Could not create the folder "%s".';
+    strCreateMsg = 'The folder "%s" does not exist. Would you like to create ' +
+      'this folder?';
+    strDriveMsg = 'The drive "%s" for directory "%s" does not exist. Would you like ' +
+      'to ignore or cancel?';
+
+  Var
+    strPath: String;
+
+  Begin
+    Result := False;
+    strDrive := ExtractFileDrive(strFolder);
+    strPath := ExtractFilePath(strFolder);
+    If Not SysUtils.DirectoryExists(strDrive + '\') Then
+      Case MessageDlg(Format(strDriveMsg, [strDrive, strPath]), mtConfirmation,
+        [mbIgnore, mbCancel], 0) Of
+        mrIgnore:
+          Begin
+            Result := True;
+            Exit;
+          End;
+        mrCancel: Abort;
+      End;
+    If Not SysUtils.DirectoryExists(strPath) Then
+      Case MessageDlg(Format(strCreateMsg, [strPath]), mtConfirmation,
+        [mbYes, mbNo, mbCancel], 0) Of
+        mrYes:
+          If Not SysUtils.ForceDirectories(strPath) Then
+            Raise TFolderNotFoundException.CreateFmt(strExcepMsg, [strPath]);
+        mrIgnore: Result := True;
+        mrCancel: Abort;
+      End;
+  End;
+
+  (**
+
+    This method disabled all folder pairs with the given drive mapping.
+
+    @precon  None.
+    @postcon Disabled all folder pairs with the given drive mapping.
+
+    @param   strDrive as a String as a constant
+
+  **)
+  Procedure DisableDrive(Const strDrive : String);
+
+  Var
+    i : Integer;
+    F : TFolder;
+    
+  Begin
+    For i := 0 To FFolders.Count - 1 Do
+      Begin
+        F := FFolders.Folder[i];
+        If (CompareText(Copy(F.LeftFldr, 1, Length(strDrive)), strDrive) = 0) Or
+           (CompareText(Copy(F.RightFldr, 1, Length(strDrive)), strDrive) = 0) Then
+          F.SyncOptions := F.SyncOptions + [soTempDisabled];
+      End;
+  End;
 
 Var
   i: Integer;
+  strDrive: String;
 
 Begin
-  With lvFileList Do
-    Begin
-      i := ClientWidth Div 2 - Column[0].Width Div 2 - Column[iLAttrCol].Width -
-        Column[iLSizeCol].Width - Column[iLDateCol].Width - 2;
-      If i > 0 Then
-        Begin
-          Column[iLDisplayCol].Width := i;
-          Column[iRDisplayCol].Width := i;
-        End;
-    End;
-End;
-
-(**
-
-  This method loads the applications seetings from the registry.
-
-  @precon  None.
-  @postcon Loads the applications settings from the registry.
-
-**)
-Procedure TfrmMainForm.LoadSettings;
-
-Var
-  sl : TStringList;
-  i  : Integer;
-  j  : TFldrSyncOption;
-  k : TFileOpFont;
-  strLog : String;
-  iSyncOptions : TSyncOptions;
-  strMaxValue : String;
-  iMaxValue : TInt64Ex;
-  strLeftFldr, strRightFldr : String;
-  iniMemFile : TMemIniFile;
-  iDefaultOps : TFileOpStats;
-  ComOps: TCommandLineOptionsRec;
-
-Begin
-  iniMemFile := TMemIniFile.Create(FRootKey);
-  With iniMemFile Do
-    Try
-      TStyleManager.SetStyle(ReadString('Setup', 'Theme',
-        TStyleManager.ActiveStyle.Name));
-      Top                                := ReadInteger('Setup', 'Top', 100);
-      Left                               := ReadInteger('Setup', 'Left', 100);
-      Height                             := ReadInteger('Setup', 'Height', 300);
-      Width                              := ReadInteger('Setup', 'Width', 450);
-      lvFileList.Column[iLAttrCol].Width := ReadInteger('ColumnWidths', 'LAttr', 50);
-      lvFileList.Column[iLSizeCol].Width := ReadInteger('ColumnWidths', 'LSize', 85);
-      lvFileList.Column[iLDateCol].Width := ReadInteger('ColumnWidths', 'LDAte', 150);
-      lvFileList.Column[iRAttrCol].Width := ReadInteger('ColumnWidths', 'RAttr', 50);
-      lvFileList.Column[iRSizeCol].Width := ReadInteger('ColumnWidths', 'RSize', 85);
-      lvFileList.Column[iRDateCol].Width := ReadInteger('ColumnWidths', 'RDate', 150);
-      FInterfaceFonts[ifTableFont].FFontName :=
-        ReadString('ListViewFont', 'Name', InterfaceFontDefaults[ifTableFont].FFontName);
-      lvFileList.Font.Name               := FInterfaceFonts[ifTableFont].FFontName;
-      FInterfaceFonts[ifTableFont].FFontSize :=
-        ReadInteger('ListViewFont', 'Size', InterfaceFontDefaults[ifTableFont].FFontSize);
-      lvFileList.Font.Size               := FInterfaceFonts[ifTableFont].FFontSize;
-      FInterfaceFonts[ifLogFont].FFontName :=
-        ReadString('LogFont', 'Name', InterfaceFontDefaults[ifLogFont].FFontName);
-      redtOutputResults.Font.Name        := FInterfaceFonts[ifLogFont].FFontName;
-      FInterfaceFonts[ifLogFont].FFontSize :=
-        ReadInteger('LogFont', 'Size', InterfaceFontDefaults[ifLogFont].FFontSize);
-      redtOutputResults.Font.Size        := FInterfaceFonts[ifLogFont].FFontSize;
-      For k := Low(TFileOpFont) To High(TFileOpFont) Do
-        Begin
-          FFileOpFonts[k].FFontColour := StringToColor(
-            ReadString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Colour',
-              ColorToString(FileOperationFontDefaults[k].FFontColour)));
-          FFileOpFonts[k].FBGFontColour := StringToColor(
-            ReadString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'BGColour',
-              ColorToString(FileOperationFontDefaults[k].FBGFontColour)));
-          FFileOpFonts[k].FFontStyle := TFontStyles(Byte(
-            ReadInteger('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Style',
-              Byte(FileOperationFontDefaults[k].FFontStyle))));
-        End;
-      strLog := ChangeFileExt(FRootKey, '_log.txt');
-      If FileExists(strLog) Then
-        redtOutputResults.Lines.LoadFromFile(strLog);
-      LogSize;
-      WindowState := TWindowState(ReadInteger('Setup', 'WindowState', Byte(wsNormal)));
-      redtOutputResults.Height := ReadInteger('Setup', 'OutputResultsHeight', 100);
-      FCompareEXE      := ReadString('Setup', 'CompareEXE', '');
-      FCopyDlgWidth := ReadInteger('DlgWidths', 'CopyDlg', 0);
-      FDeleteDlgWidth := ReadInteger('DlgWidths', 'DeleteDlg', 0);
-      FConfirmDlgWidth := ReadInteger('DlgWidths', 'ConfirmDlg', 0);
-      iDefaultOps := [fosDelete..fosDifference];
-      FFileOpStats := TFileOpStats(Byte(ReadInteger('Setup', 'FileOpStats',
-        Byte(iDefaultOps))));
-      UpgradeINIFolderOptions(iniMemFile);
-      If FParams.Count = 0 Then
-        Begin
-          FFldrSyncOptions := [];
-          For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
-            If ReadBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
-              strFldrSyncOptions[j].fDefault) Then
-              Include(FFldrSyncOptions, j);
-          sl := TStringList.Create;
-          Try
-            ReadSection('NewFolders', sl);
-            For i := 0 To sl.Count - 1 Do
-              Begin
-                iSyncOptions := TSyncOptions(SmallInt(ReadInteger('NewFolderStatus', sl[i],
-                  SmallInt(iSyncOptions))));
-                strMaxValue := ReadString('NewFolderMaxFileSize', sl[i], '0,0,0,0');
-                iMaxValue.Value := 0;
-                iMaxValue.iFirst := StrToInt(GetField(strMaxValue, ',', 1));
-                iMaxValue.iSecond := StrToInt(GetField(strMaxValue, ',', 2));
-                iMaxValue.iThird := StrToInt(GetField(strMaxValue, ',', 3));
-                iMaxValue.iFourth := StrToInt(GetField(strMaxValue, ',', 4));
-                strLeftFldr := GetShortHint(ReadString('NewFolders', sl[i], ''));
-                strRightFldr := GetLongHint(ReadString('NewFolders', sl[i], ''));
-                FFolders.Add(
-                  TFolder.Create(
-                    ExtractFilePath(strLeftFldr),
-                    ExtractFilePath(strRightFldr),
-                    ExtractFileName(strLeftFldr),
-                    iSyncOptions,
-                    iMaxValue.Value
-                  )
-                );
-              End;
-          Finally
-            sl.Free;
-          End;
-          FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|', #13#10,
-            [rfReplaceAll]);
-        End Else
-        Begin
-          ComOps.iSyncOptions := [soEnabled];
-          ProcessCommandLine(FParams, ComOps);
-          FFolders.Add(
-            TFolder.Create(
-              ComOps.strSourceFldr,
-              ComOps.strDestFldr,
-              ComOps.strFilePatterns,
-              ComOps.iSyncOptions,
-              ComOps.iMaxFileSize
-            ));
-          If clsDeletePermentently In ComOps.iCommandLineOptions Then
-            Include(FFldrSyncOptions, fsoPermanentlyDeleteFiles)
-          Else
-            Exclude(FFldrSyncOptions, fsoPermanentlyDeleteFiles);
-          If clsBatchRecycleFiles In ComOps.iCommandLineOptions Then
-            Include(FFldrSyncOptions, fsoBatchRecycleFiles)
-          Else
-            Exclude(FFldrSyncOptions, fsoBatchRecycleFiles);
-          If clsProceedAutomatically In ComOps.iCommandLineOptions Then
-            Include(FFldrSyncOptions, fsoStartProcessingAutomatically)
-          Else
-            Exclude(FFldrSyncOptions, fsoStartProcessingAutomatically);
-        End;
-      DGHMemoryMonitor.UpdateInterval := ReadInteger('MemoryMonitor', 'UpdateInterval',
-        DGHMemoryMonitor.UpdateInterval);
-      DGHMemoryMonitor.BackColour := StringToColor(ReadString('MemoryMonitor',
-        'BackColour', ColorToString(DGHMemoryMonitor.BackColour)));
-      DGHMemoryMonitor.BackFontColour := StringToColor(ReadString('MemoryMonitor',
-        'BackFontColour', ColorToString(DGHMemoryMonitor.BackFontColour)));
-      DGHMemoryMonitor.HighColour := StringToColor(ReadString('MemoryMonitor',
-        'HighColour', ColorToString(DGHMemoryMonitor.HighColour)));
-      DGHMemoryMonitor.HalfColour := StringToColor(ReadString('MemoryMonitor',
-        'HalfColour', ColorToString(DGHMemoryMonitor.HalfColour)));
-      DGHMemoryMonitor.LowColour := StringToColor(ReadString('MemoryMonitor',
-        'LowColour', ColorToString(DGHMemoryMonitor.LowColour)));
-      DGHMemoryMonitor.HighFontColour := StringToColor(ReadString('MemoryMonitor',
-        'HighFontColour', ColorToString(DGHMemoryMonitor.HighFontColour)));
-      DGHMemoryMonitor.HalfFontColour := StringToColor(ReadString('MemoryMonitor',
-        'HalfFontColour', ColorToString(DGHMemoryMonitor.HalfFontColour)));
-      DGHMemoryMonitor.LowFontColour := StringToColor(ReadString('MemoryMonitor',
-        'LowFontColour', ColorToString(DGHMemoryMonitor.LowFontColour)));
-      DGHMemoryMonitor.LowPoint := ReadInteger('MemoryMonitor', 'LowPoint',
-        DGHMemoryMonitor.LowPoint);
-      DGHMemoryMonitor.HalfPoint := ReadInteger('MemoryMonitor', 'HalfPoint',
-        DGHMemoryMonitor.HalfPoint);
-      DGHMemoryMonitor.HighPoint := ReadInteger('MemoryMonitor', 'HighPoint',
-        DGHMemoryMonitor.HighPoint);
-      DGHMemoryMonitor.Font.Name := ReadString('MemoryMonitor', 'FontName',
-        DGHMemoryMonitor.Font.Name);
-      DGHMemoryMonitor.Font.Size := ReadInteger('MemoryMonitor', 'FontSize',
-        DGHMemoryMonitor.Font.Size);
-      DGHMemoryMonitor.Font.Style := TFontStyles(Byte(ReadInteger('MemoryMonitor', 'FontStyle',
-        Byte(DGHMemoryMonitor.Font.Style))));
-      DGHMemoryMonitor.Width := ReadInteger('MemoryMonitor', 'Width',
-        DGHMemoryMonitor.Width);
-    Finally
-      Free;
-    End;
-End;
-
-(**
-
-  This methiohd updates the status bar with the current log size.
-
-  @precon  None.
-  @postcon The status bar is updated with the current log size.
-
-**)
-Procedure TfrmMainForm.LogSize;
-
-Begin
-  stbrStatusBar.Panels[0].Text := Format('Log size: %1.1n kbytes',
-    [Int(Length(redtOutputResults.Lines.Text)) / 1024.0]);
-  With stbrStatusBar Do
-    Panels[0].Width := Canvas.TextWidth(Panels[0].Text) + 25;
-End;
-
-(**
-
-  This is an CustomDrawItem event for the list view.
-
-  @precon  None.
-  @postcon Draw readonly items in the list with a light red background.
-
-  @param   Sender      as a TCustomListView
-  @param   Item        as a TListItem
-  @param   State       as a TCustomDrawState
-  @param   DefaultDraw as a Boolean as a reference
-
-**)
-Procedure TfrmMainForm.lvFileListCustomDrawItem(Sender: TCustomListView; Item: TListItem;
-  State: TCustomDrawState; Var DefaultDraw: Boolean);
-
-Type
-  TBackground = (bgLeft, bgRight);
-
-Var
-  R, ItemR     : TRect;
-  Buffer       : Array [0 .. MAX_PATH * 2] Of Char;
-  Ops          : Integer;
-  iBufferLen   : Integer;
-  iFileOp      : TFileOp;
-  SubItemRects : Array Of TRect;
-
-  (**
-
-    This function returns display rectangle for the given indexed sub item.
-
-    @precon  iIndex must be a valid SubItem index..
-    @postcon Returns display rectangle for the given indexed sub item.
-
-  **)
-  Procedure GetSubItemRects;
-
-  Var
-    R : TRect;
-    j: Integer;
-
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('GetSubItemRect');
-    {$ENDIF}
-    SetLength(SubItemRects, lvFileList.Columns.Count);
-    R := Item.DisplayRect(drBounds);
-    Inc(R.Top, 2);    // Padding / Margin
-    Inc(R.Bottom, 2); // Padding / Margin
-    For j  := 0 To lvFileList.Columns.Count - 1 - 1 Do
+  For i := 0 To FFolders.Count - 1 Do
+    If [soEnabled, soTempDisabled] * FFolders.Folder[i].SyncOptions = [soEnabled] Then
       Begin
-        Inc(R.Left, Sender.Column[j].Width);
-        R.Right := R.Left + Sender.Column[j + 1].Width;
-        SubItemRects[j] := R;
-        Inc(SubItemRects[j].Left, 6);   // Padding / Margin
-        Dec(SubItemRects[j].Right, 6);  // Padding / Margin
-      End;
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
-
-  (**
-
-    This method draws the background for the left and right displays of file
-    informations.
-
-    @precon  None.
-    @postcon Draws the background for the left and right displays of file
-             informations.
-
-    @param   iColumn    as an Integer
-    @param   Background as a TBackground
-
-  **)
-  Procedure DrawBackground(iColumn: Integer; Background: TBackground);
-
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('DrawBackground');
-    {$ENDIF}
-    If Item.Selected Then
-      Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight)
-    Else If (Pos('R', Item.SubItems[iColumn - 1]) > 0) Then
-      Sender.Canvas.Brush.Color :=
-        StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour)
-    Else
-      Sender.Canvas.Brush.Color :=
-        StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-    //Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clWindow);
-    If Background = bgLeft Then
-      R := SubItemRects[iLDateCol - 1]
-    Else
-      R := SubItemRects[iRDisplayCol - 1];
-    ItemR := Item.DisplayRect(drBounds);
-    If Background = bgLeft Then
-      ItemR.Right := R.Right + 6
-    Else
-      ItemR.Left := R.Left - 6;
-    Sender.Canvas.FillRect(ItemR);
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
-
-  (**
-
-    This procedure sets the font colour and style attributes depending on the
-    status of the list item.
-
-    @precon  None.
-    @postcon Sets the font colour and style attributes depending on the
-    status of the list item.
-
-  **)
-  Procedure SetTextAttributes;
-
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('SetTextAttributes');
-    {$ENDIF}
-    Sender.Canvas.Font.Color :=
-      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
-    Sender.Canvas.Font.Style := FFileOpFonts[TFileOpFont(iFileOp)].FFontStyle;
-    If Item.Selected Then
-      Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
-
-  (**
-
-    This procedure sets the text drawing options (alignment, etc) for the different 
-    columns to be displayed.
-
-    @precon  None.
-    @postcon Sets the text drawing options (alignment, etc) for the different columns to 
-             be displayed.
-
-    @param   iSubItem as an Integer
-
-  **)
-  Procedure SetTextDrawingOptions(iSubItem : Integer);
-
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('SetTextDrawingOptions');
-    {$ENDIF}
-    Case iSubItem Of
-      0, 4:
-        Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS Or DT_NOPREFIX;
-      2, 3, 6, 7:
-        Ops := DT_RIGHT;
-    Else
-      Ops := DT_LEFT;
-    End;
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
-
-  (**
-
-    This procedure returns the display rectangle (adjusted for file icon image) for the 
-    text to be displayed in the report column.
-
-    @precon  None.
-    @postcon Returns the display rectangle (adjusted for file icon image) for the text to
-             be displayed in the report column.
-
-    @param   iSubItem as an Integer
-    @return  a TRect
-
-  **)
-  Function DrawFileIcon(iSubItem : Integer): TRect;
-
-  Var
-    iImage     : Integer;
-    boolEnabled: Boolean;
-
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('DrawFileIcon');
-    {$ENDIF}
-    Result := SubItemRects[iSubItem];
-    If iSubItem In [0, 4] Then
-      Begin
-        Dec(Result.Left, 3);
-        iImage      := Item.SubItemImages[iSubItem];
-        boolEnabled := (iImage > -1);
-        If Not boolEnabled Then
+        If CheckAndCreateFolder(FFolders.Folder[i].LeftFldr, strDrive) Then
           Begin
-            If iSubItem = 0 Then
-              iImage := Item.SubItemImages[4]
-            Else
-              iImage := Item.SubItemImages[0];
-            ilFileTypeIcons.Draw(Sender.Canvas, Result.Left, Result.Top, iImage, boolEnabled);
+            DisableDrive(strDrive);
+            Continue;
           End;
-        Inc(Result.Left, 16 + 3);
-      End;
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
-
-  (**
-
-    This procedure sets the text background for the columns of information.
-
-    @precon  None.
-    @postcon Sets the text background for the columns of information.
-
-    @param   FileSide as a TBackground
-
-  **)
-  Procedure SetTextFontBackground(FileSide : TBackground);
-
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('SetTextFontBackground');
-    {$ENDIF}
-    Sender.Canvas.Brush.Color :=
-      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-    Sender.Canvas.Font.Color :=
-      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
-    If Item.Selected Then
+        If CheckAndCreateFolder(FFolders.Folder[i].RightFldr, strDrive) Then
+          DisableDrive(strDrive);
+      End Else
       Begin
-        Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
-        Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-      End
-    Else If FileSide = bgLeft Then
-      Begin
-        If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
+        If soTempDisabled In FFolders.Folder[i].SyncOptions Then
           Begin
-            Sender.Canvas.Brush.Color :=
-              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
-            Sender.Canvas.Font.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
-          End;
-      End  Else
-      Begin
-        If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
-          Begin
-            Sender.Canvas.Brush.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
-            Sender.Canvas.Font.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
+            If SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].LeftFldr) + '\') And
+             SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].RightFldr) + '\') Then
+             FFolders.Folder[i].SyncOptions := FFolders.Folder[i].SyncOptions - [soTempDisabled];
           End;
       End;
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
-
-  (**
-
-    This procedure displays a grayed out destination path for files which don`t have a 
-    destination file, else sets up the font colours and style attributes for displaying 
-    the text.
-
-    @precon  None.
-    @postcon Displays a grayed out destination path for files which don`t have a 
-             destination file, else sets up the font colours and style attributes for 
-             displaying the text.
-
-    @param   iSubItem as an Integer
-    @param   iFileOp  as a TFileOp
-
-  **)
-  Procedure FixUpEmptyFilePaths(iSubItem : Integer; iFileOp : TFileOp);
-
-  Begin
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Start('FixUpEmptyFilePaths');
-    {$ENDIF}
-    If (iSubItem = 0) And (Item.SubItems[iSubItem] = '') Then
-      Begin
-        StrPCopy(Buffer, Item.SubItems[iLFullFileNameCol - 1]);
-        iBufferLen               := Length(Item.SubItems[iLFullFileNameCol - 1]);
-        If Item.Selected Then
-          Begin
-            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
-          End Else
-          Begin
-            Sender.Canvas.Font.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
-            Sender.Canvas.Brush.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-          End;
-      End
-    Else If (iSubItem = 4) And (Item.SubItems[iSubItem] = '') Then
-      Begin
-        StrPCopy(Buffer, Item.SubItems[iRFullFileNameCol - 1]);
-        iBufferLen               := Length(Item.SubItems[iRFullFileNameCol - 1]);
-        If Item.Selected Then
-          Begin
-            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
-          End Else
-          Begin
-            Sender.Canvas.Font.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
-            Sender.Canvas.Brush.Color := 
-              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-          End;
-      End
-    Else
-      SetTextAttributes;
-    {$IFDEF PROFILECODE}
-    CodeProfiler.Stop;
-    {$ENDIF}
-  End;
-
-Var
-  iSubItem  : Integer;
-
-Begin
-  {$IFDEF PROFILECODE}
-  CodeProfiler.Start('TfrmMainForm.lvFileListCustomDrawItem');
-  {$ENDIF}
-  DefaultDraw := False;
-  iFileOp := TFileOp(Item.StateIndex);
-  GetSubItemRects;
-  DrawBackground(iLAttrCol, bgLeft);
-  DrawBackground(iRAttrCol, bgRight);
-  R := Item.DisplayRect(drBounds);
-  ilActionImages.Draw(Sender.Canvas, R.Left + lvFileList.Column[0].Width Div 2 - 8, R.Top,
-    Item.StateIndex, True);
-  // Draw Left File
-  SetTextFontBackground(bgLeft);
-  For iSubItem := iLDisplayCol - 1 To iLDateCol - 1 Do
-    Begin
-      SetTextDrawingOptions(iSubItem);
-      R := DrawFileIcon(iSubItem);
-      StrPCopy(Buffer, Item.SubItems[iSubItem]);
-      iBufferLen := Length(Item.SubItems[iSubItem]);
-      FixUpEmptyFilePaths(iSubItem, iFileOp);
-      Sender.Canvas.Refresh;
-      DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
-    End;
-  // Draw Left File
-  SetTextFontBackground(bgRight);
-  For iSubItem := iRDisplayCol - 1 To iRDateCol - 1 Do
-    Begin
-      SetTextDrawingOptions(iSubItem);
-      R := DrawFileIcon(iSubItem);
-      StrPCopy(Buffer, Item.SubItems[iSubItem]);
-      iBufferLen := Length(Item.SubItems[iSubItem]);
-      FixUpEmptyFilePaths(iSubItem, iFileOp);
-      Sender.Canvas.Refresh;
-      DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
-    End;
-  {$IFDEF PROFILECODE}
-  CodeProfiler.Stop;
-  {$ENDIF}
+  Result := True;
 End;
 
 (**
 
-  This is an on match list end event handler for the sync module.
+  This is an on timer event handler.
+
+  @precon  None.
+  @postcon Closes the application.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmMainForm.CloseTimerEvent(Sender: TObject);
+
+Begin
+  Close;
+End;
+
+(**
+
+  This is an on compare end event handler for the sync module.
 
   @precon  None.
   @postcon None.
 
 **)
-Procedure TfrmMainForm.MatchListEndProc;
+Procedure TfrmMainForm.CompareEndProc;
 
 Begin
+  FProgressForm.Progress(FProgressSection, 100, 'Done.', '');
   OutputResultLn('Done.');
-  FProgressForm.Progress(FProgressSection, 100, 'Done!', '');
 End;
 
 (**
 
-  This is an on match list event handler for the sync module.
+  This is an on compare event handler for the sync module.
 
   @precon  None.
-  @postcon Updates the progress dialogue with the progress through the matching process.
+  @postcon Updates the progress dialogue with the current progress through the comparison process.
 
-  @param   iPosition as an Integer
-  @param   iMaxItems as an Integer
+  @nohint  strLeftFldr strRightFldr
+
+  @param   strLeftFldr  as a String as a constant
+  @param   strRightFldr as a String as a constant
+  @param   strFileName  as a String as a constant
+  @param   iPosition    as an Integer as a constant
+  @param   iMaxItems    as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.MatchListProc(iPosition, iMaxItems: Integer);
+Procedure TfrmMainForm.CompareProc(Const strLeftFldr, strRightFldr, strFileName: String;
+  Const iPosition, iMaxItems: Integer);
 
 Begin
   If iPosition Mod 10 = 0 Then
     FProgressForm.Progress(FProgressSection, Trunc(iPosition / iMaxItems * 100.0),
-      Format('Matching items... %1.0n in %1.0n', [Int(iPosition), Int(iMaxItems)]), '');
+      Format('Comparing... %1.0n in %1.0n', [Int(iPosition), Int(iMaxItems)]),
+      strFileName);
 End;
 
 (**
 
-  This is an on match list start event handler for the sync module.
+  This is an on compare start event handler for the sync module.
 
   @precon  None.
-  @postcon Increments the progress sections and initialises the dialogue for progress.
+  @postcon Increments the progress section and initialises the progress dialogue.
+
+  @param   strLeftFldr  as a String as a constant
+  @param   strRightFldr as a String as a constant
 
 **)
-Procedure TfrmMainForm.MatchListStartProc;
+Procedure TfrmMainForm.CompareStartProc(Const strLeftFldr, strRightFldr: String);
 
 Begin
-  OutputResult('Match Lists: ');
+  OutputResult(Format('Comparing: ', [strLeftFldr, strRightFldr]));
   Inc(FProgressSection);
-  FProgressForm.InitialiseSection(FProgressSection, 1, 100);
+  FProgressForm.InitialiseSection(FProgressSection, 0, 100);
 End;
 
 (**
 
-  This is an on context popup event handler for the memory monitor graphics control.
+  This is an on copied event handler for the sync module.
 
   @precon  None.
-  @postcon Invokes the dialogue to editing the configuration of the Memory Monitor.
+  @postcon Updates the copy progress or if an error outputs the error message.
 
-  @param   Sender   as a TObject
-  @param   MousePos as a TPoint
-  @param   Handled  as a Boolean as a reference
+  @nohint  iCurrentFileToCopy iTotalFilesToCopy
+
+  @param   iCurrentFileToCopy           as an Integer as a constant
+  @param   iTotalFilesToCopy            as an Integer as a constant
+  @param   iCumulativeFileSizeAfterCopy as an Int64 as a constant
+  @param   iTotalFileSizeToCopy         as an Int64 as a constant
+  @param   iSuccess                     as a TProcessSuccess as a constant
 
 **)
-Procedure TfrmMainForm.MemoryPopupMenu(Sender: TObject; MousePos: TPoint;
-  Var Handled: Boolean);
+Procedure TfrmMainForm.CopiedProc(Const iCurrentFileToCopy, iTotalFilesToCopy: Integer;
+    Const iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
+    Const iSuccess : TProcessSuccess);
 
 Begin
-  actToolsConfigMemMonExecute(Sender);
+  FCopyForm.IndividualProgress(0, 0 ,iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy);
+  If FTotalSize = 0 Then
+    Inc(FTotalSize);
+  Case iSuccess Of
+    psSuccessed: OutputResultLn();
+    psFailed: OutputResultLn(
+      Format(' Error Copying file (error type ignored [%s]).', [FSyncModule.LastError]));
+    //psIgnored: OutputResultLn(' Ignored Copying file.');
+  End;
 End;
 
 (**
 
-  This is an on Nothing To Do event handler for the sync module.
+  This is an on copy contents event handler for the sync module.
 
   @precon  None.
-  @postcon Outputs the name of the files that have a difference size but the same date
-           and time.
+  @postcon Updates the progress of the individual file copy.
 
-  @param   iFile       as an Integer
-  @param   iFileCount  as an Integer
-  @param   strLPath    as a String
-  @param   strRPath    as a String
-  @param   strFileName as a String
+  @nohint  iCurrentFileToCopy iTotalFilesToCopy
+
+  @param   iCurrentFileToCopy            as an Integer as a constant
+  @param   iTotalFilesToCopy             as an Integer as a constant
+  @param   iCumulativeFileSizeBeforeCopy as an Int64 as a constant
+  @param   iTotalFileSizeToCopy          as an Int64 as a constant
+  @param   iCurrentFileCopiedSizeSoFar   as an Int64 as a constant
+  @param   iTotalCurrentFileSize         as an Int64 as a constant
 
 **)
-procedure TfrmMainForm.NothingToDo(iFile, iFileCount: Integer; strLPath, strRPath,
+Procedure TfrmMainForm.CopyContentsProc(Const iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+    Const iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy, iCurrentFileCopiedSizeSoFar,
+    iTotalCurrentFileSize: Int64);
+
+Begin
+  FCopyForm.IndividualProgress(iCurrentFileCopiedSizeSoFar, iTotalCurrentFileSize,
+    iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy);
+End;
+
+(**
+
+  This is an on copy end event handler for the sync Module.
+
+  @precon  None.
+  @postcon Outputs the number of files copied, skipped, etc and frees the copy dialogue.
+
+  @param   iCopied  as an Integer as a constant
+  @param   iSkipped as an Integer as a constant
+  @param   iError   as an Integer as a constant
+
+**)
+Procedure TfrmMainForm.CopyEndProc(Const iCopied, iSkipped, iError: Integer);
+
+Begin
+  OutputResult(Format('  Copied %1.0n (Skipped %1.0n file(s)',
+    [Int(iCopied), Int(iSkipped)]));
+  If iError > 0 Then
+    OutputResult(Format(', Errored %1.0n file(s)', [Int(iError)]));
+  OutputResultLn(')');
+  If FCopyForm <> Nil Then
+    FCopyDlgWidth := FCopyForm.Width;
+  FreeAndNil(FCopyForm);
+End;
+
+(**
+
+  This is an on error copting event handler for the processing of the files.
+
+  @precon  None.
+  @postcon Displays the error message on the screen and asks the user what to do.
+
+  @param   strSource   as a String as a constant
+  @param   strDest     as a String as a constant
+  @param   strErrorMsg as a String as a constant
+  @param   iLastError  as a Cardinal as a constant
+  @param   iResult     as a TDGHErrorResult as a reference
+
+**)
+Procedure TfrmMainForm.CopyError(Const strSource, strDest, strErrorMsg: String;
+  Const iLastError: Cardinal; Var iResult: TDGHErrorResult);
+
+Begin
+  UpdateTaskBar(ptError, 0, 1);
+  OutputResultLn();
+  OutputResultLn('    An error has occurred during the copying of files:');
+  OutputResultLn(Format('      Source     : %s', [strSource]));
+  OutputResultLn(Format('      Destination: %s', [strDest]));
+  OutputResultLn(Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]));
+  OutputResult('    Do you want to [I]gnore Once, Ignore [A]ll the errors or [S]top processing? ');
+  Case TfrmErrorDlg.Execute('An error has occurred during the copying of files', 
+    strSource, strDest, Format('(%d) %s', [iLastError, strErrorMsg])) Of
+    mrIgnore:
+      Begin
+        iResult := derIgnoreOnce;
+        OutputResultLn('I');
+      End;
+    mrYesToAll:
+      Begin
+        iResult := derIgnoreAll;
+        OutputResultLn('A');
+      End;
+    mrAbort:
+      Begin
+        iResult := derStop;
+        OutputResultLn('S');
+      End;
+  End;
+End;
+
+(**
+
+  This is an on copying event handler for the sync module.
+
+  @precon  None.
+  @postcon Updates the copy dialogue.
+
+  @nohint  iCumulativeFileSizeBeforeCopy iTotalFileSizeToCopy
+
+  @param   iCurrentFileToCopy            as an Integer as a constant
+  @param   iTotalFilesToCopy             as an Integer as a constant
+  @param   iCumulativeFileSizeBeforeCopy as an Int64 as a constant
+  @param   iTotalFileSizeToCopy          as an Int64 as a constant
+  @param   strSource                     as a String as a constant
+  @param   strDest                       as a String as a constant
+  @param   strFileName                   as a String as a constant
+
+**)
+Procedure TfrmMainForm.CopyingProc(Const iCurrentFileToCopy, iTotalFilesToCopy : Integer;
+    Const iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; Const strSource, strDest,
+    strFileName: String);
+
+Begin
+  FCopyForm.Progress(
+    iCurrentFileToCopy,
+    iTotalFilesToCopy,
+    ExtractFilePath(strSource + strFileName),
+    ExtractFilePath(strDest + strFileName),
+    ExtractFileName(strFileName)
+  );
+  OutputFileNumber(iCurrentFileToCopy, iTotalFilesToCopy);
+  OutputResult(Format('%s => %s%s', [strSource, strDest, strFilename]));
+End;
+
+(**
+
+  This is an on copy query event handler for the sync module.
+
+  @precon  None.
+  @postcon Displays a confirmation dialogue to the user to ask whether the file should be overwritten.
+
+  @param   strSourcePath as a String as a constant
+  @param   strDestPath   as a String as a constant
+  @param   SourceFile    as a TFileRecord as a constant
+  @param   DestFile      as a TFileRecord as a constant
+  @param   Option        as a TFileAction as a reference
+
+**)
+Procedure TfrmMainForm.CopyQueryProc(Const strSourcePath, strDestPath: String;
+  Const SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
+
+Const
+  strMsg = 'Are you sure you want to overwrite the following file?';
+  strConsoleMsg = ' Overwrite (Y/N/A/O/C)? ';
+
+Begin
+  FileQuery(strMsg, strConsoleMsg,strSourcePath, strDestPath, SourceFile, DestFile,
+    Option, False);
+End;
+
+(**
+
+  This is an on copy read only query event handler for the sync module.
+
+  @precon  None.
+  @postcon Displays a confirmation dialogue to the user to ask whether the read only file should be 
+           overwritten.
+
+  @param   strSourcePath as a String as a constant
+  @param   strDestPath   as a String as a constant
+  @param   SourceFile    as a TFileRecord as a constant
+  @param   DestFile      as a TFileRecord as a constant
+  @param   Option        as a TFileAction as a reference
+
+**)
+Procedure TfrmMainForm.CopyReadOnlyQueryProc(Const strSourcePath, strDestPath: String;
+  Const SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
+
+Const
+  strMsg = 'Are you sure you want to overwrite the following READ-ONLY file?';
+  strConsoleMsg = ' Overwrite READONLY (Y/N/A/O/C)? ';
+
+Begin
+  FileQuery(strMsg, strConsoleMsg, strSourcePath, strDestPath, SourceFile, DestFile,
+    Option, True);
+End;
+
+(**
+
+  This is an on copy start event handler for the sync module.
+
+  @precon  None.
+  @postcon Initialises the copy progress dialogue.
+
+  @param   iTotalCount as an Integer as a constant
+  @param   iTotalSize  as an int64 as a constant
+
+**)
+Procedure TfrmMainForm.CopyStartProc(Const iTotalCount: Integer; Const iTotalSize: int64);
+
+Begin
+  FTotalSize := iTotalSize;
+  OutputResultLn(Format('Copying %1.0n files (%1.0n bytes)',
+      [Int(iTotalCount), Int(iTotalSize)]));
+  If iTotalCount > 0 Then
+    Begin
+      FCopyForm                  := TfrmCopyProgress.Create(Self);
+      FCopyForm.OnUpdateProgress := UpdateProgress;
+      FCopyForm.Initialise(iTotalCount, iTotalSize, FCopyDlgWidth);
+      FDialogueBottom := FCopyForm.Top + FCopyForm.Height;
+    End;
+End;
+
+(**
+
+  This is an on deleted event handler for the sync module.
+
+  @precon  None.
+  @postcon Updates the progress dialogue is successful or outputs an error message.
+
+  @nohint  iCurrentFileToDeleted iTotalFilesToDelete
+
+  @param   iCurrentFileToDeleted          as an Integer as a constant
+  @param   iTotalFilesToDelete            as an Integer as a constant
+  @param   iCumulativeFileSizeAfterDelete as an Int64 as a constant
+  @param   iTotalFileSizeToDelete         as an Int64 as a constant
+  @param   iSuccess                       as a TProcessSuccess as a constant
+
+**)
+Procedure TfrmMainForm.DeletedProc(Const iCurrentFileToDeleted, iTotalFilesToDelete: Integer;
+    Const iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
+    Const iSuccess : TProcessSuccess);
+
+Begin
+  FDeleteForm.Progress(iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete);
+  If FTotalSize = 0 Then
+    Inc(FTotalSize);
+  Case iSuccess Of
+    psSuccessed: OutputResultLn();
+    psFailed: OutputResultLn(
+      Format(' Error Deleting file (error type ignored [%s]).', [FSyncModule.LastError]));
+    //psIgnored: OutputResultLn(' Ignored Copying file.');
+  End;
+End;
+
+(**
+
+  This is an on delete end event handler for the sync module.
+
+  @precon  None.
+  @postcon Frees the deletion progress form.
+
+  @param   iDeleted as an Integer as a constant
+  @param   iSkipped as an Integer as a constant
+  @param   iErrors  as an Integer as a constant
+
+**)
+Procedure TfrmMainForm.DeleteEndProc(Const iDeleted, iSkipped, iErrors: Integer);
+
+Begin
+  OutputResult(Format('  Deleted %1.0n file(s) (Skipped %1.0n file(s)', [Int(iDeleted),
+    Int(iSkipped)]));
+  If iErrors > 0 Then
+    OutputResult(Format(', Errored %1.0n file(s)', [Int(iErrors)]));
+  OutputResultLn(').');
+  If FDeleteForm <> Nil Then
+    FDeleteDlgWidth := FDeleteForm.Width;
+  FreeAndNil(FDeleteForm);
+End;
+
+(**
+
+  This is an on delete error event handler for the Sync Module.
+
+  @precon  None.
+  @postcon Displays the error message on the screen and asks the user what to do.
+
+  @param   strSource   as a String as a constant
+  @param   strErrorMsg as a String as a constant
+  @param   iLastError  as a Cardinal as a constant
+  @param   iResult     as a TDGHErrorResult as a reference
+
+**)
+Procedure TfrmMainForm.DeleteError(Const strSource, strErrorMsg: String; Const iLastError: Cardinal;
+  Var iResult: TDGHErrorResult);
+
+Begin
+  UpdateTaskBar(ptError, 0, 1);
+  OutputResultLn();
+  OutputResultLn('    An error has occurred during the deleting of files:');
+  OutputResultLn(Format('      Source     : %s', [strSource]));
+  OutputResultLn(Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]));
+  OutputResult('    Do you want to [I]gnore Once, Ignore [A]ll the errors or [S]top processing? ');
+  Case TfrmErrorDlg.Execute('An error has occurred during the deleting of files',
+    strSource, '', Format('(%d) %s', [iLastError, strErrorMsg])) Of
+    mrIgnore:
+      Begin
+        iResult := derIgnoreOnce;
+        OutputResultLn('I');
+      End;
+    mrYesToAll:
+      Begin
+        iResult := derIgnoreAll;
+        OutputResultLn('A');
+      End;
+    mrAbort:
+      Begin
+        iResult := derStop;
+        OutputResultLn('S');
+      End;
+  End;
+End;
+
+(**
+
+  This is an on delete folders event handler.
+
+  @precon  None.
+  @postcon Outputs the folder to be deleted to the log and updates the progress.
+
+  @param   iFolder   as an Integer as a constant
+  @param   iFolders  as an Integer as a constant
+  @param   strFolder as a String as a constant
+
+**)
+Procedure TfrmMainForm.DeleteFolders(Const iFolder, iFolders : Integer; Const strFolder: String);
+
+Begin
+  FDeleteForm.InitialiseFileName(dtFiles, iFolder, iFolders, strFolder);
+  FDeleteForm.Progress(iFolder, iFolders);
+  OutputFileNumber(iFolder, iFolders);
+  OutputResultLn(strFolder);
+End;
+
+(**
+
+  This is an on delete folders end event handler.
+
+  @precon  None.
+  @postcon Frees the memory used by the form.
+
+**)
+Procedure TfrmMainForm.DeleteFoldersEnd;
+
+Begin
+  If FDeleteForm <> Nil Then  
+    FDeleteDlgWidth := FDeleteForm.Width;
+  FreeAndNil(FDeleteForm);
+End;
+
+(**
+
+  This is an on delete folders start event handler.
+
+  @precon  None.
+  @postcon Outputs the number of folders to be deleted to the log and initialises the delete form.
+
+  @param   iFolderCount as an Integer as a constant
+
+**)
+Procedure TfrmMainForm.DeleteFoldersStart(Const iFolderCount: Integer);
+
+Begin
+  If iFolderCount > 0 Then
+    Begin
+      OutputResultLn('Deleting empty folders...');
+      FDeleteForm                  := TfrmDeleteProgress.Create(Self);
+      FDeleteForm.OnUpdateProgress := UpdateProgress;
+      FDeleteForm.Initialise(dtFolders, iFolderCount, iFolderCount, FDeleteDlgWidth);
+      FDialogueBottom := FDeleteForm.Top + FDeleteForm.Height;
+    End;
+End;
+
+(**
+
+  This method is an on delete query event handler for the sync module.
+
+  @precon  None.
+  @postcon Displays a confirmation dialogue to the user asking whether the file should be deleted.
+
+  @param   strFilePath as a String as a constant
+  @param   DeleteFile  as a TFileRecord as a constant
+  @param   Option      as a TFileAction as a reference
+
+**)
+Procedure TfrmMainForm.DeleteQueryProc(Const strFilePath: String; Const DeleteFile : TFileRecord;
+  Var Option: TFileAction);
+
+Const
+  strMsg = 'Are you sure you want to delete the file?';
+  strConsoleMsg = ' Delete (Y/N/A/O/C)? ';
+
+Begin
+  FileQuery(strMsg, strConsoleMsg, strFilePath, '', DeleteFile, Nil, Option, False);
+End;
+
+(**
+
+  This method is an on delete readonly query event handler for the sync module.
+
+  @precon  None.
+  @postcon Displays a confirmation dialogue to the user asking whether the read only file should be 
+           deleted.
+
+  @param   strFilePath as a String as a constant
+  @param   DeleteFile  as a TFileRecord as a constant
+  @param   Option      as a TFileAction as a reference
+
+**)
+Procedure TfrmMainForm.DeleteReadOnlyQueryProc(Const strFilePath: String;
+  Const DeleteFile : TFileRecord; Var Option: TFileAction);
+
+Const
+  strMsg = 'Are you sure you want to delete the READ-ONLY file?';
+  strConsoleMsg = ' Delete READONLY (Y/N/A/O/C)? ';
+
+Begin
+  FileQuery(strMsg, strConsoleMsg, strFilePath, '', DeleteFile, Nil, Option, True);
+End;
+
+(**
+
+  This is an on delete start event handler for the sync module.
+
+  @precon  None.
+  @postcon Creates an instance of the deletion progress form.
+
+  @param   iFileCount as an Integer as a constant
+  @param   iTotalSize as an int64 as a constant
+
+**)
+Procedure TfrmMainForm.DeleteStartProc(Const iFileCount: Integer; Const iTotalSize: int64);
+
+Begin
+  FTotalSize := iTotalSize;
+  OutputResultLn(Format('Deleting %1.0n files (%1.0n bytes)...',
+      [Int(iFileCount), Int(iTotalSize)]));
+  If iFileCount > 0 Then
+    Begin
+      FDeleteForm                  := TfrmDeleteProgress.Create(Self);
+      FDeleteForm.OnUpdateProgress := UpdateProgress;
+      FDeleteForm.Initialise(dtFiles, iFileCount, iTotalSize, FDeleteDlgWidth);
+      FDialogueBottom := FDeleteForm.Top + FDeleteForm.Height;
+    End;
+End;
+
+(**
+
+  This is an on delete event handler for the sync module.
+
+  @precon  None.
+  @postcon Output the file to be deleted to the deletion progress form.
+
+  @nohint  iCumulativeFileSizeBeforeDelete iTotalFileSizeToDelete
+
+  @param   iCurrentFileToDelete            as an Integer as a constant
+  @param   iTotalFilesToDelete             as an Integer as a constant
+  @param   iCumulativeFileSizeBeforeDelete as an Int64 as a constant
+  @param   iTotalFileSizeToDelete          as an Int64 as a constant
+  @param   strDeletePath                   as a String as a constant
+  @param   strFileNameToDelete             as a String as a constant
+
+**)
+Procedure TfrmMainForm.DeletingProc(Const iCurrentFileToDelete, iTotalFilesToDelete : Integer;
+    Const iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
+    Const strDeletePath, strFileNameToDelete: String);
+
+Begin
+  FDeleteForm.InitialiseFileName(dtFiles, iCurrentFileToDelete, iTotalFilesToDelete,
+    strDeletePath + strFileNameToDelete);
+  OutputFileNumber(iCurrentFileToDelete, iTotalFilesToDelete);
+  OutputResult(strDeletePath + strFileNameToDelete);
+End;
+
+(**
+
+  This is an on diff size event handler for the sync module.
+
+  @precon  None.
+  @postcon Outputs the name of the files that have a difference size but the same date and time.
+
+  @param   iFile       as an Integer as a constant
+  @param   iFileCount  as an Integer as a constant
+  @param   strLPath    as a String as a constant
+  @param   strRPath    as a String as a constant
+  @param   strFileName as a String as a constant
+
+**)
+procedure TfrmMainForm.DiffSize(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
     strFileName: String);
 
 begin
@@ -1002,219 +1586,288 @@ end;
 
 (**
 
-  This is an on nothingToDo end event handler for the sync module.
+  This is an on diff size end event handler for the sync module.
 
   @precon  None.
   @postcon None.
 
-**)
-Procedure TfrmMainForm.NothingToDoEnd;
-
-Begin
-End;
-
-(**
-
-  This is a Nothing To Do Start event handler for the sync module.
-
-  @precon  None.
-  @postcon Displays a header is there are files to output.
-
-  @param   iFileCount as an Integer
+  @nocheck EmptyMethod
 
 **)
-procedure TfrmMainForm.NothingToDoStart(iFileCount: Integer);
+procedure TfrmMainForm.DiffSizeEnd;
 
 begin
-  If iFileCount > 0 Then
-    OutputResultLn(Format('%1.0n Files with Nothing to do...',
-      [Int(iFileCount)]));
 end;
 
 (**
 
-  This method outputs the given message to the output window with the optional colour but
-  without a line feed and carraige return.
+  This is a Diff Size Start event handler for the sync module.
 
   @precon  None.
-  @postcon The messages is output to the end of output window.
+  @postcon Displays a header is there are files to output.
 
-  @param   strMsg     as a String
+  @param   iFileCount as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.OutputResult(strMsg: String = '');
+procedure TfrmMainForm.DiffSizeStart(Const iFileCount: Integer);
 
-Begin
-  redtOutputResults.SelLength           := 0;
-  redtOutputResults.SelStart            := Length(redtOutputResults.Text);
-  redtOutputResults.SelText             := strMsg;
-  LogSize;
-End;
+begin
+  If iFileCount > 0 Then
+    OutputResultLn(Format('%1.0n File(s) with Differing Size...', [Int(iFileCount)]));
+end;
 
 (**
 
-  This method outputs the given message to the output window with the optional colour but
-  WITH a line feed and carraige return.
+  This method disables all actions.
 
   @precon  None.
-  @postcon The messages is output to the end of output window.
-
-  @param   strMsg     as a String
+  @postcon All actions are disabled.
 
 **)
-Procedure TfrmMainForm.OutputResultLn(strMsg: String = '');
-
-Begin
-  OutputResult(strMsg + #13#10);
-End;
-
-(**
-
-  This method adds panels to the status bar for each of the statistics returned from the
-  sync module.
-
-  @precon  None.
-  @postcon Panels are added to the status bar for each available statistic.
-
-**)
-Procedure TfrmMainForm.OutputStats;
-
-Const
-  strTemplate = '%s: %1.0n files in %1.1n kbytes';
+Procedure TfrmMainForm.DisableActions;
 
 Var
-  i: TFileOpStat;
-  P: TStatusPanel;
+  i: Integer;
 
 Begin
-  stbrStatusBar.Panels.BeginUpdate;
-  Try
-    While stbrStatusBar.Panels.Count > 1 Do
-      stbrStatusBar.Panels.Delete(stbrStatusBar.Panels.Count - 1);
-    FSyncModule.BuildStats;
-    For i := Low(TFileOpStat) To High(TFileOpStat) Do
-      If i In FFileOpStats Then
-        Begin
-          P := stbrStatusBar.Panels.Add;
-          P.Text := Format(strTemplate, [
-            FSyncModule.Statistics[i].FName,
-            Int(FSyncModule.Statistics[i].FCount),
-            Int(FSyncModule.Statistics[i].FSize / 1024.0)
-          ]);
-          P.Width := stbrStatusBar.Canvas.TextWidth(P.Text) + 25;
-          P.Style := psOwnerDraw;
-        End;
-  Finally
-    stbrStatusBar.Panels.EndUpdate;
-  End;
+  For i := 0 To ComponentCount - 1 Do
+    If Components[i] Is TAction Then
+      (Components[i] As TAction).Enabled := False;
 End;
 
 (**
 
-  This method saves the applications seetings to the registry.
+  This method enables all actions.
 
   @precon  None.
-  @postcon Save the applications settings to the registry.
+  @postcon All actions are enabled.
+
+  @param   boolSuccess as a Boolean as a constant
 
 **)
-Procedure TfrmMainForm.SaveSettings;
+Procedure TfrmMainForm.EnableActions(Const boolSuccess: Boolean);
 
 Var
-  i         : Integer;
-  recWndPlmt: TWindowPlacement;
-  j         : TFldrSyncOption;
-  iMaxValue : TInt64Ex;
-  k: TFileOpFont;
-  Ops: TSyncOptions;
+  i: Integer;
+  A: TAction;
 
 Begin
-  With TMemIniFile.Create(FRootKey) Do
-    Try
-      recWndPlmt.Length := SizeOf(TWindowPlacement);
-      GetWindowPlacement(Handle, @recWndPlmt);
-      WriteInteger('Setup', 'Top', recWndPlmt.rcNormalPosition.Top);
-      WriteInteger('Setup', 'Left', recWndPlmt.rcNormalPosition.Left);
-      WriteInteger('Setup', 'Height', recWndPlmt.rcNormalPosition.Bottom -
-          recWndPlmt.rcNormalPosition.Top);
-      WriteInteger('Setup', 'Width', recWndPlmt.rcNormalPosition.Right -
-          recWndPlmt.rcNormalPosition.Left);
-      WriteInteger('ColumnWidths', 'LAttr', lvFileList.Column[iLAttrCol].Width);
-      WriteInteger('ColumnWidths', 'LSize', lvFileList.Column[iLSizeCol].Width);
-      WriteInteger('ColumnWidths', 'LDAte', lvFileList.Column[iLDateCol].Width);
-      WriteInteger('ColumnWidths', 'RAttr', lvFileList.Column[iRAttrCol].Width);
-      WriteInteger('ColumnWidths', 'RSize', lvFileList.Column[iRSizeCol].Width);
-      WriteInteger('ColumnWidths', 'RDate', lvFileList.Column[iRDateCol].Width);
-      WriteString('ListViewFont', 'Name', FInterfaceFonts[ifTableFont].FFontName);
-      WriteInteger('ListViewFont', 'Size', FInterfaceFonts[ifTableFont].FFontSize);
-      WriteString('LogFont', 'Name', FInterfaceFonts[ifLogFont].FFontName);
-      WriteInteger('LogFont', 'Size', FInterfaceFonts[ifLogFont].FFontSize);
-      For k := Low(TFileOpFont) To High(TFileOpFont) Do
-        Begin
-          WriteString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Colour',
-            ColorToString(FFileOpFonts[k].FFontColour));
-          WriteString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'BGColour',
-            ColorToString(FFileOpFonts[k].FBGFontColour));
-          WriteInteger('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Style',
-            Byte(FFileOpFonts[k].FFontStyle));
-        End;
-      redtOutputResults.Lines.SaveToFile(ChangeFileExt(FRootKey, '_log.txt'));
-      WriteInteger('Setup', 'WindowState', Byte(WindowState));
-      WriteInteger('Setup', 'OutputResultsHeight', redtOutputResults.Height);
-      WriteString('Setup', 'CompareEXE', FCompareEXE);
-      WriteInteger('DlgWidths', 'CopyDlg', FCopyDlgWidth);
-      WriteInteger('DlgWidths', 'DeleteDlg', FDeleteDlgWidth);
-      WriteInteger('DlgWidths', 'ConfirmDlg', FConfirmDlgWidth);
-      WriteInteger('Setup', 'FileOpStats', Byte(FFileOpStats));
-      WriteString('Setup', 'Theme', TStyleManager.ActiveStyle.Name);
-      If FParams.Count = 0 Then
-        Begin
-          For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
-            WriteBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
-              j In FFldrSyncOptions);
-          EraseSection('Folders');
-          EraseSection('FolderStatus');
-          EraseSection('FolderMaxFileSize');
-          EraseSection('NewFolders');
-          EraseSection('NewFolderStatus');
-          EraseSection('NewFolderMaxFileSize');
-          For i := 0 To FFolders.Count - 1 Do
-            Begin
-              WriteString('NewFolders', Format('Folder%2.2d', [i]),
-                FFolders.Folder[i].LeftFldr + FFolders.Folder[i].Patterns + '|' +
-                FFolders.Folder[i].RightFldr + FFolders.Folder[i].Patterns);
-              Ops := FFolders.Folder[i].SyncOptions;
-              Exclude(Ops, soTempDisabled);
-              WriteInteger('NewFolderStatus', Format('Folder%2.2d', [i]), SmallInt(Ops));
-              iMaxValue.Value := FFolders.Folder[i].MaxFileSize;
-              WriteString('NewFolderMaxFileSize', Format('Folder%2.2d', [i]),
-                Format('%d,%d,%d,%d', [iMaxValue.iFirst, iMaxValue.iSecond,
-                  iMaxValue.iThird, iMaxValue.iFourth]));
-            End;
-          WriteString('Setup', 'Exclusions', StringReplace(FExclusions, #13#10, '|',
-              [rfReplaceAll]));
-          //FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|', #13#10,
-          //  [rfReplaceAll]);
-        End;
-      WriteInteger('MemoryMonitor', 'UpdateInterval', DGHMemoryMonitor.UpdateInterval);
-      WriteString('MemoryMonitor', 'BackColour', ColorToString(DGHMemoryMonitor.BackColour));
-      WriteString('MemoryMonitor', 'BackFontColour', ColorToString(DGHMemoryMonitor.BackFontColour));
-      WriteString('MemoryMonitor', 'HighColour', ColorToString(DGHMemoryMonitor.HighColour));
-      WriteString('MemoryMonitor', 'HalfColour', ColorToString(DGHMemoryMonitor.HalfColour));
-      WriteString('MemoryMonitor', 'LowColour', ColorToString(DGHMemoryMonitor.LowColour));
-      WriteString('MemoryMonitor', 'HighFontColour', ColorToString(DGHMemoryMonitor.HighFontColour));
-      WriteString('MemoryMonitor', 'HalfFontColour', ColorToString(DGHMemoryMonitor.HalfFontColour));
-      WriteString('MemoryMonitor', 'LowFontColour', ColorToString(DGHMemoryMonitor.LowFontColour));
-      WriteInteger('MemoryMonitor', 'LowPoint', DGHMemoryMonitor.LowPoint);
-      WriteInteger('MemoryMonitor', 'HalfPoint', DGHMemoryMonitor.HalfPoint);
-      WriteInteger('MemoryMonitor', 'HighPoint', DGHMemoryMonitor.HighPoint);
-      WriteString('MemoryMonitor', 'FontName', DGHMemoryMonitor.Font.Name);
-      WriteInteger('MemoryMonitor', 'FontSize', DGHMemoryMonitor.Font.Size);
-      WriteInteger('MemoryMonitor', 'FontStyle', Byte(DGHMemoryMonitor.Font.Style));
-      WriteInteger('MemoryMonitor', 'Width', DGHMemoryMonitor.Width);
-      UpdateFile;
-    Finally
-      Free;
+  For i := 0 To ComponentCount - 1 Do
+    If Components[i] Is TAction Then
+      Begin
+        A := Components[i] As TAction;
+        If boolSuccess Then
+          A.Enabled := True
+        Else If A.Name <> 'actFileProcessFiles' Then
+          A.Enabled := True;
+      End;
+End;
+
+(**
+
+  This is an on error message event handler for outputting error message from the deleting ans copying 
+  process.
+
+  @precon  None.
+  @postcon Outputs an error message to the log file.
+
+  @param   strErrorMsg as a String as a constant
+
+**)
+Procedure TfrmMainForm.ErrorMessage(Const strErrorMsg : String);
+
+Begin
+  OutputResultLn(Format('  %s', [strErrorMsg]));
+End;
+
+(**
+
+  This is an on error message end event handler for the outputting of error messages from
+  the deleting and copying processes.
+
+  @precon  None.
+  @postcon Does nothing.
+
+  @nocheck EmptyMethod
+
+**)
+Procedure TfrmMainForm.ErrorMessageEnd;
+
+Begin
+End;
+
+(**
+
+  This is an on error message start event handler for the outputting of error messages from the deleting 
+  and copyin processes.
+
+  @precon  None.
+  @postcon Ouputs an error message header to the log file if there are errors to output.
+
+  @param   iFileCount as an Integer as a constant
+
+**)
+Procedure TfrmMainForm.ErrorMessageStart(Const iFileCount: Integer);
+
+Begin
+  If iFileCount > 0 Then
+    OutputResultLn(Format('%1.0n Files had errors...', [Int(iFileCount)]));
+End;
+
+(**
+
+  This is an on exceeeds size limit event handler.
+
+  @precon  None.
+  @postcon Outputs the given file to the log.
+
+  @param   iFile       as an Integer as a constant
+  @param   iFileCount  as an Integer as a constant
+  @param   strLPath    as a String as a constant
+  @param   strRPath    as a String as a constant
+  @param   strFileName as a String as a constant
+
+**)
+Procedure TfrmMainForm.ExceedsSizeLimit(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
+    strFileName: String);
+
+Begin
+  OutputFileNumber(iFile, iFileCount);
+  OutputResultLn(Format('%s => %s%s', [strLPath, strRPath, strFileName]));
+End;
+
+(**
+
+  This is an on exceeds size limit end event handler.
+
+  @precon  None.
+  @postcon Does nothing.
+
+  @nocheck EmptyMethod
+
+**)
+Procedure TfrmMainForm.ExceedsSizeLimitEnd;
+
+Begin
+End;
+
+(**
+
+  This is an on exceeds size limit start event handler.
+
+  @precon  None.
+  @postcon Outputs a header for the list of over sizeed files in the log.
+
+  @param   iFileCount as an Integer as a constant
+
+**)
+Procedure TfrmMainForm.ExceedsSizeLimitStart(Const iFileCount: Integer);
+
+Begin
+  If iFileCount > 0 Then
+    OutputResultLn(Format('%1.0n Files exceeding Size Limit...', [Int(iFileCount)]));
+End;
+
+(**
+
+  This is an exception handling message for the BuildRootKey method.
+
+  @precon  None.
+  @postcon Displays the exception message in a dialogue.
+
+  @param   strExceptionMsg as a String as a constant
+
+**)
+Procedure TfrmMainForm.ExceptionProc(Const strExceptionMsg: String);
+
+Begin
+  MessageDlg(strExceptionMsg, mtError, [mbOK], 0);
+End;
+
+(**
+
+  This method displays a dialogue asking the user to confirm the file action they wish to take based on 
+  the message displayed. The answer to the dialogue is returned to the sync module.
+
+  @precon  None.
+  @postcon The users response to the query is passed back to the sync module.
+
+  @param   strMsg        as a String as a constant
+  @param   strConsoleMsg as a String as a constant
+  @param   strSourcePath as a String as a constant
+  @param   strDestPath   as a String as a constant
+  @param   SourceFile    as a TFileRecord as a constant
+  @param   DestFile      as a TFileRecord as a constant
+  @param   Option        as a TFileAction as a reference
+  @param   boolReadOnly  as a Boolean as a constant
+
+**)
+Procedure TfrmMainForm.FileQuery(Const strMsg, strConsoleMsg, strSourcePath,
+  strDestPath: String; Const SourceFile, DestFile : TFileRecord; Var Option: TFileAction;
+  Const boolReadOnly : Boolean);
+
+Begin
+  If (Not (Option In [faYesToAll, faNoToAll])     And Not boolReadOnly) Or
+     (Not (Option In [faYesToAllRO, faNoToAllRO]) And     boolReadOnly) Then
+    Begin
+      OutputResult(strConsoleMsg);
+      UpdateTaskBar(ptError, 0, 1);
+      Case TfrmConfirmationDlg.Execute(Self, strMsg, strSourcePath, strDestPath,
+        SourceFile, DestFile, FDialogueBottom, FConfirmDlgWidth) Of
+        mrYes:
+          Option := faYes;
+        mrNo:
+          Option := faNo;
+        mrAll:
+          If Not boolReadOnly Then
+            Option := faYesToAll
+          Else
+            Option := faYesToAllRO;
+        mrIgnore:
+          If Not boolReadOnly Then
+            Option := faNoToAll
+          Else
+            Option := faNoToAllRO;
+      Else
+        Option := faCancel;
+      End;
+      OutputResult(strFileOptions[Option]);
     End;
+End;
+
+(**
+
+  This method outputs the results of the various folder comparisons into the list view for
+  actioning.
+
+  @precon  None.
+  @postcon Outputs the results of the various folder comparisons into the list view for
+           actioning.
+
+**)
+Procedure TfrmMainForm.FixUpPanes;
+
+Var
+  iProcessItem: Integer;
+  P           : TProcessItem;
+
+Begin
+  Inc(FProgressSection);
+  FProgressForm.InitialiseSection(FProgressSection, 0, FSyncModule.ProcessCount);
+  vstFileList.BeginUpdate;
+  Try
+    For iProcessItem := 0 To FSyncModule.ProcessCount - 1 Do
+      Begin
+        P := FSyncModule.Process[iProcessItem];
+        InsertListItem(iProcessItem, P);
+        If iProcessItem Mod 10 = 0 Then
+          FProgressForm.Progress(FProgressSection, iProcessItem,
+            Format('Building ListView... %1.0n in %1.0n', [Int(iProcessItem),
+                Int(FSyncModule.ProcessCount)]), '');
+      End;
+  Finally
+    vstFileList.EndUpdate;
+  End;
 End;
 
 (**
@@ -1253,6 +1906,7 @@ End;
 Procedure TfrmMainForm.FormCreate(Sender: TObject);
 
 Begin
+  vstFileList.NodeDataSize := SizeOf(TFSFileListNode);
   FParams                         := TStringList.Create;
   FCloseTimer                     := TTimer.Create(Nil);
   FCloseTimer.Enabled             := False;
@@ -1267,12 +1921,11 @@ Begin
   DGHMemoryMonitor.LowPoint       := 80;
   DGHMemoryMonitor.UpdateInterval := 500;
   FRootKey                        := BuildRootKey(FParams, ExceptionProc);
-  FFolders                       := TFolders.Create;
-  FProgressForm                  := TfrmProgress.Create(Self);
-  FProgressForm.OnUpdateProgress := UpdateProgress;
+  FFolders                        := TFolders.Create;
+  FProgressForm                   := TfrmProgress.Create(Self);
+  FProgressForm.OnUpdateProgress  := UpdateProgress;
   Application.HelpFile := ExtractFilePath(ParamStr(0)) + 'FldrSync.chm';
   LoadSettings();
-  actHelpCheckForUpdatesExecute(Nil);
   Application.OnHint                := ApplicationHint;
   FIconFiles                        := TStringList.Create;
   FIconFiles.Sorted                 := True;
@@ -1368,248 +2021,49 @@ End;
 
 (**
 
-  This is the applications on hint event handler.
+  This is a Form on Resize event handler.
 
   @precon  None.
-  @postcon Updates the application status bar when menu to toolbar items are
-           used.
+  @postcon Makes sure that the two sides of the interface are evenly spaced.
 
   @param   Sender as a TObject
 
 **)
-Procedure TfrmMainForm.ApplicationHint(Sender: TObject);
-
-Begin
-  stbrStatusBar.SimplePanel := Application.Hint <> '';
-  If Application.Hint <> '' Then
-    stbrStatusBar.SimpleText := GetLongHint(Application.Hint);
-End;
-
-(**
-
-  This is an on execute method for the File Compare action.
-
-  @precon  None.
-  @postcon Start the process of comparing files and folders and output the
-           results in the list view.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.actFileCompareExecute(Sender: TObject);
+Procedure TfrmMainForm.FormResize(Sender: TObject);
 
 Var
-  iEnabledFolders: Integer;
-  i              : Integer;
-  boolSuccess    : Boolean;
-  iCount         : Integer;
+  H: TVTHeader;
+  i: Integer;
 
 Begin
-  OutputResultLn('Comparison started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
-    Now()));
-  boolSuccess := False;
-  If Not CheckFolders Then
-    Exit;
-  Try
-    DisableActions;
-    Try
-      iEnabledFolders := 0;
-      For i           := 0 To FFolders.Count - 1 Do
-        Begin
-          If [soEnabled, soTempDisabled] * FFolders.Folder[i].SyncOptions = [soEnabled] Then
-            Inc(iEnabledFolders);
-        End;
-      FProgressForm.RegisterSections(iEnabledFolders * 3 + 2);
-      FProgressSection := -1;
-      lvFileList.Items.BeginUpdate;
-      Try
-        lvFileList.Clear;
-      Finally
-        lvFileList.Items.EndUpdate;
-      End;
-      Try
-        FSyncModule.Clear;
-        boolSuccess := FSyncModule.ProcessFolders(FFolders, FExclusions);
-        FixUpPanes;
-        FormResize(Sender);
-        iCount := 0;
-        For i := 0 To lvFileList.Items.Count - 1 Do
-          If lvFileList.Items[i].StateIndex <> Integer(fofExceedsSizeLimit) Then
-            Inc(iCount);
-        If (fsoCloseIFNoFilesAfterComparison In FFldrSyncOptions) And (iCount = 0) Then
-          Begin
-            FProgressForm.InitialiseSection(FProgressSection, 0, 1);
-            FProgressForm.Progress(FProgressSection, 1, 'Auto-exiting application...',
-              'as there are no more files to process...');
-            FCloseTimer.Enabled := True;
-          End;
-        If (fsoStartProcessingAutomatically In FFldrSyncOptions) And
-          Not FAutoProcessing Then
-          Try
-            FAutoProcessing := True;
-            actFileProcessFilesExecute(Sender);
-          Finally
-            FAutoProcessing := False;
-          End;
-      Finally
-        If Not boolSuccess Then
-          Begin
-            OutputResultLn;
-            OutputResultLn('Comparison cancelled by user!');
-          End;
-        UpdateTaskBar(ptNone);
-        If Not FCloseTimer.Enabled Then
-          FProgressForm.Hide;
-        OutputStats;
-      End;
-    Finally
-      EnableActions(boolSuccess);
+  H := vstFileList.Header;
+  i := vstFileList.ClientWidth Div 2
+     - H.Columns[0].Width Div 2
+     - H.Columns[Integer(vfLeftAttr)].Width
+     - H.Columns[Integer(vfLeftSize)].Width
+     - H.Columns[Integer(vfLeftDate)].Width
+     - 2;
+  If i > 0 Then
+    Begin
+      H.Columns[Integer(vfLeftFileName)].Width := i;
+      H.Columns[Integer(vfRightFilename)].Width := i;
     End;
-  Finally
-    OutputResultLn();
-  End;
 End;
 
 (**
 
-  This method outputs the results of the various folder comparisons into the list view for
-  actioning.
+  This method retrieves from the system the icon for the specified file, places it in a list and returns 
+  the index of the index in the list.
 
   @precon  None.
-  @postcon Outputs the results of the various folder comparisons into the list view for
-           actioning.
+  @postcon Retrieves from the system the icon for the specified file, places it in a list and returns 
+           the index of the index in the list
 
-**)
-Procedure TfrmMainForm.FixUpPanes;
-
-Var
-  iProcessItem: Integer;
-  P           : TProcessItem;
-
-Begin
-  Inc(FProgressSection);
-  FProgressForm.InitialiseSection(FProgressSection, 0, FSyncModule.ProcessCount);
-  lvFileList.Items.BeginUpdate;
-  Try
-    For iProcessItem := 0 To FSyncModule.ProcessCount - 1 Do
-      Begin
-        P := FSyncModule.Process[iProcessItem];
-        InsertListItem(P);
-        If iProcessItem Mod 10 = 0 Then
-          FProgressForm.Progress(FProgressSection, iProcessItem,
-            Format('Building ListView... %1.0n in %1.0n', [Int(iProcessItem),
-                Int(FSyncModule.ProcessCount)]), '');
-      End;
-  Finally
-    lvFileList.Items.EndUpdate;
-  End;
-End;
-
-(**
-
-  This method adds a pair of filenames with sizes and dates to the list view.
-
-  @precon  None.
-  @postcon Adds a pair of filenames with sizes and dates to the list view.
-
-  @param   ProcessItem as a TProcessItem
-
-**)
-Procedure TfrmMainForm.InsertListItem(ProcessItem : TProcessItem);
-
-  (**
-
-    This method returns a string representation of a files attrivutes [RASH].
-
-    @precon  None.
-    @postcon Returns a string representation of a files attrivutes [RASH].
-
-    @param   iAttr as an Integer
-    @return  a String
-
-  **)
-  Function GetAttributeString(iAttr: Integer): String;
-
-  Begin
-    Result := '....';
-    If iAttr And faReadOnly > 0 Then
-      Result[1] := 'R';
-    If iAttr And faArchive > 0 Then
-      Result[2] := 'A';
-    If iAttr And faSysFile > 0 Then
-      Result[3] := 'S';
-    If iAttr And faHidden > 0 Then
-      Result[4] := 'H';
-  End;
-
-Const
-  strSize = '%1.0n';
-
-Var
-  Item       : TListItem;
-  strFileName: String;
-
-Begin
-  Item            := lvFileList.Items.Add;
-  Item.ImageIndex := -1;
-  // Action
-  Item.Caption := '';
-  // Left File
-  If ProcessItem.LeftFile <> Nil Then
-    Begin
-      Item.SubItems.Add(ProcessItem.LPath + ProcessItem.LeftFile.FileName);
-      Item.SubItems.Add(GetAttributeString(ProcessItem.LeftFile.Attributes));
-      Item.SubItems.Add(Format(strSize, [ProcessItem.LeftFile.Size + 0.1]));
-      Item.SubItems.Add(FormatDateTime('ddd dd/mmm/yyyy hh:mm:ss',
-          FileDateToDateTime(ProcessItem.LeftFile.DateTime)));
-      strFileName := ProcessItem.LeftFile.FileName;
-    End
-  Else
-    Begin
-      Item.SubItems.Add('');
-      Item.SubItems.Add('');
-      Item.SubItems.Add('');
-      Item.SubItems.Add('');
-    End;
-  // Right File
-  If ProcessItem.RightFile <> Nil Then
-    Begin
-      Item.SubItems.Add(ProcessItem.RPath + ProcessItem.RightFile.FileName);
-      Item.SubItems.Add(GetAttributeString(ProcessItem.RightFile.Attributes));
-      Item.SubItems.Add(Format(strSize, [ProcessItem.RightFile.Size + 0.1]));
-      Item.SubItems.Add(FormatDateTime('ddd dd/mmm/yyyy hh:mm:ss',
-          FileDateToDateTime(ProcessItem.RightFile.DateTime)));
-      strFileName := ProcessItem.RightFile.FileName;
-    End
-  Else
-    Begin
-      Item.SubItems.Add('');
-      Item.SubItems.Add('');
-      Item.SubItems.Add('');
-      Item.SubItems.Add('');
-    End;
-  Item.SubItems.Add(ProcessItem.LPath + strFileName);
-  Item.SubItems.Add(ProcessItem.RPath + strFileName);
-  Item.StateIndex := Integer(ProcessItem.FileOp);
-  ImageIndexes(ProcessItem, Item);
-End;
-
-{$HINTS OFF}
-(**
-
-  This method retrieves from the system the icon for the specified file, places it in a 
-  list and returns the index of the index in the list.
-
-  @precon  None.
-  @postcon Retrieves from the system the icon for the specified file, places it in a list
-           and returns the index of the index in the list
-
-  @param   ProcessItem as a TProcessItem
-  @param   strFileName as a String
+  @param   strFileName as a String as a constant
   @return  a NativeInt
 
 **)
-Function TfrmMainForm.GetImageIndex(ProcessItem : TProcessItem; strFileName: String): NativeInt;
+Function TfrmMainForm.GetImageIndex(Const strFileName: String): NativeInt;
 
 Var
   strExt        : String;
@@ -1626,7 +2080,6 @@ Var
   iOutputSize   : Integer;
 
 Begin
-  Result := -1;
   strExt := LowerCase(ExtractFileExt(strFileName));
   If FIconFiles.Find(strExt, iIndex) Then
     Begin
@@ -1685,193 +2138,592 @@ Begin
   End;
   If strExt <> '.exe' Then
     FIconFiles.AddObject(strExt, TObject(Result));
-  //-------------------------------------------------------------------------------------
-  If Result < 0 Then
+End;
+
+(**
+
+  This method adds a pair of filenames with sizes and dates to the list view.
+
+  @precon  None.
+  @postcon Adds a pair of filenames with sizes and dates to the list view.
+
+  @param   iProcessItem as an Integer as a constant
+  @param   ProcessItem  as a TProcessItem as a constant
+
+**)
+Procedure TfrmMainForm.InsertListItem(Const iProcessItem : Integer; Const ProcessItem : TProcessItem);
+
+Var
+  Node : PVirtualNode;
+  NodeData : PFSFileListNode;
+  strFileName: String;
+
+Begin
+  Node := vstFileList.AddChild(Nil);
+  NodeData := vstFileList.GetNodeData(Node);
+  NodeData.FProcessIndex := iProcessItem;
+  // Left File
+  NodeData.FLeftFileIndex := -1;
+  NodeData.FRightFileIndex := -1;
+  If Assigned(ProcessItem.LeftFile) Then
     Begin
-      CodeSite.Send('Ext', strExt);
-      CodeSite.Send('Extension List', FIconFiles);
-      CodeSite.Send('Class', strClassName);
-      CodeSite.Send(strFileName, Result);
-      CodeSite.Send('LPath', ProcessItem.LPath);
-      CodeSite.Send('RPath', ProcessItem.RPath);
-      CodeSite.Send('LeftFile', ProcessItem.LeftFile);
-      CodeSite.Send('RightFile', ProcessItem.RightFile);
-      CodeSite.SendEnum('FileOp', TypeInfo(TFileOp), Ord(ProcessItem.FileOp));
-      CodeSite.SendSet('SynvOptions', TypeInfo(TSyncOptions), ProcessItem.SyncOptions);
-      CodeSite.AddSeparator;
-    End;
-End;
-{$HINTS ON}
-
-(**
-
-  This is an on execute event handler for the Tools Compare action.
-
-  @precon  None.
-  @postcon Opens the 2 selected files in the comparison tool.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.actToolsCompareExecute(Sender: TObject);
-
-Var
-  S: TListItem;
-
-Begin
-  S := lvFileList.Selected;
-  ShellExecute(Application.Handle, 'Open', PChar(FCompareEXE),
-    PChar(Format('"%s" "%s"', [S.SubItems[iLDisplayCol - 1], S.SubItems[iRDisplayCol - 1]]
-        )), PChar(ExtractFilePath(FCompareEXE)), SW_SHOWNORMAL)
-End;
-
-(**
-
-  This is an on update event handler for the Tools Compare action.
-
-  @precon  None.
-  @postcon Enables the option only if the EXE exists and the 2 files to compare
-           also exist.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.actToolsCompareUpdate(Sender: TObject);
-
-Var
-  S: TListItem;
-
-Begin
-  S                           := lvFileList.Selected;
-  (Sender As TAction).Enabled := (S <> Nil) And FileExists(FCompareEXE) And
-    FileExists(S.SubItems[iLDisplayCol - 1]) And FileExists(S.SubItems[iRDisplayCol - 1]);
-End;
-
-(**
-
-  This is an on execute event handler for the ConfigMemMon action.
-
-  @precon  None.
-  @postcon Displays a configuration form that allows you to edit the colours, fonts and
-           positions of the memory monitor information.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.actToolsConfigMemMonExecute(Sender: TObject);
-
-Begin
-  TfrmMemoryMonitorOptions.Execute(DGHMemoryMonitor);
-End;
-
-(**
-
-  This is an on execute event handler for the Tools Options action.
-
-  @precon  None.
-  @postcon Displays the options dialogue for the application.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.actToolsOptionsExecute(Sender: TObject);
-
-Var
-  strTheme : String;
-  
-Begin
-  FInterfaceFonts[ifTableFont].FFontName := lvFileList.Font.Name;
-  FInterfaceFonts[ifTableFont].FFontSize :=lvFileList.Font.Size;
-  FInterfaceFonts[ifLogFont].FFontName := redtOutputResults.Font.Name;
-  FInterfaceFonts[ifLogFont].FFontSize := redtOutputResults.Font.Size;
-  If TfrmOptions.Execute(FFolders, FExclusions, FCompareEXE, FRootKey, FInterfaceFonts,
-    FFileOpFonts, FFldrSyncOptions, strTheme, FFileOpStats) Then
+      NodeData.FLeftFilename := ProcessItem.LPath + ProcessItem.LeftFile.FileName;
+      NodeData.FLeftAttr := ProcessItem.LeftFile.Attributes;
+      NodeData.FLeftSize := ProcessItem.LeftFile.Size;
+      NodeData.FLeftDate := FileDateToDateTime(ProcessItem.LeftFile.DateTime);
+      strFileName := ProcessItem.LeftFile.FileName;
+    End Else
     Begin
-      lvFileList.Font.Name := FInterfaceFonts[ifTableFont].FFontName;
-      lvFileList.Font.Size:= FInterfaceFonts[ifTableFont].FFontSize;
-      redtOutputResults.Font.Name := FInterfaceFonts[ifLogFont].FFontName;
-      redtOutputResults.Font.Size := FInterfaceFonts[ifLogFont].FFontSize;
-      If CompareText(strTheme, TStyleManager.ActiveStyle.Name) <> 0 Then
-        TStyleManager.SetStyle(strTheme);
-      OutputStats;
-      actFileCompareExecute(Self);
+      NodeData.FLeftFilename := '';
+      NodeData.FLeftAttr := 0;
+      NodeData.FLeftSize := 0;
+      NodeData.FLeftDate := 0;
     End;
+  // Right File
+  If Assigned(ProcessItem.RightFile) Then
+    Begin
+      NodeData.FRightFilename := ProcessItem.RPath + ProcessItem.RightFile.FileName;
+      NodeData.FRightAttr := ProcessItem.RightFile.Attributes;
+      NodeData.FRightSize := ProcessItem.RightFile.Size;
+      NodeData.FRightDate := FileDateToDateTime(ProcessItem.RightFile.DateTime);
+      strFileName := ProcessItem.RightFile.FileName;
+    End Else
+    Begin
+      NodeData.FRightFilename := '';
+      NodeData.FRightAttr := 00;
+      NodeData.FRightSize := 0;
+      NodeData.FRightDate := 0;
+    End;
+  NodeData.FLeftFullFileName := ProcessItem.LPath + strFileName;
+  NodeData.FRightFullFileName := ProcessItem.RPath + strFileName;
+  NodeData.FState := ProcessItem.FileOp;
 End;
 
 (**
 
-  This is an on execute event handler for the Clear Log action.
+  This method loads the applications seetings from the registry.
 
   @precon  None.
-  @postcon Clears the log.
-
-  @param   Sender as a TObject
+  @postcon Loads the applications settings from the registry.
 
 **)
-procedure TfrmMainForm.actEditClearLogExecute(Sender: TObject);
+Procedure TfrmMainForm.LoadSettings;
+
+Var
+  sl : TStringList;
+  i  : Integer;
+  j  : TFldrSyncOption;
+  k : TFileOpFont;
+  strLog : String;
+  iSyncOptions : TSyncOptions;
+  strMaxValue : String;
+  iMaxValue : TInt64Ex;
+  strLeftFldr, strRightFldr : String;
+  iniMemFile : TMemIniFile;
+  iDefaultOps : TFileOpStats;
+  ComOps: TCommandLineOptionsRec;
+
+Begin
+  iniMemFile := TMemIniFile.Create(FRootKey);
+  Try
+    TStyleManager.SetStyle(iniMemFile.ReadString('Setup', 'Theme',
+      TStyleManager.ActiveStyle.Name));
+    Top := iniMemFile.ReadInteger('Setup', 'Top', 100);
+    Left := iniMemFile.ReadInteger('Setup', 'Left', 100);
+    Height := iniMemFile.ReadInteger('Setup', 'Height', 300);
+    Width := iniMemFile.ReadInteger('Setup', 'Width', 450);
+    vstFileList.Header.Columns[Integer(vfLeftAttr)].Width := iniMemFile.ReadInteger('ColumnWidths', 'LAttr', 50);
+    vstFileList.Header.Columns[Integer(vfLeftSize)].Width := iniMemFile.ReadInteger('ColumnWidths', 'LSize', 85);
+    vstFileList.Header.Columns[Integer(vfLeftDate)].Width := iniMemFile.ReadInteger('ColumnWidths', 'LDAte', 150);
+    vstFileList.Header.Columns[Integer(vfRightAttr)].Width := iniMemFile.ReadInteger('ColumnWidths', 'RAttr', 50);
+    vstFileList.Header.Columns[Integer(vfRightSize)].Width := iniMemFile.ReadInteger('ColumnWidths', 'RSize', 85);
+    vstFileList.Header.Columns[Integer(vfRightDate)].Width := iniMemFile.ReadInteger('ColumnWidths', 'RDate', 150);
+    FInterfaceFonts[ifTableFont].FFontName :=
+      iniMemFile.ReadString('ListViewFont', 'Name', InterfaceFontDefaults[ifTableFont].FFontName);
+    vstFileList.Font.Name               := FInterfaceFonts[ifTableFont].FFontName;
+    FInterfaceFonts[ifTableFont].FFontSize :=
+      iniMemFile.ReadInteger('ListViewFont', 'Size', InterfaceFontDefaults[ifTableFont].FFontSize);
+    vstFileList.Font.Size               := FInterfaceFonts[ifTableFont].FFontSize;
+    FInterfaceFonts[ifLogFont].FFontName :=
+      iniMemFile.ReadString('LogFont', 'Name', InterfaceFontDefaults[ifLogFont].FFontName);
+    redtOutputResults.Font.Name        := FInterfaceFonts[ifLogFont].FFontName;
+    FInterfaceFonts[ifLogFont].FFontSize :=
+      iniMemFile.ReadInteger('LogFont', 'Size', InterfaceFontDefaults[ifLogFont].FFontSize);
+    redtOutputResults.Font.Size        := FInterfaceFonts[ifLogFont].FFontSize;
+    For k := Low(TFileOpFont) To High(TFileOpFont) Do
+      Begin
+        FFileOpFonts[k].FFontColour := StringToColor(
+          iniMemFile.ReadString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Colour',
+            ColorToString(FileOperationFontDefaults[k].FFontColour)));
+        FFileOpFonts[k].FBGFontColour := StringToColor(
+          iniMemFile.ReadString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'BGColour',
+            ColorToString(FileOperationFontDefaults[k].FBGFontColour)));
+        FFileOpFonts[k].FFontStyle := TFontStyles(Byte(
+          iniMemFile.ReadInteger('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Style',
+            Byte(FileOperationFontDefaults[k].FFontStyle))));
+      End;
+    strLog := ChangeFileExt(FRootKey, '_log.txt');
+    If FileExists(strLog) Then
+      redtOutputResults.Lines.LoadFromFile(strLog);
+    LogSize;
+    WindowState := TWindowState(iniMemFile.ReadInteger('Setup', 'WindowState', Byte(wsNormal)));
+    redtOutputResults.Height := iniMemFile.ReadInteger('Setup', 'OutputResultsHeight', 100);
+    FCompareEXE := iniMemFile.ReadString('Setup', 'CompareEXE', '');
+    FCopyDlgWidth := iniMemFile.ReadInteger('DlgWidths', 'CopyDlg', 0);
+    FDeleteDlgWidth := iniMemFile.ReadInteger('DlgWidths', 'DeleteDlg', 0);
+    FConfirmDlgWidth := iniMemFile.ReadInteger('DlgWidths', 'ConfirmDlg', 0);
+    iDefaultOps := [fosDelete..fosDifference];
+    FFileOpStats := TFileOpStats(Byte(iniMemFile.ReadInteger('Setup', 'FileOpStats',
+      Byte(iDefaultOps))));
+    UpgradeINIFolderOptions(iniMemFile);
+    If FParams.Count = 0 Then
+      Begin
+        FFldrSyncOptions := [];
+        For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
+          If iniMemFile.ReadBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
+            strFldrSyncOptions[j].fDefault) Then
+            Include(FFldrSyncOptions, j);
+        sl := TStringList.Create;
+        Try
+          iniMemFile.ReadSection('NewFolders', sl);
+          For i := 0 To sl.Count - 1 Do
+            Begin
+              iSyncOptions := TSyncOptions(SmallInt(iniMemFile.ReadInteger('NewFolderStatus', sl[i],
+                SmallInt(iSyncOptions))));
+              strMaxValue := iniMemFile.ReadString('NewFolderMaxFileSize', sl[i], '0,0,0,0');
+              iMaxValue.Value := 0;
+              iMaxValue.iFirst := StrToInt(GetField(strMaxValue, ',', 1));
+              iMaxValue.iSecond := StrToInt(GetField(strMaxValue, ',', 2));
+              iMaxValue.iThird := StrToInt(GetField(strMaxValue, ',', 3));
+              iMaxValue.iFourth := StrToInt(GetField(strMaxValue, ',', 4));
+              strLeftFldr := GetShortHint(iniMemFile.ReadString('NewFolders', sl[i], ''));
+              strRightFldr := GetLongHint(iniMemFile.ReadString('NewFolders', sl[i], ''));
+              FFolders.Add(
+                TFolder.Create(
+                  ExtractFilePath(strLeftFldr),
+                  ExtractFilePath(strRightFldr),
+                  ExtractFileName(strLeftFldr),
+                  iSyncOptions,
+                  iMaxValue.Value
+                )
+              );
+            End;
+        Finally
+          sl.Free;
+        End;
+        FExclusions := StringReplace(iniMemFile.ReadString('Setup', 'Exclusions', ''), '|', #13#10,
+          [rfReplaceAll]);
+      End Else
+      Begin
+        ComOps.iSyncOptions := [soEnabled];
+        ProcessCommandLine(FParams, ComOps);
+        FFolders.Add(
+          TFolder.Create(
+            ComOps.strSourceFldr,
+            ComOps.strDestFldr,
+            ComOps.strFilePatterns,
+            ComOps.iSyncOptions,
+            ComOps.iMaxFileSize
+          ));
+        If clsDeletePermentently In ComOps.iCommandLineOptions Then
+          Include(FFldrSyncOptions, fsoPermanentlyDeleteFiles)
+        Else
+          Exclude(FFldrSyncOptions, fsoPermanentlyDeleteFiles);
+        If clsBatchRecycleFiles In ComOps.iCommandLineOptions Then
+          Include(FFldrSyncOptions, fsoBatchRecycleFiles)
+        Else
+          Exclude(FFldrSyncOptions, fsoBatchRecycleFiles);
+        If clsProceedAutomatically In ComOps.iCommandLineOptions Then
+          Include(FFldrSyncOptions, fsoStartProcessingAutomatically)
+        Else
+          Exclude(FFldrSyncOptions, fsoStartProcessingAutomatically);
+      End;
+    DGHMemoryMonitor.UpdateInterval := iniMemFile.ReadInteger('MemoryMonitor', 'UpdateInterval',
+      DGHMemoryMonitor.UpdateInterval);
+    DGHMemoryMonitor.BackColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'BackColour', ColorToString(DGHMemoryMonitor.BackColour)));
+    DGHMemoryMonitor.BackFontColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'BackFontColour', ColorToString(DGHMemoryMonitor.BackFontColour)));
+    DGHMemoryMonitor.HighColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'HighColour', ColorToString(DGHMemoryMonitor.HighColour)));
+    DGHMemoryMonitor.HalfColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'HalfColour', ColorToString(DGHMemoryMonitor.HalfColour)));
+    DGHMemoryMonitor.LowColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'LowColour', ColorToString(DGHMemoryMonitor.LowColour)));
+    DGHMemoryMonitor.HighFontColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'HighFontColour', ColorToString(DGHMemoryMonitor.HighFontColour)));
+    DGHMemoryMonitor.HalfFontColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'HalfFontColour', ColorToString(DGHMemoryMonitor.HalfFontColour)));
+    DGHMemoryMonitor.LowFontColour := StringToColor(iniMemFile.ReadString('MemoryMonitor',
+      'LowFontColour', ColorToString(DGHMemoryMonitor.LowFontColour)));
+    DGHMemoryMonitor.LowPoint := iniMemFile.ReadInteger('MemoryMonitor', 'LowPoint',
+      DGHMemoryMonitor.LowPoint);
+    DGHMemoryMonitor.HalfPoint := iniMemFile.ReadInteger('MemoryMonitor', 'HalfPoint',
+      DGHMemoryMonitor.HalfPoint);
+    DGHMemoryMonitor.HighPoint := iniMemFile.ReadInteger('MemoryMonitor', 'HighPoint',
+      DGHMemoryMonitor.HighPoint);
+    DGHMemoryMonitor.Font.Name := iniMemFile.ReadString('MemoryMonitor', 'FontName',
+      DGHMemoryMonitor.Font.Name);
+    DGHMemoryMonitor.Font.Size := iniMemFile.ReadInteger('MemoryMonitor', 'FontSize',
+      DGHMemoryMonitor.Font.Size);
+    DGHMemoryMonitor.Font.Style := TFontStyles(Byte(iniMemFile.ReadInteger('MemoryMonitor', 'FontStyle',
+      Byte(DGHMemoryMonitor.Font.Style))));
+    DGHMemoryMonitor.Width := iniMemFile.ReadInteger('MemoryMonitor', 'Width',
+      DGHMemoryMonitor.Width);
+  Finally
+    iniMemFile.Free;
+  End;
+End;
+
+(**
+
+  This methiohd updates the status bar with the current log size.
+
+  @precon  None.
+  @postcon The status bar is updated with the current log size.
+
+**)
+Procedure TfrmMainForm.LogSize;
+
+Begin
+  stbrStatusBar.Panels[0].Text := Format('Log size: %1.1n kbytes',
+    [Int(Length(redtOutputResults.Lines.Text)) / 1024.0]);
+  stbrStatusBar.Panels[0].Width := stbrStatusBar.Canvas.TextWidth(stbrStatusBar.Panels[0].Text) + 25;
+End;
+
+(**
+
+  This is an on match list end event handler for the sync module.
+
+  @precon  None.
+  @postcon None.
+
+**)
+Procedure TfrmMainForm.MatchListEndProc;
+
+Begin
+  OutputResultLn('Done.');
+  FProgressForm.Progress(FProgressSection, 100, 'Done!', '');
+End;
+
+(**
+
+  This is an on match list event handler for the sync module.
+
+  @precon  None.
+  @postcon Updates the progress dialogue with the progress through the matching process.
+
+  @param   iPosition as an Integer as a constant
+  @param   iMaxItems as an Integer as a constant
+
+**)
+Procedure TfrmMainForm.MatchListProc(Const iPosition, iMaxItems: Integer);
+
+Begin
+  If iPosition Mod 10 = 0 Then
+    FProgressForm.Progress(FProgressSection, Trunc(iPosition / iMaxItems * 100.0),
+      Format('Matching items... %1.0n in %1.0n', [Int(iPosition), Int(iMaxItems)]), '');
+End;
+
+(**
+
+  This is an on match list start event handler for the sync module.
+
+  @precon  None.
+  @postcon Increments the progress sections and initialises the dialogue for progress.
+
+**)
+Procedure TfrmMainForm.MatchListStartProc;
+
+Begin
+  OutputResult('Match Lists: ');
+  Inc(FProgressSection);
+  FProgressForm.InitialiseSection(FProgressSection, 1, 100);
+End;
+
+(**
+
+  This is an on context popup event handler for the memory monitor graphics control.
+
+  @precon  None.
+  @postcon Invokes the dialogue to editing the configuration of the Memory Monitor.
+
+  @param   Sender   as a TObject
+  @param   MousePos as a TPoint
+  @param   Handled  as a Boolean as a reference
+
+**)
+Procedure TfrmMainForm.MemoryPopupMenu(Sender: TObject; MousePos: TPoint;
+  Var Handled: Boolean);
+
+Begin
+  actToolsConfigMemMonExecute(Sender);
+End;
+
+(**
+
+  This is an on Nothing To Do event handler for the sync module.
+
+  @precon  None.
+  @postcon Outputs the name of the files that have a difference size but the same date and time.
+
+  @param   iFile       as an Integer as a constant
+  @param   iFileCount  as an Integer as a constant
+  @param   strLPath    as a String as a constant
+  @param   strRPath    as a String as a constant
+  @param   strFileName as a String as a constant
+
+**)
+procedure TfrmMainForm.NothingToDo(Const iFile, iFileCount: Integer; Const strLPath, strRPath,
+    strFileName: String);
 
 begin
-  If redtOutputResults.SelLength > 0 Then
-    redtOutputResults.SelText := ''
-  Else
-    redtOutputResults.Clear;
+  OutputFileNumber(iFile, iFileCount);
+  OutputResultLn(Format('%s => %s%s', [strLPath, strRPath, strFileName]));
 end;
 
 (**
 
-  This is an on execute event handler for the CopyLeftToRight Action.
+  This is an on nothingToDo end event handler for the sync module.
 
   @precon  None.
-  @postcon Sets the selected items in the list view to be Copied from Left to
-           Right.
+  @postcon None.
 
-  @param   Sender as a TObject
+  @nocheck EmptyMethod
 
 **)
-Procedure TfrmMainForm.actEditCopyLeftToRightExecute(Sender: TObject);
+Procedure TfrmMainForm.NothingToDoEnd;
 
 Begin
-  SetFileOperation(foLeftToRight);
 End;
 
 (**
 
-  This is an on update event handler for the Fiole Operation actions.
+  This is a Nothing To Do Start event handler for the sync module.
 
   @precon  None.
-  @postcon Enables / disables the file operations based on the opertation and the selected
-           files.
+  @postcon Displays a header is there are files to output.
 
-  @param   Sender as a TObject
+  @param   iFileCount as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.actEditFileOperationsUpdate(Sender: TObject);
+procedure TfrmMainForm.NothingToDoStart(Const iFileCount: Integer);
+
+begin
+  If iFileCount > 0 Then
+    OutputResultLn(Format('%1.0n Files with Nothing to do...',
+      [Int(iFileCount)]));
+end;
+
+(**
+
+  This method outputs the file number and the total number of files to the output window.
+
+  @precon  None.
+  @postcon Outputs the file number and the total number of files to the output window.
+
+  @param   iCurrentFile as an Integer as a constant
+  @param   iTotal       as an Integer as a constant
+
+**)
+Procedure TfrmMainForm.OutputFileNumber(Const iCurrentFile, iTotal : Integer);
 
 Var
-  Item: TListItem;
-  boolEnabled : Boolean;
-  
+  strTotal : String;
+  iSize : Integer;
+
 Begin
-  If Sender Is TAction Then
-    With Sender As TAction Do
+  strTotal := Format('%1.0n', [Int(iTotal)]);
+  iSize    := Length(strTotal);
+  OutputResult(#32#32 + Format('(%*.0n/%*.0n) ',
+      [iSize, Int(iCurrentFile), iSize, Int(iTotal)]));
+End;
+
+(**
+
+  This method outputs the given message to the output window with the optional colour but without a line 
+  feed and carraige return.
+
+  @precon  None.
+  @postcon The messages is output to the end of output window.
+
+  @param   strMsg as a String as a constant
+
+**)
+Procedure TfrmMainForm.OutputResult(Const strMsg: String = '');
+
+Begin
+  redtOutputResults.SelLength           := 0;
+  redtOutputResults.SelStart            := Length(redtOutputResults.Text);
+  redtOutputResults.SelText             := strMsg;
+  LogSize;
+End;
+
+(**
+
+  This method outputs the given message to the output window with the optional colour but WITH a line 
+  feed and carraige return.
+
+  @precon  None.
+  @postcon The messages is output to the end of output window.
+
+  @param   strMsg as a String as a constant
+
+**)
+Procedure TfrmMainForm.OutputResultLn(Const strMsg: String = '');
+
+Begin
+  OutputResult(strMsg + #13#10);
+End;
+
+(**
+
+  This method adds panels to the status bar for each of the statistics returned from the
+  sync module.
+
+  @precon  None.
+  @postcon Panels are added to the status bar for each available statistic.
+
+**)
+Procedure TfrmMainForm.OutputStats;
+
+Const
+  strTemplate = '%s: %1.0n files in %1.1n kbytes';
+
+Var
+  i: TFileOpStat;
+  P: TStatusPanel;
+
+Begin
+  stbrStatusBar.Panels.BeginUpdate;
+  Try
+    While stbrStatusBar.Panels.Count > 1 Do
+      stbrStatusBar.Panels.Delete(stbrStatusBar.Panels.Count - 1);
+    FSyncModule.BuildStats;
+    For i := Low(TFileOpStat) To High(TFileOpStat) Do
+      If i In FFileOpStats Then
+        Begin
+          P := stbrStatusBar.Panels.Add;
+          P.Text := Format(strTemplate, [
+            FSyncModule.Statistics[i].FName,
+            Int(FSyncModule.Statistics[i].FCount),
+            Int(FSyncModule.Statistics[i].FSize / 1024.0)
+          ]);
+          P.Width := stbrStatusBar.Canvas.TextWidth(P.Text) + 25;
+          P.Style := psOwnerDraw;
+        End;
+  Finally
+    stbrStatusBar.Panels.EndUpdate;
+  End;
+End;
+
+(**
+
+  This method saves the applications seetings to the registry.
+
+  @precon  None.
+  @postcon Save the applications settings to the registry.
+
+**)
+Procedure TfrmMainForm.SaveSettings;
+
+Var
+  i         : Integer;
+  recWndPlmt: TWindowPlacement;
+  j         : TFldrSyncOption;
+  iMaxValue : TInt64Ex;
+  k: TFileOpFont;
+  Ops: TSyncOptions;
+  iniMemFile: TMemIniFile;
+
+Begin
+  iniMemFile := TMemIniFile.Create(FRootKey);
+  Try
+    recWndPlmt.Length := SizeOf(TWindowPlacement);
+    GetWindowPlacement(Handle, @recWndPlmt);
+    iniMemFile.WriteInteger('Setup', 'Top', recWndPlmt.rcNormalPosition.Top);
+    iniMemFile.WriteInteger('Setup', 'Left', recWndPlmt.rcNormalPosition.Left);
+    iniMemFile.WriteInteger('Setup', 'Height', recWndPlmt.rcNormalPosition.Bottom -
+        recWndPlmt.rcNormalPosition.Top);
+    iniMemFile.WriteInteger('Setup', 'Width', recWndPlmt.rcNormalPosition.Right -
+        recWndPlmt.rcNormalPosition.Left);
+    iniMemFile.WriteInteger('ColumnWidths', 'LAttr', vstFileList.Header.Columns[Integer(vfLeftAttr)].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'LSize', vstFileList.Header.Columns[Integer(vfLeftSize)].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'LDAte', vstFileList.Header.Columns[Integer(vfLeftDate)].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'RAttr', vstFileList.Header.Columns[Integer(vfRightAttr)].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'RSize', vstFileList.Header.Columns[Integer(vfRightSize)].Width);
+    iniMemFile.WriteInteger('ColumnWidths', 'RDate', vstFileList.Header.Columns[Integer(vfRightDate)].Width);
+    iniMemFile.WriteString('ListViewFont', 'Name', FInterfaceFonts[ifTableFont].FFontName);
+    iniMemFile.WriteInteger('ListViewFont', 'Size', FInterfaceFonts[ifTableFont].FFontSize);
+    iniMemFile.WriteString('LogFont', 'Name', FInterfaceFonts[ifLogFont].FFontName);
+    iniMemFile.WriteInteger('LogFont', 'Size', FInterfaceFonts[ifLogFont].FFontSize);
+    For k := Low(TFileOpFont) To High(TFileOpFont) Do
       Begin
-        boolEnabled := lvFileList.SelCount > 0;
-        Item := lvFileList.Selected;
-        While Item <> Nil Do
+        iniMemFile.WriteString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Colour',
+          ColorToString(FFileOpFonts[k].FFontColour));
+        iniMemFile.WriteString('FileOpFonts', FileOperationFontDefaults[k].FININame + 'BGColour',
+          ColorToString(FFileOpFonts[k].FBGFontColour));
+        iniMemFile.WriteInteger('FileOpFonts', FileOperationFontDefaults[k].FININame + 'Style',
+          Byte(FFileOpFonts[k].FFontStyle));
+      End;
+    redtOutputResults.Lines.SaveToFile(ChangeFileExt(FRootKey, '_log.txt'));
+    iniMemFile.WriteInteger('Setup', 'WindowState', Byte(WindowState));
+    iniMemFile.WriteInteger('Setup', 'OutputResultsHeight', redtOutputResults.Height);
+    iniMemFile.WriteString('Setup', 'CompareEXE', FCompareEXE);
+    iniMemFile.WriteInteger('DlgWidths', 'CopyDlg', FCopyDlgWidth);
+    iniMemFile.WriteInteger('DlgWidths', 'DeleteDlg', FDeleteDlgWidth);
+    iniMemFile.WriteInteger('DlgWidths', 'ConfirmDlg', FConfirmDlgWidth);
+    iniMemFile.WriteInteger('Setup', 'FileOpStats', Byte(FFileOpStats));
+    iniMemFile.WriteString('Setup', 'Theme', TStyleManager.ActiveStyle.Name);
+    If FParams.Count = 0 Then
+      Begin
+        For j := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
+          iniMemFile.WriteBool(strFldrSyncOptions[j].FINISection, strFldrSyncOptions[j].FINIKey,
+            j In FFldrSyncOptions);
+        iniMemFile.EraseSection('Folders');
+        iniMemFile.EraseSection('FolderStatus');
+        iniMemFile.EraseSection('FolderMaxFileSize');
+        iniMemFile.EraseSection('NewFolders');
+        iniMemFile.EraseSection('NewFolderStatus');
+        iniMemFile.EraseSection('NewFolderMaxFileSize');
+        For i := 0 To FFolders.Count - 1 Do
           Begin
-            boolEnabled := boolEnabled And (Item.StateIndex <> Tag);
-            Case TFileOp(Tag) Of
-              foLeftToRight:
-                If lvFileList.Items[Item.Index].SubItems[iLDisplayCol - 1] = '' Then
-                  boolEnabled := False;
-              foRightToLeft:
-                If lvFileList.Items[Item.Index].SubItems[iRDisplayCol - 1] = '' Then
-                  boolEnabled := False;
-            End;
-            Item := lvFileList.GetNextItem(Item, sdAll, [isSelected]);
-          End; 
-        Enabled := boolEnabled;
-      End;        
+            iniMemFile.WriteString('NewFolders', Format('Folder%2.2d', [i]),
+              FFolders.Folder[i].LeftFldr + FFolders.Folder[i].Patterns + '|' +
+              FFolders.Folder[i].RightFldr + FFolders.Folder[i].Patterns);
+            Ops := FFolders.Folder[i].SyncOptions;
+            Exclude(Ops, soTempDisabled);
+            iniMemFile.WriteInteger('NewFolderStatus', Format('Folder%2.2d', [i]), SmallInt(Ops));
+            iMaxValue.Value := FFolders.Folder[i].MaxFileSize;
+            iniMemFile.WriteString('NewFolderMaxFileSize', Format('Folder%2.2d', [i]),
+              Format('%d,%d,%d,%d', [iMaxValue.iFirst, iMaxValue.iSecond,
+                iMaxValue.iThird, iMaxValue.iFourth]));
+          End;
+        iniMemFile.WriteString('Setup', 'Exclusions', StringReplace(FExclusions, #13#10, '|',
+            [rfReplaceAll]));
+        //FExclusions := StringReplace(ReadString('Setup', 'Exclusions', ''), '|', #13#10,
+        //  [rfReplaceAll]);
+      End;
+    iniMemFile.WriteInteger('MemoryMonitor', 'UpdateInterval', DGHMemoryMonitor.UpdateInterval);
+    iniMemFile.WriteString('MemoryMonitor', 'BackColour', ColorToString(DGHMemoryMonitor.BackColour));
+    iniMemFile.WriteString('MemoryMonitor', 'BackFontColour', ColorToString(DGHMemoryMonitor.BackFontColour));
+    iniMemFile.WriteString('MemoryMonitor', 'HighColour', ColorToString(DGHMemoryMonitor.HighColour));
+    iniMemFile.WriteString('MemoryMonitor', 'HalfColour', ColorToString(DGHMemoryMonitor.HalfColour));
+    iniMemFile.WriteString('MemoryMonitor', 'LowColour', ColorToString(DGHMemoryMonitor.LowColour));
+    iniMemFile.WriteString('MemoryMonitor', 'HighFontColour', ColorToString(DGHMemoryMonitor.HighFontColour));
+    iniMemFile.WriteString('MemoryMonitor', 'HalfFontColour', ColorToString(DGHMemoryMonitor.HalfFontColour));
+    iniMemFile.WriteString('MemoryMonitor', 'LowFontColour', ColorToString(DGHMemoryMonitor.LowFontColour));
+    iniMemFile.WriteInteger('MemoryMonitor', 'LowPoint', DGHMemoryMonitor.LowPoint);
+    iniMemFile.WriteInteger('MemoryMonitor', 'HalfPoint', DGHMemoryMonitor.HalfPoint);
+    iniMemFile.WriteInteger('MemoryMonitor', 'HighPoint', DGHMemoryMonitor.HighPoint);
+    iniMemFile.WriteString('MemoryMonitor', 'FontName', DGHMemoryMonitor.Font.Name);
+    iniMemFile.WriteInteger('MemoryMonitor', 'FontSize', DGHMemoryMonitor.Font.Size);
+    iniMemFile.WriteInteger('MemoryMonitor', 'FontStyle', Byte(DGHMemoryMonitor.Font.Style));
+    iniMemFile.WriteInteger('MemoryMonitor', 'Width', DGHMemoryMonitor.Width);
+    iniMemFile.UpdateFile;
+  Finally
+    iniMemFile.Free;
+  End;
 End;
 
 (**
@@ -1881,11 +2733,11 @@ End;
   @precon  None.
   @postcon Outputs the results of the search.
 
-  @param   iFileCount as an Integer
-  @param   iTotalSize as an int64
+  @param   iFileCount as an Integer as a constant
+  @param   iTotalSize as an int64 as a constant
 
 **)
-Procedure TfrmMainForm.SearchEndProc(iFileCount: Integer; iTotalSize: int64);
+Procedure TfrmMainForm.SearchEndProc(Const iFileCount: Integer; Const iTotalSize: int64);
 
 Begin
   FProgressForm.Progress(FProgressSection, 1, ' Done!', '');
@@ -1898,24 +2750,24 @@ End;
   This is an on search event handler for the sync module.
 
   @precon  None.
-  @postcon Updates the progress dialogue with the current number of files found and the 
-           current folder and filename being searched.
+  @postcon Updates the progress dialogue with the current number of files found and the current folder 
+           and filename being searched.
 
-  @param   strFolder   as a String
-  @param   strFileName as a String
-  @param   iCount      as an Integer
-  @param   Update      as a TUpdateType
+  @param   strFolder   as a String as a constant
+  @param   strFileName as a String as a constant
+  @param   iCount      as an Integer as a constant
+  @param   Update      as a TUpdateType as a constant
 
 **)
-Procedure TfrmMainForm.SearchProc(strFolder, strFileName: String; iCount: Integer;
-  Update : TUpdateType);
+Procedure TfrmMainForm.SearchProc(Const strFolder, strFileName: String; Const iCount: Integer;
+  Const Update : TUpdateType);
 
 Begin
   If strFolder = FLastFolder Then
     Begin
       If (iCount Mod 10 = 0) Or (Update = utImmediate) Then
-        FProgressForm.Progress(FProgressSection, 0, Format('Searching: %s... %1.0n',
-            [strFolder, Int(iCount)]), strFileName);
+        FProgressForm.Progress(FProgressSection, 0, Format('Searching... %1.0n',
+            [Int(iCount)]), strFolder + strFileName);
     End Else
       FLastFolder := strFolder;
 End;
@@ -1927,13 +2779,15 @@ End;
   @precon  None.
   @postcon Increments the progress section and initialises the progress bar.
 
-  @param   strFolder as a String
+  @nohint  strFolder
+
+  @param   strFolder as a String as a constant
 
 **)
-Procedure TfrmMainForm.SearchStartProc(strFolder: String);
+Procedure TfrmMainForm.SearchStartProc(Const strFolder: String);
 
 Begin
-  OutputResult(Format('Searching: %s', [strFolder]));
+  OutputResult('Searching...');
   Inc(FProgressSection);
   FProgressForm.InitialiseSection(FProgressSection, 0, 1);
 End;
@@ -1943,33 +2797,35 @@ End;
   This method sets the file operations for the selected list view items.
 
   @precon  None.
-  @postcon Sets the selected items in the list view to the File op state passed
-           while also checking that the operation is valid for that item.
+  @postcon Sets the selected items in the list view to the File op state passed while also checking that
+           the operation is valid for that item.
 
-  @param   FileOp as a TFileOp
+  @param   FileOp as a TFileOp as a constant
 
 **)
-Procedure TfrmMainForm.SetFileOperation(FileOp: TFileOp);
+Procedure TfrmMainForm.SetFileOperation(Const FileOp: TFileOp);
 
 Var
-  i: Integer;
+  Node : PVirtualNode;
+  NodeData : PFSFileListNode;
 
 Begin
-  For i := 0 To lvFileList.Items.Count - 1 Do
+  Node := vstFileList.GetFirstSelected();
+  While Assigned(Node) Do
     Begin
-      If lvFileList.Items[i].Selected Then
-        Begin
-          Case FileOp Of
-            foLeftToRight:
-              If lvFileList.Items[i].SubItems[iLDisplayCol - 1] = '' Then
-                Continue;
-            foRightToLeft:
-              If lvFileList.Items[i].SubItems[iRDisplayCol - 1] = '' Then
-                Continue;
-          End;
-          lvFileList.Items[i].StateIndex := Integer(FileOp);
-          FSyncModule.Process[i].FileOp := FileOp;
-        End;
+      NodeData := vstFileList.GetNodeData(Node);
+      Case FileOp Of
+        foLeftToRight:
+          If NodeData.FLeftFilename = '' Then
+            Continue;
+        foRightToLeft:
+          If NodeData.FRightFilename = '' Then
+            Continue;
+      End;
+      NodeData.FState := FileOp;
+      FSyncModule.Process[NodeData.FProcessIndex].FileOp := FileOp;
+      vstFileList.InvalidateNode(Node);
+      Node := vstFileList.GetNextSelected(Node);
     End;
   OutputStats;
 End;
@@ -1998,12 +2854,12 @@ End;
   @precon  None.
   @postcon Renders the Panels with bold text for the title and the rest as panel text.
 
-  @param   StatusBar as a TStatusBar
-  @param   Panel     as a TStatusPanel
-  @param   Rect      as a TRect as a constant
+  @param   Sender as a TStatusBar
+  @param   Panel  as a TStatusPanel
+  @param   Rect   as a TRect as a constant
 
 **)
-Procedure TfrmMainForm.stbrStatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
+Procedure TfrmMainForm.stbrStatusBarDrawPanel(Sender: TStatusBar; Panel: TStatusPanel;
   Const Rect: TRect);
 
 Var
@@ -2015,15 +2871,16 @@ Begin
   iPos := Pos(':', Panel.Text);
   strText := Copy(Panel.Text, 1, iPos);
   R := Rect;
-  StatusBar.Canvas.FillRect(R);
+  Sender.Canvas.Font.Assign(Sender.Font);
+  Sender.Canvas.FillRect(R);
   Inc(R.Left, 4);
-  StatusBar.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);
-  StatusBar.Canvas.Font.Style := [fsBold];
-  StatusBar.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
-  Inc(R.Left, StatusBar.Canvas.TextWidth(strText) + 2);
-  StatusBar.Canvas.Font.Style := [];
+  Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);
+  Sender.Canvas.Font.Style := [fsBold];
+  Sender.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
+  Inc(R.Left, Sender.Canvas.TextWidth(strText) + 2);
+  Sender.Canvas.Font.Style := [];
   strText := Copy(Panel.Text, iPos + 1, Length(Panel.Text) - iPos);
-  StatusBar.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
+  Sender.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
 End;
 
 (**
@@ -2033,11 +2890,11 @@ End;
   @precon  None.
   @postcon Updates the applications task bar with the current progress position.
 
-  @param   iPosition    as an Integer
-  @param   iMaxPosition as an Integer
+  @param   iPosition    as an Integer as a constant
+  @param   iMaxPosition as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.UpdateProgress(iPosition, iMaxPosition: Integer);
+Procedure TfrmMainForm.UpdateProgress(Const iPosition, iMaxPosition: Integer);
 
 Begin
   UpdateTaskBar(ptNormal, iPosition, iMaxPosition);
@@ -2045,19 +2902,19 @@ End;
 
 (**
 
-  This method updates the windows taskbar progress in windows 7 and above. The progress
-  of the bar is only updated IF the progress type is normal.
+  This method updates the windows taskbar progress in windows 7 and above. The progress of the bar is 
+  only updated IF the progress type is normal.
 
   @precon  None.
   @postcon The progress bar on the applications taskbar is updated.
 
-  @param   ProgressType as a TTaskbarProgressType
-  @param   iPosition    as an Integer
-  @param   iMaxPosition as an Integer
+  @param   ProgressType as a TTaskbarProgressType as a constant
+  @param   iPosition    as an Integer as a constant
+  @param   iMaxPosition as an Integer as a constant
 
 **)
-Procedure TfrmMainForm.UpdateTaskBar(ProgressType: TTaskbarProgressType;
-  iPosition: Integer = 0; iMaxPosition: Integer = 100);
+Procedure TfrmMainForm.UpdateTaskBar(Const ProgressType: TTaskbarProgressType;
+  Const iPosition: Integer = 0; Const iMaxPosition: Integer = 100);
 
 Const
   ProgressTypeValues: Array [Low(TTaskbarProgressType) .. High(TTaskbarProgressType)
@@ -2075,17 +2932,15 @@ End;
 
 (**
 
-  This method upgrades the old limited Folder options in the INI file to more flexible 
-  options.
+  This method upgrades the old limited Folder options in the INI file to more flexible options.
 
   @precon  iniMemFile must be a valid instance.
-  @postcon Upgrades the old limited Folder options in the INI file to more flexible 
-           options.
+  @postcon Upgrades the old limited Folder options in the INI file to more flexible options.
 
-  @param   iniMemFile as a TMemIniFile
+  @param   iniMemFile as a TMemIniFile as a constant
 
 **)
-Procedure TfrmMainForm.UpgradeINIFolderOptions(iniMemFile: TMemIniFile);
+Procedure TfrmMainForm.UpgradeINIFolderOptions(Const iniMemFile: TMemIniFile);
 
 Var
   sl : TStringList;
@@ -2115,1222 +2970,222 @@ End;
 
 (**
 
-  This is an on execute event handler for the CopyRightToLeft action.
+  This is an on before cell paint event handler for the virtual treeview.
 
   @precon  None.
-  @postcon Sets the selected items in the list view to be Copies from Right
-           to Left.
+  @postcon Paints the cell background according to the left or right file status.
 
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.actEditCopyRightToLeftExecute(Sender: TObject);
-
-Begin
-  SetFileOperation(foRightToLeft);
-End;
-
-(**
-
-  This is an on execute event handler for the Delete action.
-
-  @precon  None.
-  @postcon Sets the selected items in the list view to be Deleted.
-
-  @param   Sender as a TObject
+  @param   Sender        as a TBaseVirtualTree
+  @param   TargetCanvas  as a TCanvas
+  @param   Node          as a PVirtualNode
+  @param   Column        as a TColumnIndex
+  @param   CellPaintMode as a TVTCellPaintMode
+  @param   CellRect      as a TRect
+  @param   ContentRect   as a TRect as a reference
 
 **)
-Procedure TfrmMainForm.actEditDeleteExecute(Sender: TObject);
-
-Begin
-  SetFileOperation(foDelete);
-End;
-
-(**
-
-  This is an on execute event handler for the DoNothing action.
-
-  @precon  None.
-  @postcon Sets the selected items in the listview to DoNothing.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.actEditDoNothingExecute(Sender: TObject);
-
-Begin
-  SetFileOperation(foNothing);
-End;
-
-(**
-
-  This method enables all actions.
-
-  @precon  None.
-  @postcon All actions are enabled.
-
-  @param   boolSuccess as a Boolean
-
-**)
-Procedure TfrmMainForm.EnableActions(boolSuccess: Boolean);
+Procedure TfrmMainForm.vstFileListBeforeCellPaint(Sender: TBaseVirtualTree;
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  CellPaintMode: TVTCellPaintMode; CellRect: TRect; Var ContentRect: TRect);
 
 Var
-  i: Integer;
-  A: TAction;
-
-Begin
-  For i := 0 To ComponentCount - 1 Do
-    If Components[i] Is TAction Then
-      Begin
-        A := Components[i] As TAction;
-        If boolSuccess Then
-          A.Enabled := True
-        Else If A.Name <> 'actFileProcessFiles' Then
-          A.Enabled := True;
-      End;
-End;
-
-(**
-
-  This is an on error message event handler for outputting error message from the deleting
-  ans copying process.
-
-  @precon  None.
-  @postcon Outputs an error message to the log file.
-
-  @param   strErrorMsg as a String
-
-**)
-Procedure TfrmMainForm.ErrorMessage(strErrorMsg : String);
-
-Begin
-  OutputResultLn(Format('  %s', [strErrorMsg]));
-End;
-
-(**
-
-  This is an on error message end event handler for the outputting of error messages from
-  the deleting and copying processes.
-
-  @precon  None.
-  @postcon Does nothing.
-
-**)
-Procedure TfrmMainForm.ErrorMessageEnd;
-
-Begin
-End;
-
-(**
-
-  This is an on error message start event handler for the outputting of error messages
-  from the deleting and copyin processes.
-
-  @precon  None.
-  @postcon Ouputs an error message header to the log file if there are errors to output.
-
-  @param   iFileCount as an Integer
-
-**)
-Procedure TfrmMainForm.ErrorMessageStart(iFileCount: Integer);
-
-Begin
-  If iFileCount > 0 Then
-    OutputResultLn(Format('%1.0n Files had errors...', [Int(iFileCount)]));
-End;
-
-(**
-
-  This is an on exceeeds size limit event handler.
-
-  @precon  None.
-  @postcon Outputs the given file to the log.
-
-  @param   iFile       as an Integer
-  @param   iFileCount  as an Integer
-  @param   strLPath    as a String
-  @param   strRPath    as a String
-  @param   strFileName as a String
-
-**)
-Procedure TfrmMainForm.ExceedsSizeLimit(iFile, iFileCount: Integer; strLPath, strRPath,
-    strFileName: String);
-
-Begin
-  OutputFileNumber(iFile, iFileCount);
-  OutputResultLn(Format('%s => %s%s', [strLPath, strRPath, strFileName]));
-End;
-
-(**
-
-  This is an on exceeds size limit end event handler.
-
-  @precon  None.
-  @postcon Does nothing.
-
-**)
-Procedure TfrmMainForm.ExceedsSizeLimitEnd;
-
-Begin
-End;
-
-(**
-
-  This is an on exceeds size limit start event handler.
-
-  @precon  None.
-  @postcon Outputs a header for the list of over sizeed files in the log.
-
-  @param   iFileCount as an Integer
-
-**)
-Procedure TfrmMainForm.ExceedsSizeLimitStart(iFileCount: Integer);
-
-Begin
-  If iFileCount > 0 Then
-    OutputResultLn(Format('%1.0n Files exceeding Size Limit...', [Int(iFileCount)]));
-End;
-
-(**
-
-  This is an exception handling message for the BuildRootKey method.
-
-  @precon  None.
-  @postcon Displays the exception message in a dialogue.
-
-  @param   strExceptionMsg as a String
-
-**)
-Procedure TfrmMainForm.ExceptionProc(strExceptionMsg: String);
-
-Begin
-  MessageDlg(strExceptionMsg, mtError, [mbOK], 0);
-End;
-
-(**
-
-  This a an on execute event handler for the Process Files action.
-
-  @precon  None.
-  @postcon Firstly, it deletes any files need to be deleted from the list, then
-           copies any files that need to be copied and finally refreshes the
-           information in the list view.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.actFileProcessFilesExecute(Sender: TObject);
-
-Var
-  boolAbort : Boolean;
+  NodeData : PFSFileListNode;
   
 Begin
-  If TfrmDiskSpace.Execute(FSyncModule) Then
-    Begin
-      OutputResultLn('Processing started @ ' + FormatDateTime('dddd dd mmmm yyyy hh:mm:ss',
-        Now()));
-      Try
-        boolAbort := False;
-        DisableActions;
-        Try
-          Try
-            FSyncModule.ProcessFiles(FFldrSyncOptions);
-          Except
-            On E : EAbort Do boolAbort := True;
-            On E : Exception Do
-              {$IFDEF EUREKALOG_VER7}
-              If Not (ExceptionManager.StandardEurekaNotify(ExceptObject,
-                ExceptAddr).ErrorCode = ERROR_SUCCESS) Then
-                {$ENDIF}
-              MessageDlg(E.Message, mtError, [mbOK], 0);
-          End;
-        Finally
-          EnableActions(True);
+  NodeData := Sender.GetNodeData(Node);
+  If CellPaintMode = cpmPaint Then
+    Case TFSVTVFields(Column) Of
+      vfLeftFileName..vfLeftDate:
+        Begin
+          If Sender.Selected[Node] Then
+            TargetCanvas.Brush.Color := StyleServices.GetSystemColor(clHighlight)
+          Else If (NodeData.FLeftAttr And FILE_ATTRIBUTE_READONLY <> 0) Then
+            TargetCanvas.Brush.Color :=
+              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour)
+          Else
+            TargetCanvas.Brush.Color :=
+              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(NodeData.FState)].FBGFontColour);
+          TargetCanvas.FillRect(CellRect);
         End;
-        actFileProcessFiles.Enabled := Not boolAbort
-      Finally
-        OutputResultLn();
-      End;
-      If Not boolAbort Then
-        actFileCompareExecute(Self);
-    End;
-End;
-
-(**
-
-  This is an on execute event hanlder for the Help About action.
-
-  @precon  None.
-  @postcon Displays the about dialogue.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.actHelpAboutExecute(Sender: TObject);
-
-Begin
-  TfrmAboutDialogue.ShowAbout(Self);
-End;
-
-(**
-
-  This is an on execute event handler for the Chekc for updates action.
-
-  @precon  None.
-  @postcon Checks for updates on the Internet.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.actHelpCheckForUpdatesExecute(Sender: TObject);
-
-Begin
-  TCheckForUpdates.Execute(strSoftwareID, FRootKey, Sender = actHelpCheckForUpdates);
-End;
-
-(**
-
-  This is an on execute event handler for the Help Contents action.
-
-  @precon  None.
-  @postcon Displays the Contents and Welcome page of the HTML Help.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.actHelpContentsExecute(Sender: TObject);
-
-Begin
-  Application.HelpShowTableOfContents;
-End;
-
-(**
-
-  This is an on execute event handler for the Select All action.
-
-  @precon  None.
-  @postcon Selects all the items in the list.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.actEditSelectAllExecute(Sender: TObject);
-
-Var
-  i: Integer;
-
-Begin
-  With lvFileList Do
-    Begin
-      Items.BeginUpdate;
-      Try
-        For i               := 0 To Items.Count - 1 Do
-          Items[i].Selected := True;
-      Finally
-        Items.EndUpdate;
-      End;
-    End;
-End;
-
-(**
-
-  This method checks that all the folders exist and provides an option to create
-  them if they don`t. If it can not find a directory and can not create the
-  directory the function returns false else success is indicated by returning
-  True.
-
-  @precon  None.
-  @postcon Check the existence of the directories in the folders string list.
-           Returns true if they exist or are created else returns false.
-
-  @return  a Boolean
-
-**)
-Function TfrmMainForm.CheckFolders: Boolean;
-
-  (**
-
-    This is a local method to check and confirm the creation of a folder. It raises an 
-    exception if the folder could not be created. The drive of the folder mapping is
-    returned in the strDrive var parameter.
-
-    @precon  None.
-    @postcon Checks and confirms the creation of a folder. It raises an exception if the 
-             folder could not be created.
-
-    @param   strFolder as a String
-    @param   strDrive  as a String as a reference
-    @return  a Boolean
-
-  **)
-  Function CheckAndCreateFolder(strFolder: String;  var strDrive : String) : Boolean;
-
-  Const
-    strExcepMsg  = 'Could not create the folder "%s".';
-    strCreateMsg = 'The folder "%s" does not exist. Would you like to create ' +
-      'this folder?';
-    strDriveMsg = 'The drive "%s" for directory "%s" does not exist. Would you like ' +
-      'to ignore or cancel?';
-
-  Var
-    strPath: String;
-
-  Begin
-    Result := False;
-    strDrive := ExtractFileDrive(strFolder);
-    strPath := ExtractFilePath(strFolder);
-    If Not SysUtils.DirectoryExists(strDrive + '\') Then
-      Case MessageDlg(Format(strDriveMsg, [strDrive, strPath]), mtConfirmation,
-        [mbIgnore, mbCancel], 0) Of
-        mrIgnore:
-          Begin
-            Result := True;
-            Exit;
-          End;
-        mrCancel: Abort;
-      End;
-    If Not SysUtils.DirectoryExists(strPath) Then
-      Case MessageDlg(Format(strCreateMsg, [strPath]), mtConfirmation,
-        [mbYes, mbNo, mbCancel], 0) Of
-        mrYes:
-          If Not SysUtils.ForceDirectories(strPath) Then
-            Raise TFolderNotFoundException.CreateFmt(strExcepMsg, [strPath]);
-        mrIgnore: Result := True;
-        mrCancel: Abort;
-      End;
-  End;
-
-  (**
-
-    This method disabled all folder pairs with the given drive mapping.
-
-    @precon  None.
-    @postcon Disabled all folder pairs with the given drive mapping.
-
-    @param   strDrive as a String
-
-  **)
-  Procedure DisableDrive(strDrive : String);
-
-  Var
-    i : Integer;
-    F : TFolder;
-    
-  Begin
-    For i := 0 To FFolders.Count - 1 Do
-      Begin
-        F := FFolders.Folder[i];
-        If (CompareText(Copy(F.LeftFldr, 1, Length(strDrive)), strDrive) = 0) Or
-           (CompareText(Copy(F.RightFldr, 1, Length(strDrive)), strDrive) = 0) Then
-          F.SyncOptions := F.SyncOptions + [soTempDisabled];
-      End;
-  End;
-
-Var
-  i: Integer;
-  strDrive: String;
-
-Begin
-  For i := 0 To FFolders.Count - 1 Do
-    If [soEnabled, soTempDisabled] * FFolders.Folder[i].SyncOptions = [soEnabled] Then
-      Begin
-        If CheckAndCreateFolder(FFolders.Folder[i].LeftFldr, strDrive) Then
-          Begin
-            DisableDrive(strDrive);
-            Continue;
-          End;
-        If CheckAndCreateFolder(FFolders.Folder[i].RightFldr, strDrive) Then
-          DisableDrive(strDrive);
-      End Else
-      Begin
-        If soTempDisabled In FFolders.Folder[i].SyncOptions Then
-          Begin
-            If SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].LeftFldr) + '\') And
-             SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].RightFldr) + '\') Then
-             FFolders.Folder[i].SyncOptions := FFolders.Folder[i].SyncOptions - [soTempDisabled];
-          End;
-      End;
-  Result := True;
-End;
-
-(**
-
-  This is an on timer event handler.
-
-  @precon  None.
-  @postcon Closes the application.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.CloseTimerEvent(Sender: TObject);
-
-Begin
-  Close;
-End;
-
-(**
-
-  This is an on compare end event handler for the sync module.
-
-  @precon  None.
-  @postcon None.
-
-**)
-Procedure TfrmMainForm.CompareEndProc;
-
-Begin
-  FProgressForm.Progress(FProgressSection, 100, 'Done.', '');
-  OutputResultLn('Done.');
-End;
-
-(**
-
-  This is an on compare event handler for the sync module.
-
-  @precon  None.
-  @postcon Updates the progress dialogue with the current progress through the comparison
-           process.
-
-  @param   strLeftFldr  as a String
-  @param   strRightFldr as a String
-  @param   strFileName  as a String
-  @param   iPosition    as an Integer
-  @param   iMaxItems    as an Integer
-
-**)
-Procedure TfrmMainForm.CompareProc(strLeftFldr, strRightFldr, strFileName: String;
-  iPosition, iMaxItems: Integer);
-
-Begin
-  If iPosition Mod 10 = 0 Then
-    FProgressForm.Progress(FProgressSection, Trunc(iPosition / iMaxItems * 100.0),
-      Format('Comparing... %1.0n in %1.0n', [Int(iPosition), Int(iMaxItems)]),
-      strFileName);
-End;
-
-(**
-
-  This is an on compare start event handler for the sync module.
-
-  @precon  None.
-  @postcon Increments the progress section and initialises the progress dialogue.
-
-  @param   strLeftFldr  as a String
-  @param   strRightFldr as a String
-
-**)
-Procedure TfrmMainForm.CompareStartProc(strLeftFldr, strRightFldr: String);
-
-Begin
-  OutputResult(Format('Comparing: ', [strLeftFldr, strRightFldr]));
-  Inc(FProgressSection);
-  FProgressForm.InitialiseSection(FProgressSection, 0, 100);
-End;
-
-(**
-
-  This is an on copied event handler for the sync module.
-
-  @precon  None.
-  @postcon Updates the copy progress or if an error outputs the error message.
-
-  @param   iCurrentFileToCopy           as an Integer
-  @param   iTotalFilesToCopy            as an Integer
-  @param   iCumulativeFileSizeAfterCopy as an Int64
-  @param   iTotalFileSizeToCopy         as an Int64
-  @param   iSuccess                     as a TProcessSuccess
-
-**)
-Procedure TfrmMainForm.CopiedProc(iCurrentFileToCopy, iTotalFilesToCopy: Integer;
-    iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy: Int64;
-    iSuccess : TProcessSuccess);
-
-Begin
-  FCopyForm.IndividualProgress(0, 0 ,iCumulativeFileSizeAfterCopy, iTotalFileSizeToCopy);
-  If FTotalSize = 0 Then
-    Inc(FTotalSize);
-  Case iSuccess Of
-    psSuccessed: OutputResultLn();
-    psFailed: OutputResultLn(
-      Format(' Error Copying file (error type ignored [%s]).', [FSyncModule.LastError]));
-    //psIgnored: OutputResultLn(' Ignored Copying file.');
-  End;
-End;
-
-(**
-
-  This is an on copy contents event handler for the sync module.
-
-  @precon  None.
-  @postcon Updates the progress of the individual file copy.
-
-  @param   iCurrentFileToCopy            as an Integer
-  @param   iTotalFilesToCopy             as an Integer
-  @param   iCumulativeFileSizeBeforeCopy as an Int64
-  @param   iTotalFileSizeToCopy          as an Int64
-  @param   iCurrentFileCopiedSizeSoFar   as an Int64
-  @param   iTotalCurrentFileSize         as an Int64
-
-**)
-Procedure TfrmMainForm.CopyContentsProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
-    iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy, iCurrentFileCopiedSizeSoFar,
-    iTotalCurrentFileSize: Int64);
-
-Begin
-  FCopyForm.IndividualProgress(iCurrentFileCopiedSizeSoFar, iTotalCurrentFileSize,
-    iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy);
-End;
-
-(**
-
-  This is an on copy end event handler for the sync Module.
-
-  @precon  None.
-  @postcon Outputs the number of files copied, skipped, etc and frees the copy dialogue.
-
-  @param   iCopied  as an Integer
-  @param   iSkipped as an Integer
-  @param   iError   as an Integer
-
-**)
-Procedure TfrmMainForm.CopyEndProc(iCopied, iSkipped, iError: Integer);
-
-Begin
-  OutputResult(Format('  Copied %1.0n (Skipped %1.0n file(s)',
-    [Int(iCopied), Int(iSkipped)]));
-  If iError > 0 Then
-    OutputResult(Format(', Errored %1.0n file(s)', [Int(iError)]));
-  OutputResultLn(')');
-  If FCopyForm <> Nil Then
-    FCopyDlgWidth := FCopyForm.Width;
-  FreeAndNil(FCopyForm);
-End;
-
-(**
-
-  This is an on error copting event handler for the processing of the files.
-
-  @precon  None.
-  @postcon Displays the error message on the screen and asks the user what to do.
-
-  @param   strSource   as a String
-  @param   strDest     as a String
-  @param   strErrorMsg as a String
-  @param   iLastError  as a Cardinal
-  @param   iResult     as a TDGHErrorResult as a reference
-
-**)
-Procedure TfrmMainForm.CopyError(strSource, strDest, strErrorMsg: String;
-  iLastError: Cardinal; Var iResult: TDGHErrorResult);
-
-Begin
-  UpdateTaskBar(ptError, 0, 1);
-  OutputResultLn();
-  OutputResultLn('    An error has occurred during the copying of files:');
-  OutputResultLn(Format('      Source     : %s', [strSource]));
-  OutputResultLn(Format('      Destination: %s', [strDest]));
-  OutputResultLn(Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]));
-  OutputResult('    Do you want to [I]gnore Once, Ignore [A]ll the errors or [S]top processing? ');
-  Case TfrmErrorDlg.Execute('An error has occurred during the copying of files', 
-    strSource, strDest, Format('(%d) %s', [iLastError, strErrorMsg])) Of
-    mrIgnore:
-      Begin
-        iResult := derIgnoreOnce;
-        OutputResultLn('I');
-      End;
-    mrYesToAll:
-      Begin
-        iResult := derIgnoreAll;
-        OutputResultLn('A');
-      End;
-    mrAbort:
-      Begin
-        iResult := derStop;
-        OutputResultLn('S');
-      End;
-  End;
-End;
-
-(**
-
-  This is an on copying event handler for the sync module.
-
-  @precon  None.
-  @postcon Updates the copy dialogue.
-
-  @param   iCurrentFileToCopy            as an Integer
-  @param   iTotalFilesToCopy             as an Integer
-  @param   iCumulativeFileSizeBeforeCopy as an Int64
-  @param   iTotalFileSizeToCopy          as an Int64
-  @param   strSource                     as a String
-  @param   strDest                       as a String
-  @param   strFileName                   as a String
-
-**)
-Procedure TfrmMainForm.CopyingProc(iCurrentFileToCopy, iTotalFilesToCopy : Integer;
-    iCumulativeFileSizeBeforeCopy, iTotalFileSizeToCopy: Int64; strSource, strDest,
-    strFileName: String);
-
-Begin
-  FCopyForm.Progress(
-    iCurrentFileToCopy,
-    iTotalFilesToCopy,
-    ExtractFilePath(strSource + strFileName),
-    ExtractFilePath(strDest + strFileName),
-    ExtractFileName(strFileName)
-  );
-  OutputFileNumber(iCurrentFileToCopy, iTotalFilesToCopy);
-  OutputResult(Format('%s => %s%s', [strSource, strDest, strFilename]));
-End;
-
-(**
-
-  This is an on copy query event handler for the sync module.
-
-  @precon  None.
-  @postcon Displays a confirmation dialogue to the user to ask whether the file should be
-           overwritten.
-
-  @param   strSourcePath as a String
-  @param   strDestPath   as a String
-  @param   SourceFile    as a TFileRecord
-  @param   DestFile      as a TFileRecord
-  @param   Option        as a TFileAction as a reference
-
-**)
-Procedure TfrmMainForm.CopyQueryProc(strSourcePath, strDestPath: String;
-  SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
-
-Const
-  strMsg = 'Are you sure you want to overwrite the following file?';
-  strConsoleMsg = ' Overwrite (Y/N/A/O/C)? ';
-
-Begin
-  FileQuery(strMsg, strConsoleMsg,strSourcePath, strDestPath, SourceFile, DestFile,
-    Option, False);
-End;
-
-(**
-
-  This is an on copy read only query event handler for the sync module.
-
-  @precon  None.
-  @postcon Displays a confirmation dialogue to the user to ask whether the read only file
-           should be overwritten.
-
-  @param   strSourcePath as a String
-  @param   strDestPath   as a String
-  @param   SourceFile    as a TFileRecord
-  @param   DestFile      as a TFileRecord
-  @param   Option        as a TFileAction as a reference
-
-**)
-Procedure TfrmMainForm.CopyReadOnlyQueryProc(strSourcePath, strDestPath: String;
-  SourceFile, DestFile : TFileRecord; Var Option: TFileAction);
-
-Const
-  strMsg = 'Are you sure you want to overwrite the following READ-ONLY file?';
-  strConsoleMsg = ' Overwrite READONLY (Y/N/A/O/C)? ';
-
-Begin
-  FileQuery(strMsg, strConsoleMsg, strSourcePath, strDestPath, SourceFile, DestFile,
-    Option, True);
-End;
-
-(**
-
-  This is an on copy start event handler for the sync module.
-
-  @precon  None.
-  @postcon Initialises the copy progress dialogue.
-
-  @param   iTotalCount as an Integer
-  @param   iTotalSize  as an int64
-
-**)
-Procedure TfrmMainForm.CopyStartProc(iTotalCount: Integer; iTotalSize: int64);
-
-Begin
-  FTotalSize := iTotalSize;
-  OutputResultLn(Format('Copying %1.0n files (%1.0n bytes)',
-      [Int(iTotalCount), Int(iTotalSize)]));
-  If iTotalCount > 0 Then
-    Begin
-      FCopyForm                  := TfrmCopyProgress.Create(Self);
-      FCopyForm.OnUpdateProgress := UpdateProgress;
-      FCopyForm.Initialise(iTotalCount, iTotalSize, FCopyDlgWidth);
-      FDialogueBottom := FCopyForm.Top + FCopyForm.Height;
-    End;
-End;
-
-(**
-
-  This method displays a dialogue asking the user to confirm the file action they wish to 
-  take based on the message displayed. The answer to the dialogue is returned to the sync 
-  module.
-
-  @precon  None.
-  @postcon The users response to the query is passed back to the sync module.
-
-  @param   strMsg        as a String
-  @param   strConsoleMsg as a String
-  @param   strSourcePath as a String
-  @param   strDestPath   as a String
-  @param   SourceFile    as a TFileRecord
-  @param   DestFile      as a TFileRecord
-  @param   Option        as a TFileAction as a reference
-  @param   boolReadOnly  as a Boolean
-
-**)
-Procedure TfrmMainForm.FileQuery(strMsg, strConsoleMsg, strSourcePath,
-  strDestPath: String; SourceFile, DestFile : TFileRecord; Var Option: TFileAction;
-  boolReadOnly : Boolean);
-
-Begin
-  If (Not (Option In [faYesToAll, faNoToAll])     And Not boolReadOnly) Or
-     (Not (Option In [faYesToAllRO, faNoToAllRO]) And     boolReadOnly) Then
-    Begin
-      OutputResult(strConsoleMsg);
-      UpdateTaskBar(ptError, 0, 1);
-      Case TfrmConfirmationDlg.Execute(Self, strMsg, strSourcePath, strDestPath,
-        SourceFile, DestFile, FDialogueBottom, FConfirmDlgWidth) Of
-        mrYes:
-          Option := faYes;
-        mrNo:
-          Option := faNo;
-        mrAll:
-          If Not boolReadOnly Then
-            Option := faYesToAll
+      vfRightFilename..vfRightDate:
+        Begin
+          If Sender.Selected[Node] Then
+            TargetCanvas.Brush.Color := StyleServices.GetSystemColor(clHighlight)
+          Else If (NodeData.FRightAttr And FILE_ATTRIBUTE_READONLY <> 0) Then
+            TargetCanvas.Brush.Color :=
+              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour)
           Else
-            Option := faYesToAllRO;
-        mrIgnore:
-          If Not boolReadOnly Then
-            Option := faNoToAll
-          Else
-            Option := faNoToAllRO;
-      Else
-        Option := faCancel;
-      End;
-      OutputResult(strFileOptions[Option]);
+            TargetCanvas.Brush.Color :=
+              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(NodeData.FState)].FBGFontColour);
+          TargetCanvas.FillRect(CellRect);
+        End;
     End;
 End;
 
 (**
 
-  This is an on deleted event handler for the sync module.
+  This is an on free event handler for the virtual treeview.
 
   @precon  None.
-  @postcon Updates the progress dialogue is successful or outputs an error message.
+  @postcon Ensures that managed types are freed from the node data.
 
-  @param   iCurrentFileToDeleted          as an Integer
-  @param   iTotalFilesToDelete            as an Integer
-  @param   iCumulativeFileSizeAfterDelete as an Int64
-  @param   iTotalFileSizeToDelete         as an Int64
-  @param   iSuccess                       as a TProcessSuccess
+  @param   Sender as a TBaseVirtualTree
+  @param   Node   as a PVirtualNode
 
 **)
-Procedure TfrmMainForm.DeletedProc(iCurrentFileToDeleted, iTotalFilesToDelete: Integer;
-    iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete: Int64;
-    iSuccess : TProcessSuccess);
-
-Begin
-  FDeleteForm.Progress(iCumulativeFileSizeAfterDelete, iTotalFileSizeToDelete);
-  If FTotalSize = 0 Then
-    Inc(FTotalSize);
-  Case iSuccess Of
-    psSuccessed: OutputResultLn();
-    psFailed: OutputResultLn(
-      Format(' Error Deleting file (error type ignored [%s]).', [FSyncModule.LastError]));
-    //psIgnored: OutputResultLn(' Ignored Copying file.');
-  End;
-End;
-
-(**
-
-  This is an on delete end event handler for the sync module.
-
-  @precon  None.
-  @postcon Frees the deletion progress form.
-
-  @param   iDeleted as an Integer
-  @param   iSkipped as an Integer
-  @param   iErrors  as an Integer
-
-**)
-Procedure TfrmMainForm.DeleteEndProc(iDeleted, iSkipped, iErrors: Integer);
-
-Begin
-  OutputResult(Format('  Deleted %1.0n file(s) (Skipped %1.0n file(s)', [Int(iDeleted),
-    Int(iSkipped)]));
-  If iErrors > 0 Then
-    OutputResult(Format(', Errored %1.0n file(s)', [Int(iErrors)]));
-  OutputResultLn(').');
-  If FDeleteForm <> Nil Then
-    FDeleteDlgWidth := FDeleteForm.Width;
-  FreeAndNil(FDeleteForm);
-End;
-
-(**
-
-  This is an on delete error event handler for the Sync Module.
-
-  @precon  None.
-  @postcon Displays the error message on the screen and asks the user what to do.
-
-  @param   strSource   as a String
-  @param   strErrorMsg as a String
-  @param   iLastError  as a Cardinal
-  @param   iResult     as a TDGHErrorResult as a reference
-
-**)
-Procedure TfrmMainForm.DeleteError(strSource, strErrorMsg: String; iLastError: Cardinal;
-  Var iResult: TDGHErrorResult);
-
-Begin
-  UpdateTaskBar(ptError, 0, 1);
-  OutputResultLn();
-  OutputResultLn('    An error has occurred during the deleting of files:');
-  OutputResultLn(Format('      Source     : %s', [strSource]));
-  OutputResultLn(Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]));
-  OutputResult('    Do you want to [I]gnore Once, Ignore [A]ll the errors or [S]top processing? ');
-  Case TfrmErrorDlg.Execute('An error has occurred during the deleting of files',
-    strSource, '', Format('(%d) %s', [iLastError, strErrorMsg])) Of
-    mrIgnore:
-      Begin
-        iResult := derIgnoreOnce;
-        OutputResultLn('I');
-      End;
-    mrYesToAll:
-      Begin
-        iResult := derIgnoreAll;
-        OutputResultLn('A');
-      End;
-    mrAbort:
-      Begin
-        iResult := derStop;
-        OutputResultLn('S');
-      End;
-  End;
-End;
-
-(**
-
-  This is an on delete folders event handler.
-
-  @precon  None.
-  @postcon Outputs the folder to be deleted to the log and updates the progress.
-
-  @param   iFolder   as an Integer
-  @param   iFolders  as an Integer
-  @param   strFolder as a String
-
-**)
-Procedure TfrmMainForm.DeleteFolders(iFolder, iFolders : Integer; strFolder: String);
-
-Begin
-  FDeleteForm.InitialiseFileName(dtFiles, iFolder, iFolders, strFolder);
-  FDeleteForm.Progress(iFolder, iFolders);
-  OutputFileNumber(iFolder, iFolders);
-  OutputResultLn(strFolder);
-End;
-
-(**
-
-  This is an on delete folders end event handler.
-
-  @precon  None.
-  @postcon Frees the memory used by the form.
-
-**)
-Procedure TfrmMainForm.DeleteFoldersEnd;
-
-Begin
-  If FDeleteForm <> Nil Then  
-    FDeleteDlgWidth := FDeleteForm.Width;
-  FreeAndNil(FDeleteForm);
-End;
-
-(**
-
-  This is an on delete folders start event handler.
-
-  @precon  None.
-  @postcon Outputs the number of folders to be deleted to the log and initialises the
-           delete form.
-
-  @param   iFolderCount as an Integer
-
-**)
-Procedure TfrmMainForm.DeleteFoldersStart(iFolderCount: Integer);
-
-Begin
-  If iFolderCount > 0 Then
-    Begin
-      OutputResultLn('Deleting empty folders...');
-      FDeleteForm                  := TfrmDeleteProgress.Create(Self);
-      FDeleteForm.OnUpdateProgress := UpdateProgress;
-      FDeleteForm.Initialise(dtFolders, iFolderCount, iFolderCount, FDeleteDlgWidth);
-      FDialogueBottom := FDeleteForm.Top + FDeleteForm.Height;
-    End;
-End;
-
-(**
-
-  This method is an on delete query event handler for the sync module.
-
-  @precon  None.
-  @postcon Displays a confirmation dialogue to the user asking whether the file should be
-           deleted.
-
-  @param   strFilePath as a String
-  @param   DeleteFile  as a TFileRecord
-  @param   Option      as a TFileAction as a reference
-
-**)
-Procedure TfrmMainForm.DeleteQueryProc(strFilePath: String; DeleteFile : TFileRecord;
-  Var Option: TFileAction);
-
-Const
-  strMsg = 'Are you sure you want to delete the file?';
-  strConsoleMsg = ' Delete (Y/N/A/O/C)? ';
-
-Begin
-  FileQuery(strMsg, strConsoleMsg, strFilePath, '', DeleteFile, Nil, Option, False);
-End;
-
-(**
-
-  This method is an on delete readonly query event handler for the sync module.
-
-  @precon  None.
-  @postcon Displays a confirmation dialogue to the user asking whether the read only file
-           should be deleted.
-
-  @param   strFilePath as a String
-  @param   DeleteFile  as a TFileRecord
-  @param   Option      as a TFileAction as a reference
-
-**)
-Procedure TfrmMainForm.DeleteReadOnlyQueryProc(strFilePath: String;
-  DeleteFile : TFileRecord; Var Option: TFileAction);
-
-Const
-  strMsg = 'Are you sure you want to delete the READ-ONLY file?';
-  strConsoleMsg = ' Delete READONLY (Y/N/A/O/C)? ';
-
-Begin
-  FileQuery(strMsg, strConsoleMsg, strFilePath, '', DeleteFile, Nil, Option, True);
-End;
-
-(**
-
-  This is an on delete start event handler for the sync module.
-
-  @precon  None.
-  @postcon Creates an instance of the deletion progress form.
-
-  @param   iFileCount as an Integer
-  @param   iTotalSize as an Int64
-
-**)
-Procedure TfrmMainForm.DeleteStartProc(iFileCount: Integer; iTotalSize: int64);
-
-Begin
-  FTotalSize := iTotalSize;
-  OutputResultLn(Format('Deleting %1.0n files (%1.0n bytes)...',
-      [Int(iFileCount), Int(iTotalSize)]));
-  If iFileCount > 0 Then
-    Begin
-      FDeleteForm                  := TfrmDeleteProgress.Create(Self);
-      FDeleteForm.OnUpdateProgress := UpdateProgress;
-      FDeleteForm.Initialise(dtFiles, iFileCount, iTotalSize, FDeleteDlgWidth);
-      FDialogueBottom := FDeleteForm.Top + FDeleteForm.Height;
-    End;
-End;
-
-(**
-
-  This is an on delete event handler for the sync module.
-
-  @precon  None.
-  @postcon Output the file to be deleted to the deletion progress form.
-
-  @param   iCurrentFileToDelete            as an Integer
-  @param   iTotalFilesToDelete             as an Integer
-  @param   iCumulativeFileSizeBeforeDelete as an Int64
-  @param   iTotalFileSizeToDelete          as an Int64
-  @param   strDeletePath                   as a String
-  @param   strFileNameToDelete             as a String
-
-**)
-Procedure TfrmMainForm.DeletingProc(iCurrentFileToDelete, iTotalFilesToDelete : Integer;
-    iCumulativeFileSizeBeforeDelete, iTotalFileSizeToDelete: Int64;
-    strDeletePath, strFileNameToDelete: String);
-
-Begin
-  FDeleteForm.InitialiseFileName(dtFiles, iCurrentFileToDelete, iTotalFilesToDelete,
-    strDeletePath + strFileNameToDelete);
-  OutputFileNumber(iCurrentFileToDelete, iTotalFilesToDelete);
-  OutputResult(strDeletePath + strFileNameToDelete);
-End;
-
-(**
-
-  This is an on diff size event handler for the sync module.
-
-  @precon  None.
-  @postcon Outputs the name of the files that have a difference size but the same date
-           and time.
-
-  @param   iFile       as an Integer
-  @param   iFileCount  as an Integer
-  @param   strLPath    as a String
-  @param   strRPath    as a String
-  @param   strFileName as a String
-
-**)
-procedure TfrmMainForm.DiffSize(iFile, iFileCount: Integer; strLPath, strRPath,
-    strFileName: String);
-
-begin
-  OutputFileNumber(iFile, iFileCount);
-  OutputResultLn(Format('%s => %s%s', [strLPath, strRPath, strFileName]));
-end;
-
-(**
-
-  This is an on diff size end event handler for the sync module.
-
-  @precon  None.
-  @postcon None.
-
-**)
-procedure TfrmMainForm.DiffSizeEnd;
-
-begin
-end;
-
-(**
-
-  This is a Diff Size Start event handler for the sync module.
-
-  @precon  None.
-  @postcon Displays a header is there are files to output.
-
-  @param   iFileCount as an Integer
-
-**)
-procedure TfrmMainForm.DiffSizeStart(iFileCount: Integer);
-
-begin
-  If iFileCount > 0 Then
-    OutputResultLn(Format('%1.0n File(s) with Differing Size...', [Int(iFileCount)]));
-end;
-
-(**
-
-  This method disables all actions.
-
-  @precon  None.
-  @postcon All actions are disabled.
-
-**)
-Procedure TfrmMainForm.DisableActions;
+Procedure TfrmMainForm.vstFileListFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
 
 Var
-  i: Integer;
-
+  NodeData : PFSFileListNode;
+  
 Begin
-  For i := 0 To ComponentCount - 1 Do
-    If Components[i] Is TAction Then
-      (Components[i] As TAction).Enabled := False;
+  NodeData := vstFileList.GetNodeData(Node);
+  Finalize(NodeData^);
 End;
 
 (**
 
-  This method updates the status images of the list view based on the filename / extension
-  of the file.
+  This is an on get image index event handler for the tree view.
 
   @precon  None.
-  @postcon Updates the status images of the list view based on the filename / extension
-           of the file.
+  @postcon Returns the image index for the appropriate column.
 
-  @param   ProcessItem as a TProcessItem
-  @param   Item        as a TListItem
+  @param   Sender     as a TBaseVirtualTree
+  @param   Node       as a PVirtualNode
+  @param   Kind       as a TVTImageKind
+  @param   Column     as a TColumnIndex
+  @param   Ghosted    as a Boolean as a reference
+  @param   ImageIndex as a TImageIndex as a reference
+  @param   ImageList  as a TCustomImageList as a reference
 
 **)
-Procedure TfrmMainForm.ImageIndexes(ProcessItem : TProcessItem; Item: TListItem);
+Procedure TfrmMainForm.vstFileListGetImageIndexEx(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; Var Ghosted:
+  Boolean; Var ImageIndex: TImageIndex; Var ImageList: TCustomImageList);
 
+Var
+  NodeData : PFSFileListNode;
+  
 Begin
-  If ProcessItem.LeftFile <> Nil Then
-    Begin
-      If ProcessItem.LeftFile <> Nil Then
-        Item.SubItemImages[iLDisplayCol - 1] :=
-          GetImageIndex(ProcessItem, ProcessItem.LPath + ProcessItem.LeftFile.FileName)
-      Else
-        Item.SubItemImages[iLDisplayCol - 1] := -1;
-      If ProcessItem.RightFile <> Nil Then
-        Item.SubItemImages[iRDisplayCol - 1] :=
-          GetImageIndex(ProcessItem, ProcessItem.LPath + ProcessItem.RightFile.FileName)
-      Else
-        Item.SubItemImages[iRDisplayCol - 1] := -1;
-    End
-  Else
-    Begin
-      If ProcessItem.LeftFile <> Nil Then
-        Item.SubItemImages[iLDisplayCol - 1] :=
-          GetImageIndex(ProcessItem, ProcessItem.RPath + ProcessItem.LeftFile.FileName)
-      Else
-        Item.SubItemImages[iLDisplayCol - 1] := -1;
-      If ProcessItem.RightFile <> Nil Then
-        Item.SubItemImages[iRDisplayCol - 1] :=
-          GetImageIndex(ProcessItem, ProcessItem.RPath + ProcessItem.RightFile.FileName)
-      Else
-        Item.SubItemImages[iRDisplayCol - 1] := -1;
+  NodeData := Sender.GetNodeData(Node);
+  If Kind In [ikNormal, ikSelected] Then
+    Case TFSVTVFields(Column) Of
+      vfState:
+        Begin
+          ImageIndex := Integer(NodeData.FState);
+          ImageList := ilActionImages;
+        End;
+      vfLeftFileName:
+        Begin
+          If (NodeData.FLeftFileIndex = -1) And (Length(NodeData.FLeftFilename) > 0) Then
+            NodeData.FLeftFileIndex := GetImageIndex(NodeData.FLeftFilename);
+          ImageIndex := NodeData.FLeftFileIndex;
+          ImageList := ilFileTypeIcons;
+        End;
+      vfRightFilename:
+        Begin
+          If (NodeData.FRightFileIndex = -1) And (Length(NodeData.FRightFilename) > 0) Then
+            NodeData.FRightFileIndex := GetImageIndex(NodeData.FRightFilename);
+          ImageIndex := NodeData.FRightFileIndex;
+          ImageList := ilFileTypeIcons;
+        End;
     End;
 End;
 
 (**
 
-  This is an application on exception event handler. It displays a dialogue box
-  containing the message of the exception.
+  This is an on get text event handler for the vstTreeView.
 
   @precon  None.
-  @postcon Displays the exception message.
+  @postcon Returns the apporpriate text for the specified node and column.
 
-  @param   Sender as a TObject
-  @param   E      as an Exception
+  @param   Sender   as a TBaseVirtualTree
+  @param   Node     as a PVirtualNode
+  @param   Column   as a TColumnIndex
+  @param   TextType as a TVSTTextType
+  @param   CellText as a String as a reference
 
 **)
-Procedure TfrmMainForm.appEventsException(Sender: TObject; E: Exception);
+Procedure TfrmMainForm.vstFileListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; TextType: TVSTTextType; Var CellText: String);
 
+Const
+  strDateFmt = 'dd/mmm/yyyy hh:nn';
+
+Var
+  NodeData : PFSFileListNode;
+  boolHasLeftFile: Boolean;
+  boolHasRightFile: Boolean;
+  
 Begin
-  MessageDlg('Exception: ' + E.Message, mtError, [mbOK], 0);
+  If TextType = ttNormal Then
+    Begin
+      NodeData := Sender.GetNodeData(Node);
+      boolHasLeftFile := Length(NodeData.FLeftFilename) > 0;
+      boolHasRightFile := Length(NodeData.FRightFilename) > 0;
+      Case TFSVTVFields(Column) Of
+        vfState:         CellText := '';
+        vfLeftFileName:  CellText := NodeData.FLeftFilename;
+        vfLeftAttr:      CellText := IfThen(boolHasLeftFile, GetAttributeString(NodeData.FLeftAttr), '');
+        vfLeftSize:      CellText := IfThen(boolHasLeftFile, Format('%1.0n', [Int(NodeData.FLeftSize)]), '');
+        vfLeftDate:      CellText := IfThen(boolHasLeftFile, FormatDateTime(strDateFmt, NodeData.FLeftDate), '');
+        vfRightFileName: CellText := NodeData.FRightFilename;
+        vfRightAttr:     CellText := IfThen(boolHasRightFile, GetAttributeString(NodeData.FRightAttr), '');
+        vfRightSize:     CellText := IfThen(boolHasRightFile, Format('%1.0n', [Int(NodeData.FRightSize)]), '');
+        vfRightDate:     CellText := IfThen(boolHasRightFile, FormatDateTime(strDateFmt, NodeData.FRightDate), '');
+      End;
+    End;
 End;
 
 (**
 
-  This method outputs the file number and the total number of files to the output window.
+  This is n on paint text event handler for the virtual treeview.
 
   @precon  None.
-  @postcon Outputs the file number and the total number of files to the output window.
+  @postcon Sets the font colour and style the specific state of the left of right files.
 
-  @param   iCurrentFile as an Integer
-  @param   iTotal       as an Integer
+  @param   Sender       as a TBaseVirtualTree
+  @param   TargetCanvas as a TCanvas as a constant
+  @param   Node         as a PVirtualNode
+  @param   Column       as a TColumnIndex
+  @param   TextType     as a TVSTTextType
 
 **)
-Procedure TfrmMainForm.OutputFileNumber(iCurrentFile, iTotal : Integer);
+Procedure TfrmMainForm.vstFileListPaintText(Sender: TBaseVirtualTree; Const
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType:
+  TVSTTextType);
 
 Var
-  strTotal : String;
-  iSize : Integer;
-
+  NodeData : PFSFileListNode;
+  
 Begin
-  strTotal := Format('%1.0n', [Int(iTotal)]);
-  iSize    := Length(strTotal);
-  OutputResult(#32#32 + Format('(%*.0n/%*.0n) ',
-      [iSize, Int(iCurrentFile), iSize, Int(iTotal)]));
+  NodeData := Sender.GetNodeData(Node);
+  Case TFSVTVFields(Column) Of
+    vfLeftFileName..vfLeftDate:
+      Begin
+        If Sender.Selected[Node] Then
+          TargetCanvas.Font.Color := StyleServices.GetSystemColor(clHighlightText)
+        Else If (NodeData.FLeftAttr And FILE_ATTRIBUTE_READONLY <> 0) Then
+          TargetCanvas.Font.Color :=
+            StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour)
+        Else     
+          TargetCanvas.Font.Color :=
+            StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(NodeData.FState)].FFontColour);
+        TargetCanvas.Font.Style := FFileOpFonts[TFileOpFont(NodeData.FState)].FFontStyle;
+      End;
+    vfRightFilename..vfRightDate:
+      Begin
+        If Sender.Selected[Node] Then
+          TargetCanvas.Font.Color := StyleServices.GetSystemColor(clHighlightText)
+        Else If (NodeData.FRightAttr And FILE_ATTRIBUTE_READONLY <> 0) Then
+          TargetCanvas.Font.Color :=
+            StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour)
+        Else     
+          TargetCanvas.Font.Color :=
+            StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(NodeData.FState)].FFontColour);
+        TargetCanvas.Font.Style := FFileOpFonts[TFileOpFont(NodeData.FState)].FFontStyle;
+      End;
+  End;
 End;
 
 End.

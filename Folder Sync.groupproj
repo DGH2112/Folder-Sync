@@ -7,7 +7,7 @@
             <Dependencies/>
         </Projects>
         <Projects Include="FldrSyncCmd.dproj">
-            <Dependencies>Test\FldrSyncTests.dproj</Dependencies>
+            <Dependencies/>
         </Projects>
         <Projects Include="FldrSync.dproj">
             <Dependencies>FldrSyncCmd.dproj</Dependencies>
@@ -29,13 +29,13 @@
     <Target Name="FldrSyncTests:Make">
         <MSBuild Projects="Test\FldrSyncTests.dproj" Targets="Make"/>
     </Target>
-    <Target Name="FldrSyncCmd" DependsOnTargets="FldrSyncTests">
+    <Target Name="FldrSyncCmd">
         <MSBuild Projects="FldrSyncCmd.dproj"/>
     </Target>
-    <Target Name="FldrSyncCmd:Clean" DependsOnTargets="FldrSyncTests:Clean">
+    <Target Name="FldrSyncCmd:Clean">
         <MSBuild Projects="FldrSyncCmd.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="FldrSyncCmd:Make" DependsOnTargets="FldrSyncTests:Make">
+    <Target Name="FldrSyncCmd:Make">
         <MSBuild Projects="FldrSyncCmd.dproj" Targets="Make"/>
     </Target>
     <Target Name="FldrSync" DependsOnTargets="FldrSyncCmd">
