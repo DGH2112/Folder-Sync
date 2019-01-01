@@ -47,7 +47,6 @@ uses
   Vcl.Themes,
   Vcl.Styles,
   AboutForm in 'Source\AboutForm.pas' {frmAboutDialogue},
-  DGHCustomLabel in 'Externals\DGHCustomLabel.pas',
   MemoryMonitorOptionsForm in 'Externals\MemoryMonitorOptionsForm.pas' {frmBatteryMonitorOptions},
   DGHNumericEdit in 'Externals\DGHNumericEdit.pas',
   InterfaceFontForm in 'Source\InterfaceFontForm.pas' {frmInterfaceFonts},

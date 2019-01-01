@@ -165,7 +165,6 @@
         <DCCReference Include="Source\AboutForm.pas">
             <Form>frmAboutDialogue</Form>
         </DCCReference>
-        <DCCReference Include="Externals\DGHCustomLabel.pas"/>
         <DCCReference Include="Externals\MemoryMonitorOptionsForm.pas">
             <Form>frmBatteryMonitorOptions</Form>
         </DCCReference>
@@ -294,45 +293,291 @@
                 <Platform value="Win64">False</Platform>
             </Platforms>
             <Deployment Version="3">
-                <DeployFile LocalName="ModelSupport_FldrSync\MainForm\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="HTML Help\HelpStyles.css" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\default.txvpck" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_FldrSync\FileComparision\default.txvpck" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_FldrSync\OptionsForm\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\About\default.txaPackage" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="HTML Help\EditCopyRightToLeft.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\FileComparision\default.txaPackage" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_FldrSync\default.txaPackage" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_FldrSync\MainForm\default.txvpck" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="HTML Help\HelpStyles.css" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\..\LIBRARY\CompilerDefinitions.inc" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\CommandLine.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_FldrSync\FldrSync\default.txvpck" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="HTML Help\FileExit.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="HTML Help\EditCopyRightToLeft.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ITHelperVersionInfoGUI.RC" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\FileCompare.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\EditCopyLeftToRight.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\HelpAbout.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\EditClearLog.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_FldrSync\ProgressForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\FldrSync\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\ProjectHistory.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_FldrSync\ProgressForm\default.txvpck" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_FldrSync\FileComparision\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\EditClearLog.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\FolderPathsForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\EditCopyLeftToRight.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_FldrSync\About\default.txvpck" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="HTML Help\FldrSync.hhp" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_FldrSync\FolderPathsForm\default.txaPackage" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="HTML Help\EditDoNothing.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\ToolsCompare.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\HelpContents.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\FldrSync\default.txaPackage" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="HTML Help\HelpContents.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\..\LIBRARY\CompilerDefinitions.inc" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_FldrSync\MainForm\default.txaPackage" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ModelSupport_FldrSync\MainForm\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\EditDelete.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="ModelSupport_FldrSync\OptionsForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="ModelSupport_FldrSync\Use Case Diagram1.txvuse" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\OptionsForm\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\EditCopyRightToLeft.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\Welcome.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="HTML Help\HelpAbout.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="HTML Help\HelpCheckForUpdates.html" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="HTML Help\EditSelectAll.html" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="HTML Help\Welcome.html" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="HTML Help\ProjectHistory.html" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="ModelSupport_FldrSync\FldrSync\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="ModelSupport_FldrSync\ProgressForm\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\OptionsForm\default.txaPackage" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="HTML Help\Table of Contents.hhc" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="HTML Help\EditDoNothing.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="HTML Help\EditDelete.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\OptionsForm\default.txvpck" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="HTML Help\CommandLine.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\FileCompare.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="HTML Help\HelpCheckForUpdates.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="ModelSupport_FldrSync\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="..\..\LIBRARY\CompilerDefinitions.inc" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\EditSelectAll.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="ModelSupport_FldrSync\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="HTML Help\FileExit.html" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="ModelSupport_FldrSync\Sequence Diagram1.txvint" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ITHelperVersionInfoGUI.RC" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="Win32\Debug\FldrSync.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>FldrSync.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="ModelSupport_FldrSync\About\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\FileCompare.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\EditCopyLeftToRight.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\HelpAbout.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\FolderPathsForm\default.txvpck" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="HTML Help\ToolsOptions.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\ProgressForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\FileComparision\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\FldrSync\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\MainForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\FileProcessFiles.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\FileComparision\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\EditClearLog.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="ModelSupport_FldrSync\FolderPathsForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\ProgressForm\default.txaPackage" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="FldrSync.exe" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\FileComparision\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\FileProcessFiles.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\MainForm\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\Sequence Diagram1.txvint" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="HTML Help\FileProcessFiles.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ITHelperVersionInfoGUI.RC" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="HTML Help\FldrSync.hhp" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\EditDoNothing.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\ToolsCompare.html" Configuration="Debug" Class="ProjectFile"/>
-                <DeployFile LocalName="HTML Help\HelpContents.html" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="ModelSupport_FldrSync\Use Case Diagram1.txvuse" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="HTML Help\ToolsOptions.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="HTML Help\Table of Contents.hhc" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName="HTML Help\ToolsCompare.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="ModelSupport_FldrSync\About\default.txvpck" Configuration="Debug" Class="ProjectFile"/>
                 <DeployFile LocalName="ModelSupport_FldrSync\FolderPathsForm\default.txaPackage" Configuration="Debug" Class="ProjectFile"/>
                 <DeployClass Name="AdditionalDebugSymbols">

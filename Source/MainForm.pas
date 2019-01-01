@@ -3158,8 +3158,6 @@ Begin
         vfRightSize:     CellText := IfThen(boolHasRightFile, Format('%1.0n', [Int(NodeData.FRightSize)]), '');
         vfRightDate:     CellText := IfThen(boolHasRightFile, FormatDateTime(strDateFmt, NodeData.FRightDate), '');
       End;
-      If Sender.Selected[Node] Then
-        CodeSite.Send(CellText);
     End;
 End;
 
