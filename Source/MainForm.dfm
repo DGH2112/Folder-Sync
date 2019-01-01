@@ -225,6 +225,7 @@ object frmMainForm: TfrmMainForm
       OnBeforeCellPaint = vstFileListBeforeCellPaint
       OnFreeNode = vstFileListFreeNode
       OnGetText = vstFileListGetText
+      OnPaintText = vstFileListPaintText
       OnGetImageIndexEx = vstFileListGetImageIndexEx
       Columns = <
         item

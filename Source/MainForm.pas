@@ -131,6 +131,8 @@ Type
     procedure vstFileListGetImageIndexEx(Sender: TBaseVirtualTree; Node:
         PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
         Boolean; var ImageIndex: TImageIndex; var ImageList: TCustomImageList);
+    procedure vstFileListPaintText(Sender: TBaseVirtualTree; const TargetCanvas:
+        TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
   Strict Private
     Type
       (** A record to describe the data stored in the File List nodes of the VTV control. **)
@@ -2969,11 +2971,6 @@ Begin
             TargetCanvas.Brush.Color :=
               StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(NodeData.FState)].FBGFontColour);
           TargetCanvas.FillRect(CellRect);
-          TargetCanvas.Font.Color :=
-            StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(NodeData.FState)].FFontColour);
-          TargetCanvas.Font.Style := FFileOpFonts[TFileOpFont(NodeData.FState)].FFontStyle;
-          If Sender.Selected[Node] Then
-            TargetCanvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
         End;
       vfRightFilename..vfRightDate:
         Begin
@@ -2989,32 +2986,6 @@ Begin
         End;
     End;
 End;
-
-//  (**
-//
-//    This procedure sets the font colour and style attributes depending on the
-//    status of the list item.
-//
-//    @precon  None.
-//    @postcon Sets the font colour and style attributes depending on the
-//    status of the list item.
-//
-//  **)
-//  Procedure SetTextAttributes;
-//
-//  Begin
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Start('SetTextAttributes');
-//    {$ENDIF}
-//    Sender.Canvas.Font.Color :=
-//      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
-//    Sender.Canvas.Font.Style := FFileOpFonts[TFileOpFont(iFileOp)].FFontStyle;
-//    If Item.Selected Then
-//      Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Stop;
-//    {$ENDIF}
-//  End;
 
 //  (**
 //
@@ -3262,6 +3233,43 @@ Begin
     vfRightAttr:     CellText := IfThen(boolHasRightFile, GetAttributeString(NodeData.FRightAttr), '');
     vfRightSize:     CellText := IfThen(boolHasRightFile, Format('%1.0n', [Int(NodeData.FRightSize)]), '');
     vfRightDate:     CellText := IfThen(boolHasRightFile, FormatDateTime(strDateFmt, NodeData.FRightDate), '');
+  End;
+End;
+
+Procedure TfrmMainForm.vstFileListPaintText(Sender: TBaseVirtualTree; Const
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType:
+  TVSTTextType);
+
+Var
+  NodeData : PFSFileListNode;
+  
+Begin
+  NodeData := Sender.GetNodeData(Node);
+  Case TFSVTVFields(Column) Of
+    vfLeftFileName..vfLeftDate:
+      Begin
+        If Sender.Selected[Node] Then
+          TargetCanvas.Font.Color := StyleServices.GetSystemColor(clHighlightText)
+        Else If (NodeData.FLeftAttr And FILE_ATTRIBUTE_READONLY <> 0) Then
+          TargetCanvas.Font.Color :=
+            StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour)
+        Else     
+          TargetCanvas.Font.Color :=
+            StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(NodeData.FState)].FFontColour);
+        TargetCanvas.Font.Style := FFileOpFonts[TFileOpFont(NodeData.FState)].FFontStyle;
+      End;
+    vfRightFilename..vfRightDate:
+      Begin
+        If Sender.Selected[Node] Then
+          TargetCanvas.Font.Color := StyleServices.GetSystemColor(clHighlightText)
+        Else If (NodeData.FRightAttr And FILE_ATTRIBUTE_READONLY <> 0) Then
+          TargetCanvas.Font.Color :=
+            StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour)
+        Else     
+          TargetCanvas.Font.Color :=
+            StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(NodeData.FState)].FFontColour);
+        TargetCanvas.Font.Style := FFileOpFonts[TFileOpFont(NodeData.FState)].FFontStyle;
+      End;
   End;
 End;
 
