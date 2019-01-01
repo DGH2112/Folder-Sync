@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 2.0
-  @Date    31 Dec 2018
+  @Date    01 Jan 2019
   @Author  David Hoyle
 
   @nocheck HardCodedInteger HardCodedString HardCodedNumber
@@ -187,7 +187,6 @@ Type
     Procedure InsertListItem(Const iProcessItem : Integer; Const ProcessItem : TProcessItem);
     Procedure SetFileOperation(Const FileOp: TFileOp);
     Function CheckFolders: Boolean;
-    Procedure ImageIndexes(Const ProcessItem : TProcessItem; Const NodeData : PFSFileListNode);
     Procedure ExceptionProc(Const strExceptionMsg: String);
     Procedure CloseTimerEvent(Sender: TObject);
     Procedure SearchStartProc(Const strFolder: String);
@@ -2117,58 +2116,6 @@ Begin
   End;
   If strExt <> '.exe' Then
     FIconFiles.AddObject(strExt, TObject(Result));
-//  //-------------------------------------------------------------------------------------
-//  If Result < 0 Then
-//    Begin
-//      CodeSite.Send('Ext', strExt);
-//      CodeSite.Send('Extension List', FIconFiles);
-//      CodeSite.Send('Class', strClassName);
-//      CodeSite.Send(strFileName, Result);
-//      CodeSite.Send('LPath', ProcessItem.LPath);
-//      CodeSite.Send('RPath', ProcessItem.RPath);
-//      CodeSite.Send('LeftFile', ProcessItem.LeftFile);
-//      CodeSite.Send('RightFile', ProcessItem.RightFile);
-//      CodeSite.SendEnum('FileOp', TypeInfo(TFileOp), Ord(ProcessItem.FileOp));
-//      CodeSite.SendSet('SynvOptions', TypeInfo(TSyncOptions), ProcessItem.SyncOptions);
-//      CodeSite.AddSeparator;
-//    End;
-End;
-
-(**
-
-  This method updates the status images of the list view based on the filename / extension of the file.
-
-  @precon  None.
-  @postcon Updates the status images of the list view based on the filename / extension of the file.
-
-  @param   ProcessItem as a TProcessItem as a constant
-  @param   NodeData    as a PFSFileListNode as a constant
-
-**)
-Procedure TfrmMainForm.ImageIndexes(Const ProcessItem : TProcessItem; Const NodeData : PFSFileListNode);
-
-Begin
-  If Assigned(ProcessItem.LeftFile) Then
-    Begin
-      If Assigned(ProcessItem.LeftFile) Then
-        NodeData.FLeftFileIndex := GetImageIndex(ProcessItem.LPath + ProcessItem.LeftFile.FileName)
-      Else
-        NodeData.FLeftFileIndex := -1;
-      If Assigned(ProcessItem.RightFile) Then
-        NodeData.FRightFileIndex := GetImageIndex(ProcessItem.LPath + ProcessItem.RightFile.FileName)
-      Else
-        NodeData.FRightFileIndex := -1;
-    End Else
-    Begin
-      If Assigned(ProcessItem.LeftFile) Then
-        NodeData.FLeftFileIndex := GetImageIndex(ProcessItem.RPath + ProcessItem.LeftFile.FileName)
-      Else
-        NodeData.FLeftFileIndex := -1;
-      If Assigned(ProcessItem.RightFile) Then
-        NodeData.FRightFileIndex := GetImageIndex(ProcessItem.RPath + ProcessItem.RightFile.FileName)
-      Else
-        NodeData.FRightFileIndex := -1;
-    End;
 End;
 
 (**
@@ -3207,6 +3154,7 @@ Begin
       End;
       NodeData.FState := FileOp;
       FSyncModule.Process[NodeData.FProcessIndex].FileOp := FileOp;
+      vstFileList.InvalidateNode(Node);
       Node := vstFileList.GetNextSelected(Node);
     End;
   OutputStats;
@@ -3253,6 +3201,7 @@ Begin
   iPos := Pos(':', Panel.Text);
   strText := Copy(Panel.Text, 1, iPos);
   R := Rect;
+  Sender.Canvas.Font.Assign(Sender.Font);
   Sender.Canvas.FillRect(R);
   Inc(R.Left, 4);
   Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);

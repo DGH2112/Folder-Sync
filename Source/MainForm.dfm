@@ -10,7 +10,7 @@ object frmMainForm: TfrmMainForm
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -13
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   Icon.Data = {
@@ -214,8 +214,10 @@ object frmMainForm: TfrmMainForm
       Height = 553
       Align = alClient
       Header.AutoSizeIndex = 0
+      Header.Height = 20
       Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
       Images = ilActionImages
+      PopupMenu = pmFiles
       TabOrder = 0
       TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
       TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseBlendedSelection]
