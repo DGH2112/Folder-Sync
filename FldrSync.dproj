@@ -144,13 +144,6 @@
             <Form>frmFolderPaths</Form>
         </DCCReference>
         <DCCReference Include="Externals\dghlibrary.pas"/>
-        <DCCReference Include="Externals\checkforupdates.pas"/>
-        <DCCReference Include="Externals\CheckForUpdatesForm.pas">
-            <Form>frmCheckForUpdates</Form>
-        </DCCReference>
-        <DCCReference Include="Externals\CheckForUpdatesOptionsForm.pas">
-            <Form>frmCheckForUpdatesOptions</Form>
-        </DCCReference>
         <DCCReference Include="Source\FileCopyProgressForm.pas">
             <Form>frmCopyProgress</Form>
         </DCCReference>
@@ -172,7 +165,6 @@
         <DCCReference Include="Source\InterfaceFontForm.pas">
             <Form>frmInterfaceFonts</Form>
         </DCCReference>
-        <DCCReference Include="Externals\Profiler.pas"/>
         <DCCReference Include="Source\OperationsFontForm.pas">
             <Form>frmOperationsFonts</Form>
         </DCCReference>

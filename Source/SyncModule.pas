@@ -3273,6 +3273,8 @@ End;
   @precon  None.
   @postcon Any folder with zero files and sub-folders is deleted.
 
+  @nocheck EmptyMethod
+
 **)
 Procedure TCompareFoldersCollection.DeleteEmptyFolders;
 

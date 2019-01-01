@@ -953,11 +953,6 @@ object frmMainForm: TfrmMainForm
                 Caption = '-'
               end
               item
-                Action = actHelpCheckForUpdates
-                Caption = 'C&heck for Updates...'
-                ImageIndex = 10
-              end
-              item
                 Caption = '-'
               end
               item
@@ -1035,11 +1030,6 @@ object frmMainForm: TfrmMainForm
             Caption = 'Con&tents'
             ImageIndex = 14
             ShortCut = 112
-          end
-          item
-            Action = actHelpCheckForUpdates
-            Caption = 'C&heck for Updates...'
-            ImageIndex = 10
           end
           item
             Action = actHelpAbout
@@ -1138,12 +1128,6 @@ object frmMainForm: TfrmMainForm
       ImageIndex = 14
       ShortCut = 112
       OnExecute = actHelpContentsExecute
-    end
-    object actHelpCheckForUpdates: TAction
-      Category = 'Help'
-      Caption = '&Check for Updates...'
-      ImageIndex = 10
-      OnExecute = actHelpCheckForUpdatesExecute
     end
     object actHelpAbout: TAction
       Category = 'Help'

@@ -4,7 +4,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    22 Feb 2018
+  @Date    01 Jan 2019
 
 **)
 Program FldrSyncCmd;
@@ -34,9 +34,12 @@ uses
   Graphics,
   CommandLineProcess in 'Source\CommandLineProcess.pas',
   dghlibrary in 'Externals\dghlibrary.pas',
-  checkforupdates in 'Externals\checkforupdates.pas',
   SyncModule in 'Source\SyncModule.pas',
   ApplicationFunctions in 'Source\ApplicationFunctions.pas';
+
+ResourceString
+  (** A resource string for the pause before finishing **)
+  strPleasePressEnter = 'Please press <Enter> to finish...';
 
 Var
   (** iStd and iErr are handles for the console. **)
@@ -61,19 +64,10 @@ Begin
   Except
     On E: EFldrSyncException Do
       RaiseFldrSyncException(iErr, E);
-    On E : Exception Do
-      Begin
-        RaiseFldrSyncException(iErr, E);
-        {$IFDEF EUREKALOG_VER7}
-        If Not (ExceptionManager.StandardEurekaNotify(ExceptObject,
-          ExceptAddr).ErrorCode = ERROR_SUCCESS) Then
-          {$ENDIF}
-          OutputToConsoleLn(iErr, Format(strExpMsg, [E.ClassName, E.Message]), clRed);
-      End;
   End;
   If boolPause Then
     Begin
-      OutputToConsoleLn(iErr, #13#10'Please press <Enter> to finish...');
+      OutputToConsoleLn(iErr, #13#10 + strPleasePressEnter);
       ReadLn;
     End;
 End.

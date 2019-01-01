@@ -101,7 +101,7 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <Debugger_CWD>D:\HoylD\Borland Studio Projects\Applications\Folder Sync\</Debugger_CWD>
-        <DCC_Define>CONSOLE;EUREKALOG;EUREKALOG_VER7;$(DCC_Define)</DCC_Define>
+        <DCC_Define>CONSOLE;EUREKALOG;$(DCC_Define)</DCC_Define>
         <DCC_DebugDCUs>true</DCC_DebugDCUs>
         <DCC_Optimize>false</DCC_Optimize>
         <Debugger_RunParams>/PrimaryLeft /BatchRecycleFiles /ConfirmYes ..\* &quot;C:\Users\HoylD\Desktop\Oops\*&quot; /E*.dropbox.cache*;.lock /!</Debugger_RunParams>
@@ -121,7 +121,6 @@
         </RcCompile>
         <DCCReference Include="Source\CommandLineProcess.pas"/>
         <DCCReference Include="Externals\dghlibrary.pas"/>
-        <DCCReference Include="Externals\checkforupdates.pas"/>
         <DCCReference Include="Source\SyncModule.pas"/>
         <DCCReference Include="Source\ApplicationFunctions.pas"/>
         <None Include="..\..\LIBRARY\CompilerDefinitions.inc"/>

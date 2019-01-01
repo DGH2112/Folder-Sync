@@ -150,7 +150,6 @@ Uses
   Windows,
   DGHLibrary,
   INIFiles,
-  checkforupdates,
   ShellAPI,
   {$IFDEF EUREKALOG_VER7}
   ExceptionLog7,
@@ -1205,10 +1204,9 @@ End;
 **)
 Procedure TCommandLineProcessing.Execute(Const iStd, iErr: THandle);
 
-Const
+ResourceString
   strTitle =
     'Folder Sync %d.%d%s (Build %s) [%s] A command line tool to synchronise directories.';
-  strSoftwareID = 'FldrSync';
   strMsg = 'Drive "%s" does not have enough disk space. Do you want to continue (Y/N)? ';
 
 Var
@@ -1223,8 +1221,6 @@ Begin
   OutputToConsoleLn(FStd, GetConsoleTitle(strTitle), FTitleColour);
   OutputToConsoleLn(FStd);
   ProcessCommandLine(FParams, FCommandLineOptions);
-  TCheckForUpdates.Execute(strSoftwareID, FINIFileName,
-    cloCheckForUpdates In FCommandLineOptions.iCommandLineOptions);
   If cloHelp In FCommandLineOptions.iCommandLineOptions Then
     Begin
       DisplayHelp;

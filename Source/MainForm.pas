@@ -80,7 +80,6 @@ Type
     mmiSelectAll: TMenuItem;
     appEvents: TApplicationEvents;
     actHelpAbout: TAction;
-    actHelpCheckForUpdates: TAction;
     ilFileTypeIcons: TImageList;
     actToolsCompare: TAction;
     N2: TMenuItem;
@@ -112,7 +111,6 @@ Type
     Procedure actFileProcessFilesExecute(Sender: TObject);
     Procedure actEditSelectAllExecute(Sender: TObject);
     Procedure appEventsException(Sender: TObject; E: Exception);
-    Procedure actHelpCheckForUpdatesExecute(Sender: TObject);
     Procedure actToolsCompareExecute(Sender: TObject);
     Procedure actToolsCompareUpdate(Sender: TObject);
     procedure actEditClearLogExecute(Sender: TObject);
@@ -284,10 +282,6 @@ Type
     vfRightDate
   );
 
-ResourceString
-    (** A resource string for the Update Software ID **)
-  strSoftwareID = 'FldrSync';
-
 Var
     (** A global variable used by Delphis auto create form process. **)
   frmMainForm: TfrmMainForm;
@@ -302,7 +296,6 @@ Uses
   FileCtrl,
   ShellAPI,
   AboutForm,
-  CheckForUpdates,
   DGHLibrary,
   ConfirmationDlg,
   Themes,
@@ -712,22 +705,6 @@ Procedure TfrmMainForm.actHelpAboutExecute(Sender: TObject);
 
 Begin
   TfrmAboutDialogue.ShowAbout(Self);
-End;
-
-(**
-
-  This is an on execute event handler for the Chekc for updates action.
-
-  @precon  None.
-  @postcon Checks for updates on the Internet.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmMainForm.actHelpCheckForUpdatesExecute(Sender: TObject);
-
-Begin
-  TCheckForUpdates.Execute(strSoftwareID, FRootKey, Sender = actHelpCheckForUpdates);
 End;
 
 (**
@@ -1949,7 +1926,6 @@ Begin
   FProgressForm.OnUpdateProgress  := UpdateProgress;
   Application.HelpFile := ExtractFilePath(ParamStr(0)) + 'FldrSync.chm';
   LoadSettings();
-  actHelpCheckForUpdatesExecute(Nil);
   Application.OnHint                := ApplicationHint;
   FIconFiles                        := TStringList.Create;
   FIconFiles.Sorted                 := True;
