@@ -3098,8 +3098,8 @@ Begin
   If strFolder = FLastFolder Then
     Begin
       If (iCount Mod 10 = 0) Or (Update = utImmediate) Then
-        FProgressForm.Progress(FProgressSection, 0, Format('Searching: %s... %1.0n',
-            [strFolder, Int(iCount)]), strFileName);
+        FProgressForm.Progress(FProgressSection, 0, Format('Searching... %1.0n',
+            [Int(iCount)]), strFolder + strFileName);
     End Else
       FLastFolder := strFolder;
 End;
@@ -3111,13 +3111,15 @@ End;
   @precon  None.
   @postcon Increments the progress section and initialises the progress bar.
 
+  @nohint  strFolder
+
   @param   strFolder as a String as a constant
 
 **)
 Procedure TfrmMainForm.SearchStartProc(Const strFolder: String);
 
 Begin
-  OutputResult(Format('Searching: %s', [strFolder]));
+  OutputResult('Searching...');
   Inc(FProgressSection);
   FProgressForm.InitialiseSection(FProgressSection, 0, 1);
 End;

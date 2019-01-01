@@ -6,6 +6,7 @@ object frmProgress: TfrmProgress
   ClientHeight = 132
   ClientWidth = 615
   Color = clBtnFace
+  DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -65,7 +66,6 @@ object frmProgress: TfrmProgress
       Margins.Top = 4
       Margins.Right = 4
       Margins.Bottom = 4
-      Alignment = taCenter
       Anchors = [akLeft, akTop, akRight]
       AutoSize = False
       Caption = 'Please wait...'
