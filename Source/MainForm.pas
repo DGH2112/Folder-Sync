@@ -341,22 +341,65 @@ Type
   @precon  None.
   @postcon Returns a string representation of a files attributes [RASH].
 
-  @param   iAttr as a Cardinal as a constant
+  @param   iAttributes as a Cardinal as a constant
   @return  a String
 
 **)
-Function GetAttributeString(Const iAttr: Cardinal): String;
+Function GetAttributeString(Const iAttributes: Cardinal): String;
+
+Type
+  TFSFileAttr = (
+    faReadOnly,
+    faArchive,
+    faSystem,
+    faHidden,
+    faDirectory,
+    faDevice,
+    faNormal,
+    faTemporary,
+    faSparseFile,
+    faReparsePoint,
+    faCompressed,
+    faOffLine,
+    faNotIndexed,
+    faEncrypted,
+    faVirtual
+  );
+  TFSAttrRec = Record
+    FAttribute : Integer;
+    FChar      : Char;
+  End;
+
+Const
+  Attributes : Array[Low(TFSFileAttr)..High(TFSFileAttr)] Of TFSAttrRec = (
+    (FAttribute: FILE_ATTRIBUTE_READONLY;              FChar: 'R'),
+    (FAttribute: FILE_ATTRIBUTE_ARCHIVE;               FChar: 'A'),
+    (FAttribute: FILE_ATTRIBUTE_SYSTEM;                FChar: 'S'),
+    (FAttribute: FILE_ATTRIBUTE_HIDDEN;                FChar: 'H'),
+    (FAttribute: FILE_ATTRIBUTE_DIRECTORY;             FChar: 'D'),
+    (FAttribute: FILE_ATTRIBUTE_DEVICE;                FChar: 'd'),
+    (FAttribute: FILE_ATTRIBUTE_NORMAL;                FChar: 'N'),
+    (FAttribute: FILE_ATTRIBUTE_TEMPORARY;             FChar: 'T'),
+    (FAttribute: FILE_ATTRIBUTE_SPARSE_FILE;           FChar: 'S'),
+    (FAttribute: FILE_ATTRIBUTE_REPARSE_POINT;         FChar: 'P'),
+    (FAttribute: FILE_ATTRIBUTE_COMPRESSED;            FChar: 'C'),
+    (FAttribute: FILE_ATTRIBUTE_OFFLINE;               FChar: 'O'),
+    (FAttribute: FILE_ATTRIBUTE_NOT_CONTENT_INDEXED;   FChar: 'I'),
+    (FAttribute: FILE_ATTRIBUTE_ENCRYPTED;             FChar: 'E'),
+    (FAttribute: FILE_ATTRIBUTE_VIRTUAL;               FChar: 'V')
+  );
+
+Var
+  iAttr: TFSFileAttr;
 
 Begin
-  Result := '....'; //: @todo Add full set of attributes
-  If iAttr And faReadOnly > 0 Then
-    Result[1] := 'R';
-  If iAttr And faArchive > 0 Then
-    Result[2] := 'A';
-  If iAttr And faSysFile > 0 Then
-    Result[3] := 'S';
-  If iAttr And faHidden > 0 Then
-    Result[4] := 'H';
+  SetLength(Result, 1 + Integer(High(TFSFileAttr)) - Integer(Low(TFSFileAttr)));
+  For iAttr := Low(TFSFileAttr) To High(TFSFileAttr) Do
+    If Attributes[iAttr].FAttribute And iAttributes <> 0 Then
+      Result[Succ(Integer(iAttr))] := Attributes[iAttr].FChar
+    Else
+      Result[Succ(Integer(iAttr))] := '.';
+  Result := '[' + Result + ']';
 End;
 
 (**
@@ -2949,6 +2992,22 @@ Begin
   iniMemFile.UpdateFile;
 End;
 
+(**
+
+  This is an on before cell paint event handler for the virtual treeview.
+
+  @precon  None.
+  @postcon Paints the cell background according to the left or right file status.
+
+  @param   Sender        as a TBaseVirtualTree
+  @param   TargetCanvas  as a TCanvas
+  @param   Node          as a PVirtualNode
+  @param   Column        as a TColumnIndex
+  @param   CellPaintMode as a TVTCellPaintMode
+  @param   CellRect      as a TRect
+  @param   ContentRect   as a TRect as a reference
+
+**)
 Procedure TfrmMainForm.vstFileListBeforeCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; Var ContentRect: TRect);
@@ -2986,143 +3045,6 @@ Begin
         End;
     End;
 End;
-
-//  (**
-//
-//    This procedure sets the text drawing options (alignment, etc) for the different columns to be 
-//    displayed.
-//
-//    @precon  None.
-//    @postcon Sets the text drawing options (alignment, etc) for the different columns to be displayed.
-//
-//    @param   iSubItem as an Integer as a constant
-//
-//  **)
-//  Procedure SetTextDrawingOptions(Const iSubItem : Integer);
-//
-//  Begin
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Start('SetTextDrawingOptions');
-//    {$ENDIF}
-//    Case iSubItem Of
-//      0, 4:
-//        Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS Or DT_NOPREFIX;
-//      2, 3, 6, 7:
-//        Ops := DT_RIGHT;
-//    Else
-//      Ops := DT_LEFT;
-//    End;
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Stop;
-//    {$ENDIF}
-//  End;
-
-//  (**
-//
-//    This procedure sets the text background for the columns of information.
-//
-//    @precon  None.
-//    @postcon Sets the text background for the columns of information.
-//
-//    @param   FileSide as a TBackground as a constant
-//
-//  **)
-//  Procedure SetTextFontBackground(Const FileSide : TBackground);
-//
-//  Begin
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Start('SetTextFontBackground');
-//    {$ENDIF}
-//    Sender.Canvas.Brush.Color :=
-//      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-//    Sender.Canvas.Font.Color :=
-//      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
-//    If Item.Selected Then
-//      Begin
-//        Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
-//        Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-//      End
-//    Else If FileSide = bgLeft Then
-//      Begin
-//        If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
-//          Begin
-//            Sender.Canvas.Brush.Color :=
-//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
-//            Sender.Canvas.Font.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
-//          End;
-//      End  Else
-//      Begin
-//        If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
-//          Begin
-//            Sender.Canvas.Brush.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
-//            Sender.Canvas.Font.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
-//          End;
-//      End;
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Stop;
-//    {$ENDIF}
-//  End;
-
-//  (**
-//
-//    This procedure displays a grayed out destination path for files which don`t have a destination file, 
-//    else sets up the font colours and style attributes for displaying the text.
-//
-//    @precon  None.
-//    @postcon Displays a grayed out destination path for files which don`t have a destination file, else 
-//             sets up the font colours and style attributes for displaying the text.
-//
-//    @param   iSubItem as an Integer as a constant
-//    @param   iFileOp  as a TFileOp as a constant
-//
-//  **)
-//  Procedure FixUpEmptyFilePaths(Const iSubItem : Integer; Const iFileOp : TFileOp);
-//
-//  Begin
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Start('FixUpEmptyFilePaths');
-//    {$ENDIF}
-//    If (iSubItem = 0) And (Item.SubItems[iSubItem] = '') Then
-//      Begin
-//        StrPCopy(Buffer, Item.SubItems[iLFullFileNameCol - 1]);
-//        iBufferLen               := Length(Item.SubItems[iLFullFileNameCol - 1]);
-//        If Item.Selected Then
-//          Begin
-//            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-//            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
-//          End Else
-//          Begin
-//            Sender.Canvas.Font.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
-//            Sender.Canvas.Brush.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-//          End;
-//      End
-//    Else If (iSubItem = 4) And (Item.SubItems[iSubItem] = '') Then
-//      Begin
-//        StrPCopy(Buffer, Item.SubItems[iRFullFileNameCol - 1]);
-//        iBufferLen               := Length(Item.SubItems[iRFullFileNameCol - 1]);
-//        If Item.Selected Then
-//          Begin
-//            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-//            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
-//          End Else
-//          Begin
-//            Sender.Canvas.Font.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
-//            Sender.Canvas.Brush.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-//          End;
-//      End
-//    Else
-//      SetTextAttributes;
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Stop;
-//    {$ENDIF}
-//  End;
 
 (**
 
@@ -3220,22 +3142,41 @@ Var
   boolHasRightFile: Boolean;
   
 Begin
-  NodeData := Sender.GetNodeData(Node);
-  boolHasLeftFile := Length(NodeData.FLeftFilename) > 0;
-  boolHasRightFile := Length(NodeData.FRightFilename) > 0;
-  Case TFSVTVFields(Column) Of
-    vfState:         CellText := '';
-    vfLeftFileName:  CellText := NodeData.FLeftFilename;
-    vfLeftAttr:      CellText := IfThen(boolHasLeftFile, GetAttributeString(NodeData.FLeftAttr), '');
-    vfLeftSize:      CellText := IfThen(boolHasLeftFile, Format('%1.0n', [Int(NodeData.FLeftSize)]), '');
-    vfLeftDate:      CellText := IfThen(boolHasLeftFile, FormatDateTime(strDateFmt, NodeData.FLeftDate), '');
-    vfRightFileName: CellText := NodeData.FRightFilename;
-    vfRightAttr:     CellText := IfThen(boolHasRightFile, GetAttributeString(NodeData.FRightAttr), '');
-    vfRightSize:     CellText := IfThen(boolHasRightFile, Format('%1.0n', [Int(NodeData.FRightSize)]), '');
-    vfRightDate:     CellText := IfThen(boolHasRightFile, FormatDateTime(strDateFmt, NodeData.FRightDate), '');
-  End;
+  If TextType = ttNormal Then
+    Begin
+      NodeData := Sender.GetNodeData(Node);
+      boolHasLeftFile := Length(NodeData.FLeftFilename) > 0;
+      boolHasRightFile := Length(NodeData.FRightFilename) > 0;
+      Case TFSVTVFields(Column) Of
+        vfState:         CellText := '';
+        vfLeftFileName:  CellText := NodeData.FLeftFilename;
+        vfLeftAttr:      CellText := IfThen(boolHasLeftFile, GetAttributeString(NodeData.FLeftAttr), '');
+        vfLeftSize:      CellText := IfThen(boolHasLeftFile, Format('%1.0n', [Int(NodeData.FLeftSize)]), '');
+        vfLeftDate:      CellText := IfThen(boolHasLeftFile, FormatDateTime(strDateFmt, NodeData.FLeftDate), '');
+        vfRightFileName: CellText := NodeData.FRightFilename;
+        vfRightAttr:     CellText := IfThen(boolHasRightFile, GetAttributeString(NodeData.FRightAttr), '');
+        vfRightSize:     CellText := IfThen(boolHasRightFile, Format('%1.0n', [Int(NodeData.FRightSize)]), '');
+        vfRightDate:     CellText := IfThen(boolHasRightFile, FormatDateTime(strDateFmt, NodeData.FRightDate), '');
+      End;
+      If Sender.Selected[Node] Then
+        CodeSite.Send(CellText);
+    End;
 End;
 
+(**
+
+  This is n on paint text event handler for the virtual treeview.
+
+  @precon  None.
+  @postcon Sets the font colour and style the specific state of the left of right files.
+
+  @param   Sender       as a TBaseVirtualTree
+  @param   TargetCanvas as a TCanvas as a constant
+  @param   Node         as a PVirtualNode
+  @param   Column       as a TColumnIndex
+  @param   TextType     as a TVSTTextType
+
+**)
 Procedure TfrmMainForm.vstFileListPaintText(Sender: TBaseVirtualTree; Const
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType:
   TVSTTextType);

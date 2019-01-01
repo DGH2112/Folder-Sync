@@ -238,8 +238,6 @@ object frmMainForm: TfrmMainForm
         end
         item
           Alignment = taCenter
-          BiDiMode = bdRightToLeft
-          Options = [coAllowClick, coDraggable, coEnabled, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus, coEditable, coStyleColor]
           Position = 2
           WideText = 'Attr'
         end
