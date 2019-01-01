@@ -161,7 +161,6 @@
         <DCCReference Include="Externals\MemoryMonitorOptionsForm.pas">
             <Form>frmBatteryMonitorOptions</Form>
         </DCCReference>
-        <DCCReference Include="Externals\DGHNumericEdit.pas"/>
         <DCCReference Include="Source\InterfaceFontForm.pas">
             <Form>frmInterfaceFonts</Form>
         </DCCReference>
@@ -193,7 +192,6 @@
         <None Include="ModelSupport_FldrSync\OptionsForm\default.txvpck"/>
         <None Include="ModelSupport_FldrSync\Use Case Diagram1.txvuse"/>
         <None Include="ModelSupport_FldrSync\Sequence Diagram1.txvint"/>
-        <None Include="..\..\LIBRARY\CompilerDefinitions.inc"/>
         <None Include="HTML Help\Welcome.html"/>
         <None Include="HTML Help\CommandLine.html"/>
         <None Include="HTML Help\FldrSync.hhp"/>
@@ -416,12 +414,6 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="HTML Help\HelpContents.html" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="..\..\LIBRARY\CompilerDefinitions.inc" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>

@@ -47,7 +47,6 @@ uses
   Vcl.Styles,
   AboutForm in 'Source\AboutForm.pas' {frmAboutDialogue},
   MemoryMonitorOptionsForm in 'Externals\MemoryMonitorOptionsForm.pas' {frmBatteryMonitorOptions},
-  DGHNumericEdit in 'Externals\DGHNumericEdit.pas',
   InterfaceFontForm in 'Source\InterfaceFontForm.pas' {frmInterfaceFonts},
   OperationsFontForm in 'Source\OperationsFontForm.pas' {frmOperationsFonts},
   DiskSpaceForm in 'Source\DiskSpaceForm.pas' {frmDiskSpace},
