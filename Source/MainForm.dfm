@@ -222,6 +222,7 @@ object frmMainForm: TfrmMainForm
       TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
       TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseBlendedSelection]
       TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
+      OnBeforeCellPaint = vstFileListBeforeCellPaint
       OnFreeNode = vstFileListFreeNode
       OnGetText = vstFileListGetText
       OnGetImageIndexEx = vstFileListGetImageIndexEx

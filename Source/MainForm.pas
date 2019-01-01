@@ -112,8 +112,6 @@ Type
     Procedure actFileProcessFilesExecute(Sender: TObject);
     Procedure actEditSelectAllExecute(Sender: TObject);
     Procedure appEventsException(Sender: TObject; E: Exception);
-    Procedure lvFileListCustomDrawItem(Sender: TCustomListView; Item: TListItem;
-      State: TCustomDrawState; Var DefaultDraw: Boolean);
     Procedure actHelpCheckForUpdatesExecute(Sender: TObject);
     Procedure actToolsCompareExecute(Sender: TObject);
     Procedure actToolsCompareUpdate(Sender: TObject);
@@ -124,6 +122,9 @@ Type
     procedure actEditFileOperationsUpdate(Sender: TObject);
     procedure actToolsConfigMemMonExecute(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure vstFileListBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas:
+        TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellPaintMode:
+        TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure vstFileListFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure vstFileListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var CellText: string);
@@ -2371,360 +2372,6 @@ End;
 
 (**
 
-  This is an CustomDrawItem event for the list view.
-
-  @precon  None.
-  @postcon Draw readonly items in the list with a light red background.
-
-  @param   Sender      as a TCustomListView
-  @param   Item        as a TListItem
-  @param   State       as a TCustomDrawState
-  @param   DefaultDraw as a Boolean as a reference
-
-**)
-Procedure TfrmMainForm.lvFileListCustomDrawItem(Sender: TCustomListView; Item: TListItem;
-  State: TCustomDrawState; Var DefaultDraw: Boolean);
-
-//Type
-//  TBackground = (bgLeft, bgRight);
-
-//Var
-//  R, ItemR     : TRect;
-//  Buffer       : Array [0 .. MAX_PATH * 2] Of Char;
-//  Ops          : Integer;
-//  iBufferLen   : Integer;
-//  iFileOp      : TFileOp;
-//  SubItemRects : Array Of TRect;
-
-//  (**
-//
-//    This function returns display rectangle for the given indexed sub item.
-//
-//    @precon  iIndex must be a valid SubItem index..
-//    @postcon Returns display rectangle for the given indexed sub item.
-//
-//  **)
-//  Procedure GetSubItemRects;
-//
-//  Var
-//    LR : TRect;
-//    j: Integer;
-//
-//  Begin
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Start('GetSubItemRect');
-//    {$ENDIF}
-//    SetLength(SubItemRects, vstFileList.Header.Columns.Count);
-//    LR := Item.DisplayRect(drBounds);
-//    Inc(LR.Top, 2);    // Padding / Margin
-//    Inc(LR.Bottom, 2); // Padding / Margin
-//    For j  := 0 To vstFileList.Header.Columns.Count - 1 - 1 Do
-//      Begin
-//        Inc(LR.Left, Sender.Column[j].Width);
-//        LR.Right := LR.Left + Sender.Column[j + 1].Width;
-//        SubItemRects[j] := LR;
-//        Inc(SubItemRects[j].Left, 6);   // Padding / Margin
-//        Dec(SubItemRects[j].Right, 6);  // Padding / Margin
-//      End;
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Stop;
-//    {$ENDIF}
-//  End;
-
-//  (**
-//
-//    This method draws the background for the left and right displays of file informations.
-//
-//    @precon  None.
-//    @postcon Draws the background for the left and right displays of file informations.
-//
-//    @param   iColumn    as an Integer as a constant
-//    @param   Background as a TBackground as a constant
-//
-//  **)
-//  Procedure DrawBackground(Const iColumn: Integer; Const Background: TBackground);
-//
-//  Begin
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Start('DrawBackground');
-//    {$ENDIF}
-//    If Item.Selected Then
-//      Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight)
-//    Else If (Pos('R', Item.SubItems[iColumn - 1]) > 0) Then
-//      Sender.Canvas.Brush.Color :=
-//        StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour)
-//    Else
-//      Sender.Canvas.Brush.Color :=
-//        StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-//    //Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clWindow);
-//    If Background = bgLeft Then
-//      R := SubItemRects[iLDateCol - 1]
-//    Else
-//      R := SubItemRects[iRDisplayCol - 1];
-//    ItemR := Item.DisplayRect(drBounds);
-//    If Background = bgLeft Then
-//      ItemR.Right := R.Right + 6
-//    Else
-//      ItemR.Left := R.Left - 6;
-//    Sender.Canvas.FillRect(ItemR);
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Stop;
-//    {$ENDIF}
-//  End;
-
-//  (**
-//
-//    This procedure sets the font colour and style attributes depending on the
-//    status of the list item.
-//
-//    @precon  None.
-//    @postcon Sets the font colour and style attributes depending on the
-//    status of the list item.
-//
-//  **)
-//  Procedure SetTextAttributes;
-//
-//  Begin
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Start('SetTextAttributes');
-//    {$ENDIF}
-//    Sender.Canvas.Font.Color :=
-//      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
-//    Sender.Canvas.Font.Style := FFileOpFonts[TFileOpFont(iFileOp)].FFontStyle;
-//    If Item.Selected Then
-//      Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Stop;
-//    {$ENDIF}
-//  End;
-
-//  (**
-//
-//    This procedure sets the text drawing options (alignment, etc) for the different columns to be 
-//    displayed.
-//
-//    @precon  None.
-//    @postcon Sets the text drawing options (alignment, etc) for the different columns to be displayed.
-//
-//    @param   iSubItem as an Integer as a constant
-//
-//  **)
-//  Procedure SetTextDrawingOptions(Const iSubItem : Integer);
-//
-//  Begin
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Start('SetTextDrawingOptions');
-//    {$ENDIF}
-//    Case iSubItem Of
-//      0, 4:
-//        Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS Or DT_NOPREFIX;
-//      2, 3, 6, 7:
-//        Ops := DT_RIGHT;
-//    Else
-//      Ops := DT_LEFT;
-//    End;
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Stop;
-//    {$ENDIF}
-//  End;
-
-//  (**
-//
-//    This procedure returns the display rectangle (adjusted for file icon image) for the text to be 
-//    displayed in the report column.
-//
-//    @precon  None.
-//    @postcon Returns the display rectangle (adjusted for file icon image) for the text to be displayed 
-//             in the report column.
-//
-//    @param   iSubItem as an Integer as a constant
-//    @return  a TRect
-//
-//  **)
-//  Function DrawFileIcon(Const iSubItem : Integer): TRect;
-//
-//  Var
-//    iImage     : Integer;
-//    boolEnabled: Boolean;
-//
-//  Begin
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Start('DrawFileIcon');
-//    {$ENDIF}
-//    Result := SubItemRects[iSubItem];
-//    If iSubItem In [0, 4] Then
-//      Begin
-//        Dec(Result.Left, 3);
-//        iImage      := Item.SubItemImages[iSubItem];
-//        boolEnabled := (iImage > -1);
-//        If Not boolEnabled Then
-//          Begin
-//            If iSubItem = 0 Then
-//              iImage := Item.SubItemImages[4]
-//            Else
-//              iImage := Item.SubItemImages[0];
-//            ilFileTypeIcons.Draw(Sender.Canvas, Result.Left, Result.Top, iImage, boolEnabled);
-//          End;
-//        Inc(Result.Left, 16 + 3);
-//      End;
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Stop;
-//    {$ENDIF}
-//  End;
-
-//  (**
-//
-//    This procedure sets the text background for the columns of information.
-//
-//    @precon  None.
-//    @postcon Sets the text background for the columns of information.
-//
-//    @param   FileSide as a TBackground as a constant
-//
-//  **)
-//  Procedure SetTextFontBackground(Const FileSide : TBackground);
-//
-//  Begin
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Start('SetTextFontBackground');
-//    {$ENDIF}
-//    Sender.Canvas.Brush.Color :=
-//      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-//    Sender.Canvas.Font.Color :=
-//      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
-//    If Item.Selected Then
-//      Begin
-//        Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
-//        Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-//      End
-//    Else If FileSide = bgLeft Then
-//      Begin
-//        If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
-//          Begin
-//            Sender.Canvas.Brush.Color :=
-//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
-//            Sender.Canvas.Font.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
-//          End;
-//      End  Else
-//      Begin
-//        If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
-//          Begin
-//            Sender.Canvas.Brush.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
-//            Sender.Canvas.Font.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
-//          End;
-//      End;
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Stop;
-//    {$ENDIF}
-//  End;
-
-//  (**
-//
-//    This procedure displays a grayed out destination path for files which don`t have a destination file, 
-//    else sets up the font colours and style attributes for displaying the text.
-//
-//    @precon  None.
-//    @postcon Displays a grayed out destination path for files which don`t have a destination file, else 
-//             sets up the font colours and style attributes for displaying the text.
-//
-//    @param   iSubItem as an Integer as a constant
-//    @param   iFileOp  as a TFileOp as a constant
-//
-//  **)
-//  Procedure FixUpEmptyFilePaths(Const iSubItem : Integer; Const iFileOp : TFileOp);
-//
-//  Begin
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Start('FixUpEmptyFilePaths');
-//    {$ENDIF}
-//    If (iSubItem = 0) And (Item.SubItems[iSubItem] = '') Then
-//      Begin
-//        StrPCopy(Buffer, Item.SubItems[iLFullFileNameCol - 1]);
-//        iBufferLen               := Length(Item.SubItems[iLFullFileNameCol - 1]);
-//        If Item.Selected Then
-//          Begin
-//            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-//            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
-//          End Else
-//          Begin
-//            Sender.Canvas.Font.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
-//            Sender.Canvas.Brush.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-//          End;
-//      End
-//    Else If (iSubItem = 4) And (Item.SubItems[iSubItem] = '') Then
-//      Begin
-//        StrPCopy(Buffer, Item.SubItems[iRFullFileNameCol - 1]);
-//        iBufferLen               := Length(Item.SubItems[iRFullFileNameCol - 1]);
-//        If Item.Selected Then
-//          Begin
-//            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
-//            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
-//          End Else
-//          Begin
-//            Sender.Canvas.Font.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
-//            Sender.Canvas.Brush.Color := 
-//              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
-//          End;
-//      End
-//    Else
-//      SetTextAttributes;
-//    {$IFDEF PROFILECODE}
-//    CodeProfiler.Stop;
-//    {$ENDIF}
-//  End;
-
-//Var
-//  iSubItem  : Integer;
-
-Begin
-  {$IFDEF PROFILECODE}
-  CodeProfiler.Start('TfrmMainForm.lvFileListCustomDrawItem');
-  {$ENDIF}
-  DefaultDraw := False;
-//  iFileOp := TFileOp(Item.StateIndex);
-//  GetSubItemRects;
-//  DrawBackground(iLAttrCol, bgLeft);
-//  DrawBackground(iRAttrCol, bgRight);
-//  R := Item.DisplayRect(drBounds);
-//  ilActionImages.Draw(Sender.Canvas, R.Left + vstFileList.Header.Columns[0].Width Div 2 - 8, R.Top,
-//    Item.StateIndex, True);
-//  // Draw Left File
-//  SetTextFontBackground(bgLeft);
-//  For iSubItem := iLDisplayCol - 1 To iLDateCol - 1 Do
-//    Begin
-//      SetTextDrawingOptions(iSubItem);
-//      R := DrawFileIcon(iSubItem);
-//      StrPCopy(Buffer, Item.SubItems[iSubItem]);
-//      iBufferLen := Length(Item.SubItems[iSubItem]);
-//      FixUpEmptyFilePaths(iSubItem, iFileOp);
-//      Sender.Canvas.Refresh;
-//      DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
-//    End;
-//  // Draw Left File
-//  SetTextFontBackground(bgRight);
-//  For iSubItem := iRDisplayCol - 1 To iRDateCol - 1 Do
-//    Begin
-//      SetTextDrawingOptions(iSubItem);
-//      R := DrawFileIcon(iSubItem);
-//      StrPCopy(Buffer, Item.SubItems[iSubItem]);
-//      iBufferLen := Length(Item.SubItems[iSubItem]);
-//      FixUpEmptyFilePaths(iSubItem, iFileOp);
-//      Sender.Canvas.Refresh;
-//      DrawText(Sender.Canvas.Handle, Buffer, iBufferLen, R, Ops);
-//    End;
-  {$IFDEF PROFILECODE}
-  CodeProfiler.Stop;
-  {$ENDIF}
-End;
-
-(**
-
   This is an on match list end event handler for the sync module.
 
   @precon  None.
@@ -3299,6 +2946,212 @@ Begin
   End;
   iniMemFile.UpdateFile;
 End;
+
+Procedure TfrmMainForm.vstFileListBeforeCellPaint(Sender: TBaseVirtualTree;
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  CellPaintMode: TVTCellPaintMode; CellRect: TRect; Var ContentRect: TRect);
+
+Var
+  NodeData : PFSFileListNode;
+  
+Begin
+  NodeData := Sender.GetNodeData(Node);
+  If CellPaintMode = cpmPaint Then
+    Case TFSVTVFields(Column) Of
+      vfLeftFileName..vfLeftDate:
+        Begin
+          If Sender.Selected[Node] Then
+            TargetCanvas.Brush.Color := StyleServices.GetSystemColor(clHighlight)
+          Else If (NodeData.FLeftAttr And FILE_ATTRIBUTE_READONLY <> 0) Then
+            TargetCanvas.Brush.Color :=
+              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour)
+          Else
+            TargetCanvas.Brush.Color :=
+              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(NodeData.FState)].FBGFontColour);
+          TargetCanvas.FillRect(CellRect);
+          TargetCanvas.Font.Color :=
+            StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(NodeData.FState)].FFontColour);
+          TargetCanvas.Font.Style := FFileOpFonts[TFileOpFont(NodeData.FState)].FFontStyle;
+          If Sender.Selected[Node] Then
+            TargetCanvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+        End;
+      vfRightFilename..vfRightDate:
+        Begin
+          If Sender.Selected[Node] Then
+            TargetCanvas.Brush.Color := StyleServices.GetSystemColor(clHighlight)
+          Else If (NodeData.FRightAttr And FILE_ATTRIBUTE_READONLY <> 0) Then
+            TargetCanvas.Brush.Color :=
+              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour)
+          Else
+            TargetCanvas.Brush.Color :=
+              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(NodeData.FState)].FBGFontColour);
+          TargetCanvas.FillRect(CellRect);
+        End;
+    End;
+End;
+
+//  (**
+//
+//    This procedure sets the font colour and style attributes depending on the
+//    status of the list item.
+//
+//    @precon  None.
+//    @postcon Sets the font colour and style attributes depending on the
+//    status of the list item.
+//
+//  **)
+//  Procedure SetTextAttributes;
+//
+//  Begin
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Start('SetTextAttributes');
+//    {$ENDIF}
+//    Sender.Canvas.Font.Color :=
+//      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
+//    Sender.Canvas.Font.Style := FFileOpFonts[TFileOpFont(iFileOp)].FFontStyle;
+//    If Item.Selected Then
+//      Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Stop;
+//    {$ENDIF}
+//  End;
+
+//  (**
+//
+//    This procedure sets the text drawing options (alignment, etc) for the different columns to be 
+//    displayed.
+//
+//    @precon  None.
+//    @postcon Sets the text drawing options (alignment, etc) for the different columns to be displayed.
+//
+//    @param   iSubItem as an Integer as a constant
+//
+//  **)
+//  Procedure SetTextDrawingOptions(Const iSubItem : Integer);
+//
+//  Begin
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Start('SetTextDrawingOptions');
+//    {$ENDIF}
+//    Case iSubItem Of
+//      0, 4:
+//        Ops := DT_LEFT Or DT_MODIFYSTRING Or DT_PATH_ELLIPSIS Or DT_NOPREFIX;
+//      2, 3, 6, 7:
+//        Ops := DT_RIGHT;
+//    Else
+//      Ops := DT_LEFT;
+//    End;
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Stop;
+//    {$ENDIF}
+//  End;
+
+//  (**
+//
+//    This procedure sets the text background for the columns of information.
+//
+//    @precon  None.
+//    @postcon Sets the text background for the columns of information.
+//
+//    @param   FileSide as a TBackground as a constant
+//
+//  **)
+//  Procedure SetTextFontBackground(Const FileSide : TBackground);
+//
+//  Begin
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Start('SetTextFontBackground');
+//    {$ENDIF}
+//    Sender.Canvas.Brush.Color :=
+//      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
+//    Sender.Canvas.Font.Color :=
+//      StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FFontColour);
+//    If Item.Selected Then
+//      Begin
+//        Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
+//        Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+//      End
+//    Else If FileSide = bgLeft Then
+//      Begin
+//        If (Pos('R', Item.SubItems[iLAttrCol - 1]) > 0) Then
+//          Begin
+//            Sender.Canvas.Brush.Color :=
+//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
+//            Sender.Canvas.Font.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
+//          End;
+//      End  Else
+//      Begin
+//        If (Pos('R', Item.SubItems[iRAttrCol - 1]) > 0) Then
+//          Begin
+//            Sender.Canvas.Brush.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FBGFontColour);
+//            Sender.Canvas.Font.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[fofReadOnly].FFontColour);
+//          End;
+//      End;
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Stop;
+//    {$ENDIF}
+//  End;
+
+//  (**
+//
+//    This procedure displays a grayed out destination path for files which don`t have a destination file, 
+//    else sets up the font colours and style attributes for displaying the text.
+//
+//    @precon  None.
+//    @postcon Displays a grayed out destination path for files which don`t have a destination file, else 
+//             sets up the font colours and style attributes for displaying the text.
+//
+//    @param   iSubItem as an Integer as a constant
+//    @param   iFileOp  as a TFileOp as a constant
+//
+//  **)
+//  Procedure FixUpEmptyFilePaths(Const iSubItem : Integer; Const iFileOp : TFileOp);
+//
+//  Begin
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Start('FixUpEmptyFilePaths');
+//    {$ENDIF}
+//    If (iSubItem = 0) And (Item.SubItems[iSubItem] = '') Then
+//      Begin
+//        StrPCopy(Buffer, Item.SubItems[iLFullFileNameCol - 1]);
+//        iBufferLen               := Length(Item.SubItems[iLFullFileNameCol - 1]);
+//        If Item.Selected Then
+//          Begin
+//            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+//            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
+//          End Else
+//          Begin
+//            Sender.Canvas.Font.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
+//            Sender.Canvas.Brush.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
+//          End;
+//      End
+//    Else If (iSubItem = 4) And (Item.SubItems[iSubItem] = '') Then
+//      Begin
+//        StrPCopy(Buffer, Item.SubItems[iRFullFileNameCol - 1]);
+//        iBufferLen               := Length(Item.SubItems[iRFullFileNameCol - 1]);
+//        If Item.Selected Then
+//          Begin
+//            Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clHighlightText);
+//            Sender.Canvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
+//          End Else
+//          Begin
+//            Sender.Canvas.Font.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[fofMissingFile].FFontColour);
+//            Sender.Canvas.Brush.Color := 
+//              StyleServices.GetSystemColor(FFileOpFonts[TFileOpFont(iFileOp)].FBGFontColour);
+//          End;
+//      End
+//    Else
+//      SetTextAttributes;
+//    {$IFDEF PROFILECODE}
+//    CodeProfiler.Stop;
+//    {$ENDIF}
+//  End;
 
 (**
 
