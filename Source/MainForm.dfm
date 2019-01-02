@@ -48,9 +48,9 @@ object frmMainForm: TfrmMainForm
   TextHeight = 16
   object stbrStatusBar: TStatusBar
     Left = 0
-    Top = 733
+    Top = 730
     Width = 927
-    Height = 19
+    Height = 22
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
@@ -61,6 +61,7 @@ object frmMainForm: TfrmMainForm
         Width = 125
       end>
     OnDrawPanel = stbrStatusBarDrawPanel
+    ExplicitTop = 733
   end
   object ambMenuBar: TActionMainMenuBar
     Left = 0
@@ -160,7 +161,7 @@ object frmMainForm: TfrmMainForm
     Left = 0
     Top = 57
     Width = 927
-    Height = 676
+    Height = 673
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
@@ -168,9 +169,10 @@ object frmMainForm: TfrmMainForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 3
+    ExplicitHeight = 676
     object splOutputResults: TSplitter
       Left = 0
-      Top = 553
+      Top = 550
       Width = 927
       Height = 4
       Cursor = crVSplit
@@ -186,7 +188,7 @@ object frmMainForm: TfrmMainForm
     end
     object redtOutputResults: TMemo
       Left = 0
-      Top = 557
+      Top = 554
       Width = 927
       Height = 119
       Margins.Left = 4
@@ -206,12 +208,13 @@ object frmMainForm: TfrmMainForm
       ScrollBars = ssBoth
       TabOrder = 1
       WordWrap = False
+      ExplicitTop = 557
     end
     object vstFileList: TVirtualStringTree
       Left = 0
       Top = 0
       Width = 927
-      Height = 553
+      Height = 550
       Align = alClient
       Header.AutoSizeIndex = 0
       Header.Height = 20
@@ -227,6 +230,7 @@ object frmMainForm: TfrmMainForm
       OnGetText = vstFileListGetText
       OnPaintText = vstFileListPaintText
       OnGetImageIndexEx = vstFileListGetImageIndexEx
+      ExplicitHeight = 553
       Columns = <
         item
           Position = 0

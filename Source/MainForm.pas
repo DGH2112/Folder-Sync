@@ -2390,6 +2390,7 @@ Procedure TfrmMainForm.LogSize;
 Begin
   stbrStatusBar.Panels[0].Text := Format('Log size: %1.1n kbytes',
     [Int(Length(redtOutputResults.Lines.Text)) / 1024.0]);
+  stbrStatusBar.Canvas.Font.Assign(stbrStatusBar.Font);
   stbrStatusBar.Panels[0].Width := stbrStatusBar.Canvas.TextWidth(stbrStatusBar.Panels[0].Text) + 25;
 End;
 
@@ -2878,11 +2879,11 @@ Begin
   Inc(R.Left, 4);
   Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);
   Sender.Canvas.Font.Style := [fsBold];
-  Sender.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
+  Sender.Canvas.TextRect(R, strText, [tfLeft, tfBottom]);
   Inc(R.Left, Sender.Canvas.TextWidth(strText) + 2);
   Sender.Canvas.Font.Style := [];
   strText := Copy(Panel.Text, iPos + 1, Length(Panel.Text) - iPos);
-  Sender.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
+  Sender.Canvas.TextRect(R, strText, [tfLeft, tfBottom]);
 End;
 
 (**
