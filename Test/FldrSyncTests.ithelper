@@ -10,7 +10,7 @@ CompileWithBRCC32=0
 MajorVer=1
 MinorVer=6
 ReleaseVer=0
-BuildVer=1199
+BuildVer=1203
 ResourceName=ITHelperVersionInfo
 
 [Zipping]
@@ -22,7 +22,7 @@ ExclusionFiles=
 [VersionInfo]
 CompanyName=Season's Fall Music Limited (c) 1989
 FileDescription=FldrSync Tests
-FileVersion=1.6.0.1199
+FileVersion=1.6.0.1203
 InternalName=FldrSyncTests
 LegalCopyright=Season's Fall Music Limited (c) 1989
 LegalTrademarks=Season's Fall Music Limited (c) 1989

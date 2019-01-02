@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    01 Jan 2019
+  @Date    02 Jan 2019
   
 **)
 Unit AboutForm;
@@ -48,13 +48,11 @@ Implementation
 {$R *.dfm}
 
 Uses
-  dghlibrary;
+  FldrSync.Functions;
 
 Var
   (** This is an internal variable to hold the singleton reference to the about form. **)
   frm: TfrmAboutDialogue;
-
-{ TfrmAboutDialogue }
 
 (**
 
@@ -120,7 +118,7 @@ Begin
         BM.Free;
       End;
     End;
-  GetBuildNumber(ParamStr(0), iMajor, iMinor, iBugFix, iBuild);
+  TFSFunctions.GetBuildNumber(ParamStr(0), iMajor, iMinor, iBugFix, iBuild);
   lblAppName.Caption := Format(strTitle, [Application.Title, iMajor, iMinor,
       strRevisions[iBugFix + 1]]);
   lblBuild.Caption := Format(strBuild, [iMajor, iMinor, iBugFix, iBuild]);

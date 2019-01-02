@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 2.0
-  @Date    01 Jan 2019
+  @Date    02 Jan 2019
   @Author  David Hoyle
 
   @nocheck HardCodedInteger HardCodedString HardCodedNumber
@@ -296,7 +296,6 @@ Uses
   FileCtrl,
   ShellAPI,
   AboutForm,
-  DGHLibrary,
   ConfirmationDlg,
   Themes,
   MemoryMonitorOptionsForm,
@@ -309,7 +308,8 @@ Uses
   Types,
   ApplicationFunctions,
   TypInfo,
-  StrUtils;
+  StrUtils,
+  FldrSync.Functions;
 
 {$R *.DFM}
 
@@ -1920,7 +1920,7 @@ Begin
   DGHMemoryMonitor.HalfPoint      := 90;
   DGHMemoryMonitor.LowPoint       := 80;
   DGHMemoryMonitor.UpdateInterval := 500;
-  FRootKey                        := BuildRootKey(FParams, ExceptionProc);
+  FRootKey                        := TFSFunctions.BuildRootKey(FParams, ExceptionProc);
   FFolders                        := TFolders.Create;
   FProgressForm                   := TfrmProgress.Create(Self);
   FProgressForm.OnUpdateProgress  := UpdateProgress;
@@ -1929,7 +1929,7 @@ Begin
   Application.OnHint                := ApplicationHint;
   FIconFiles                        := TStringList.Create;
   FIconFiles.Sorted                 := True;
-  Caption := Caption + StringReplace(GetConsoleTitle(' %d.%d%s (Build %s)'), #13#10,
+  Caption := Caption + StringReplace(TFSFunctions.GetConsoleTitle(' %d.%d%s (Build %s)'), #13#10,
     ' - ', []);
   If IsDebuggerPresent Then
     Caption := Format('%s [DEBUGGING]', [Caption]);
@@ -2222,6 +2222,7 @@ Var
   iniMemFile : TMemIniFile;
   iDefaultOps : TFileOpStats;
   ComOps: TCommandLineOptionsRec;
+  astrMaxValues: TArray<String>;
 
 Begin
   iniMemFile := TMemIniFile.Create(FRootKey);
@@ -2291,11 +2292,12 @@ Begin
               iSyncOptions := TSyncOptions(SmallInt(iniMemFile.ReadInteger('NewFolderStatus', sl[i],
                 SmallInt(iSyncOptions))));
               strMaxValue := iniMemFile.ReadString('NewFolderMaxFileSize', sl[i], '0,0,0,0');
+              astrMaxValues := strMaxValue.Split([',']);
               iMaxValue.Value := 0;
-              iMaxValue.iFirst := StrToInt(GetField(strMaxValue, ',', 1));
-              iMaxValue.iSecond := StrToInt(GetField(strMaxValue, ',', 2));
-              iMaxValue.iThird := StrToInt(GetField(strMaxValue, ',', 3));
-              iMaxValue.iFourth := StrToInt(GetField(strMaxValue, ',', 4));
+              iMaxValue.iFirst := StrToInt(astrMaxValues[0]);
+              iMaxValue.iSecond := StrToInt(astrMaxValues[1]);
+              iMaxValue.iThird := StrToInt(astrMaxValues[2]);
+              iMaxValue.iFourth := StrToInt(astrMaxValues[3]);
               strLeftFldr := GetShortHint(iniMemFile.ReadString('NewFolders', sl[i], ''));
               strRightFldr := GetLongHint(iniMemFile.ReadString('NewFolders', sl[i], ''));
               FFolders.Add(

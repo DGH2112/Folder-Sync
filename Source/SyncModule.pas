@@ -4,7 +4,7 @@
   files.
 
   @Version 2.0
-  @Date    31 Dec 2018
+  @Date    02 Jan 2019
   @Author  David Hoyle
 
 **)
@@ -13,10 +13,10 @@ Unit SyncModule;
 Interface
 
 Uses
-  SysUtils,
-  Classes,
-  Contnrs,
-  Windows;
+  System.SysUtils,
+  System.Classes,
+  System.Contnrs,
+  WinAPI.Windows;
 
 Type
   (** An enumerate to define an action to take with a file. **)
@@ -1389,12 +1389,14 @@ Const
 Implementation
 
 Uses
+  {$IFDEF DEBUG}
   CodeSiteLogging,
-  FileCtrl,
-  DGHLibrary,
-  Math,
-  ShlwAPI,
-  ShellAPI;
+  {$ENDIF}
+  System.Math,
+  VCL.FileCtrl,
+  WinApi.ShlwAPI,
+  WinApi.ShellAPI,
+  FldrSync.Functions;
 
 {: Const
   strStatus : Array[Low(TStatus)..High(TStatus)] Of String = (
@@ -2031,6 +2033,7 @@ Procedure TFileList.SearchFolder(Const strFolderPath, strFileFilter, strExclusio
 
 Var
   iFilter: Integer;
+  astrFileFilters: TArray<String>;
 
 Begin
   FFolderPath := strFolderPath;
@@ -2039,8 +2042,9 @@ Begin
     FFileFilters.Add('*.*')
   Else
     Begin
-      For iFilter := 1 To CharCount(';', strFileFilter) + 1 Do
-        FFileFilters.Add(GetField(strFileFilter, ';', iFilter));
+      astrFileFilters := strFileFilter.Split([';']);
+      For iFilter := Low(astrFileFilters) To High(astrFileFilters) Do
+        FFileFilters.Add(astrFileFilters[iFilter]);
     End;
   FExclusions      := TStringList.Create;
   FExclusions.Text := LowerCase(strExclusions);
@@ -2148,7 +2152,7 @@ Begin
                 iRes := FindNext(rec);
               End;
           Finally
-            SysUtils.FindClose(rec);
+            System.SysUtils.FindClose(rec);
           End;
         End;
       // Search directories
@@ -2164,7 +2168,7 @@ Begin
                 iRes := FindNext(rec);
               End;
           Finally
-            SysUtils.FindClose(rec);
+            System.SysUtils.FindClose(rec);
           End;
         End;
     End;
@@ -2191,7 +2195,7 @@ Begin
   strLFileName := LowerCase(strFileName);
   Result      := False;
   For i       := 0 To FExclusions.Count - 1 Do
-    Result    := Result Or (Like(FExclusions[i], strLFileName));
+    Result    := Result Or (TFSFunctions.Like(FExclusions[i], strLFileName));
     //Result    := Result Or (Pos(FExclusions[i], strLFileName) > 0);
 End;
 
@@ -2292,7 +2296,8 @@ Begin
         strRightFile := '';
       iCompare := AnsiCompareFileName(strLeftFile, strRightFile);
       Case iCompare Of
-        -2147483648..-1:
+        
+        -MaxInt..-1:
           Begin
             If (FMaxFileSize > 0) And (LeftFldr[iLeft].Size > FMaxFileSize) Then
               LeftFldr[iLeft].Status   := stTooLarge
@@ -2300,7 +2305,7 @@ Begin
               LeftFldr[iLeft].Status := stNewer;
             Inc(iLeft);
           End;
-        +1..+2147483647:
+        +1..+MaxInt:
           Begin
             If (FMaxFileSize > 0) And (RightFldr[iRight].Size > FMaxFileSize) Then
               RightFldr[iLeft].Status   := stTooLarge
@@ -2494,9 +2499,9 @@ Begin
   FSyncOptions     := SyncOps;
   FFldrSyncOptions := FldrSyncOptions;
   FMaxFileSize := iMaxFileSize;
-  If Not SysUtils.DirectoryExists(strLeftFldr) Then
+  If Not System.SysUtils.DirectoryExists(strLeftFldr) Then
     Exit;
-  If Not SysUtils.DirectoryExists(strRightFldr) Then
+  If Not System.SysUtils.DirectoryExists(strRightFldr) Then
     Exit;
   FLeftFldr.SearchFolder(strLeftFldr, strPatterns, strExclusions, SyncOps, iMaxFileSize);
   FRightFldr.SearchFolder(strRightFldr, strPatterns, strExclusions, SyncOps, iMaxFileSize);
@@ -2903,7 +2908,7 @@ Function TCompareFoldersCollection.CopyFileContents(Const strSourceFile, strDest
       If iResult = 0 Then
         Result := recSearch.Size;
     Finally
-      SysUtils.FindClose(recSearch);
+      System.SysUtils.FindClose(recSearch);
     End;
   End;
 
@@ -3034,9 +3039,9 @@ Begin
               End;
             DoCopying(iCurrentFileToCopy + 1, iTotalFilesToCopy, FCumulativeFileSize,
               FTotalFileSize, strSource, strDest, SourceFile.FileName);
-            If Not SysUtils.DirectoryExists
+            If Not System.SysUtils.DirectoryExists
               (ExtractFilePath(strDest + SourceFile.FileName)) Then
-              If Not SysUtils.ForceDirectories
+              If Not System.SysUtils.ForceDirectories
                 (ExtractFilePath(Expand(strDest + SourceFile.FileName))) Then
                 Raise EFldrSyncException.CreateFmt('Can not create folder "%s".',
                   [ExtractFilePath(strDest + SourceFile.FileName)]);
@@ -3345,17 +3350,14 @@ Begin
       If Copy(strLFileName, 1, 4) = '\\?\' Then
         Delete(strLFileName, 1, 4);
       strLFileName := strLFileName + #0#0;
-      with FileOp do
-         begin
-           wnd := FAppHnd;
-           wFunc := FO_DELETE;
-           pFrom := PChar(strLFileName);
-           pTo := Nil;
-           fFlags := FOF_ALLOWUNDO Or FOF_NOCONFIRMATION;
-           fAnyOperationsAborted := False;
-           hNameMappings := Nil;
-           lpszProgressTitle := Nil;
-         end;
+      FileOp.wnd := FAppHnd;
+      FileOp.wFunc := FO_DELETE;
+      FileOp.pFrom := PChar(strLFileName);
+      FileOp.pTo := Nil;
+      FileOp.fFlags := FOF_ALLOWUNDO Or FOF_NOCONFIRMATION;
+      FileOp.fAnyOperationsAborted := False;
+      FileOp.hNameMappings := Nil;
+      FileOp.lpszProgressTitle := Nil;
       // Success is return = zero.
       iResult := SHFileOperation(FileOp);
       Result := iResult = 0;
@@ -3427,19 +3429,16 @@ Procedure TCompareFoldersCollection.DeleteFiles;
     For i := 0 To slRecycleFiles.Count - 1 Do
       Begin
         slRecycleFiles.ValueFromIndex[i] := slRecycleFiles.ValueFromIndex[i] + #0;
-        with FileOp do
-           begin
-             wnd := FAppHnd;
-             wFunc := FO_DELETE;
-             pFrom := PChar(slRecycleFiles.ValueFromIndex[i]);
-             pTo := Nil;
-             fFlags := FOF_ALLOWUNDO;
-             If soConfirmDeleteYes In Process[0].SyncOptions Then
-               fFlags := fFlags Or FOF_NOCONFIRMATION;
-             fAnyOperationsAborted := False;
-             hNameMappings := Nil;
-             lpszProgressTitle := PChar(Format('Recycling %s', [slRecycleFiles.Names[i]]));
-           end;
+         FileOp.wnd := FAppHnd;
+         FileOp.wFunc := FO_DELETE;
+         FileOp.pFrom := PChar(slRecycleFiles.ValueFromIndex[i]);
+         FileOp.pTo := Nil;
+         FileOp.fFlags := FOF_ALLOWUNDO;
+         If soConfirmDeleteYes In Process[0].SyncOptions Then
+           FileOp.fFlags := FileOp.fFlags Or FOF_NOCONFIRMATION;
+         FileOp.fAnyOperationsAborted := False;
+         FileOp.hNameMappings := Nil;
+         FileOp.lpszProgressTitle := PChar(Format('Recycling %s', [slRecycleFiles.Names[i]]));
         // Success is return = zero.
         Sleep(10);
         iResult := SHFileOperation(FileOp);
@@ -4417,7 +4416,7 @@ Begin
         iResult := FindNext(recSearch);
       End;
   Finally
-    SysUtils.FindClose(recSearch);
+    System.SysUtils.FindClose(recSearch);
   End;
 End;
 
@@ -4911,11 +4910,11 @@ Var
 
 Begin
   Result := -1;
-  If Like('*:\*', strPath) Then
+  If TFSFunctions.Like('*:\*', strPath) Then
     strDrive := Copy(strPath, 1, 3)
   Else
     Begin
-      iPos := PosOfNthChar(strPath, '\', 4);
+      iPos := TFSFunctions.PosOfNthChar(strPath, '\', 4);
       If iPos > 0 Then
         strDrive := Copy(strPath, 1, iPos)
       Else
