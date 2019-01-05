@@ -57,4 +57,44 @@
         <CallTarget Targets="FldrSyncTests:Make;FldrSyncCmd:Make;FldrSync:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+    <ItemGroup Condition="'$(BuildGroup)'=='Release'">
+        <BuildGroupProject Include="FldrSync.dproj">
+            <ProjectGuid>{8626FF4F-D6CE-41BC-8CCF-E08F467E969D}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>Win32</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+        <BuildGroupProject Include="FldrSyncCmd.dproj">
+            <ProjectGuid>{029D9766-6F1A-4FE3-89FD-5DE3F8E7464C}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>Win32</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+        <BuildGroupProject Include="Test\FldrSyncTests.dproj">
+            <ProjectGuid>{56225412-B6D2-497E-A77C-63ADFEB76BBA}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>Win32</Platforms>
+            <Enabled>False</Enabled>
+        </BuildGroupProject>
+    </ItemGroup>
+    <ItemGroup Condition="'$(BuildGroup)'=='Debug'">
+        <BuildGroupProject Include="FldrSync.dproj">
+            <ProjectGuid>{8626FF4F-D6CE-41BC-8CCF-E08F467E969D}</ProjectGuid>
+            <Configurations>Debug</Configurations>
+            <Platforms>Win32</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+        <BuildGroupProject Include="FldrSyncCmd.dproj">
+            <ProjectGuid>{029D9766-6F1A-4FE3-89FD-5DE3F8E7464C}</ProjectGuid>
+            <Configurations>Debug</Configurations>
+            <Platforms>Win32</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+        <BuildGroupProject Include="Test\FldrSyncTests.dproj">
+            <ProjectGuid>{56225412-B6D2-497E-A77C-63ADFEB76BBA}</ProjectGuid>
+            <Configurations>Debug</Configurations>
+            <Platforms>Win32</Platforms>
+            <Enabled>False</Enabled>
+        </BuildGroupProject>
+    </ItemGroup>
 </Project>

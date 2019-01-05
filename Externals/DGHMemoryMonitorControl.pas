@@ -5,7 +5,7 @@
 
   @Author  David Hoyle
   @Version 1.0
-  @Date    17 Apr 2013
+  @Date    02 Jan 2019
 
 **)
 Unit DGHMemoryMonitorControl;
@@ -49,7 +49,7 @@ Type
   Protected
     { Protected declarations }
     Procedure Paint; Override;
-    Procedure SetUpdateInterval(Value: Integer); Virtual;
+    Procedure SetUpdateInterval(Const Value: Integer); Virtual;
     Procedure SetLowPoint(Const Value: TPercentage); Virtual;
     Procedure SetHighPoint(Const Value: TPercentage); Virtual;
     Procedure SetHalfPoint(Const Value: TPercentage); Virtual;
@@ -170,49 +170,154 @@ Implementation
 
 Uses
   Types,
-  dghlibrary,
   Themes;
+
+(**
+
+  This method interpolates a colour for the specified percentage position within the colour and position 
+  information passed.
+
+  @precon  None.
+  @postcon Interpolates a colour for the specified percentage position within the colour and position 
+           information passed..
+
+  @param   dblValue          as a Double as a constant
+  @param   dblLowCriteria    as a Double as a constant
+  @param   dblMiddleCriteria as a Double as a constant
+  @param   dblUpperCriteria  as a Double as a constant
+  @param   iLowColour        as a TColor as a constant
+  @param   iMiddleColour     as a TColor as a constant
+  @param   iHighColour       as a TColor as a constant
+  @return  a TColor
+
+**)
+Function CalcColour(Const dblValue, dblLowCriteria, dblMiddleCriteria,
+  dblUpperCriteria : Double; Const iLowColour, iMiddleColour, iHighColour : TColor) : TColor;
 
   (**
 
-   This procedure registers the component with the BDS IDE.
+    This function calculate the intepolation of a single colour value between 2 colours based on value 
+    for those colour positions.
 
-   @precon  None.
-   @postcon Registers the component with the BDS IDE.
+    @precon  None.
+    @postcon Returns the colour which is an interpolation between the input colours.
 
-   **)
-Procedure Register;
+    @param   iLow     as a TColor as a constant
+    @param   iHigh    as a TColor as a constant
+    @param   iMask    as a TColor as a constant
+    @param   dblLow   as a Double as a constant
+    @param   dblValue as a Double as a constant
+    @param   dblHigh  as a Double as a constant
+    @return  a TColor
+
+  **)
+  Function InterpolateColour(Const iLow, iHigh, iMask : TColor; Const dblLow,
+    dblValue, dblHigh : Double) : TColor;
+
+  Var
+    iColourDiff : TColor;
+
+  Begin
+    iColourDiff := iHigh And iMask - iLow And iMask;
+    Result := Round(iLow And iMask + iColourDiff * (dblValue - dblLow) /
+      (dblHigh - dblLow)) And iMask;
+  End;
+
+  (**
+
+    This function calculate the intepolation of a colour value between 2 colours based on value for those
+    colour positions.
+
+    @precon  None.
+    @postcon Returns the colour which is an interpolation between the input colours.
+
+    @param   iLow     as a TColor as a constant
+    @param   iHigh    as a TColor as a constant
+    @param   dblLow   as a Double as a constant
+    @param   dblValue as a Double as a constant
+    @param   dblHigh  as a Double as a constant
+    @return  a TColor
+
+  **)
+  Function InterpolateColours(Const iLow, iHigh : TColor; Const dblLow,
+    dblValue, dblHigh : Double) : TColor;
+
+  Begin
+    Result :=
+      InterpolateColour(iLow, iHigh, $FF0000, dblLow, dblValue, dblHigh) +
+      InterpolateColour(iLow, iHigh, $00FF00, dblLow, dblValue, dblHigh) +
+      InterpolateColour(iLow, iHigh, $0000FF, dblLow, dblValue, dblHigh);
+  End;
 
 Begin
-  RegisterComponents('DGH Controls', [TDGHMemoryMonitor]);
+  If dblValue <= dblLowCriteria Then
+    Result := iLowColour
+  Else If dblValue <= dblMiddleCriteria Then
+    Result := InterpolateColours(
+      ColorToRGB(iLowColour),
+      ColorToRGB(iMiddleColour),
+      dblLowCriteria,
+      dblValue,
+      dblMiddleCriteria)
+  Else If dblValue <= dblUpperCriteria then
+    Result := InterpolateColours(
+      ColorToRGB(iMiddleColour),
+      ColorToRGB(iHighColour),
+      dblMiddleCriteria,
+      dblValue,
+      dblUpperCriteria)
+  Else
+    Result := iHighColour;
 End;
 
 (**
 
-  This function calculates a shorter representation of a memory size and
-  returns a string representing the value.
+  This function calculates a shorter representation of a memory size and returns a string representing 
+  the value.
 
   @precon  None.
   @postcon Returns a string representation of the given size.
 
-  @param   iSize as a Cardinal
+  @param   iSize as a Cardinal as a constant
   @return  a String
 
 **)
-Function CalcSize(iSize: Cardinal): String;
+Function CalcSize(Const iSize: Cardinal): String;
+
+ResourceString
+  strUnknown = 'Unknown';
 
 Const
   dblKILOBYTE: Double = 1024.0;
   dblMEGABYTE: Double = 1024.0 * 1024.0;
+  strKileByteFmt = '%1.2nK';
+  strMegaByteFmt = '%1.2nM';
 
 Begin
-  Result := 'Unknown';
+  Result := strUnknown;
   If iSize < dblKILOBYTE Then
     Result := Format('%1.0n', [Int(iSize)])
   Else If iSize < dblMEGABYTE Then
-    Result := Format('%1.2nK', [Int(iSize) / dblKILOBYTE])
+    Result := Format(strKileByteFmt, [Int(iSize) / dblKILOBYTE])
   Else
-    Result := Format('%1.2nM', [Int(iSize) / dblMEGABYTE])
+    Result := Format(strMegaByteFmt, [Int(iSize) / dblMEGABYTE])
+End;
+
+(**
+
+  This procedure registers the component with the BDS IDE.
+
+  @precon  None.
+  @postcon Registers the component with the BDS IDE.
+
+**)
+Procedure Register;
+
+ResourceString
+  strDGHControls = 'DGH Controls';
+
+Begin
+  RegisterComponents(strDGHControls, [TDGHMemoryMonitor]);
 End;
 
 { TDGHBatteryMonitor }
@@ -223,6 +328,8 @@ End;
 
   @precon  None.
   @postcon Creates and initialise the component including the timer.
+
+  @nocheck MissingCONSTInParam
 
   @param   AOwner as a TComponent
 
@@ -316,6 +423,10 @@ Procedure TDGHMemoryMonitor.Paint;
 
 Const
   iMargin: Integer = 8;
+  strLongOutput = 'Used %s in %s bytes (%1.1n%%) [Blocks: %dL, %dM, %dS]';
+  strMediumOutput = 'Used %s in %s bytes (%1.1n%%)';
+  strShortOutput = '%s in %s (%1.1n%%)';
+  strVeryShortOutput = '%s (%1.1n%%)';
 
 Var
   strStatus : String;
@@ -333,15 +444,15 @@ Begin
     // Write Background text
   strU      := CalcSize(FUsed);
   strR      := CalcSize(FReserved);
-  strStatus := Format('Used %s in %s bytes (%1.1n%%) [Blocks: %dL, %dM, %dS]',
+  strStatus := Format(strLongOutput,
     [strU, strR, Int(FPercentage), FMemBlocks[dmtLarge], FMemBlocks[dmtMedium],
     FMemBlocks[dmtSmall]]);
   If Canvas.TextWidth(strStatus) > R.Right - R.Left - iMargin Then
-    strStatus := Format('Used %s in %s bytes (%1.1n%%)', [strU, strR, Int(FPercentage)]);
+    strStatus := Format(strMediumOutput, [strU, strR, Int(FPercentage)]);
   If Canvas.TextWidth(strStatus) > R.Right - R.Left - iMargin Then
-    strStatus := Format('%s in %s (%1.1n%%)', [strU, strR, Int(FPercentage)]);
+    strStatus := Format(strShortOutput, [strU, strR, Int(FPercentage)]);
   If Canvas.TextWidth(strStatus) > R.Right - R.Left - iMargin Then
-    strStatus := Format('%s (%1.1n%%)', [strU, Int(FPercentage)]);
+    strStatus := Format(strVeryShortOutput, [strU, Int(FPercentage)]);
   T.Left      := R.Left + ((R.Right - R.Left) - Canvas.TextWidth(strStatus)) Div 2;
   T.Right     := T.Left + Canvas.TextWidth(strStatus);
   T.Top       := R.Top;
@@ -372,19 +483,19 @@ End;
 
 (**
 
-  This is a setter method for the LowPoint property.
+  This is a setter method for the HalfPoint property.
 
   @precon  None.
-  @postcon Sets the LowPoitn property.
+  @postcon Sets the HalfPoint Property
 
   @param   Value as a TPercentage as a constant
 
 **)
-Procedure TDGHMemoryMonitor.SetLowPoint(Const Value: TPercentage);
+Procedure TDGHMemoryMonitor.SetHalfPoint(Const Value: TPercentage);
 
 Begin
-  //If (Value < FHalfPoint) And (Value > 0) Then
-    FLowPoint := Value;
+  //If (Value > FLowPoint) And (Value < FHighPoint) Then
+    FHalfPoint := Value;
 End;
 
 (**
@@ -406,19 +517,19 @@ End;
 
 (**
 
-  This is a setter method for the HalfPoint property.
+  This is a setter method for the LowPoint property.
 
   @precon  None.
-  @postcon Sets the HalfPoint Property
+  @postcon Sets the LowPoitn property.
 
   @param   Value as a TPercentage as a constant
 
 **)
-Procedure TDGHMemoryMonitor.SetHalfPoint(Const Value: TPercentage);
+Procedure TDGHMemoryMonitor.SetLowPoint(Const Value: TPercentage);
 
 Begin
-  //If (Value > FLowPoint) And (Value < FHighPoint) Then
-    FHalfPoint := Value;
+  //If (Value < FHalfPoint) And (Value > 0) Then
+    FLowPoint := Value;
 End;
 
 (**
@@ -428,10 +539,10 @@ End;
   @precon  None.
   @postcon Set the update interval of the componenot and the timer control.
 
-  @param   Value as an Integer
+  @param   Value as an Integer as a constant
 
 **)
-Procedure TDGHMemoryMonitor.SetUpdateInterval(Value: Integer);
+Procedure TDGHMemoryMonitor.SetUpdateInterval(Const Value: Integer);
 
 Begin
   FUpdateInterval := Value;

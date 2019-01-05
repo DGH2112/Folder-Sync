@@ -6,7 +6,7 @@
 
   @Author  Daviid Hoyle
   @Version 1.0
-  @Date    25 Mar 2016
+  @Date    02 Jan 2019
 
 **)
 Unit DiskSpaceForm;
@@ -45,7 +45,7 @@ Type
     FCFC : TCompareFoldersCollection;
   Public
     { Public declarations }
-    Class Function Execute(CFC: TCompareFoldersCollection): Boolean;
+    Class Function Execute(Const CFC: TCompareFoldersCollection): Boolean;
   End;
 
 Implementation
@@ -53,9 +53,11 @@ Implementation
 {$R *.dfm}
 
 Uses
+  {$IFDEF DEBUG}
   CodeSiteLogging,
-  dghlibrary,
-  Themes;
+  {$ENDIF}
+  VCL.Themes,
+  FldrSync.Functions;
 
 Type
   (** This is a record to describe the node data for each virtual tree node. **)
@@ -70,34 +72,35 @@ Type
   @precon  CFC must be a valid instance.
   @postcon Returns true if the dialogue is confirmed.
 
-  @param   CFC as a TCompareFoldersCollection
+  @param   CFC as a TCompareFoldersCollection as a constant
   @return  a Boolean
 
 **)
-Class Function TfrmDiskSpace.Execute(CFC: TCompareFoldersCollection): Boolean;
+Class Function TfrmDiskSpace.Execute(Const CFC: TCompareFoldersCollection): Boolean;
 
 Var
   iDrive : Integer;
   N : PVirtualNode;
   ND : ^TTreeData;
+  F: TfrmDiskSpace;
 
 Begin
-  With TfrmDiskSpace.Create(Nil) Do
-    Try
-      Result := False;
-      vstDiskSpace.NodeDataSize := SizeOf(TTreeData);
-      FCFC := CFC;
-      For iDrive := 0 To CFC.Drives.Count - 1 Do
-        Begin
-          N := vstDiskSpace.AddChild(Nil);
-          ND := vstDiskSpace.GetNodeData(N);
-          ND.Drive := CFC.Drives.Drive[iDrive];
-        End;
-      If ShowModal = mrOK Then
-        Result := True;
-    Finally
-      Free;
-    End;
+  F := TfrmDiskSpace.Create(Nil);
+  Try
+    Result := False;
+    F.vstDiskSpace.NodeDataSize := SizeOf(TTreeData);
+    F.FCFC := CFC;
+    For iDrive := 0 To CFC.Drives.Count - 1 Do
+      Begin
+        N := F.vstDiskSpace.AddChild(Nil);
+        ND := F.vstDiskSpace.GetNodeData(N);
+        ND.Drive := CFC.Drives.Drive[iDrive];
+      End;
+    If F.ShowModal = mrOK Then
+      Result := True;
+  Finally
+    F.Free;
+  End;
 End;
 
 (**
@@ -116,6 +119,11 @@ End;
 Procedure TfrmDiskSpace.vstDiskSpaceAfterItemErase(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; ItemRect: TRect);
 
+Const
+  iAmber = $00CCFF;
+  dbl2_5PerCent = 0.025;
+  dbl5PerCent = 0.05;
+
 Var
   ND : ^TTreeData;
   dblTotal: Double;
@@ -129,11 +137,11 @@ Begin
     dblValue := dblValue / dblTotal
   Else
     dblValue := 0;
-  TargetCanvas.Brush.Color := CalcColour(dblValue, 0.0, 0.025, 0.05,
+  TargetCanvas.Brush.Color := TFSFunctions.CalcColour(dblValue, 0.0, dbl2_5PerCent, dbl5PerCent,
     StyleServices.GetSystemColor(clRed),
-    StyleServices.GetSystemColor($00CCFF),
+    StyleServices.GetSystemColor(iAmber),
     StyleServices.GetSystemColor(clWindow));
-  TargetCanvas.Font.Color := CalcColour(dblValue, 0.0, 0.025, 0.05,
+  TargetCanvas.Font.Color := TFSFunctions.CalcColour(dblValue, 0.0, dbl2_5PerCent, dbl5PerCent,
     StyleServices.GetSystemColor(clBlack),
     StyleServices.GetSystemColor(clBlack),
     StyleServices.GetSystemColor(clWindowText));
@@ -157,18 +165,25 @@ End;
 Procedure TfrmDiskSpace.vstDiskSpaceGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; Var CellText: String);
 
+Type
+  TFSDiskSpaceField = (dsfDrive, dsfTotal, dsfFreeAtStart, dsfTotalDeletes, dsfTotalAdds,
+    dsfFreeAtFinish);
+
+Const
+  dblKiloByte = 1024.0;
+
 Var
   ND : ^TTreeData;
 
 Begin
   ND := Sender.GetNodeData(Node);
-  Case Column Of
-    0: CellText := ND.Drive.Drive;
-    1: CellText := Format('%1.1n', [Int(ND.Drive.Total) / 1024]);
-    2: CellText := Format('%1.1n', [Int(ND.Drive.FreeAtStart) / 1024]);
-    3: CellText := Format('%1.1n', [Int(ND.Drive.TotalDeletes) / 1024]);
-    4: CellText := Format('%1.1n', [Int(ND.Drive.TotalAdds) / 1024]);
-    5: CellText := Format('%1.1n', [Int(ND.Drive.FreeAtFinish) / 1024]);
+  Case TFSDiskSpaceField(Column) Of
+    dsfDrive:        CellText := ND.Drive.Drive;
+    dsfTotal:        CellText := Format('%1.1n', [Int(ND.Drive.Total) / dblKiloByte]);
+    dsfFreeAtStart:  CellText := Format('%1.1n', [Int(ND.Drive.FreeAtStart) / dblKiloByte]);
+    dsfTotalDeletes: CellText := Format('%1.1n', [Int(ND.Drive.TotalDeletes) / dblKiloByte]);
+    dsfTotalAdds:    CellText := Format('%1.1n', [Int(ND.Drive.TotalAdds) / dblKiloByte]);
+    dsfFreeAtFinish: CellText := Format('%1.1n', [Int(ND.Drive.FreeAtFinish) / dblKiloByte]);
   End;
 End;
 

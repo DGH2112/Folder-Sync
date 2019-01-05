@@ -3,7 +3,7 @@ object frmDiskSpace: TfrmDiskSpace
   Top = 0
   BorderIcons = [biSystemMenu]
   Caption = 'Process Files'
-  ClientHeight = 187
+  ClientHeight = 190
   ClientWidth = 635
   Color = clBtnFace
   Constraints.MinHeight = 225
@@ -17,7 +17,7 @@ object frmDiskSpace: TfrmDiskSpace
   Position = poMainFormCenter
   DesignSize = (
     635
-    187)
+    190)
   PixelsPerInch = 96
   TextHeight = 13
   object lblDiskSpace: TLabel
@@ -56,11 +56,6 @@ object frmDiskSpace: TfrmDiskSpace
     Height = 124
     Anchors = [akLeft, akTop, akRight, akBottom]
     Header.AutoSizeIndex = 0
-    Header.Font.Charset = DEFAULT_CHARSET
-    Header.Font.Color = clWindowText
-    Header.Font.Height = -11
-    Header.Font.Name = 'Tahoma'
-    Header.Font.Style = []
     Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
     TabOrder = 2
     TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toFullVertGridLines, toAlwaysHideSelection]
@@ -69,7 +64,7 @@ object frmDiskSpace: TfrmDiskSpace
     Columns = <
       item
         Position = 0
-        Width = 115
+        Width = 119
         WideText = 'Drive'
       end
       item

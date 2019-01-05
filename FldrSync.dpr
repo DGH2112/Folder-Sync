@@ -3,7 +3,7 @@
   The main delphi module for the Folder Synchronisation application.
 
   @Author  David Hoyle
-  @Date    01 Jan 2019
+  @Date    02 Jan 2019
   @Version 2.0
 
   @nocheck HardCodedString
@@ -37,7 +37,6 @@ uses
   OptionsForm in 'Source\OptionsForm.pas' {frmOptions},
   ProgressForm in 'Source\ProgressForm.pas' {frmProgress},
   FolderPathsForm in 'Source\FolderPathsForm.pas' {frmFolderPaths},
-  dghlibrary in 'Externals\dghlibrary.pas',
   FileCopyProgressForm in 'Source\FileCopyProgressForm.pas' {frmCopyProgress},
   DGHMemoryMonitorControl in 'Externals\DGHMemoryMonitorControl.pas',
   DGHCustomGraphicsControl in 'Externals\DGHCustomGraphicsControl.pas',
@@ -51,7 +50,8 @@ uses
   OperationsFontForm in 'Source\OperationsFontForm.pas' {frmOperationsFonts},
   DiskSpaceForm in 'Source\DiskSpaceForm.pas' {frmDiskSpace},
   ProcessingErrorForm in 'Source\ProcessingErrorForm.pas' {frmErrorDlg},
-  ApplicationFunctions in 'Source\ApplicationFunctions.pas';
+  ApplicationFunctions in 'Source\ApplicationFunctions.pas',
+  FldrSync.Functions in 'Source\FldrSync.Functions.pas';
 
 {$R *.RES}
 

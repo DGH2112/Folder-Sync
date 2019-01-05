@@ -34,7 +34,7 @@ object frmOptions: TfrmOptions
     Anchors = [akRight, akBottom]
     Kind = bkOK
     NumGlyphs = 2
-    TabOrder = 1
+    TabOrder = 2
   end
   object btnHelp: TBitBtn
     Left = 374
@@ -48,7 +48,7 @@ object frmOptions: TfrmOptions
     Anchors = [akRight, akBottom]
     Kind = bkHelp
     NumGlyphs = 2
-    TabOrder = 2
+    TabOrder = 1
     OnClick = btnHelpClick
   end
   object pagPages: TPageControl
@@ -56,108 +56,22 @@ object frmOptions: TfrmOptions
     Top = 10
     Width = 608
     Height = 393
-    ActivePage = tabGlobalOptions
+    ActivePage = tabFolders
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
     object tabFolders: TTabSheet
       Caption = '&Folders'
-      DesignSize = (
-        600
-        362)
-      object btnAdd: TBitBtn
-        Left = 4
-        Top = 333
-        Width = 75
-        Height = 25
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
-        Anchors = [akLeft, akBottom]
-        Caption = '&Add'
-        Glyph.Data = {
-          76010000424D7601000000000000760000002800000020000000100000000100
-          04000000000000010000130B0000130B00001000000000000000000000000000
-          800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
-          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333333333
-          33333333FF33333333FF333993333333300033377F3333333777333993333333
-          300033F77FFF3333377739999993333333333777777F3333333F399999933333
-          33003777777333333377333993333333330033377F3333333377333993333333
-          3333333773333333333F333333333333330033333333F33333773333333C3333
-          330033333337FF3333773333333CC333333333FFFFF77FFF3FF33CCCCCCCCCC3
-          993337777777777F77F33CCCCCCCCCC3993337777777777377333333333CC333
-          333333333337733333FF3333333C333330003333333733333777333333333333
-          3000333333333333377733333333333333333333333333333333}
-        NumGlyphs = 2
-        TabOrder = 1
-        OnClick = btnAddClick
-      end
-      object btnDelete: TBitBtn
-        Left = 170
-        Top = 333
-        Width = 75
-        Height = 25
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
-        Anchors = [akLeft, akBottom]
-        Caption = '&Delete'
-        Glyph.Data = {
-          76010000424D7601000000000000760000002800000020000000100000000100
-          04000000000000010000130B0000130B00001000000000000000000000000000
-          800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
-          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333333333
-          333333333333333333FF33333333333330003333333333333777333333333333
-          300033FFFFFF3333377739999993333333333777777F3333333F399999933333
-          3300377777733333337733333333333333003333333333333377333333333333
-          3333333333333333333F333333333333330033333F33333333773333C3333333
-          330033337F3333333377333CC3333333333333F77FFFFFFF3FF33CCCCCCCCCC3
-          993337777777777F77F33CCCCCCCCCC399333777777777737733333CC3333333
-          333333377F33333333FF3333C333333330003333733333333777333333333333
-          3000333333333333377733333333333333333333333333333333}
-        NumGlyphs = 2
-        TabOrder = 3
-        OnClick = btnDeleteClick
-      end
-      object btnEdit: TBitBtn
-        Left = 87
-        Top = 333
-        Width = 75
-        Height = 25
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
-        Anchors = [akLeft, akBottom]
-        Caption = '&Edit'
-        Glyph.Data = {
-          76010000424D7601000000000000760000002800000020000000100000000100
-          04000000000000010000120B0000120B00001000000000000000000000000000
-          800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
-          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333000000
-          000033333377777777773333330FFFFFFFF03FF3FF7FF33F3FF700300000FF0F
-          00F077F777773F737737E00BFBFB0FFFFFF07773333F7F3333F7E0BFBF000FFF
-          F0F077F3337773F3F737E0FBFBFBF0F00FF077F3333FF7F77F37E0BFBF00000B
-          0FF077F3337777737337E0FBFBFBFBF0FFF077F33FFFFFF73337E0BF0000000F
-          FFF077FF777777733FF7000BFB00B0FF00F07773FF77373377373330000B0FFF
-          FFF03337777373333FF7333330B0FFFF00003333373733FF777733330B0FF00F
-          0FF03333737F37737F373330B00FFFFF0F033337F77F33337F733309030FFFFF
-          00333377737FFFFF773333303300000003333337337777777333}
-        NumGlyphs = 2
-        TabOrder = 2
-        OnClick = btnEditClick
-      end
       object lvFolders: TListView
+        AlignWithMargins = True
         Left = 4
         Top = 4
         Width = 592
-        Height = 321
+        Height = 312
         Margins.Left = 4
         Margins.Top = 4
         Margins.Right = 4
         Margins.Bottom = 4
-        Anchors = [akLeft, akTop, akRight, akBottom]
+        Align = alClient
         Checkboxes = True
         Columns = <
           item
@@ -181,111 +95,170 @@ object frmOptions: TfrmOptions
         OnDblClick = lvFoldersDblClick
         OnResize = lvFoldersResize
         OnSelectItem = lvFoldersSelectItem
+        ExplicitHeight = 133
       end
-      object btnUp: TBitBtn
-        Left = 252
-        Top = 332
-        Width = 75
-        Height = 25
-        Anchors = [akLeft, akBottom]
-        Caption = '&Up'
-        Glyph.Data = {
-          76010000424D7601000000000000760000002800000020000000100000000100
-          04000000000000010000120B0000120B00001000000000000000000000000000
-          800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
-          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333000333
-          3333333333777F33333333333309033333333333337F7F333333333333090333
-          33333333337F7F33333333333309033333333333337F7F333333333333090333
-          33333333337F7F33333333333309033333333333FF7F7FFFF333333000090000
-          3333333777737777F333333099999990333333373F3333373333333309999903
-          333333337F33337F33333333099999033333333373F333733333333330999033
-          3333333337F337F3333333333099903333333333373F37333333333333090333
-          33333333337F7F33333333333309033333333333337373333333333333303333
-          333333333337F333333333333330333333333333333733333333}
-        NumGlyphs = 2
-        TabOrder = 4
-        OnClick = btnUpClick
-      end
-      object btnDown: TBitBtn
-        Left = 333
-        Top = 332
-        Width = 75
-        Height = 25
-        Anchors = [akLeft, akBottom]
-        Caption = '&Down'
-        Glyph.Data = {
-          76010000424D7601000000000000760000002800000020000000100000000100
-          04000000000000010000120B0000120B00001000000000000000000000000000
-          800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
-          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333303333
-          333333333337F33333333333333033333333333333373F333333333333090333
-          33333333337F7F33333333333309033333333333337373F33333333330999033
-          3333333337F337F33333333330999033333333333733373F3333333309999903
-          333333337F33337F33333333099999033333333373333373F333333099999990
-          33333337FFFF3FF7F33333300009000033333337777F77773333333333090333
-          33333333337F7F33333333333309033333333333337F7F333333333333090333
-          33333333337F7F33333333333309033333333333337F7F333333333333090333
-          33333333337F7F33333333333300033333333333337773333333}
-        NumGlyphs = 2
-        TabOrder = 5
-        OnClick = btnDownClick
-      end
-      object btnCopy: TBitBtn
-        Left = 414
-        Top = 332
-        Width = 75
-        Height = 25
-        Anchors = [akLeft, akBottom]
-        Caption = '&Copy'
-        Glyph.Data = {
-          F6000000424DF600000000000000760000002800000010000000100000000100
-          0400000000008000000000000000000000001000000000000000000000000000
-          80000080000000808000800000008000800080800000C0C0C000808080000000
-          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00777777777777
-          7777777777777777777777777744444444477777774FFFFFFF477777774F0000
-          0F470000004FFFFFFF470FFFFF4F00000F470F00004FFFFFFF470FFFFF4F00F4
-          44470F00004FFFF4F4770FFFFF4FFFF447770F00F044444477770FFFF0F07777
-          77770FFFF0077777777700000077777777777777777777777777}
-        TabOrder = 6
-        OnClick = btnCopyClick
+      object pnlButtons: TPanel
+        Left = 0
+        Top = 320
+        Width = 600
+        Height = 42
+        Align = alBottom
+        BevelOuter = bvNone
+        TabOrder = 1
+        object btnAdd: TBitBtn
+          Left = 4
+          Top = 8
+          Width = 75
+          Height = 25
+          Margins.Left = 4
+          Margins.Top = 4
+          Margins.Right = 4
+          Margins.Bottom = 4
+          Caption = '&Add'
+          Glyph.Data = {
+            76010000424D7601000000000000760000002800000020000000100000000100
+            04000000000000010000130B0000130B00001000000000000000000000000000
+            800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
+            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333333333
+            33333333FF33333333FF333993333333300033377F3333333777333993333333
+            300033F77FFF3333377739999993333333333777777F3333333F399999933333
+            33003777777333333377333993333333330033377F3333333377333993333333
+            3333333773333333333F333333333333330033333333F33333773333333C3333
+            330033333337FF3333773333333CC333333333FFFFF77FFF3FF33CCCCCCCCCC3
+            993337777777777F77F33CCCCCCCCCC3993337777777777377333333333CC333
+            333333333337733333FF3333333C333330003333333733333777333333333333
+            3000333333333333377733333333333333333333333333333333}
+          NumGlyphs = 2
+          TabOrder = 0
+          OnClick = btnAddClick
+        end
+        object btnEdit: TBitBtn
+          Left = 87
+          Top = 8
+          Width = 75
+          Height = 25
+          Margins.Left = 4
+          Margins.Top = 4
+          Margins.Right = 4
+          Margins.Bottom = 4
+          Caption = '&Edit'
+          Glyph.Data = {
+            76010000424D7601000000000000760000002800000020000000100000000100
+            04000000000000010000120B0000120B00001000000000000000000000000000
+            800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
+            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333000000
+            000033333377777777773333330FFFFFFFF03FF3FF7FF33F3FF700300000FF0F
+            00F077F777773F737737E00BFBFB0FFFFFF07773333F7F3333F7E0BFBF000FFF
+            F0F077F3337773F3F737E0FBFBFBF0F00FF077F3333FF7F77F37E0BFBF00000B
+            0FF077F3337777737337E0FBFBFBFBF0FFF077F33FFFFFF73337E0BF0000000F
+            FFF077FF777777733FF7000BFB00B0FF00F07773FF77373377373330000B0FFF
+            FFF03337777373333FF7333330B0FFFF00003333373733FF777733330B0FF00F
+            0FF03333737F37737F373330B00FFFFF0F033337F77F33337F733309030FFFFF
+            00333377737FFFFF773333303300000003333337337777777333}
+          NumGlyphs = 2
+          TabOrder = 1
+          OnClick = btnEditClick
+        end
+        object btnDelete: TBitBtn
+          Left = 170
+          Top = 8
+          Width = 75
+          Height = 25
+          Margins.Left = 4
+          Margins.Top = 4
+          Margins.Right = 4
+          Margins.Bottom = 4
+          Caption = '&Delete'
+          Glyph.Data = {
+            76010000424D7601000000000000760000002800000020000000100000000100
+            04000000000000010000130B0000130B00001000000000000000000000000000
+            800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
+            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333333333
+            333333333333333333FF33333333333330003333333333333777333333333333
+            300033FFFFFF3333377739999993333333333777777F3333333F399999933333
+            3300377777733333337733333333333333003333333333333377333333333333
+            3333333333333333333F333333333333330033333F33333333773333C3333333
+            330033337F3333333377333CC3333333333333F77FFFFFFF3FF33CCCCCCCCCC3
+            993337777777777F77F33CCCCCCCCCC399333777777777737733333CC3333333
+            333333377F33333333FF3333C333333330003333733333333777333333333333
+            3000333333333333377733333333333333333333333333333333}
+          NumGlyphs = 2
+          TabOrder = 2
+          OnClick = btnDeleteClick
+        end
+        object btnUp: TBitBtn
+          Left = 252
+          Top = 8
+          Width = 75
+          Height = 25
+          Caption = '&Up'
+          Glyph.Data = {
+            76010000424D7601000000000000760000002800000020000000100000000100
+            04000000000000010000120B0000120B00001000000000000000000000000000
+            800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
+            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333000333
+            3333333333777F33333333333309033333333333337F7F333333333333090333
+            33333333337F7F33333333333309033333333333337F7F333333333333090333
+            33333333337F7F33333333333309033333333333FF7F7FFFF333333000090000
+            3333333777737777F333333099999990333333373F3333373333333309999903
+            333333337F33337F33333333099999033333333373F333733333333330999033
+            3333333337F337F3333333333099903333333333373F37333333333333090333
+            33333333337F7F33333333333309033333333333337373333333333333303333
+            333333333337F333333333333330333333333333333733333333}
+          NumGlyphs = 2
+          TabOrder = 3
+          OnClick = btnUpClick
+        end
+        object btnDown: TBitBtn
+          Left = 333
+          Top = 8
+          Width = 75
+          Height = 25
+          Caption = '&Down'
+          Glyph.Data = {
+            76010000424D7601000000000000760000002800000020000000100000000100
+            04000000000000010000120B0000120B00001000000000000000000000000000
+            800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
+            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333303333
+            333333333337F33333333333333033333333333333373F333333333333090333
+            33333333337F7F33333333333309033333333333337373F33333333330999033
+            3333333337F337F33333333330999033333333333733373F3333333309999903
+            333333337F33337F33333333099999033333333373333373F333333099999990
+            33333337FFFF3FF7F33333300009000033333337777F77773333333333090333
+            33333333337F7F33333333333309033333333333337F7F333333333333090333
+            33333333337F7F33333333333309033333333333337F7F333333333333090333
+            33333333337F7F33333333333300033333333333337773333333}
+          NumGlyphs = 2
+          TabOrder = 4
+          OnClick = btnDownClick
+        end
+        object btnCopy: TBitBtn
+          Left = 414
+          Top = 8
+          Width = 75
+          Height = 25
+          Caption = '&Copy'
+          Glyph.Data = {
+            F6000000424DF600000000000000760000002800000010000000100000000100
+            0400000000008000000000000000000000001000000000000000000000000000
+            80000080000000808000800000008000800080800000C0C0C000808080000000
+            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00777777777777
+            7777777777777777777777777744444444477777774FFFFFFF477777774F0000
+            0F470000004FFFFFFF470FFFFF4F00000F470F00004FFFFFFF470FFFFF4F00F4
+            44470F00004FFFF4F4770FFFFF4FFFF447770F00F044444477770FFFF0F07777
+            77770FFFF0077777777700000077777777777777777777777777}
+          TabOrder = 5
+          OnClick = btnCopyClick
+        end
       end
     end
     object tabGlobalOptions: TTabSheet
       Caption = '&Global Options'
       ImageIndex = 2
-      ExplicitTop = 24
-      ExplicitHeight = 365
-      DesignSize = (
-        600
-        362)
-      object lblThemes: TLabel
-        Left = 2
-        Top = 339
-        Width = 40
-        Height = 16
-        Margins.Left = 2
-        Margins.Top = 2
-        Margins.Right = 2
-        Margins.Bottom = 2
-        Anchors = [akLeft, akBottom]
-        Caption = '&Theme'
-        FocusControl = cbxThemes
-        ExplicitTop = 342
-      end
-      object lblCompareFiles: TLabel
-        Left = 2
-        Top = 312
-        Width = 78
-        Height = 16
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
-        Anchors = [akLeft, akBottom]
-        Caption = 'Compare &EXE'
-        FocusControl = edtCompareEXE
-      end
+      ExplicitLeft = 60
+      ExplicitTop = 11
       object lbxFldrSyncOps: TListView
+        AlignWithMargins = True
         Left = 4
         Top = 4
         Width = 592
@@ -294,7 +267,7 @@ object frmOptions: TfrmOptions
         Margins.Top = 4
         Margins.Right = 4
         Margins.Bottom = 4
-        Anchors = [akLeft, akTop, akRight]
+        Align = alTop
         Checkboxes = True
         Columns = <
           item
@@ -307,57 +280,17 @@ object frmOptions: TfrmOptions
         TabOrder = 0
         ViewStyle = vsReport
       end
-      object btnBrowse: TButton
-        Left = 521
-        Top = 304
-        Width = 75
-        Height = 25
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
-        Anchors = [akRight, akBottom]
-        Caption = '&Browse'
-        TabOrder = 1
-        OnClick = btnBrowseClick
-        ExplicitTop = 307
-      end
-      object edtCompareEXE: TEdit
-        Left = 108
-        Top = 306
-        Width = 405
-        Height = 24
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
-        Anchors = [akLeft, akRight, akBottom]
-        TabOrder = 2
-        Text = 'edtCompareEXE'
-      end
-      object cbxThemes: TComboBox
-        Left = 108
-        Top = 336
-        Width = 490
-        Height = 24
-        Margins.Left = 2
-        Margins.Top = 2
-        Margins.Right = 2
-        Margins.Bottom = 2
-        Anchors = [akLeft, akRight, akBottom]
-        TabOrder = 3
-        Text = 'cbxThemes'
-      end
       object lvFileOpStats: TListView
+        AlignWithMargins = True
         Left = 4
         Top = 137
         Width = 592
-        Height = 159
+        Height = 151
         Margins.Left = 4
         Margins.Top = 4
         Margins.Right = 4
         Margins.Bottom = 4
-        Anchors = [akLeft, akTop, akRight, akBottom]
+        Align = alClient
         Checkboxes = True
         Columns = <
           item
@@ -367,96 +300,188 @@ object frmOptions: TfrmOptions
         HideSelection = False
         ReadOnly = True
         RowSelect = True
-        TabOrder = 4
+        TabOrder = 1
         ViewStyle = vsReport
-        ExplicitHeight = 162
+        ExplicitLeft = 0
+        ExplicitTop = 133
+        ExplicitWidth = 600
+        ExplicitHeight = 76
+      end
+      object pnlBottomControls: TPanel
+        Left = 0
+        Top = 292
+        Width = 600
+        Height = 70
+        Align = alBottom
+        BevelOuter = bvNone
+        TabOrder = 2
+        DesignSize = (
+          600
+          70)
+        object lblThemes: TLabel
+          Left = 4
+          Top = 42
+          Width = 40
+          Height = 16
+          Margins.Left = 2
+          Margins.Top = 2
+          Margins.Right = 2
+          Margins.Bottom = 2
+          Caption = '&Theme'
+          FocusControl = cbxThemes
+        end
+        object lblCompareFiles: TLabel
+          Left = 2
+          Top = 12
+          Width = 78
+          Height = 16
+          Margins.Left = 4
+          Margins.Top = 4
+          Margins.Right = 4
+          Margins.Bottom = 4
+          Caption = 'Compare &EXE'
+          FocusControl = edtCompareEXE
+        end
+        object edtCompareEXE: TEdit
+          Left = 108
+          Top = 9
+          Width = 401
+          Height = 24
+          Margins.Left = 4
+          Margins.Top = 4
+          Margins.Right = 4
+          Margins.Bottom = 4
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 0
+          Text = 'edtCompareEXE'
+        end
+        object btnBrowse: TButton
+          Left = 517
+          Top = 9
+          Width = 75
+          Height = 25
+          Margins.Left = 4
+          Margins.Top = 4
+          Margins.Right = 4
+          Margins.Bottom = 4
+          Anchors = [akTop, akRight]
+          Caption = '&Browse'
+          TabOrder = 1
+          OnClick = btnBrowseClick
+        end
+        object cbxThemes: TComboBox
+          Left = 108
+          Top = 39
+          Width = 480
+          Height = 24
+          Margins.Left = 2
+          Margins.Top = 2
+          Margins.Right = 2
+          Margins.Bottom = 2
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 2
+          Text = 'cbxThemes'
+        end
       end
     end
     object tabFonts: TTabSheet
       Caption = 'F&onts'
       ImageIndex = 1
       OnResize = tabFontsResize
-      DesignSize = (
-        600
-        362)
       object lblInterfaceFonts: TLabel
+        AlignWithMargins = True
         Left = 3
         Top = 3
-        Width = 86
+        Width = 594
         Height = 16
+        Align = alTop
         Caption = '&Interface Fonts'
+        ExplicitWidth = 86
       end
       object lblFileOperationFonts: TLabel
+        AlignWithMargins = True
         Left = 3
-        Top = 121
-        Width = 115
+        Top = 124
+        Width = 594
         Height = 16
+        Align = alTop
         Caption = 'File &Operation Fonts'
+        ExplicitTop = 121
+        ExplicitWidth = 115
       end
       object lbxInterfaceFonts: TListBox
+        AlignWithMargins = True
         Left = 3
-        Top = 22
+        Top = 25
         Width = 594
         Height = 62
         Style = lbOwnerDrawFixed
-        Anchors = [akLeft, akTop, akRight]
+        Align = alTop
         ItemHeight = 22
         TabOrder = 0
         OnDblClick = btnInterfaceFontEditClick
         OnDrawItem = lbxInterfaceFontsDrawItem
+        ExplicitTop = 22
       end
       object lbxFileOperationFonts: TListBox
+        AlignWithMargins = True
         Left = 3
-        Top = 140
+        Top = 146
         Width = 594
-        Height = 188
+        Height = 182
         Style = lbOwnerDrawFixed
-        Anchors = [akLeft, akTop, akRight, akBottom]
+        Align = alClient
         ItemHeight = 22
         TabOrder = 2
         OnDblClick = btnFileOperationFontEditClick
         OnDrawItem = lbxFileOperationFontsDrawItem
+        ExplicitTop = 140
+        ExplicitHeight = 188
       end
       object btnInterfaceFontEdit: TBitBtn
+        AlignWithMargins = True
         Left = 3
-        Top = 90
+        Top = 93
         Width = 594
         Height = 25
-        Anchors = [akLeft, akTop, akRight]
+        Align = alTop
         Caption = '&Edit Interface Font'
         TabOrder = 1
         OnClick = btnInterfaceFontEditClick
+        ExplicitTop = 90
       end
       object btnFileOperationFontEdit: TBitBtn
+        AlignWithMargins = True
         Left = 3
         Top = 334
-        Width = 595
+        Width = 594
         Height = 25
-        Anchors = [akLeft, akRight, akBottom]
+        Align = alBottom
         Caption = 'Edit &File Operation Font'
         TabOrder = 3
         OnClick = btnFileOperationFontEditClick
+        ExplicitWidth = 595
       end
     end
     object tabExclusions: TTabSheet
       Caption = '&Exclusions'
       ImageIndex = 3
-      DesignSize = (
-        600
-        362)
       object lblExclusions: TLabel
+        AlignWithMargins = True
         Left = 4
         Top = 4
-        Width = 103
+        Width = 592
         Height = 16
         Margins.Left = 4
         Margins.Top = 4
         Margins.Right = 4
         Margins.Bottom = 4
-        Anchors = [akLeft, akTop, akRight]
+        Align = alTop
         Caption = 'Exclusion &Patterns'
+        ExplicitWidth = 103
       end
       object edtExclusions: TMemo
+        AlignWithMargins = True
         Left = 4
         Top = 28
         Width = 592
@@ -465,7 +490,7 @@ object frmOptions: TfrmOptions
         Margins.Top = 4
         Margins.Right = 4
         Margins.Bottom = 4
-        Anchors = [akLeft, akTop, akRight, akBottom]
+        Align = alClient
         ScrollBars = ssBoth
         TabOrder = 0
         WordWrap = False

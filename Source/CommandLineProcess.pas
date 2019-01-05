@@ -5,7 +5,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    01 Jan 2019
+  @Date    02 Jan 2019
 
   @nocheck HardCodedInteger HardCodedNumber HardCodedString
 
@@ -19,7 +19,8 @@ Uses
   Classes,
   Graphics,
   SyncModule,
-  ApplicationFunctions;
+  ApplicationFunctions,
+  FldrSync.Console;
 
 Type
   (** An arrray of Ansi Characters - used for console input selection. **)
@@ -30,7 +31,6 @@ Type
   Strict Private
     FINIFileName         : String;
     FParams              : TStringList;
-    FStd, FErr           : THandle;
     FCFC                 : TCompareFoldersCollection;
     FCommandLineOptions  : TCommandLineOptionsRec;
     FTitleColour         : TColor;
@@ -46,6 +46,7 @@ Type
     FOutputUpdateInterval: Integer;
     FFldrSyncOptions     : TFldrSyncOptions;
     FStartTime           : TDateTime;
+    FConsole             : TFSConsole;
   Strict Protected
     Procedure ExceptionProc(Const strMsg: String);
     Function GetPause: Boolean;
@@ -124,7 +125,8 @@ Type
   Public
     Constructor Create;
     Destructor Destroy; Override;
-    Procedure Execute(Const iStd, iErr: THandle);
+    Procedure Execute;
+    Procedure RaiseFldrSyncException(Const E : Exception);
     (**
       This property returns whether the pause switch was present on the command line.
       @precon  None.
@@ -134,7 +136,6 @@ Type
     Property Pause: Boolean Read GetPause;
   End;
 
-  Procedure RaiseFldrSyncException(Const iErrHnd : Thandle; Const E : Exception);
 
 Const
   (** This is a tempate for the output of an exception message. **)
@@ -146,16 +147,19 @@ Const
 Implementation
 
 Uses
+  {$IFDEF DEBUG}
   CodeSiteLogging,
-  Windows,
-  DGHLibrary,
-  INIFiles,
-  ShellAPI,
+  {$ENDIF}
+  System.INIFiles,
+  WinAPI.Windows,
+  WinAPI.ShellAPI,
   {$IFDEF EUREKALOG_VER7}
   ExceptionLog7,
   EExceptionManager,
-  ECallStack
-  {$ENDIF};
+  ECallStack,
+  EBaseClasses,
+  {$ENDIF}
+  FldrSync.Functions;
 
 (**
 
@@ -172,38 +176,6 @@ Function IsRO(Const strFileName: String): Boolean;
 
 Begin
   IsRO := GetFileAttributes(PChar(Expand(strFileName))) And FILE_ATTRIBUTE_READONLY > 0;
-End;
-
-(**
-
-  This method outputs an excpetion message to the console along with its call stack.
-
-  @precon  None.
-  @postcon An expcetion message and call stack are output to the console.
-
-  @param   iErrHnd as a Thandle as a constant
-  @param   E       as an Exception as a constant
-
-**)
-Procedure RaiseFldrSyncException(Const iErrHnd : Thandle; Const E : Exception);
-
-Var
-  CS: TEurekaBaseStackList;
-  i : Integer;
-
-Begin
-  OutputToConsoleLn(iErrHnd, #13#10 + E.ClassName + ': ' + E.Message, clRed);
-  CS := ExceptionManager.LastThreadException.CallStack;
-  OutputToConsoleLn(iErrHnd, 'CALL STACK', clRed);
-  OutputToConsoleLn(iErrHnd, '  -------------------------------------------------------------------------------------------------------', clRed);
-  OutputToConsoleLn(iErrHnd, '   Line Col  Unit Name                 Class Name                Method Name', clRed);
-  OutputToConsoleLn(iErrHnd, '  -------------------------------------------------------------------------------------------------------', clRed);
-  For i := 0 To CS.Count - 1 Do
-    With CS.Item[i].Location Do
-      If CS.Item[i].ThreadName = 'Main thread' Then
-        OutputToConsoleLn(iErrHnd, Format('  %5d[%3d] %-25s %-25s %-25s', [LineNumber,
-          OffsetFromLineNumber, UnitName, ClassName, ProcedureName]), clRed);
-  OutputToConsoleLn(iErrHnd, '', clRed);
 End;
 
 { TCommandLineProcessing }
@@ -250,22 +222,22 @@ Begin
                 Case KBBuffer[i].Event.KeyEvent.wVirtualKeyCode Of
                   VK_ESCAPE:
                     Begin
-                      Win32Check(GetConsoleScreenBufferInfo(FStd, ConsoleInfo));
+                      Win32Check(GetConsoleScreenBufferInfo(FConsole.StdHnd, ConsoleInfo));
                       OldPos := ConsoleInfo.dwCursorPosition;
                       ClearLine;
-                      OutputToConsole(FStd, strMsg, FInputColour);
+                      FConsole.OutputToConsole(coStd, strMsg, FInputColour);
                       C := GetConsoleCharacter(['y', 'Y', 'n', 'N']);
                       Case C Of
                         'y', 'Y':
                           Begin
-                            OutputToConsoleLn(FStd, 'Yes', FInputColour);
+                            FConsole.OutputToConsoleLn(coStd, 'Yes', FInputColour);
                             Abort
                           End;
                         'n', 'N':
                           Begin
-                            Win32Check(SetConsoleCursorPosition(FStd, OldPos));
-                            OutputToConsole(FStd, StringOfChar(#32, Length(strMsg)));
-                            Win32Check(SetConsoleCursorPosition(FStd, OldPos));
+                            Win32Check(SetConsoleCursorPosition(FConsole.StdHnd, OldPos));
+                            FConsole.OutputToConsole(coStd, StringOfChar(#32, Length(strMsg)));
+                            Win32Check(SetConsoleCursorPosition(FConsole.StdHnd, OldPos));
                           End;
                       End;
                     End;
@@ -299,15 +271,15 @@ Var
 Begin
   If (cloQuiet In FCommandLineOptions.iCommandLineOptions) Then
     Exit;
-  GetConsoleScreenBufferInfo(FStd, ConsoleInfo);
+  GetConsoleScreenBufferInfo(FConsole.StdHnd, ConsoleInfo);
   iMaxWidth := ConsoleInfo.dwSize.X - ConsoleInfo.dwCursorPosition.X - 1;
   Result := strOutput;
   While Length(Result) > iMaxWidth Do
     Begin
       If Pos('...', Result) = 0 Then
         Begin
-          i := PosOfNthChar(Result, '\', 1) + 1;
-          j := PosOfNthChar(Result, '\', 2);
+          i := TFSFunctions.PosOfNthChar(Result, '\', 1) + 1;
+          j := TFSFunctions.PosOfNthChar(Result, '\', 2);
           If (i > 0) And (j > 0) Then
             Result := StringReplace(Result, Copy(Result, i, j - i), '...', [])
           Else
@@ -315,8 +287,8 @@ Begin
         End
       Else
         Begin
-          i := PosOfNthChar(Result, '\', 2);
-          j := PosOfNthChar(Result, '\', 3);
+          i := TFSFunctions.PosOfNthChar(Result, '\', 2);
+          j := TFSFunctions.PosOfNthChar(Result, '\', 3);
           If (i > 0) And (j > 0) Then
             Result := StringReplace(Result, Copy(Result, i, j - i), '', [])
           Else
@@ -341,8 +313,8 @@ Var
   ConsoleInfo: _CONSOLE_SCREEN_BUFFER_INFO;
 
 Begin
-  GetConsoleScreenBufferInfo(FStd, ConsoleInfo);
-  OutputToConsole(FStd, StringOfChar(#32, ConsoleInfo.dwSize.X -
+  GetConsoleScreenBufferInfo(FConsole.StdHnd, ConsoleInfo);
+  FConsole.OutputToConsole(coStd, StringOfChar(#32, ConsoleInfo.dwSize.X -
         ConsoleInfo.dwCursorPosition.X - 1), clNone, clNone, False);
 End;
 
@@ -359,7 +331,7 @@ Procedure TCommandLineProcessing.CompareEndProc;
 
 Begin
   ClearLine;
-  OutputToConsoleLn(FStd, 'Done.', FSuccessColour);
+  FConsole.OutputToConsoleLn(coStd, 'Done.', FSuccessColour);
 End;
 
 (**
@@ -386,7 +358,7 @@ Begin
     If iPosition Mod 100 = 0 Then
       Begin
         ClearLine;
-        OutputToConsole(FStd, Format('%1.1n%%: %s',
+        FConsole.OutputToConsole(coStd, Format('%1.1n%%: %s',
           [Int(iPosition) / Int(iMaxItems) * 100.0, strFileName]), clNone, clNone, False);
       End;
 End;
@@ -407,7 +379,7 @@ End;
 Procedure TCommandLineProcessing.CompareStartProc(Const strLeftFldr, strRightFldr: String);
 
 Begin
-  OutputToConsole(FStd, 'Comparing: ', FHeaderColour);
+  FConsole.OutputToConsole(coStd, 'Comparing: ', FHeaderColour);
 End;
 
 (**
@@ -433,13 +405,13 @@ Procedure TCommandLineProcessing.CopiedProc(Const iCurrentFileToCopy, iTotalFile
 Begin
   ClearLine;
   Case iSuccess Of
-    //psSuccessed: OutputToConsole(FStd, Format(' %1.1n%% Complete',
+    //psSuccessed: FConsole.OutputToConsole(coStd, Format(' %1.1n%% Complete',
     //  [Int64(iCumulativeFileSizeAfterCopy) / Int64(iTotalFileSizeToCopy) * 100.0]),
     //  FSuccessColour);
-    psFailed: OutputToConsoleLn(FStd,
+    psFailed: FConsole.OutputToConsoleLn(coStd,
       Format(' Error Copying file (error type ignored [%s]).', [FCFC.LastError]),
       FExceptionColour);
-    //psIgnoreOnce, psIgnoreAll: OutputToConsoleLn(FStd, ' Ignored Copying file.',
+    //psIgnoreOnce, psIgnoreAll: FConsole.OutputToConsoleLn(coStd, ' Ignored Copying file.',
     //  FExceptionColour);
   End;
   CheckForEscape;
@@ -490,7 +462,7 @@ Begin
            Int64(iTotalFileSizeToCopy))]);
     End Else
       strOutput := '    Copying...';
-  OutputToConsole(FStd, strOutput, clNone, clNone, False);
+  FConsole.OutputToConsole(coStd, strOutput, clNone, clNone, False);
 End;
 
 (**
@@ -509,15 +481,15 @@ Procedure TCommandLineProcessing.CopyEndProc(Const iCopied, iSkipped, iError: In
 
 Begin
   ClearLine;
-  OutputToConsole(FStd, Format('  Copied %1.0n file(s) (Skipped %1.0n file(s)',
+  FConsole.OutputToConsole(coStd, Format('  Copied %1.0n file(s) (Skipped %1.0n file(s)',
       [Int(iCopied), Int(iSkipped)]), FSuccessColour);
   If iError > 0 Then
     Begin
-      OutputToConsole(FErr, ', ', FSuccessColour);
-      OutputToConsole(FErr, Format('Errored %1.0n file(s)', [Int(iError)]),
+      FConsole.OutputToConsole(coErr, ', ', FSuccessColour);
+      FConsole.OutputToConsole(coErr, Format('Errored %1.0n file(s)', [Int(iError)]),
         FExceptionColour);
     End;
-  OutputToConsoleLn(FStd, ').', FSuccessColour);
+  FConsole.OutputToConsoleLn(coStd, ').', FSuccessColour);
 End;
 
 (**
@@ -542,13 +514,13 @@ Var
 
 Begin
   ClearLine;
-  OutputToConsoleLn(FStd, '    An error has occurred during the copying of files:',
+  FConsole.OutputToConsoleLn(coStd, '    An error has occurred during the copying of files:',
     FExceptionColour);
-  OutputToConsoleLn(FStd, Format('      Source     : %s', [strSource]));
-  OutputToConsoleLn(FStd, Format('      Destination: %s', [strDest]));
-  OutputToConsoleLn(FStd, Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]),
+  FConsole.OutputToConsoleLn(coStd, Format('      Source     : %s', [strSource]));
+  FConsole.OutputToConsoleLn(coStd, Format('      Destination: %s', [strDest]));
+  FConsole.OutputToConsoleLn(coStd, Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]),
     FExceptionColour);
-  OutputToConsole(FStd, '    Do you want to [I]gnore once, Ignore [A]ll the errors or [S]top processing? ',
+  FConsole.OutputToConsole(coStd, '    Do you want to [I]gnore once, Ignore [A]ll the errors or [S]top processing? ',
     FInputColour);
   Ch := GetConsoleCharacter(['i', 'I', 'a', 'A', 'S', 's']);
   Case Ch Of
@@ -556,7 +528,7 @@ Begin
     'a', 'A': iResult := derIgnoreAll;
     's', 'S': iResult := derStop;
   End;
-  OutputToConsoleLn(FStd, Ch, FInputColour);
+  FConsole.OutputToConsoleLn(coStd, Ch, FInputColour);
 End;
 
 (**
@@ -587,17 +559,17 @@ Var
 Begin
   ClearLine;
   OutputFileNumber(iCurrentFileToCopy, iTotalFilesToCopy);
-  OutputToConsole(FStd, strSource, FPathColour);
-  OutputToConsole(FStd, ' => ');
-  OutputToConsole(FStd, strDest, FPathColour);
+  FConsole.OutputToConsole(coStd, strSource, FPathColour);
+  FConsole.OutputToConsole(coStd, ' => ');
+  FConsole.OutputToConsole(coStd, strDest, FPathColour);
   If FileExists(strDest + strFileName) Then
     iColour := FExistsColour
   Else
     iColour := FNotExistsColour;
   If Not IsRO(strSource + strFileName) Then
-    OutputToConsoleLn(FStd, CheckPath(strFileName), iColour)
+    FConsole.OutputToConsoleLn(coStd, CheckPath(strFileName), iColour)
   Else
-    OutputToConsoleLn(FStd, CheckPath(strFileName), FReadOnlyColour);
+    FConsole.OutputToConsoleLn(coStd, CheckPath(strFileName), FReadOnlyColour);
 End;
 
 (**
@@ -667,7 +639,7 @@ Procedure TCommandLineProcessing.CopyStartProc(Const iTotalCount: Integer; Const
 
 Begin
   FStartTime  := Now();
-  OutputToConsoleLn(FStd, Format('Copying %1.0n files...', [Int(iTotalCount)]),
+  FConsole.OutputToConsoleLn(coStd, Format('Copying %1.0n files...', [Int(iTotalCount)]),
     FHeaderColour);
 End;
 
@@ -684,9 +656,10 @@ Constructor TCommandLineProcessing.Create;
 
 Begin
   FParams      := TStringList.Create;
-  FINIFileName := BuildRootKey(FParams, ExceptionProc);
+  FINIFileName := TFSFunctions.BuildRootKey(FParams, ExceptionProc);
   Include(FCommandLineOptions.iSyncOptions, soEnabled);
   FCommandLineOptions.iMaxFileSize := 0;
+  FConsole := TFSConsole.Create;
   LoadSettings;
 End;
 
@@ -716,20 +689,20 @@ Var
 Begin
   ClearLine;
   Case iSuccess Of
-    //psSuccessed: OutputToConsoleLn(FStd, Format(' %1.1n%% Complete',
+    //psSuccessed: FConsole.OutputToConsoleLn(coStd, Format(' %1.1n%% Complete',
     //  [Int(iCumulativeFileSizeAfterDelete) / Int(iTotalFileSizeToDelete) * 100.0]),
     //  FSuccessColour);
-    psFailed: OutputToConsoleLn(FStd,
+    psFailed: FConsole.OutputToConsoleLn(coStd,
       Format(' Error Deleting file (error type ignored [%s]).', [FCFC.LastError]),
       FExceptionColour);
-    //psIgnoreOnce, psIgnoreAll: OutputToConsoleLn(FStd, ' Ignored Copying file.',
+    //psIgnoreOnce, psIgnoreAll: FConsole.OutputToConsoleLn(coStd, ' Ignored Copying file.',
     //  FExceptionColour);
   End;
   CheckForEscape;
   dblPercent := 0;
   If iTotalFileSizeToDelete <> 0 Then
     dblPercent := Int(iCumulativeFileSizeAfterDelete) / Int(iTotalFileSizeToDelete);
-  OutputToConsole(FStd, Format('    Deleting %1.2f%%, %s', [dblPercent * 100.0,
+  FConsole.OutputToConsole(coStd, Format('    Deleting %1.2f%%, %s', [dblPercent * 100.0,
      UpdateRemainingTime(FStartTime, dblPercent)]), clNone, clNone, False);
 End;
 
@@ -750,15 +723,15 @@ Procedure TCommandLineProcessing.DeleteEndProc(Const iTotalDeletedFileCount,
 
 Begin
   ClearLine;
-  OutputToConsole(FStd, Format('  Deleted %1.0n file(s) (Skipped %1.0n file(s)',
+  FConsole.OutputToConsole(coStd, Format('  Deleted %1.0n file(s) (Skipped %1.0n file(s)',
       [Int(iTotalDeletedFileCount), Int(iTotalSkippedFileCount)]), FSuccessColour);
   If iTotalErrorsFileCount > 0 Then
     Begin
-      OutputToConsole(FErr, ', ', FSuccessColour);
-      OutputToConsole(FErr, Format('Errored %1.0n file(s)', [Int(iTotalErrorsFileCount)]),
+      FConsole.OutputToConsole(coErr, ', ', FSuccessColour);
+      FConsole.OutputToConsole(coErr, Format('Errored %1.0n file(s)', [Int(iTotalErrorsFileCount)]),
         FExceptionColour);
     End;
-  OutputToConsoleLn(FStd, ').');
+  FConsole.OutputToConsoleLn(coStd, ').');
 End;
 
 (**
@@ -783,12 +756,12 @@ Var
 
 Begin
   ClearLine;
-  OutputToConsoleLn(FStd, '    An error has occurred during the deletion of files:',
+  FConsole.OutputToConsoleLn(coStd, '    An error has occurred during the deletion of files:',
     FExceptionColour);
-  OutputToConsoleLn(FStd, Format('      Source     : %s', [strSource]));
-  OutputToConsoleLn(FStd, Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]),
+  FConsole.OutputToConsoleLn(coStd, Format('      Source     : %s', [strSource]));
+  FConsole.OutputToConsoleLn(coStd, Format('      OS Error   : (%d) %s', [iLastError, strErrorMsg]),
     FExceptionColour);
-  OutputToConsole(FStd, '    Do you want to [I]gnore Once, Ignore [A]ll the errors or [S]top processing? ',
+  FConsole.OutputToConsole(coStd, '    Do you want to [I]gnore Once, Ignore [A]ll the errors or [S]top processing? ',
     FInputColour);
   Ch := GetConsoleCharacter(['i', 'I', 'a', 'A', 'S', 's']);
   Case Ch Of
@@ -796,7 +769,7 @@ Begin
     'a', 'A': iResult := derIgnoreAll;
     's', 'S': iResult := derStop;
   End;
-  OutputToConsoleLn(FStd, Ch, FInputColour);
+  FConsole.OutputToConsoleLn(coStd, Ch, FInputColour);
 End;
 
 (**
@@ -817,7 +790,7 @@ Procedure TCommandLineProcessing.DeleteFolders(Const iFolder, iFolders: Integer;
 Begin
   ClearLine;
   OutputFileNumber(iFolder, iFolders);
-  OutputToConsoleLn(FStd, CheckPath(strFolder));
+  FConsole.OutputToConsoleLn(coStd, CheckPath(strFolder));
 End;
 
 (**
@@ -850,7 +823,7 @@ Procedure TCommandLineProcessing.DeleteFoldersStart(Const iFolderCount: Integer)
 Begin
   ClearLine;
   If iFolderCount > 0 Then
-    OutputToConsoleLn(FStd, 'Deleting empty folders...', FHeaderColour);
+    FConsole.OutputToConsoleLn(coStd, 'Deleting empty folders...', FHeaderColour);
 End;
 
 (**
@@ -910,7 +883,7 @@ Procedure TCommandLineProcessing.DeleteStartProc(Const iTotalFileCount: Integer;
 Begin
   ClearLine;
   FStartTime  := Now();
-  OutputToConsoleLn(FStd, Format('Deleting %1.0n files (%1.0n bytes)...',
+  FConsole.OutputToConsoleLn(coStd, Format('Deleting %1.0n files (%1.0n bytes)...',
       [Int(iTotalFileCount), Int(iTotalFileSize)]), FHeaderColour);
 End;
 
@@ -939,15 +912,15 @@ Var
 Begin
   ClearLine;
   OutputFileNumber(iCurrentFileToDelete, iTotalFilesToDelete);
-  OutputToConsole(FStd, strDeletePath, FPathColour);
+  FConsole.OutputToConsole(coStd, strDeletePath, FPathColour);
   If Not IsRO(strFileNameToDelete) Then
-    OutputToConsoleLn(FStd, CheckPath(strFileNameToDelete), FExistsColour)
+    FConsole.OutputToConsoleLn(coStd, CheckPath(strFileNameToDelete), FExistsColour)
   ELse
-    OutputToConsoleLn(FStd, CheckPath(strFileNameToDelete), FReadOnlyColour);
+    FConsole.OutputToConsoleLn(coStd, CheckPath(strFileNameToDelete), FReadOnlyColour);
   dblPercent := 0;
   If iTotalFileSizeToDelete <> 0 Then
     dblPercent := Int(iCumulativeFileSizeBeforeDelete) / Int(iTotalFileSizeToDelete);
-  OutputToConsole(FStd, Format('    Deleting %1.2f%%, %s', [dblPercent * 100.0,
+  FConsole.OutputToConsole(coStd, Format('    Deleting %1.2f%%, %s', [dblPercent * 100.0,
      UpdateRemainingTime(FStartTime, dblPercent)]), clNone, clNone, False);
 End;
 
@@ -963,6 +936,7 @@ Destructor TCommandLineProcessing.Destroy;
 
 Begin
   SaveSettings;
+  FConsole.Free;
   FParams.Free;
   Inherited;
 End;
@@ -986,13 +960,13 @@ Procedure TCommandLineProcessing.DiffSize(Const iFile, iFileCount : Integer; Con
 
 Begin
   OutputFileNumber(iFile, iFileCount);
-  OutputToConsole(FStd, strLPath, FPathColour);
-  OutputToConsole(FStd, ' => ');
-  OutputToConsole(FStd, strRPath, FPathColour);
+  FConsole.OutputToConsole(coStd, strLPath, FPathColour);
+  FConsole.OutputToConsole(coStd, ' => ');
+  FConsole.OutputToConsole(coStd, strRPath, FPathColour);
   If Not IsRO(strRPath + strFileName) Then
-    OutputToConsoleLn(FStd, strFileName, FExistsColour)
+    FConsole.OutputToConsoleLn(coStd, strFileName, FExistsColour)
   Else
-    OutputToConsoleLn(FStd, strFileName, FReadOnlyColour);
+    FConsole.OutputToConsoleLn(coStd, strFileName, FReadOnlyColour);
 End;
 
 (**
@@ -1025,7 +999,7 @@ Procedure TCommandLineProcessing.DiffSizeStart(Const iFileCount: Integer);
 
 Begin
   If iFileCount > 0 Then
-    OutputToConsoleLn(FStd, Format('%1.0n Files with Differing Sizes...',
+    FConsole.OutputToConsoleLn(coStd, Format('%1.0n Files with Differing Sizes...',
         [Int(iFileCount)]), FHeaderColour);
 End;
 
@@ -1052,13 +1026,13 @@ Begin
   strHelpFile := ExtractFilePath(ParamStr(0)) + 'FldrSync.chm';
   If FileExists(strHelpFile) Then
     Begin
-      OutputToConsoleLn(FStd, 'Opening HTML Help...');
-      strEXEName := ExtractEXEFromExt('.chm');
+      FConsole.OutputToConsoleLn(coStd, 'Opening HTML Help...');
+      strEXEName := TFSFunctions.ExtractEXEFromExt('.chm');
       ShellExecute(0, 'Open', PChar(strEXEName), PChar('"' + strHelpFile + strPage + '"'),
         PChar(ExtractFilePath(strHelpFile)), SW_NORMAL);
     End
   Else
-    OutputToConsoleLn(FErr, Format('Can not find the HTML Help file "%s".', [strHelpFile]
+    FConsole.OutputToConsoleLn(coErr, Format('Can not find the HTML Help file "%s".', [strHelpFile]
         ), FExceptionColour);
 End;
 
@@ -1076,7 +1050,7 @@ End;
 Procedure TCommandLineProcessing.ErrorMsgs(Const strErrorMsg: String);
 
 Begin
-  OutputToConsoleLn(FStd, #32#32 + strErrorMsg, FExceptionColour);
+  FConsole.OutputToConsoleLn(coStd, #32#32 + strErrorMsg, FExceptionColour);
 End;
 
 (**
@@ -1109,7 +1083,7 @@ Procedure TCommandLineProcessing.ErrorMsgsStart(Const iErrorCount: Integer);
 
 Begin
   If iErrorCount > 0 Then
-    OutputToConsoleLn(FStd, Format('%1.0n Files had errors...', [Int(iErrorCount)]
+    FConsole.OutputToConsoleLn(coStd, Format('%1.0n Files had errors...', [Int(iErrorCount)]
         ), FHeaderColour);
 End;
 
@@ -1132,13 +1106,13 @@ Procedure TCommandLineProcessing.ExceedsSizeLimit(Const iFile, iFileCount : inte
 
 Begin
   OutputFileNumber(iFile, iFileCount);
-  OutputToConsole(FStd, strLPath, FPathColour);
-  OutputToConsole(FStd, ' => ');
-  OutputToConsole(FStd, strRPath, FPathColour);
+  FConsole.OutputToConsole(coStd, strLPath, FPathColour);
+  FConsole.OutputToConsole(coStd, ' => ');
+  FConsole.OutputToConsole(coStd, strRPath, FPathColour);
   If Not IsRO(strRPath + strFileName) Then
-    OutputToConsoleLn(FStd, CheckPath(strFileName), FExistsColour)
+    FConsole.OutputToConsoleLn(coStd, CheckPath(strFileName), FExistsColour)
   Else
-    OutputToConsoleLn(FStd, CheckPath(strFileName), FReadOnlyColour);
+    FConsole.OutputToConsoleLn(coStd, CheckPath(strFileName), FReadOnlyColour);
 End;
 
 (**
@@ -1171,7 +1145,7 @@ Procedure TCommandLineProcessing.ExceedsSizeLimitStart(Const iFileCount: Integer
 
 Begin
   If iFileCount > 0 Then
-    OutputToConsoleLn(FStd, Format('%1.0n Files exceeding Size Limit...', [Int(iFileCount)]
+    FConsole.OutputToConsoleLn(coStd, Format('%1.0n Files exceeding Size Limit...', [Int(iFileCount)]
         ), FHeaderColour);
 End;
 
@@ -1188,7 +1162,7 @@ End;
 Procedure TCommandLineProcessing.ExceptionProc(Const strMsg: String);
 
 Begin
-  OutputToConsoleLn(FStd, 'Exception: ' + strMsg, clRed);
+  FConsole.OutputToConsoleLn(coStd, 'Exception: ' + strMsg, clRed);
 End;
 
 (**
@@ -1198,11 +1172,8 @@ End;
   @precon  iSrd and iErr must be valid console handles for Standard and Error.
   @postcon Starts the processing of the information from the command line.
 
-  @param   iStd as a THandle as a constant
-  @param   iErr as a THandle as a constant
-
 **)
-Procedure TCommandLineProcessing.Execute(Const iStd, iErr: THandle);
+Procedure TCommandLineProcessing.Execute();
 
 ResourceString
   strTitle =
@@ -1216,31 +1187,29 @@ Var
   C : Char;
 
 Begin
-  FStd := iStd;
-  FErr := iErr;
-  OutputToConsoleLn(FStd, GetConsoleTitle(strTitle), FTitleColour);
-  OutputToConsoleLn(FStd);
+  FConsole.OutputToConsoleLn(coStd, TFSFunctions.GetConsoleTitle(strTitle), FTitleColour);
+  FConsole.OutputToConsoleLn(coStd);
   ProcessCommandLine(FParams, FCommandLineOptions);
   If cloHelp In FCommandLineOptions.iCommandLineOptions Then
     Begin
       DisplayHelp;
       Exit;
     End;
-  OutputToConsoleLn(FStd, 'Synchronising folders:', FHeaderColour);
+  FConsole.OutputToConsoleLn(coStd, 'Synchronising folders:', FHeaderColour);
   If Not DirectoryExists(FCommandLineOptions.strSourceFldr) Then
     If Not ForceDirectories(FCommandLineOptions.strSourceFldr) Then
       Raise EFldrSyncException.CreateFmt('Could not create the directory "%s".',
         [FCommandLineOptions.strSourceFldr]);
-  OutputToConsoleLn(FStd, #32#32 + 'Source:   ' + ExpandFileName(FCommandLineOptions.strSourceFldr));
+  FConsole.OutputToConsoleLn(coStd, #32#32 + 'Source:   ' + ExpandFileName(FCommandLineOptions.strSourceFldr));
   If Not DirectoryExists(FCommandLineOptions.strDestFldr) Then
     If Not ForceDirectories(FCommandLineOptions.strDestFldr) Then
       Raise EFldrSyncException.CreateFmt('Could not create the directory "%s".',
         [FCommandLineOptions.strDestFldr]);
-  OutputToConsoleLn(FStd, #32#32 + 'Dest:     ' + ExpandFileName(FCommandLineOptions.strDestFldr));
+  FConsole.OutputToConsoleLn(coStd, #32#32 + 'Dest:     ' + ExpandFileName(FCommandLineOptions.strDestFldr));
   If FCommandLineOptions.strFilePatterns = '' Then
     FCommandLineOptions.strFilePatterns := '*.*';
-  OutputToConsoleLn(FStd, #32#32 + 'Patterns: ' + FCommandLineOptions.strFilePatterns);
-  OutputToConsoleLn(FStd);
+  FConsole.OutputToConsoleLn(coStd, #32#32 + 'Patterns: ' + FCommandLineOptions.strFilePatterns);
+  FConsole.OutputToConsoleLn(coStd);
   FCFC := TCompareFoldersCollection.Create(0);
   Try
     Folders := TFolders.Create;
@@ -1296,9 +1265,9 @@ Begin
             D := FCFC.Drives.Drive[iDrive];
             If D.FreeAtFinish <= 0 Then
               Begin
-                OutputToConsole(FStd, Format(strMsg, [D.Drive]), FInputColour);
+                FConsole.OutputToConsole(coStd, Format(strMsg, [D.Drive]), FInputColour);
                 C := GetConsoleCharacter(['y', 'Y', 'n', 'N']);
-                OutputToConsoleLn(FStd, C, FInputColour);
+                FConsole.OutputToConsoleLn(coStd, C, FInputColour);
                 Case C Of
                   'n', 'N': Exit;
                 End;
@@ -1313,7 +1282,7 @@ Begin
       Except
         On E : EAbort Do {Do nothing};
         On E : EFldrSyncException Do
-          RaiseFldrSyncException(FErr, E);
+          RaiseFldrSyncException(E);
       End;
     Finally
       Folders.Free;
@@ -1349,12 +1318,12 @@ Var
   OldPos : TCoord;
 
 Begin
-  Win32Check(GetConsoleScreenBufferInfo(FStd, ConsoleInfo));
+  Win32Check(GetConsoleScreenBufferInfo(FConsole.StdHnd, ConsoleInfo));
   OldPos := ConsoleInfo.dwCursorPosition;
   If (Not boolReadOnly And Not (Option In [faYesToAll, faNoToAll])) Or
      (    boolReadOnly And Not (Option In [faYesToAllRO, faNoToAllRO])) Then
     Begin
-      OutputToConsole(FStd, strMsg, FInputColour);
+      FConsole.OutputToConsole(coStd, strMsg, FInputColour);
       C := GetConsoleCharacter(['a', 'A', 'y', 'Y', 'n', 'N', 'o', 'O', 'c', 'C']);
       Case C Of
         'y', 'Y':
@@ -1376,11 +1345,11 @@ Begin
       Else
         Option := faUnknown;
       End;
-      OutputToConsole(FStd, strFileOptions[Option], FInputColour);
+      FConsole.OutputToConsole(coStd, strFileOptions[Option], FInputColour);
     End;
-  Win32Check(SetConsoleCursorPosition(FStd, OldPos));
-  OutputToConsole(FStd, StringOfChar(#32, Length(strMsg + strFileOptions[Option])));
-  Win32Check(SetConsoleCursorPosition(FStd, OldPos));
+  Win32Check(SetConsoleCursorPosition(FConsole.StdHnd, OldPos));
+  FConsole.OutputToConsole(coStd, StringOfChar(#32, Length(strMsg + strFileOptions[Option])));
+  Win32Check(SetConsoleCursorPosition(FConsole.StdHnd, OldPos));
 End;
 
 (**
@@ -1442,21 +1411,24 @@ End;
 **)
 Procedure TCommandLineProcessing.LoadSettings;
 
+Var
+  iniMemFile: TMemIniFile;
+
 Begin
-  With TMemINIFile.Create(FINIFileName) Do
-    Try
-      FTitleColour     := StringToColor(ReadString('Colours', 'Title', 'clWhite'));
-      FPathColour      := StringToColor(ReadString('Colours', 'Path', 'clYellow'));
-      FSuccessColour   := StringToColor(ReadString('Colours', 'Success', 'clLime'));
-      FExistsColour    := StringToColor(ReadString('Colours', 'Exists', 'clWhite'));
-      FNotExistsColour := StringToColor(ReadString('Colours', 'NotExists', 'clGray'));
-      FInputColour     := StringToColor(ReadString('Colours', 'Input', 'clFuchsia'));
-      FReadOnlyColour  := StringToColor(ReadString('Colours', 'ReadOnly', 'clMaroon'));
-      FExceptionColour := StringToColor(ReadString('Colours', 'Exception', 'clRed'));
-      FHeaderColour    := StringToColor(ReadString('Colours', 'Header', 'clWhite'));
-      FOutputUpdateInterval := ReadInteger('Setup', 'OutputUpdateInterval', 10);
-    Finally
-      Free;
+  iniMemFile := TMemINIFile.Create(FINIFileName);
+  Try
+    FTitleColour     := StringToColor(iniMemFile.ReadString('Colours', 'Title', 'clWhite'));
+    FPathColour      := StringToColor(iniMemFile.ReadString('Colours', 'Path', 'clYellow'));
+    FSuccessColour   := StringToColor(iniMemFile.ReadString('Colours', 'Success', 'clLime'));
+    FExistsColour    := StringToColor(iniMemFile.ReadString('Colours', 'Exists', 'clWhite'));
+    FNotExistsColour := StringToColor(iniMemFile.ReadString('Colours', 'NotExists', 'clGray'));
+    FInputColour     := StringToColor(iniMemFile.ReadString('Colours', 'Input', 'clFuchsia'));
+    FReadOnlyColour  := StringToColor(iniMemFile.ReadString('Colours', 'ReadOnly', 'clMaroon'));
+    FExceptionColour := StringToColor(iniMemFile.ReadString('Colours', 'Exception', 'clRed'));
+    FHeaderColour    := StringToColor(iniMemFile.ReadString('Colours', 'Header', 'clWhite'));
+    FOutputUpdateInterval := iniMemFile.ReadInteger('Setup', 'OutputUpdateInterval', 10);
+  Finally
+    iniMemFile.Free;
     End;
 End;
 
@@ -1472,7 +1444,7 @@ Procedure TCommandLineProcessing.MatchListEndProc;
 
 Begin
   ClearLine;
-  OutputToConsoleLn(FStd, 'Done.', FSuccessColour);
+  FConsole.OutputToConsoleLn(coStd, 'Done.', FSuccessColour);
 End;
 
 (**
@@ -1492,7 +1464,7 @@ Begin
   If Not(cloQuiet In FCommandLineOptions.iCommandLineOptions) Then
     Begin
       If iPosition Mod 100 = 0 Then
-        OutputToConsole(FStd, Format('Processing Item %1.0n of %1.0n (%1.0n%%)...',
+        FConsole.OutputToConsole(coStd, Format('Processing Item %1.0n of %1.0n (%1.0n%%)...',
           [Int(iPosition), Int(iMaxItems), Int(iPosition) / Int(iMaxItems) * 100.0]),
         clNone, clNone, False);
     End;
@@ -1509,7 +1481,7 @@ End;
 Procedure TCommandLineProcessing.MatchListStartProc;
 
 Begin
-  OutputToConsole(FStd, 'Match Lists: ', FHeaderColour);
+  FConsole.OutputToConsole(coStd, 'Match Lists: ', FHeaderColour);
 End;
 
 (**
@@ -1531,13 +1503,13 @@ Procedure TCommandLineProcessing.NothingToDo(Const iFile, iFileCount : Integer; 
 
 Begin
   OutputFileNumber(iFile, iFileCount);
-  OutputToConsole(FStd, strLPath, FPathColour);
-  OutputToConsole(FStd, ' => ');
-  OutputToConsole(FStd, strRPath, FPathColour);
+  FConsole.OutputToConsole(coStd, strLPath, FPathColour);
+  FConsole.OutputToConsole(coStd, ' => ');
+  FConsole.OutputToConsole(coStd, strRPath, FPathColour);
   If Not IsRO(strRPath + strFileName) Then
-    OutputToConsoleLn(FStd, CheckPath(strFileName), FExistsColour)
+    FConsole.OutputToConsoleLn(coStd, CheckPath(strFileName), FExistsColour)
   Else
-    OutputToConsoleLn(FStd, CheckPath(strFileName), FReadOnlyColour);
+    FConsole.OutputToConsoleLn(coStd, CheckPath(strFileName), FReadOnlyColour);
 End;
 
 (**
@@ -1570,7 +1542,7 @@ Procedure TCommandLineProcessing.NothingToDoStart(Const iFileCount: Integer);
 
 Begin
   If iFileCount > 0 Then
-    OutputToConsoleLn(FStd, Format('%1.0n Files with Nothing to do...', [Int(iFileCount)]
+    FConsole.OutputToConsoleLn(coStd, Format('%1.0n Files with Nothing to do...', [Int(iFileCount)]
         ), FHeaderColour);
 End;
 
@@ -1594,7 +1566,7 @@ Var
 Begin
   strTotal := Format('%1.0n', [Int(iTotal)]);
   iSize    := Length(strTotal);
-  OutputToConsole(FStd, #32#32 + Format('(%*.0n/%*.0n) ',
+  FConsole.OutputToConsole(coStd, #32#32 + Format('(%*.0n/%*.0n) ',
       [iSize, Int(iCurrentFile), iSize, Int(iTotal)]));
 End;
 
@@ -1618,16 +1590,16 @@ Var
   iMaxDriveWidth : Integer;
 
 Begin
-  OutputToConsoleLn(FStd, 'Statistics:', FHeaderColour);
+  FConsole.OutputToConsoleLn(coStd, 'Statistics:', FHeaderColour);
   For i := Low(TFileOpStat) To High(TFileOpStat) Do
     Begin
-      OutputToConsoleLn(FStd, Format('  %-20s: %1.0n files in %1.1n kbytes', [
+      FConsole.OutputToConsoleLn(coStd, Format('  %-20s: %1.0n files in %1.1n kbytes', [
         CFC.Statistics[i].FName,
         Int(CFC.Statistics[i].FCount),
         Int(CFC.Statistics[i].FSize / 1024.0)
       ]));
     End;
-  OutputToConsoleLn(FStd, 'Drive Space (in kbytes):',
+  FConsole.OutputToConsoleLn(coStd, 'Drive Space (in kbytes):',
     FHeaderColour);
   iMaxDriveWidth := 0;
   For iDrive := 0 To CFC.Drives.Count -  1 Do
@@ -1642,11 +1614,11 @@ Begin
     'Total Adds',
     'Free at Finish'
   ]);
-  OutputToConsoleLn(FStd, strHeader);
-  OutputToConsoleLn(FStd, StringOfChar('-', Length(strHeader)));
+  FConsole.OutputToConsoleLn(coStd, strHeader);
+  FConsole.OutputToConsoleLn(coStd, StringOfChar('-', Length(strHeader)));
   For iDrive := 0 To CFC.Drives.Count -  1 Do
     Begin
-      OutputToConsoleLn(FStd, Format(' %-*s | %16.1n | %16.1n | %16.1n | %16.1n | %16.1n', [
+      FConsole.OutputToConsoleLn(coStd, Format(' %-*s | %16.1n | %16.1n | %16.1n | %16.1n | %16.1n', [
         iMaxDriveWidth + 2,
         CFC.Drives.Drive[iDrive].Drive,
         Int(CFC.Drives.Drive[iDrive].Total) / 1024,
@@ -1656,18 +1628,57 @@ Begin
         Int(CFC.Drives.Drive[iDrive].FreeAtFinish) / 1024
       ]));
     End;
-  OutputToConsoleLn(FStd);
+  FConsole.OutputToConsoleLn(coStd);
   If Not (clsProceedAutomatically In FCommandLineOptions.iCommandLineOptions) Then
     Begin
-      OutputToConsole(FStd, 'Do you want to proceed (Y/N)? ', FInputColour);
+      FConsole.OutputToConsole(coStd, 'Do you want to proceed (Y/N)? ', FInputColour);
       C := GetConsoleCharacter(['y', 'Y', 'n', 'N']);
-      OutputToConsole(FStd, C, FInputColour);
-      OutputToConsoleLn(FStd);
-      OutputToConsoleLn(FStd);
+      FConsole.OutputToConsole(coStd, C, FInputColour);
+      FConsole.OutputToConsoleLn(coStd);
+      FConsole.OutputToConsoleLn(coStd);
       Case C Of
         'n', 'N': Abort;
       End;
     End;
+End;
+
+(**
+
+  This method outputs an excpetion message to the console along with its call stack.
+
+  @precon  None.
+  @postcon An expcetion message and call stack are output to the console.
+
+  @param   E as an Exception as a constant
+
+**)
+Procedure TCommandLineProcessing.RaiseFldrSyncException(Const E : Exception);
+
+Var
+  CS: TEurekaBaseStackList;
+  i : Integer;
+  L:  TELLocationInfo;
+
+Begin
+  FConsole.OutputToConsoleLn(coErr, #13#10 + E.ClassName + ': ' + E.Message, clRed);
+  CS := ExceptionManager.LastThreadException.CallStack;
+  FConsole.OutputToConsoleLn(coErr, 'CALL STACK', clRed);
+  FConsole.OutputToConsoleLn(coErr, '  -------------------------------------------------------------------------------------------------------', clRed);
+  FConsole.OutputToConsoleLn(coErr, '   Line Col  Unit Name                 Class Name                Method Name', clRed);
+  FConsole.OutputToConsoleLn(coErr, '  -------------------------------------------------------------------------------------------------------', clRed);
+  For i := 0 To CS.Count - 1 Do
+    Begin
+      L := CS.Item[i].Location;
+      If CS.Item[i].ThreadName = 'Main thread' Then
+        FConsole.OutputToConsoleLn(coErr, Format('  %5d[%3d] %-25s %-25s %-25s', [
+          L.LineNumber,
+          L.OffsetFromLineNumber,
+          UnitName,
+          ClassName,
+          L.ProcedureName
+        ]), clRed);
+    End;
+  FConsole.OutputToConsoleLn(coErr, '', clRed);
 End;
 
 (**
@@ -1680,22 +1691,25 @@ End;
 **)
 Procedure TCommandLineProcessing.SaveSettings;
 
+Var
+  iniMemFile: TMemIniFile;
+
 Begin
-  With TMemINIFile.Create(FINIFileName) Do
-    Try
-      WriteString('Colours', 'Title', ColorToString(FTitleColour));
-      WriteString('Colours', 'Path', ColorToString(FPathColour));
-      WriteString('Colours', 'Success', ColorToString(FSuccessColour));
-      WriteString('Colours', 'Exists', ColorToString(FExistsColour));
-      WriteString('Colours', 'NotExists', ColorToString(FNotExistsColour));
-      WriteString('Colours', 'Input', ColorToString(FInputColour));
-      WriteString('Colours', 'ReadOnly', ColorToString(FReadOnlyColour));
-      WriteString('Colours', 'Exception', ColorToString(FExceptionColour));
-      WriteString('Colours', 'Header', ColorToString(FHeaderColour));
-      WriteInteger('Setup', 'OutputUpdateInterval', FOutputUpdateInterval);
-    Finally
-      Free;
-    End;
+  iniMemFile := TMemINIFile.Create(FINIFileName);
+  Try
+    iniMemFile.WriteString('Colours', 'Title', ColorToString(FTitleColour));
+    iniMemFile.WriteString('Colours', 'Path', ColorToString(FPathColour));
+    iniMemFile.WriteString('Colours', 'Success', ColorToString(FSuccessColour));
+    iniMemFile.WriteString('Colours', 'Exists', ColorToString(FExistsColour));
+    iniMemFile.WriteString('Colours', 'NotExists', ColorToString(FNotExistsColour));
+    iniMemFile.WriteString('Colours', 'Input', ColorToString(FInputColour));
+    iniMemFile.WriteString('Colours', 'ReadOnly', ColorToString(FReadOnlyColour));
+    iniMemFile.WriteString('Colours', 'Exception', ColorToString(FExceptionColour));
+    iniMemFile.WriteString('Colours', 'Header', ColorToString(FHeaderColour));
+    iniMemFile.WriteInteger('Setup', 'OutputUpdateInterval', FOutputUpdateInterval);
+  Finally
+    iniMemFile.Free;
+  End;
 End;
 
 (**
@@ -1713,7 +1727,7 @@ Procedure TCommandLineProcessing.SearchEndProc(Const iFileCount: Integer; Const 
 
 Begin
   ClearLine;
-  OutputToConsoleLn(FStd, Format('%1.0n files in %1.0n bytes.',
+  FConsole.OutputToConsoleLn(coStd, Format('%1.0n files in %1.0n bytes.',
       [Int(iFileCount), Int(iTotalSize)]), FSuccessColour);
 End;
 
@@ -1743,7 +1757,7 @@ Begin
           Begin
             ClearLine;
             strOutput := Format('%1.0n\%s', [Int(iCount), strFileName]);
-            OutputToConsole(FStd, CheckPath(strOutput), clNone, clNone, False);
+            FConsole.OutputToConsole(coStd, CheckPath(strOutput), clNone, clNone, False);
           End;
     End
   Else
@@ -1763,8 +1777,8 @@ End;
 Procedure TCommandLineProcessing.SearchStartProc(Const strFolder: String);
 
 Begin
-  OutputToConsole(FStd, 'Searching: ', FHeaderColour);
-  OutputToConsole(FStd, Format('%s', [strFolder]), FPathColour);
+  FConsole.OutputToConsole(coStd, 'Searching: ', FHeaderColour);
+  FConsole.OutputToConsole(coStd, Format('%s', [strFolder]), FPathColour);
 End;
 
 End.

@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 2.0
-  @Date    01 Jan 2019
+  @Date    05 Jan 2019
   @Author  David Hoyle
 
   @nocheck HardCodedInteger HardCodedString HardCodedNumber
@@ -15,41 +15,42 @@ Unit MainForm;
 Interface
 
 Uses
-  Windows,
-  Messages,
-  SysUtils,
-  Classes,
-  Graphics,
-  Controls,
-  Forms,
-  Dialogs,
-  Menus,
-  ActnList,
-  ImgList,
-  ComCtrls,
-  ExtCtrls,
-  ToolWin,
-  StdCtrls,
-  Buttons,
-  AppEvnts,
-  IniFiles,
-  Registry,
+  WinAPI.Windows,
+  WinAPI.Messages,
+  System.SysUtils,
+  System.Classes,
+  VCL.Graphics,
+  VCL.Controls,
+  VCL.Forms,
+  VCL.Dialogs,
+  VCL.Menus,
+  VCL.ActnList,
+  VCL.ImgList,
+  VCL.ComCtrls,
+  VCL.ExtCtrls,
+  VCL.ToolWin,
+  VCL.StdCtrls,
+  VCL.Buttons,
+  VCL.AppEvnts,
+  System.IniFiles,
+  System.Win.Registry,
   SyncModule,
   ProgressForm,
   OptionsForm,
-  XPMan,
   PlatformDefaultStyleActnCtrls,
-  ActnMan,
-  ActnCtrls,
-  ActnMenus,
+  VCL.ActnMan,
+  VCL.ActnCtrls,
+  VCL.ActnMenus,
   DGHCustomGraphicsControl,
   DGHMemoryMonitorControl,
-  ComObj,
-  ShlObj,
+  System.Win.ComObj,
+  WinAPI.ShlObj,
   FileDeleteProgressForm,
   FileCopyProgressForm,
   DiskSpaceForm,
-  System.Actions, System.ImageList, VirtualTrees;
+  System.Actions,
+  System.ImageList,
+  VirtualTrees;
 
 Type
   (** This enumerate determines the type of progress to be shown in the taskbar in
@@ -296,7 +297,6 @@ Uses
   FileCtrl,
   ShellAPI,
   AboutForm,
-  DGHLibrary,
   ConfirmationDlg,
   Themes,
   MemoryMonitorOptionsForm,
@@ -309,7 +309,8 @@ Uses
   Types,
   ApplicationFunctions,
   TypInfo,
-  StrUtils;
+  StrUtils,
+  FldrSync.Functions;
 
 {$R *.DFM}
 
@@ -910,7 +911,7 @@ Function TfrmMainForm.CheckFolders: Boolean;
     Result := False;
     strDrive := ExtractFileDrive(strFolder);
     strPath := ExtractFilePath(strFolder);
-    If Not SysUtils.DirectoryExists(strDrive + '\') Then
+    If Not System.SysUtils.DirectoryExists(strDrive + '\') Then
       Case MessageDlg(Format(strDriveMsg, [strDrive, strPath]), mtConfirmation,
         [mbIgnore, mbCancel], 0) Of
         mrIgnore:
@@ -920,11 +921,11 @@ Function TfrmMainForm.CheckFolders: Boolean;
           End;
         mrCancel: Abort;
       End;
-    If Not SysUtils.DirectoryExists(strPath) Then
+    If Not System.SysUtils.DirectoryExists(strPath) Then
       Case MessageDlg(Format(strCreateMsg, [strPath]), mtConfirmation,
         [mbYes, mbNo, mbCancel], 0) Of
         mrYes:
-          If Not SysUtils.ForceDirectories(strPath) Then
+          If Not System.SysUtils.ForceDirectories(strPath) Then
             Raise TFolderNotFoundException.CreateFmt(strExcepMsg, [strPath]);
         mrIgnore: Result := True;
         mrCancel: Abort;
@@ -976,8 +977,8 @@ Begin
       Begin
         If soTempDisabled In FFolders.Folder[i].SyncOptions Then
           Begin
-            If SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].LeftFldr) + '\') And
-             SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].RightFldr) + '\') Then
+            If System.SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].LeftFldr) + '\') And
+             System.SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].RightFldr) + '\') Then
              FFolders.Folder[i].SyncOptions := FFolders.Folder[i].SyncOptions - [soTempDisabled];
           End;
       End;
@@ -1920,7 +1921,7 @@ Begin
   DGHMemoryMonitor.HalfPoint      := 90;
   DGHMemoryMonitor.LowPoint       := 80;
   DGHMemoryMonitor.UpdateInterval := 500;
-  FRootKey                        := BuildRootKey(FParams, ExceptionProc);
+  FRootKey                        := TFSFunctions.BuildRootKey(FParams, ExceptionProc);
   FFolders                        := TFolders.Create;
   FProgressForm                   := TfrmProgress.Create(Self);
   FProgressForm.OnUpdateProgress  := UpdateProgress;
@@ -1929,7 +1930,7 @@ Begin
   Application.OnHint                := ApplicationHint;
   FIconFiles                        := TStringList.Create;
   FIconFiles.Sorted                 := True;
-  Caption := Caption + StringReplace(GetConsoleTitle(' %d.%d%s (Build %s)'), #13#10,
+  Caption := Caption + StringReplace(TFSFunctions.GetConsoleTitle(' %d.%d%s (Build %s)'), #13#10,
     ' - ', []);
   If IsDebuggerPresent Then
     Caption := Format('%s [DEBUGGING]', [Caption]);
@@ -2222,6 +2223,7 @@ Var
   iniMemFile : TMemIniFile;
   iDefaultOps : TFileOpStats;
   ComOps: TCommandLineOptionsRec;
+  astrMaxValues: TArray<String>;
 
 Begin
   iniMemFile := TMemIniFile.Create(FRootKey);
@@ -2291,11 +2293,12 @@ Begin
               iSyncOptions := TSyncOptions(SmallInt(iniMemFile.ReadInteger('NewFolderStatus', sl[i],
                 SmallInt(iSyncOptions))));
               strMaxValue := iniMemFile.ReadString('NewFolderMaxFileSize', sl[i], '0,0,0,0');
+              astrMaxValues := strMaxValue.Split([',']);
               iMaxValue.Value := 0;
-              iMaxValue.iFirst := StrToInt(GetField(strMaxValue, ',', 1));
-              iMaxValue.iSecond := StrToInt(GetField(strMaxValue, ',', 2));
-              iMaxValue.iThird := StrToInt(GetField(strMaxValue, ',', 3));
-              iMaxValue.iFourth := StrToInt(GetField(strMaxValue, ',', 4));
+              iMaxValue.iFirst := StrToInt(astrMaxValues[0]);
+              iMaxValue.iSecond := StrToInt(astrMaxValues[1]);
+              iMaxValue.iThird := StrToInt(astrMaxValues[2]);
+              iMaxValue.iFourth := StrToInt(astrMaxValues[3]);
               strLeftFldr := GetShortHint(iniMemFile.ReadString('NewFolders', sl[i], ''));
               strRightFldr := GetLongHint(iniMemFile.ReadString('NewFolders', sl[i], ''));
               FFolders.Add(
@@ -2388,6 +2391,7 @@ Procedure TfrmMainForm.LogSize;
 Begin
   stbrStatusBar.Panels[0].Text := Format('Log size: %1.1n kbytes',
     [Int(Length(redtOutputResults.Lines.Text)) / 1024.0]);
+  stbrStatusBar.Canvas.Font.Assign(stbrStatusBar.Font);
   stbrStatusBar.Panels[0].Width := stbrStatusBar.Canvas.TextWidth(stbrStatusBar.Panels[0].Text) + 25;
 End;
 
@@ -2876,11 +2880,11 @@ Begin
   Inc(R.Left, 4);
   Sender.Canvas.Font.Color := StyleServices.GetSystemColor(clWindowText);
   Sender.Canvas.Font.Style := [fsBold];
-  Sender.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
+  Sender.Canvas.TextRect(R, strText, [tfLeft, tfBottom]);
   Inc(R.Left, Sender.Canvas.TextWidth(strText) + 2);
   Sender.Canvas.Font.Style := [];
   strText := Copy(Panel.Text, iPos + 1, Length(Panel.Text) - iPos);
-  Sender.Canvas.TextRect(R, strText, [tfLeft, tfVerticalCenter]);
+  Sender.Canvas.TextRect(R, strText, [tfLeft, tfBottom]);
 End;
 
 (**

@@ -4,7 +4,7 @@
 
   @Version 2.0
   @Author  David Hoyle
-  @Date    01 Jan 2019
+  @Date    02 Jan 2019
 
 **)
 Program FldrSyncCmd;
@@ -33,17 +33,16 @@ uses
   Windows,
   Graphics,
   CommandLineProcess in 'Source\CommandLineProcess.pas',
-  dghlibrary in 'Externals\dghlibrary.pas',
   SyncModule in 'Source\SyncModule.pas',
-  ApplicationFunctions in 'Source\ApplicationFunctions.pas';
+  ApplicationFunctions in 'Source\ApplicationFunctions.pas',
+  FldrSync.Functions in 'Source\FldrSync.Functions.pas',
+  FldrSync.Console in 'Source\FldrSync.Console.pas';
 
 ResourceString
   (** A resource string for the pause before finishing **)
   strPleasePressEnter = 'Please press <Enter> to finish...';
 
 Var
-  (** iStd and iErr are handles for the console. **)
-  iStd, iErr : THandle;
   (** A variable to hold whether the console should pause before exiting. **)
   boolPause : Boolean;
   (** A variable to old an instance of the indexing engine. **)
@@ -51,23 +50,21 @@ Var
 
 Begin
   boolPause := True;
-  iStd := GetStdHandle(STD_OUTPUT_HANDLE);
-  iErr := GetStdHandle(STD_ERROR_HANDLE);
+  CommandLineProcessing := TCommandLineProcessing.Create;
   Try
-    CommandLineProcessing := TCommandLineProcessing.Create;
     Try
-      CommandLineProcessing.Execute(iErr, iStd);
+      CommandLineProcessing.Execute;
       boolPause := CommandLineProcessing.Pause;
-    Finally
-      CommandLineProcessing.Free;
+    Except
+      On E: EFldrSyncException Do
+        CommandLineProcessing.RaiseFldrSyncException(E);
     End;
-  Except
-    On E: EFldrSyncException Do
-      RaiseFldrSyncException(iErr, E);
+  Finally
+    CommandLineProcessing.Free;
   End;
   If boolPause Then
     Begin
-      OutputToConsoleLn(iErr, #13#10 + strPleasePressEnter);
+      WriteLn(#13#10 + strPleasePressEnter);
       ReadLn;
     End;
 End.
