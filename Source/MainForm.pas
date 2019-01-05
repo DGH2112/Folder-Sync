@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 2.0
-  @Date    02 Jan 2019
+  @Date    05 Jan 2019
   @Author  David Hoyle
 
   @nocheck HardCodedInteger HardCodedString HardCodedNumber
@@ -15,41 +15,42 @@ Unit MainForm;
 Interface
 
 Uses
-  Windows,
-  Messages,
-  SysUtils,
-  Classes,
-  Graphics,
-  Controls,
-  Forms,
-  Dialogs,
-  Menus,
-  ActnList,
-  ImgList,
-  ComCtrls,
-  ExtCtrls,
-  ToolWin,
-  StdCtrls,
-  Buttons,
-  AppEvnts,
-  IniFiles,
-  Registry,
+  WinAPI.Windows,
+  WinAPI.Messages,
+  System.SysUtils,
+  System.Classes,
+  VCL.Graphics,
+  VCL.Controls,
+  VCL.Forms,
+  VCL.Dialogs,
+  VCL.Menus,
+  VCL.ActnList,
+  VCL.ImgList,
+  VCL.ComCtrls,
+  VCL.ExtCtrls,
+  VCL.ToolWin,
+  VCL.StdCtrls,
+  VCL.Buttons,
+  VCL.AppEvnts,
+  System.IniFiles,
+  System.Win.Registry,
   SyncModule,
   ProgressForm,
   OptionsForm,
-  XPMan,
   PlatformDefaultStyleActnCtrls,
-  ActnMan,
-  ActnCtrls,
-  ActnMenus,
+  VCL.ActnMan,
+  VCL.ActnCtrls,
+  VCL.ActnMenus,
   DGHCustomGraphicsControl,
   DGHMemoryMonitorControl,
-  ComObj,
-  ShlObj,
+  System.Win.ComObj,
+  WinAPI.ShlObj,
   FileDeleteProgressForm,
   FileCopyProgressForm,
   DiskSpaceForm,
-  System.Actions, System.ImageList, VirtualTrees;
+  System.Actions,
+  System.ImageList,
+  VirtualTrees;
 
 Type
   (** This enumerate determines the type of progress to be shown in the taskbar in
@@ -910,7 +911,7 @@ Function TfrmMainForm.CheckFolders: Boolean;
     Result := False;
     strDrive := ExtractFileDrive(strFolder);
     strPath := ExtractFilePath(strFolder);
-    If Not SysUtils.DirectoryExists(strDrive + '\') Then
+    If Not System.SysUtils.DirectoryExists(strDrive + '\') Then
       Case MessageDlg(Format(strDriveMsg, [strDrive, strPath]), mtConfirmation,
         [mbIgnore, mbCancel], 0) Of
         mrIgnore:
@@ -920,11 +921,11 @@ Function TfrmMainForm.CheckFolders: Boolean;
           End;
         mrCancel: Abort;
       End;
-    If Not SysUtils.DirectoryExists(strPath) Then
+    If Not System.SysUtils.DirectoryExists(strPath) Then
       Case MessageDlg(Format(strCreateMsg, [strPath]), mtConfirmation,
         [mbYes, mbNo, mbCancel], 0) Of
         mrYes:
-          If Not SysUtils.ForceDirectories(strPath) Then
+          If Not System.SysUtils.ForceDirectories(strPath) Then
             Raise TFolderNotFoundException.CreateFmt(strExcepMsg, [strPath]);
         mrIgnore: Result := True;
         mrCancel: Abort;
@@ -976,8 +977,8 @@ Begin
       Begin
         If soTempDisabled In FFolders.Folder[i].SyncOptions Then
           Begin
-            If SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].LeftFldr) + '\') And
-             SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].RightFldr) + '\') Then
+            If System.SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].LeftFldr) + '\') And
+             System.SysUtils.DirectoryExists(ExtractFileDrive(FFolders.Folder[i].RightFldr) + '\') Then
              FFolders.Folder[i].SyncOptions := FFolders.Folder[i].SyncOptions - [soTempDisabled];
           End;
       End;

@@ -2,7 +2,7 @@
 
   This module defines the options dialogue.
 
-  @Date    01 Jan 2019
+  @Date    05 Jan 2019
   @Version 1.0
   @Author  David Hoyle
 
@@ -27,7 +27,7 @@ Uses
   ComCtrls,
   CheckLst,
   SyncModule,
-  ImgList, System.ImageList;
+  ImgList, System.ImageList, Vcl.ExtCtrls;
 
 Type
   (** An enumerate to describe the Interface fonts that can be modified. **)
@@ -95,6 +95,8 @@ Type
     btnDown: TBitBtn;
     btnCopy: TBitBtn;
     lvFileOpStats: TListView;
+    pnlButtons: TPanel;
+    pnlBottomControls: TPanel;
     Procedure lvFoldersResize(Sender: TObject);
     Procedure btnAddClick(Sender: TObject);
     Procedure btnEditClick(Sender: TObject);
@@ -258,153 +260,6 @@ Uses
   
 {$R *.DFM}
 
-{ TfrmOptions }
-
-(**
-
-  This is the classes main interface method for editing the applications options .
-
-  @precon  None.
-  @postcon Returns true with the updated options in the var variables else returns false if the dialogue
-           is cancelled.
-
-  @param   Folders        as a TFolders as a constant
-  @param   strExclusions  as a String as a reference
-  @param   strCompareEXE  as a String as a reference
-  @param   strINIFileName as a String as a constant
-  @param   InterfaceFonts as a TInterfaceFontInfo as a reference
-  @param   FileOpFonts    as a TFileOperationFontInfo as a reference
-  @param   FldrSyncOps    as a TFldrSyncOptions as a reference
-  @param   strTheme       as a String as a reference
-  @param   FileOpStats    as a TFileOpStats as a reference
-  @return  a Boolean
-
-**)
-Class Function TfrmOptions.Execute(Const Folders: TFolders;
-  Var strExclusions, strCompareEXE: String; Const strINIFileName: String;
-  var InterfaceFonts : TInterfaceFontInfo; var FileOpFonts : TFileOperationFontInfo;
-  Var FldrSyncOps: TFldrSyncOptions; var strTheme : String;
-  var FileOpStats : TFileOpStats): Boolean;
-
-Var
-  i     : TFldrSyncOption;
-  j : TFileOpStat;
-  Item: TListItem;
-
-Begin
-  Result := False;
-  With TfrmOptions.CreateWithRootKey(Nil, strINIFileName) Do
-    Try
-      FInterfaceFonts := InterfaceFonts;
-      FFileOpFonts := FileOpFonts;
-      FFolders.Assign(Folders);
-      PopulateFolderList;
-      lvFoldersResize(Nil);
-      lvFoldersSelectItem(Nil, Nil, False);
-      edtExclusions.Text := strExclusions;
-      edtCompareEXE.Text := strCompareEXE;
-      For i              := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
-        Begin
-          Item := lbxFldrSyncOps.Items.Add;
-          Item.Caption := strFldrSyncOptions[i].FDescription;
-          lbxFldrSyncOps.Items[Integer(i)].Checked := i In FldrSyncOps;
-        End;
-      For j              := Low(TFileOpStat) To High(TFileOpStat) Do
-        Begin
-          Item := lvFileOpStats.Items.Add;
-          Item.Caption := strFileOpStatDesc[j];
-          lvFileOpStats.Items[Integer(j)].Checked := j In FileOpStats;
-        End;
-      If ShowModal = mrOK Then
-        Begin
-          Folders.Assign(FFolders);
-          strExclusions := edtExclusions.Text;
-          strCompareEXE := edtCompareEXE.Text;
-          FldrSyncOps   := [];
-          For i         := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
-            If lbxFldrSyncOps.Items[Integer(i)].Checked Then
-              Include(FldrSyncOps, i);
-          FileOpStats   := [];
-          For j         := Low(TFileOpStat) To High(TFileOpStat) Do
-            If lvFileOpStats.Items[Integer(j)].Checked Then
-              Include(FileOpStats, j);
-          InterfaceFonts := FInterfaceFonts;
-          FileOpFonts := FFileOpFonts;
-          strTheme := cbxThemes.Text;
-          Result := True;
-        End;
-    Finally
-      Free;
-    End;
-End;
-
-(**
-
-  This is an on create event handler for the form.
-
-  @precon  None.
-  @postcon Initialises the Right and Left width properties for the form
-  resizing. Also loads the forms size and position from the registry.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmOptions.FormCreate(Sender: TObject);
-
-Var
-  i : Integer;
-  j : TInterfaceFont;
-  k : TFileOpFont;
-  
-Begin
-  FRightWidth := 1;
-  FLeftWidth  := 1;
-  With TMemIniFile.Create(FINIFileName) Do
-    Try
-      Top    := ReadInteger('Options', 'Top', Top);
-      Left   := ReadInteger('Options', 'Left', Left);
-      Height := ReadInteger('Options', 'Height', Height);
-      Width  := ReadInteger('Options', 'Width', Width);
-    Finally
-      Free;
-    End;
-  FFolders    := TFolders.Create;
-  For i := Low(TStyleManager.StyleNames) To High(TStyleManager.StyleNames) Do
-    cbxThemes.Items.Add(TStyleManager.StyleNames[i]);
-  cbxThemes.ItemIndex := cbxThemes.Items.IndexOf(TStyleManager.ActiveStyle.Name);
-  For j := Low(TInterfaceFont) To High(TinterfaceFont) Do
-    lbxInterfaceFonts.Items.Add(strInterfaceFonts[j]);
-  For k := Low(TFileOpFont) To High(TFileOpFont) Do
-    lbxFileOperationFonts.Items.Add(strFileOperationFonts[k]);
-  pagPages.ActivePageIndex := 0;
-End;
-
-(**
-
-  This method is the forms on Destroy event handler.
-
-  @precon  None.
-  @postcon Saves the forms position and size to the registry.
-
-  @param   Sender as a TObject
-
-**)
-Procedure TfrmOptions.FormDestroy(Sender: TObject);
-
-Begin
-  With TMemIniFile.Create(FINIFileName) Do
-    Try
-      WriteInteger('Options', 'Top', Top);
-      WriteInteger('Options', 'Left', Left);
-      WriteInteger('Options', 'Height', Height);
-      WriteInteger('Options', 'Width', Width);
-      UpdateFile;
-    Finally
-      Free;
-    End;
-  FFolders.Free;
-End;
-
 (**
 
   This is an on click event handler for the Add button.
@@ -476,6 +331,46 @@ Begin
     F.SyncOptions, F.MaxFileSize));
   PopulateFolderList;
   lvFolders.ItemIndex := iIndex;
+End;
+
+(**
+
+  This is an on click event handler for the delete button.
+
+  @precon  None.
+  @postcon Deletes the selected item from the folders list view.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmOptions.btnDeleteClick(Sender: TObject);
+
+Begin
+  FFolders.Delete(lvFolders.ItemIndex);
+  PopulateFolderList;
+End;
+
+(**
+
+  This is an on click event handler for the Down button.
+
+  @precon  None.
+  @postcon Moves the selected folder down the list.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmOptions.btnDownClick(Sender: TObject);
+
+Begin
+  lvFolders.OnChange := Nil;
+  Try
+    FFolders.Exchange(lvFolders.ItemIndex, lvFolders.ItemIndex + 1);
+    lvFolders.ItemIndex := lvFolders.ItemIndex + 1;
+    PopulateFolderList;
+  Finally
+    lvFolders.OnChange := lvFoldersChange;
+  End;
 End;
 
 (**
@@ -631,42 +526,152 @@ End;
 
 (**
 
-  This is an on click event handler for the delete button.
+  This is the classes main interface method for editing the applications options .
 
   @precon  None.
-  @postcon Deletes the selected item from the folders list view.
+  @postcon Returns true with the updated options in the var variables else returns false if the dialogue
+           is cancelled.
 
-  @param   Sender as a TObject
+  @param   Folders        as a TFolders as a constant
+  @param   strExclusions  as a String as a reference
+  @param   strCompareEXE  as a String as a reference
+  @param   strINIFileName as a String as a constant
+  @param   InterfaceFonts as a TInterfaceFontInfo as a reference
+  @param   FileOpFonts    as a TFileOperationFontInfo as a reference
+  @param   FldrSyncOps    as a TFldrSyncOptions as a reference
+  @param   strTheme       as a String as a reference
+  @param   FileOpStats    as a TFileOpStats as a reference
+  @return  a Boolean
 
 **)
-Procedure TfrmOptions.btnDeleteClick(Sender: TObject);
+Class Function TfrmOptions.Execute(Const Folders: TFolders;
+  Var strExclusions, strCompareEXE: String; Const strINIFileName: String;
+  var InterfaceFonts : TInterfaceFontInfo; var FileOpFonts : TFileOperationFontInfo;
+  Var FldrSyncOps: TFldrSyncOptions; var strTheme : String;
+  var FileOpStats : TFileOpStats): Boolean;
+
+Var
+  i     : TFldrSyncOption;
+  j : TFileOpStat;
+  Item: TListItem;
+  F: TfrmOptions;
 
 Begin
-  FFolders.Delete(lvFolders.ItemIndex);
-  PopulateFolderList;
+  Result := False;
+  F := TfrmOptions.CreateWithRootKey(Nil, strINIFileName);
+  Try
+    F.FInterfaceFonts := InterfaceFonts;
+    F.FFileOpFonts := FileOpFonts;
+    F.FFolders.Assign(Folders);
+    F.PopulateFolderList;
+    F.lvFoldersResize(Nil);
+    F.lvFoldersSelectItem(Nil, Nil, False);
+    F.edtExclusions.Text := strExclusions;
+    F.edtCompareEXE.Text := strCompareEXE;
+    For i := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
+      Begin
+        Item := F.lbxFldrSyncOps.Items.Add;
+        Item.Caption := strFldrSyncOptions[i].FDescription;
+        F.lbxFldrSyncOps.Items[Integer(i)].Checked := i In FldrSyncOps;
+      End;
+    For j := Low(TFileOpStat) To High(TFileOpStat) Do
+      Begin
+        Item := F.lvFileOpStats.Items.Add;
+        Item.Caption := strFileOpStatDesc[j];
+        F.lvFileOpStats.Items[Integer(j)].Checked := j In FileOpStats;
+      End;
+    If F.ShowModal = mrOK Then
+      Begin
+        Folders.Assign(F.FFolders);
+        strExclusions := F.edtExclusions.Text;
+        strCompareEXE := F.edtCompareEXE.Text;
+        FldrSyncOps := [];
+        For i := Low(TFldrSyncOption) To High(TFldrSyncOption) Do
+          If F.lbxFldrSyncOps.Items[Integer(i)].Checked Then
+            Include(FldrSyncOps, i);
+        FileOpStats := [];
+        For j := Low(TFileOpStat) To High(TFileOpStat) Do
+          If F.lvFileOpStats.Items[Integer(j)].Checked Then
+            Include(FileOpStats, j);
+        InterfaceFonts := F.FInterfaceFonts;
+        FileOpFonts := F.FFileOpFonts;
+        strTheme := F.cbxThemes.Text;
+        Result := True;
+      End;
+  Finally
+    F.Free;
+  End;
 End;
 
 (**
 
-  This is an on click event handler for the Down button.
+  This is an on create event handler for the form.
 
   @precon  None.
-  @postcon Moves the selected folder down the list.
+  @postcon Initialises the Right and Left width properties for the form
+  resizing. Also loads the forms size and position from the registry.
 
   @param   Sender as a TObject
 
 **)
-Procedure TfrmOptions.btnDownClick(Sender: TObject);
+Procedure TfrmOptions.FormCreate(Sender: TObject);
+
+Var
+  i : Integer;
+  j : TInterfaceFont;
+  k : TFileOpFont;
+  iniFile: TMemIniFile;
+  
+Begin
+  FRightWidth := 1;
+  FLeftWidth  := 1;
+  iniFile := TMemIniFile.Create(FINIFileName);
+  Try
+    Top    := iniFile.ReadInteger('Options', 'Top', Top);
+    Left   := iniFile.ReadInteger('Options', 'Left', Left);
+    Height := iniFile.ReadInteger('Options', 'Height', Height);
+    Width  := iniFile.ReadInteger('Options', 'Width', Width);
+  Finally
+    iniFile.Free;
+  End;
+  FFolders    := TFolders.Create;
+  For i := Low(TStyleManager.StyleNames) To High(TStyleManager.StyleNames) Do
+    cbxThemes.Items.Add(TStyleManager.StyleNames[i]);
+  cbxThemes.ItemIndex := cbxThemes.Items.IndexOf(TStyleManager.ActiveStyle.Name);
+  For j := Low(TInterfaceFont) To High(TinterfaceFont) Do
+    lbxInterfaceFonts.Items.Add(strInterfaceFonts[j]);
+  For k := Low(TFileOpFont) To High(TFileOpFont) Do
+    lbxFileOperationFonts.Items.Add(strFileOperationFonts[k]);
+  pagPages.ActivePageIndex := 0;
+End;
+
+(**
+
+  This method is the forms on Destroy event handler.
+
+  @precon  None.
+  @postcon Saves the forms position and size to the registry.
+
+  @param   Sender as a TObject
+
+**)
+Procedure TfrmOptions.FormDestroy(Sender: TObject);
+
+Var
+  iniFile: TMemIniFile;
 
 Begin
-  lvFolders.OnChange := Nil;
+  iniFile := TMemIniFile.Create(FINIFileName);
   Try
-    FFolders.Exchange(lvFolders.ItemIndex, lvFolders.ItemIndex + 1);
-    lvFolders.ItemIndex := lvFolders.ItemIndex + 1;
-    PopulateFolderList;
+    iniFile.WriteInteger('Options', 'Top', Top);
+    iniFile.WriteInteger('Options', 'Left', Left);
+    iniFile.WriteInteger('Options', 'Height', Height);
+    iniFile.WriteInteger('Options', 'Width', Width);
+    iniFile.UpdateFile;
   Finally
-    lvFolders.OnChange := lvFoldersChange;
+    iniFile.Free;
   End;
+  FFolders.Free;
 End;
 
 (**
