@@ -5,21 +5,22 @@ Author:   David Hoyle
 
 Version:  2.0
 
-Date:     02 Jan 2019
+Date:     05 Jan 2019
 
 Web Page: [TBC](http://www.davidghoyle.co.uk/WordPress/)
 
 ## Overview
 
-.
+This is a fairly old application. It contains both GUI and commandline application to synchronise the
+files between 2 directories.
 
 ## Use
 
-.
+Please refer to the included HTML Help file.
 
 ## Current Limitations
 
-.
+The copy process does not perform any verification process (windows FileCopyEx is used).
 
 ## Binaries
 
