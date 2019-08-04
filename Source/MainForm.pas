@@ -4,7 +4,7 @@
   This form provide the display of differences between two folders.
 
   @Version 2.0
-  @Date    05 Jan 2019
+  @Date    04 Aug 2019
   @Author  David Hoyle
 
   @nocheck HardCodedInteger HardCodedString HardCodedNumber
@@ -2328,6 +2328,7 @@ Begin
             ComOps.iSyncOptions,
             ComOps.iMaxFileSize
           ));
+        FExclusions := ComOps.strExclusions;
         If clsDeletePermentently In ComOps.iCommandLineOptions Then
           Include(FFldrSyncOptions, fsoPermanentlyDeleteFiles)
         Else
