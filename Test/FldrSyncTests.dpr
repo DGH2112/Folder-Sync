@@ -7,13 +7,13 @@ uses
   {$IFDEF EurekaLog}
   EMemLeaks,
   EResLeaks,
-  ESendMailMAPI,
-  ESendMailSMAPI,
-  EDialogConsole,
   EDebugExports,
   EDebugJCL,
   EMapWin32,
   EAppConsole,
+  EDialogConsole,
+  ESendMailMAPI,
+  ESendMailSMAPI,
   ExceptionLog7,
   {$ENDIF EurekaLog}
   TestInsight.DUnit,
@@ -28,3 +28,4 @@ uses
 begin
   RunRegisteredTests;
 end.
+

@@ -1,7 +1,6 @@
 ﻿
 [Exception Log]
 EurekaLog Version=8000
-_CustomProfile=""
 Activate=1
 atConsole=1
 atWin32=1
@@ -56,14 +55,14 @@ mtMSDialog_SendButtonCaption="Send Error Report"
 mtMSDialog_TerminateCaption="Terminate application."
 mtReproduceDialog_Caption="Request"
 mtReproduceDialog_OKButtonCaption="OK"
-mtSend_BugClosedMsg="These BUG is just closed.\r\nContact the program support to obtain an update."
-mtSend_FailureMsg="Sorry, sending the message didn't work."
-mtSend_SuccessMsg="The message was sent successfully."
 mtSendDialog_Caption="Send."
 mtSendDialog_Connected="Connected with server."
 mtSendDialog_Connecting="Connecting with server..."
 mtSendDialog_Login="Login..."
 mtSendDialog_SelectProject="Select project..."
+mtSend_BugClosedMsg="These BUG is just closed.\r\nContact the program support to obtain an update."
+mtSend_FailureMsg="Sorry, sending the message didn't work."
+mtSend_SuccessMsg="The message was sent successfully."
 Output Path=""
 ProjectID="{BFCB3413-947F-4ADA-82DE-D66FFC4E7EEB}"
 Save Log File=0
@@ -102,7 +101,6 @@ soActCtlsControlClass=1
 soActCtlsControlText=1
 soActCtlsFormClass=1
 soActCtlsFormText=1
-soCmpDisplayDPI=1
 soCmpDisplayMode=1
 soCmpFreeDisk=1
 soCmpFreeMemory=1
@@ -130,4 +128,5 @@ soUserCompany=1
 soUserID=1
 soUserPrivileges=1
 TextsCollection=""
+_CustomProfile=""
 

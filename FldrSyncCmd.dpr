@@ -2,9 +2,9 @@
 
   This module contains a command line application to synchronsise 2 folders files.
 
-  @Version 2.0
+  @Version 2.335
   @Author  David Hoyle
-  @Date    02 Jan 2019
+  @Date    29 Apr 2021
 
 **)
 Program FldrSyncCmd;
@@ -19,13 +19,13 @@ uses
   {$IFDEF EurekaLog}
   EMemLeaks,
   EResLeaks,
-  ESendMailMAPI,
-  ESendMailSMAPI,
-  EDialogConsole,
   EDebugExports,
   EDebugJCL,
   EMapWin32,
   EAppConsole,
+  EDialogConsole,
+  ESendMailMAPI,
+  ESendMailSMAPI,
   ExceptionLog7,
   {$ENDIF EurekaLog}
   EExceptionManager,
@@ -68,3 +68,4 @@ Begin
       ReadLn;
     End;
 End.
+

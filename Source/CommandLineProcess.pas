@@ -3,9 +3,9 @@
   This module contains a class for processing the command line and synchronising the
   files associated with the information.
 
-  @Version 2.0
+  @Version 2.009
   @Author  David Hoyle
-  @Date    02 Jan 2019
+  @Date    29 Apr 2021
 
   @nocheck HardCodedInteger HardCodedNumber HardCodedString
 
@@ -23,7 +23,7 @@ Uses
   FldrSync.Console;
 
 Type
-  (** An arrray of Ansi Characters - used for console input selection. **)
+  (** An array of ANSI Characters - used for console input selection. **)
   TCharArray = Set Of AnsiChar;
 
   (** A class to process the command line information and synchronise files. **)
@@ -138,7 +138,7 @@ Type
 
 
 Const
-  (** This is a tempate for the output of an exception message. **)
+  (** This is a template for the output of an exception message. **)
   strExpMsg = #13#10 +
     'An exception has occurred in the application!'#13#10#13#10 +
     'Class  : %s'#13#10 +
@@ -186,7 +186,7 @@ End;
   prompts the user as to whether they wish to terminate the process.
 
   @precon  None.
-  @postcon If Esacape is pressed the user is prompted to stop the processing.
+  @postcon If Escape is pressed the user is prompted to stop the processing.
 
 **)
 Procedure TCommandLineProcessing.CheckForEscape;
@@ -339,7 +339,7 @@ End;
   This method is called during the comparison process for each file.
 
   @precon  None.
-  @postcon Outputs the percetnage completion of the comparison process.
+  @postcon Outputs the percentage completion of the comparison process.
 
   @nohint  strLeftFldr strRightFldr
 
@@ -384,7 +384,7 @@ End;
 
 (**
 
-  This method is called at the end of each file is Ccpied.
+  This method is called at the end of each file is Copied.
 
   @precon  None.
   @postcon Outputs the percentage completion of the overall copying process.
@@ -599,7 +599,7 @@ End;
 
 (**
 
-  This method is called for each readonly file that requires to be overwritten.
+  This method is called for each read-only file that requires to be overwritten.
 
   @precon  None.
   @postcon Queries the user for the action to be taken
@@ -848,7 +848,7 @@ End;
 
 (**
 
-  This method is called for each readonly file that requires deletion.
+  This method is called for each read-only file that requires deletion.
 
   @precon  None.
   @postcon Queries the user for action.
@@ -868,7 +868,7 @@ End;
 
 (**
 
-  This is an OnDeleteStart event handler for the synchronisation process.
+  This is an On Delete Start event handler for the synchronisation process.
 
   @precon  None.
   @postcon Displays the number of files to be deleted.
@@ -990,7 +990,7 @@ End;
   This method is called at the start of the size difference processing.
 
   @precon  None.
-  @postcon Outputs the number of files which have a siuze difference only.
+  @postcon Outputs the number of files which have a size difference only.
 
   @param   iFileCount as an Integer as a constant
 
@@ -1070,7 +1070,7 @@ End;
 
 (**
 
-  This is an on error message start event handler for the outputting of error messaeges from the deleting
+  This is an on error message start event handler for the outputting of error messages from the deleting
   and copying process.
 
   @precon  None.
@@ -1117,7 +1117,7 @@ End;
 
 (**
 
-  This is an on Exceeds Size Limirt End Event handler.
+  This is an on Exceeds Size Limit End Event handler.
 
   @precon  None.
   @postcon Does nothing.
@@ -1151,7 +1151,7 @@ End;
 
 (**
 
-  This is an on exception handler for the BuildRootKey method.
+  This is an on exception handler for the Build Root Key method.
 
   @precon  None.
   @postcon Outputs an exception message to the console.
@@ -1169,7 +1169,7 @@ End;
 
   This method starts the processing of the information from the command line.
 
-  @precon  iSrd and iErr must be valid console handles for Standard and Error.
+  @precon  None.
   @postcon Starts the processing of the information from the command line.
 
 **)
@@ -1298,7 +1298,7 @@ End;
   file.
 
   @precon  None.
-  @postcon Prompts the user for action is the var parameter is not set to faAll.
+  @postcon Prompts the user for action if the var parameter is not set to All.
 
   @nohint  strFilePath DeleteFile
 
@@ -1548,10 +1548,10 @@ End;
 
 (**
 
-  This method outputs a consistent file number / totel number format to the console.
+  This method outputs a consistent file number / total number format to the console.
 
   @precon  None.
-  @postcon Outputs a consistent file number / totel number format to the console.
+  @postcon Outputs a consistent file number / total number format to the console.
 
   @param   iCurrentFile as an Integer as a constant
   @param   iTotal       as an Integer as a constant
@@ -1644,10 +1644,10 @@ End;
 
 (**
 
-  This method outputs an excpetion message to the console along with its call stack.
+  This method outputs an exception message to the console along with its call stack.
 
   @precon  None.
-  @postcon An expcetion message and call stack are output to the console.
+  @postcon An exception message and call stack are output to the console.
 
   @param   E as an Exception as a constant
 
@@ -1733,7 +1733,7 @@ End;
 
 (**
 
-  This methid is called for each file found in the search.
+  This method is called for each file found in the search.
 
   @precon  None.
   @postcon Outputs periodically the number and name of the file found.

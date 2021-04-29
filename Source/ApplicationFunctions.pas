@@ -1,11 +1,11 @@
 (**
 
-  This module contains global functions to be used througthout the various versions of
+  This module contains global functions to be used throughout the various versions of
   the folder sync application.
 
   @Author  David Hoyle
-  @Version 1.0
-  @Date    11 Mar 2016
+  @Version 1.029
+  @Date    29 Apr 2021
 
 **)
 Unit ApplicationFunctions;
@@ -32,7 +32,7 @@ Type
   (** This is a set of the above command line option switches. **)
   TCommandLineOptions = Set Of TCommandLineOption;
 
-  (** A record to describe the attributes that ned to be configured on the command
+  (** A record to describe the attributes that need to be configured on the command
       line. **)
   TCommandLineOptionsRec = Record
     iCommandLineOptions : TCommandLineOptions;
@@ -269,18 +269,20 @@ Begin
           Else
             Raise EFldrSyncException.CreateFmt('Invalid command line option "%s".',
               [slParams[i]]);
-        End
-      Else
+        End Else
         Begin
           If ComOps.strSourceFldr = '' Then
             Begin
               ComOps.strFilePatterns := ExtractFileName(slParams[i]);
               ComOps.strSourceFldr   := ExtractFilePath(slParams[i]);
-            End
-          Else
-            ComOps.strDestFldr := ExtractFilePath(slParams[i]);
+            End Else
+              ComOps.strDestFldr := ExtractFilePath(slParams[i]);
         End;
-    End;
+          End;
+  If ComOps.strSourceFldr.Length = 0 Then
+    Include(ComOps.iCommandLineOptions, cloHelp);
+  If ComOps.strDestFldr.Length = 0 Then
+    Include(ComOps.iCommandLineOptions, cloHelp);
 End;
 
 End.
